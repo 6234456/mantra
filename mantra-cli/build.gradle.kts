@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":mantra-render"))
     implementation(project(":mantra-excel"))
     implementation(project(":mantra-workbench"))
+    implementation(project(":mantra-server"))
 }
 
 application {

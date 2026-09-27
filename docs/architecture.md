@@ -45,6 +45,10 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 
 ## 3. 分层架构
 
+工作台的只读入口现由 `mantra-workbench` 从工作区文档构建 Structure、Run、Paper、Diagnostics，
+`mantra-server` 将其暴露在回环地址的 HTTP 接口并可托管前端构建产物。
+服务每次从文档重建结果，不持有独立的计算事实；编辑、Explain 和 SSE 属于后续工作包。
+
 ```text
 应用 schema + 用户 case
           │

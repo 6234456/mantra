@@ -6,6 +6,7 @@ include(":mantra-render")
 include(":mantra-excel")
 include(":mantra-cli")
 include(":mantra-workbench")
+include(":mantra-server")
 
 // Acceptance examples: domain schemas that exercise the engine. Not part of the library;
 // they are candidates for separate domain applications in a later monorepo.
