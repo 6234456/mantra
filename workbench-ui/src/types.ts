@@ -38,9 +38,10 @@ export type EditOperation =
   | { op: 'deleteRow'; table: string; index: number }
   | { op: 'moveRow'; table: string; from: number; to: number }
   | { op: 'removeSource'; index: number }
-export interface SourceBinding { index: number; kind: 'csv' | 'json' | 'xlsx'; path: string; options: Record<string, unknown> }
+export interface SourceBinding { index: number; kind: 'csv' | 'json' | 'xlsx'; path: string; options: Record<string, unknown>; overridden?: string[] }
 export interface Sources { sources: SourceBinding[] }
-export interface ImportInspection { name: string; format: 'csv' | 'json' | 'xlsx'; columns: Array<{ name: string; sample: string[] }>; rowCount: number; delimiter?: string }
+export interface ImportInspection { name: string; format: 'csv' | 'json' | 'xlsx'; columns: Array<{ name: string; sample: string[] }>; rowCount: number; delimiter?: string; decimal?: string; grouping?: string; numericAmbiguous?: boolean }
+export interface ImportTemplate { name: string; format: 'csv' | 'json' | 'xlsx'; options: Record<string, unknown> }
 export interface EditResult { document: string; preview: boolean; proposedRevision: string; diagnostics: Diagnostic[]; run: Run; difference: Compare }
 export interface Diagnostics { diagnostics: Diagnostic[] }
 export interface Workspace { cases: CaseSummary[]; parameters?: Array<{ id: string; path: string }>; layouts?: Array<{ id: string; path: string }> }

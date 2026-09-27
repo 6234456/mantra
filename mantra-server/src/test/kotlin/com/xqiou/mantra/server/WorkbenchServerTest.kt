@@ -606,10 +606,13 @@ class WorkbenchServerTest {
 
     @Test fun `missing source binding reports a diagnostic without calculating`() {
         val root = workspace()
+        val ui = temp.resolve("repair-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body></body></html>")
         Files.writeString(root.resolve("sample/case.mantra"), """
             (case one {:schema "test/example"} (sources (csv {:path "imports/data.csv"})) (inputs {:amount 12.5}))
         """.trimIndent())
-        WorkbenchServer(root, 0).use { server ->
+        WorkbenchServer(root, 0, ui).use { server ->
             server.start()
             val workspace = request(server.localPort, "/api/v1/workspace")
             assertEquals(200, workspace.status, workspace.body)
@@ -617,6 +620,17 @@ class WorkbenchServerTest {
             val run = request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/run")
             assertEquals(422, run.status)
             assertContains(run.body, "MANTRA-CASE-SOURCE")
+            val sources = request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/sources")
+            assertEquals(200, sources.status, sources.body)
+            assertContains(sources.body, "imports/data.csv")
+            val revision = ObjectMapper().readTree(sources.body)["revision"].asText()
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(server.localPort, "/").body)!!.groupValues[1]
+            val repair = request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/sources/remove", "POST",
+                headers = mapOf("X-Mantra-Token" to token), body = """{"baseRevision":"$revision","index":0}""".toByteArray())
+            assertEquals(200, repair.status, repair.body)
+            assertContains(repair.body, "\"sources\":[]")
+            assertEquals(200, request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/run").status)
         }
     }
 
@@ -634,6 +648,12 @@ class WorkbenchServerTest {
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(index.body)!!.groupValues[1]
             val headers = mapOf("X-Mantra-Token" to token)
+            val templateBody = """{"name":"payroll","format":"csv","options":{"mode":"wide","member-column":"Person","columns":{"Wage":"amount"}}}"""
+            val template = request(port, "/api/v1/import-templates", "POST", headers = headers, body = templateBody.toByteArray())
+            assertEquals(200, template.status, template.body)
+            assertContains(Files.readString(root.resolve("import-templates/payroll.json")), "\"member-column\":\"Person\"")
+            assertEquals(409, request(port, "/api/v1/import-templates", "POST", headers = headers, body = templateBody.toByteArray()).status)
+            assertContains(request(port, "/api/v1/import-templates").body, "\"name\":\"payroll\"")
             val route = "/api/v1/cases/sample%2Fcase.mantra/imports/"
             val revision = ObjectMapper().readTree(request(port,
                 "/api/v1/cases/sample%2Fcase.mantra/structure").body)["revision"].asText()
@@ -644,6 +664,11 @@ class WorkbenchServerTest {
             assertEquals(200, preview.status, preview.body)
             assertContains(preview.body, "\"rowCount\":1")
             assertEquals("(case one {:schema \"test/example\"})", Files.readString(caseFile))
+            val invalidApply = """{"name":"data.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{"mode":"wide","member-column":"missing","columns":{"value":"amount"}}}"""
+            val rejected = request(port, route + "apply", "POST", headers = headers, body = invalidApply.toByteArray())
+            assertEquals(422, rejected.status, rejected.body)
+            assertEquals("(case one {:schema \"test/example\"})", Files.readString(caseFile))
+            assertTrue(Files.list(root.resolve("sample/imports")).use { it.findAny().isEmpty })
             val apply = """{"name":"data.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{}}"""
             val saved = request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray())
             assertEquals(200, saved.status, saved.body)
@@ -655,6 +680,33 @@ class WorkbenchServerTest {
             assertEquals(409, request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray()).status)
             assertEquals(400, request(port, route + "inspect", "POST", headers = headers,
                 body = inspect.replace(content, "not base64").toByteArray()).status)
+        }
+    }
+
+    @Test fun `dot decimal CSV import keeps the decimal point`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/case.mantra"), "(case one {:schema \"test/example\"})")
+        val ui = temp.resolve("decimal-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body></body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val route = "/api/v1/cases/sample%2Fcase.mantra/imports/"
+            val revision = ObjectMapper().readTree(request(port,
+                "/api/v1/cases/sample%2Fcase.mantra/structure").body)["revision"].asText()
+            val content = Base64.getEncoder().encodeToString("input,value\namount,0.12345\n".toByteArray())
+            val inspect = request(port, route + "inspect", "POST", headers = mapOf("X-Mantra-Token" to token),
+                body = """{"name":"english.csv","format":"csv","contentBase64":"$content"}""".toByteArray())
+            assertEquals(200, inspect.status, inspect.body)
+            assertContains(inspect.body, "\"decimal\":\".\"")
+            val apply = """{"name":"english.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{"delimiter":",","decimal":".","grouping":","}}"""
+            assertEquals(200, request(port, route + "apply", "POST", headers = mapOf("X-Mantra-Token" to token), body = apply.toByteArray()).status)
+            val run = request(port, "/api/v1/cases/sample%2Fcase.mantra/run")
+            assertContains(run.body, "\"n\":\"0.12345\"")
+            assertFalse(run.body.contains("\"n\":\"12345\""))
         }
     }
 }

@@ -18,6 +18,9 @@ object ImportFiles {
         val columns: List<Map<String, Any?>>
         val rowCount: Int
         var delimiter: String? = null
+        var decimal: String? = null
+        var grouping: String? = null
+        var numericAmbiguous = false
         try {
             when (format) {
                 "csv" -> {
@@ -29,6 +32,30 @@ object ImportFiles {
                     if (rows.isEmpty() || rows.first().all(String::isBlank))
                         throw WorkspaceException(WorkspaceProblem.INVALID, "CSV header is required")
                     rowCount = rows.drop(1).count { row -> row.any(String::isNotBlank) }
+                    val numberSamples = rows.drop(1).take(50).flatMap { it }.map(String::trim)
+                    var dot = 0
+                    var comma = 0
+                    var uncertain = 0
+                    numberSamples.forEach { sample ->
+                        val match = Regex("""^-?(\d+)([.,])(\d+)$""").matchEntire(sample)
+                        when {
+                            sample.contains('.') && sample.contains(',') ->
+                                if (sample.lastIndexOf('.') > sample.lastIndexOf(',')) dot++ else comma++
+                            match != null -> {
+                                val whole = match.groupValues[1]
+                                val mark = match.groupValues[2]
+                                val fraction = match.groupValues[3]
+                                // 1.234 / 1,234 can be either a decimal or a grouped integer.
+                                if (fraction.length == 3 && whole != "0" && whole.length <= 3 && mark != separator.toString()) uncertain++
+                                else if (mark == ".") dot++ else comma++
+                            }
+                        }
+                    }
+                    numericAmbiguous = uncertain > 0 && dot == 0 && comma == 0
+                    if (!numericAmbiguous) {
+                        decimal = if (dot > comma) "." else ","
+                        grouping = if (decimal == ".") "," else "."
+                    }
                     columns = rows.first().mapIndexed { index, header ->
                         mapOf("name" to header.trim(), "sample" to rows.drop(1).take(3).map { it.getOrElse(index) { "" } })
                     }
@@ -54,6 +81,11 @@ object ImportFiles {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Import file could not be read")
         }
         return linkedMapOf("name" to name, "format" to format, "columns" to columns,
-            "rowCount" to rowCount).apply { if (delimiter != null) put("delimiter", delimiter) }
+            "rowCount" to rowCount).apply {
+                if (delimiter != null) put("delimiter", delimiter)
+                if (decimal != null) put("decimal", decimal)
+                if (grouping != null) put("grouping", grouping)
+                if (numericAmbiguous) put("numericAmbiguous", true)
+            }
     }
 }

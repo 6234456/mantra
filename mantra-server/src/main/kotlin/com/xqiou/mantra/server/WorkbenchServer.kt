@@ -120,6 +120,15 @@ class WorkbenchServer(
 
     private fun api(exchange: HttpExchange, rawPath: String, method: String, body: ByteArray) {
         if (rawPath == "/api/v1/workspace" && method == "GET") return json(exchange, 200, catalog.envelope(catalog.workspace()))
+        if (rawPath == "/api/v1/import-templates") {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            if (method == "GET") return json(exchange, 200, catalog.envelope(catalog.importTemplates()))
+            if (method == "POST") {
+                val template = parseTemplate(body)
+                return json(exchange, 200, catalog.envelope(catalog.saveImportTemplate(template.first, template.second, template.third)))
+            }
+        }
         if (rawPath == "/api/v1/events" && method == "GET") {
             if (exchange.requestURI.rawQuery != null)
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
@@ -129,6 +138,17 @@ class WorkbenchServer(
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
         val document = match.groupValues[2]
+        if (method == "POST" && document == "sources/remove") {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val root = try { requestJson.readTree(body) } catch (_: Exception) { null }
+            if (root == null || !root.isObject || root.fieldNames().asSequence().toSet() != setOf("baseRevision", "index") ||
+                !root["baseRevision"].isTextual || !Regex("[0-9a-f]{16}").matches(root["baseRevision"].textValue()) ||
+                !root["index"].isInt)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Invalid source removal request")
+            return json(exchange, 200, catalog.envelope(catalog.removeSource(caseId,
+                root["baseRevision"].textValue(), root["index"].intValue())))
+        }
         if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics", "parameters", "sources")) {
             val query = query(exchange.requestURI.rawQuery)
             if (query.keys.any { it !in setOf("panel", "layout") } || (document != "paper" && query.isNotEmpty()))
@@ -318,6 +338,37 @@ class WorkbenchServer(
     private data class ImportRequest(val name: String, val format: String, val content: ByteArray,
                                      val revision: String?, val options: Map<String, Value>)
 
+    private fun sourceOptions(encoded: JsonNode?): Map<String, Value> {
+        fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val options = encoded?.takeIf(JsonNode::isObject) ?: bad("options must be an object")
+        if (options.size() > 64) bad("Too many source options")
+        return options.fields().asSequence().associate { (key, value) ->
+            if (!Regex("[A-Za-z][A-Za-z0-9_-]*").matches(key)) bad("Invalid source option")
+            key to when {
+                value.isTextual -> Value.Text(value.textValue())
+                value.isObject && value.size() <= 256 -> Value.MapV(LinkedHashMap<Value, Value>().apply {
+                    value.fields().forEach { (from, to) ->
+                        if (!to.isTextual) bad("Source mapping values must be text")
+                        put(Value.Text(from), Value.Text(to.textValue()))
+                    }
+                })
+                else -> bad("Source options must be text or text mappings")
+            }
+        }
+    }
+
+    private fun parseTemplate(body: ByteArray): Triple<String, String, Map<String, Value>> {
+        fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val root = try { requestJson.readTree(body) ?: bad("Template body is required") }
+            catch (error: WorkspaceException) { throw error }
+            catch (_: Exception) { bad("Malformed template JSON") }
+        if (!root.isObject || root.fieldNames().asSequence().toSet() != setOf("name", "format", "options"))
+            bad("Unexpected template fields")
+        val name = root["name"]?.takeIf(JsonNode::isTextual)?.textValue() ?: bad("Template name must be text")
+        val format = root["format"]?.takeIf(JsonNode::isTextual)?.textValue() ?: bad("Template format must be text")
+        return Triple(name, format, sourceOptions(root["options"]))
+    }
+
     private fun parseImport(body: ByteArray, apply: Boolean): ImportRequest {
         fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
         val root = try { requestJson.readTree(body) ?: bad("Import body is required") }
@@ -336,23 +387,7 @@ class WorkbenchServer(
         if (content.size > ImportFiles.MAX_BYTES) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import file exceeds 10 MiB")
         val revision = if (apply) string("baseRevision").takeIf { Regex("[0-9a-f]{16}").matches(it) }
             ?: bad("baseRevision must be 16 hexadecimal characters") else null
-        val options = if (apply) {
-            val encoded = root["options"]?.takeIf(JsonNode::isObject) ?: bad("options must be an object")
-            if (encoded.size() > 64) bad("Too many source options")
-            encoded.fields().asSequence().associate { (key, value) ->
-                if (!Regex("[A-Za-z][A-Za-z0-9_-]*").matches(key)) bad("Invalid source option")
-                key to when {
-                    value.isTextual -> Value.Text(value.textValue())
-                    value.isObject && value.size() <= 256 -> Value.MapV(LinkedHashMap<Value, Value>().apply {
-                        value.fields().forEach { (from, to) ->
-                            if (!to.isTextual) bad("Source mapping values must be text")
-                            put(Value.Text(from), Value.Text(to.textValue()))
-                        }
-                    })
-                    else -> bad("Source options must be text or text mappings")
-                }
-            }
-        } else emptyMap()
+        val options = if (apply) sourceOptions(root["options"]) else emptyMap()
         return ImportRequest(name, format, content, revision, options)
     }
 

@@ -17,10 +17,10 @@ import java.nio.file.Path
 
 /** Replays a case's source declarations and keeps source files in its revision set. */
 object BoundSources {
-    data class Loaded(val case: CaseData, val files: List<Path>)
+    data class Loaded(val case: CaseData, val files: List<Path>, val overridden: List<List<String>>)
 
     fun load(case: CaseData, schema: Schema, caseFile: Path, workspaceRoot: Path): Loaded {
-        if (case.sources.isEmpty()) return Loaded(case, emptyList())
+        if (case.sources.isEmpty()) return Loaded(case, emptyList(), emptyList())
         val root = workspaceRoot.toRealPath()
         val base = caseFile.toRealPath().parent
         val files = case.sources.map { binding ->
@@ -35,12 +35,13 @@ object BoundSources {
         }
         if (files.distinct().size != files.size) invalid(case.sources.first(), "The same source file is bound more than once")
         val sink = DiagnosticSink()
+        val readValues = linkedMapOf<Path, Map<String, Value>>()
         val sources = case.sources.zip(files).map { (binding, file) ->
             val source = create(binding, file)
             object : DataSource {
                 override val description = source.description
                 override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> = try {
-                    source.read(schema, sink)
+                    source.read(schema, sink).also { readValues[file] = it }
                 } catch (error: Exception) {
                     sink.error("MANTRA-DATA-SOURCE", "${file.fileName}: ${error.message}", binding.location)
                     emptyMap()
@@ -49,7 +50,20 @@ object BoundSources {
         }
         val effective = DataSources.apply(case, schema, sources, sink)
         if (sink.hasErrors) throw WorkspaceException(WorkspaceProblem.INVALID, "Data source could not be read", sink.all)
-        return Loaded(effective, files)
+        fun coordinates(value: Value, prefix: String = ""): Set<String> = when (value) {
+            is Value.MapV -> value.entries.flatMap { (key, child) ->
+                val member = (key as? Value.Kw)?.name ?: (key as? Value.Text)?.value ?: return@flatMap emptyList()
+                coordinates(child, if (prefix.isEmpty()) member else "$prefix/$member")
+            }.toSet()
+            else -> setOf(prefix)
+        }
+        val overridden = files.map { file ->
+            readValues[file].orEmpty().flatMap { (id, value) ->
+                val manual = case.inputs[id] ?: return@flatMap emptyList()
+                (coordinates(value) intersect coordinates(manual)).map { coord -> if (coord.isEmpty()) id else "$id@$coord" }
+            }.sorted()
+        }
+        return Loaded(effective, files, overridden)
     }
 
     private fun invalid(binding: SourceBinding, message: String): Nothing = throw WorkspaceException(
@@ -75,7 +89,11 @@ object BoundSources {
             invalid(binding, "Source :$key must be one character") else default
         return when (binding.kind) {
             "csv" -> CsvSource(file, input = string("input"), delimiter = character("delimiter", ';'),
-                decimal = character("decimal", ','), grouping = string("grouping")?.singleOrNull() ?: '.',
+                decimal = character("decimal", ','), grouping = when (val selected = string("grouping")) {
+                    null -> '.'
+                    "" -> null
+                    else -> selected.singleOrNull() ?: invalid(binding, "Source :grouping must be one character or empty")
+                }.also { if (it == character("decimal", ',')) invalid(binding, "Decimal and grouping separators must differ") },
                 columns = mapping("columns"), mode = string("mode") ?: "pairs", memberColumn = string("member-column"))
             "json" -> JsonSource(file, root = string("root"), mapping = mapping("mapping"))
             "xlsx" -> XlsxSource(file)

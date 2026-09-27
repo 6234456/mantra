@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
+import com.xqiou.mantra.core.data.Json
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Value
@@ -78,14 +79,51 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     data class DocumentResult(val revision: String, val data: Map<String, Any?>)
 
     fun sources(caseId: String): DocumentResult {
-        val snapshot = scan()
-        val resolved = resolve(caseId, snapshot)
-        val case = loadCase(path(caseId))
-        return DocumentResult(resolved.revision, linkedMapOf("sources" to case.sources.mapIndexed { index, binding ->
+        val file = path(caseId)
+        val case = loadCase(file)
+        val overridden = runCatching { resolve(caseId, scan()).sourceOverrides }.getOrNull().orEmpty()
+        return DocumentResult(sourceRevision(file, case), linkedMapOf("sources" to case.sources.mapIndexed { index, binding ->
             linkedMapOf("index" to index, "kind" to binding.kind,
                 "path" to (binding.options["path"] as? Value.Text)?.value,
+                "overridden" to overridden.getOrNull(index).orEmpty(),
                 "options" to binding.options.mapValues { (_, value) -> WorkbenchJson.value(value) })
         }))
+    }
+
+    /** A broken source must remain removable without evaluating that same broken source first. */
+    fun removeSource(caseId: String, baseRevision: String, index: Int): DocumentResult {
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val file = path(caseId)
+            val original = source(file).text
+            val case = loadCase(file)
+            val current = sourceRevision(file, case)
+            checkRevision(baseRevision, current)
+            val candidate = try { CaseTextEditor.apply(original, listOf(CaseTextEditor.Operation.RemoveSource(index))) }
+                catch (error: IllegalArgumentException) { throw WorkspaceException(WorkspaceProblem.REQUEST, error.message ?: "Invalid source index") }
+                catch (error: IllegalStateException) { throw WorkspaceException(WorkspaceProblem.REQUEST, error.message ?: "Invalid source index") }
+            if (candidate != original) {
+                try { Mantra.loadCase(SourceText(caseId, candidate, file.parent.toString())) }
+                catch (error: MantraException) { throw WorkspaceException(WorkspaceProblem.INVALID, "Case document is invalid", error.diagnostics) }
+                writeCase(caseId, file, candidate, original, current) {
+                    runCatching { sourceRevision(file, loadCase(file)) }.getOrNull()
+                }
+                history.undo.addLast(original)
+                while (history.undo.size > 50) history.undo.removeFirst()
+                history.redo.clear()
+            }
+            sources(caseId)
+        }
+    }
+
+    private fun sourceRevision(file: Path, case: CaseData): String {
+        val bound = case.sources.mapNotNull { binding ->
+            val name = (binding.options["path"] as? Value.Text)?.value ?: return@mapNotNull null
+            val candidate = file.parent.resolve(name).toAbsolutePath().normalize()
+            candidate.takeIf { it.startsWith(root) && Files.isRegularFile(it) && Files.size(it) <= ImportFiles.MAX_BYTES &&
+                it.toRealPath().startsWith(root) }
+        }
+        return revision(listOf(file) + bound)
     }
 
     fun importApply(caseId: String, baseRevision: String, name: String, format: String,
@@ -121,6 +159,59 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 throw error
             }
         }
+    }
+
+    fun importTemplates(): DocumentResult {
+        val directory = root.resolve("import-templates")
+        if (!Files.exists(directory)) return DocumentResult(workspaceStamp().revision, mapOf("templates" to emptyList<Any>()))
+        if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS))
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Import template directory is invalid")
+        val files = Files.list(directory).use { stream -> stream.filter { it.fileName.toString().endsWith(".json") }
+            .sorted().limit(129).toList() }
+        if (files.size > 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+        val templates = files.map { file ->
+            if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) || Files.size(file) > 65_536)
+                throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            val entry = try { Json.parse(Files.readString(file)) as? Value.MapV } catch (_: Exception) { null }
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            val fields = entry.entries
+            val name = (fields[Value.Kw("name")] as? Value.Text)?.value
+            val format = (fields[Value.Kw("format")] as? Value.Text)?.value
+            val options = fields[Value.Kw("options")] as? Value.MapV
+            if (name == null || format !in setOf("csv", "json", "xlsx") || options == null)
+                throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            mapOf("name" to name, "format" to format, "options" to plain(options))
+        }
+        return DocumentResult(workspaceStamp().revision, mapOf("templates" to templates))
+    }
+
+    fun saveImportTemplate(name: String, format: String, options: Map<String, Value>): DocumentResult {
+        if (!Regex("[A-Za-z0-9][A-Za-z0-9_-]{0,79}").matches(name) || format !in setOf("csv", "json", "xlsx") || "path" in options)
+            throw WorkspaceException(WorkspaceProblem.REQUEST, "Invalid import template")
+        val directory = root.resolve("import-templates")
+        Files.createDirectories(directory)
+        if (!directory.toRealPath().startsWith(root)) throw WorkspaceException(WorkspaceProblem.REQUEST, "Template directory is outside the workspace")
+        return synchronized(writeLocks.computeIfAbsent(directory) { Any() }) {
+            val existing = importTemplates().data["templates"] as List<*>
+            if (existing.size >= 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+            val body = WorkbenchJson.write(mapOf("name" to name, "format" to format,
+                "options" to options.mapValues { plain(it.value) }))
+            if (body.toByteArray(Charsets.UTF_8).size > 65_536) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import template is too large")
+            val file = directory.resolve("$name.json")
+            try { Files.writeString(file, body, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE) }
+            catch (_: java.nio.file.FileAlreadyExistsException) { throw WorkspaceException(WorkspaceProblem.CONFLICT, "Import template already exists") }
+            try { importTemplates() } catch (error: Exception) { Files.deleteIfExists(file); throw error }
+        }
+    }
+
+    private fun plain(value: Value): Any? = when (value) {
+        is Value.Text -> value.value
+        is Value.Kw -> value.name
+        is Value.MapV -> value.entries.entries.associate { (key, entry) ->
+            ((key as? Value.Text)?.value ?: (key as? Value.Kw)?.name
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Invalid import mapping key")) to plain(entry)
+        }
+        else -> throw WorkspaceException(WorkspaceProblem.INVALID, "Import template options must be text or mappings")
     }
 
     /** The event scanner retains digests, not document contents. Its revision equals /workspace's revision. */
@@ -501,7 +592,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         }
     }
 
-    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String) {
+    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String,
+                          revisionCheck: () -> String? = { runCatching { resolve(caseId, scan()).revision }.getOrNull() }) {
         val temp = Files.createTempFile(target.parent, ".mantra-edit-", ".tmp")
         try {
             Files.writeString(temp, text)
@@ -511,7 +603,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 // Re-read the complete dependency revision while holding it, immediately before replace.
                 FileChannel.open(checked(target), StandardOpenOption.READ, StandardOpenOption.WRITE).use { channel ->
                     channel.lock().use {
-                        val current = runCatching { resolve(caseId, scan()).revision }.getOrNull()
+                        val current = revisionCheck()
                         if (current != baseRevision || Files.readString(target) != expected)
                             throw WorkspaceException(WorkspaceProblem.CONFLICT, "Workspace changed during edit",
                                 currentRevision = current)
@@ -590,7 +682,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     )
 
     private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String,
-                                val parameterIds: List<String>, val explainTrace: ExplainTrace? = null)
+                                val parameterIds: List<String>, val explainTrace: ExplainTrace? = null,
+                                val sourceOverrides: List<List<String>> = emptyList())
 
     private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
                         parameterOverride: List<String>? = null, includeLayout: Boolean = true,
@@ -648,7 +741,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         } } ?: Render.defaultLayout(view)
         val revision = revision(listOf(casePath) + schema.sources.map { path(it) } + bound.files + parameterFiles + listOfNotNull(layoutFile),
             if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)))
-        return Resolved(view, layout, revision, parameterIds, result.explainTrace)
+        return Resolved(view, layout, revision, parameterIds, result.explainTrace, bound.overridden)
     }
 
     private fun scan(): Snapshot {
@@ -682,11 +775,17 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             bindings.mapNotNull { binding ->
                 val name = (binding.options["path"] as? Value.Text)?.value ?: return@mapNotNull null
                 val candidate = caseFile.parent.resolve(name).toAbsolutePath().normalize()
-                candidate.takeIf { it.startsWith(root) && Files.isRegularFile(it) && it.toRealPath().startsWith(root) }
+                candidate.takeIf { it.startsWith(root) && Files.isRegularFile(it) && Files.size(it) <= ImportFiles.MAX_BYTES &&
+                    it.toRealPath().startsWith(root) }
             }
         }
         if (sources.size > 4096) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace exceeds 4096 bound sources")
-        return (documents + sources).distinct().sortedBy(::relative)
+        val templates = root.resolve("import-templates").takeIf { Files.isDirectory(it, LinkOption.NOFOLLOW_LINKS) }
+            ?.let { directory -> Files.list(directory).use { stream -> stream.filter { it.fileName.toString().endsWith(".json") &&
+                Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) && Files.size(it) <= 65_536 }.limit(129).toList() } }
+            .orEmpty()
+        if (templates.size > 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+        return (documents + sources + templates).distinct().sortedBy(::relative)
     }
 
     private fun fileLimit(file: Path, documents: List<Path>): Int = if (file in documents) 1_048_576 else ImportFiles.MAX_BYTES

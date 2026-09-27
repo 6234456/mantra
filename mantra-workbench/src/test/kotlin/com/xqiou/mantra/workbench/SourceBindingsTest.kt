@@ -1,12 +1,14 @@
 package com.xqiou.mantra.workbench
 
 import com.xqiou.mantra.workbench.json.WorkbenchJson
+import com.xqiou.mantra.core.model.Value
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertNotEquals
+import kotlin.test.assertFailsWith
 
 class SourceBindingsTest {
     @TempDir lateinit var temp: Path
@@ -28,6 +30,7 @@ class SourceBindingsTest {
         val csv = temp.resolve("pay.csv")
         Files.writeString(csv, "Person;Wage\nA;1.234,56\nB;200,00\n")
         val catalog = WorkspaceCatalog(temp)
+        assertContains(WorkbenchJson.write(catalog.sources("case.mantra").data), "\"overridden\":[\"wage@A\"]")
         val stamp = catalog.workspaceStamp()
         kotlin.test.assertEquals(catalog.workspace().revision, stamp.revision)
         val first = catalog.document("case.mantra", "run")
@@ -47,5 +50,26 @@ class SourceBindingsTest {
         val fixtureRun = Files.readString(output.resolve((entry.files.getValue("run") as String).removePrefix("/fixtures/")))
         assertContains(fixtureRun, "\"origin\":\"source:csv:pay.csv\"")
         assertContains(fixtureRun, "\"B\":{\"value\":{\"n\":\"250.00\"}")
+    }
+
+    @Test fun `template limit does not leave an unusable 129th file`() {
+        val directory = Files.createDirectories(temp.resolve("import-templates"))
+        repeat(128) { index ->
+            Files.writeString(directory.resolve("template$index.json"),
+                """{"name":"template$index","format":"csv","options":{}}""")
+        }
+        val catalog = WorkspaceCatalog(temp)
+        val error = assertFailsWith<WorkspaceException> {
+            catalog.saveImportTemplate("overflow", "csv", mapOf("mode" to Value.Text("wide")))
+        }
+        kotlin.test.assertEquals(WorkspaceProblem.TOO_LARGE, error.problem)
+        kotlin.test.assertEquals(128L, Files.list(directory).use { it.count() })
+        kotlin.test.assertEquals(128, (catalog.importTemplates().data["templates"] as List<*>).size)
+    }
+
+    @Test fun `ambiguous three digit CSV sample requires explicit number format`() {
+        val inspection = ImportFiles.inspect("maybe.csv", "csv", "input;value\namount;12.345\n".toByteArray())
+        kotlin.test.assertEquals(true, inspection["numericAmbiguous"])
+        kotlin.test.assertEquals(null, inspection["decimal"])
     }
 }

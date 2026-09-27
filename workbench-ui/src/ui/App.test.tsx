@@ -84,6 +84,16 @@ describe('fixture-backed workbench shell', () => {
     expect(screen.queryByText('30.00')).toBeNull()
   })
 
+  it('keeps the source recovery page visible when calculation cannot load', async () => {
+    const documents = docs()
+    delete documents['/fixtures/sample/run.json']
+    serve(documents)
+    history.replaceState(null, '', `${base}/sources`)
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'Datenquellen' })).toBeTruthy()
+    expect(await screen.findByText('Noch keine Datei gebunden.')).toBeTruthy()
+  })
+
   it('offers explicit continuation at the provenance depth limit', async () => {
     const explanations: Record<string, unknown> = {}
     for (let i = 0; i < 7; i++) {

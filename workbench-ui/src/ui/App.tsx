@@ -107,14 +107,14 @@ export function App() {
     <div className="body-shell">
       {ready && <Sidebar structure={structure.data!.data} run={run.data!.data} caseId={caseId!} activePanel={current.panelId} activePage={current.page} navigate={navigate} />}
       <main className="content" key={refresh}>
-        {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
-        {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
+        {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><Link href={`${casePath(caseId!)}/sources`} navigate={navigate}>{t('sources', lang)}</Link><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
+        {current.page === 'sources' ? <SourcesPage caseId={caseId!} structure={structure.data?.data} revision={run.data?.revision} data={data} onSaved={() => setRefresh(value => value + 1)} /> :
+          !ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
           <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} data={data} navigate={navigate} /> : current.page === 'provenance' && current.address ?
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
           current.page === 'inputs' ? <InputsPage caseId={caseId!} groupId={current.groupId} structure={structure.data!.data} run={run.data!.data} revision={run.data!.revision} data={data} effect={editEffect} onSaved={difference => { setEditEffect(difference); setRefresh(value => value + 1) }} navigate={navigate} /> :
           current.page === 'parameters' ? <ParametersPage caseId={caseId!} structure={structure.data!.data} workspace={workspace.data} data={data} compareSet={current.compare} refresh={refresh} revision={run.data!.revision} onSaved={() => setRefresh(value => value + 1)} navigate={navigate} /> :
-          current.page === 'sources' ? <SourcesPage caseId={caseId!} structure={structure.data!.data} revision={run.data!.revision} data={data} onSaved={() => setRefresh(value => value + 1)} /> :
           current.page === 'diagnostics' ? <DiagnosticsPage caseId={caseId!} structure={structure.data!.data} data={data} navigate={navigate} /> :
           current.page === 'export' ? <ExportPage caseId={caseId!} data={data} layouts={workspace.data?.layouts} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}
