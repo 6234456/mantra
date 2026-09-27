@@ -17,6 +17,9 @@ import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.excel.ExcelExport
+import com.xqiou.mantra.excel.ExcelOptions
+import com.xqiou.mantra.excel.ExcelWorkbook
+import com.xqiou.mantra.excel.ExcelExportLimitException
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import com.xqiou.normein.dsl.form.DslForm
@@ -27,6 +30,10 @@ import java.security.MessageDigest
 
 enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE }
 
+data class ExportBudget(val maxSheets: Int = 64, val maxCells: Int = 50_000, val maxBytes: Int = 8 * 1024 * 1024) {
+    init { require(maxSheets > 0 && maxCells > 0 && maxBytes > 0) }
+}
+
 class WorkspaceException(
     val problem: WorkspaceProblem,
     message: String,
@@ -34,7 +41,8 @@ class WorkspaceException(
 ) : RuntimeException(message)
 
 /** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
-class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1.0-SNAPSHOT", normeinVersion: String? = null) {
+class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1.0-SNAPSHOT", normeinVersion: String? = null,
+                       private val exportBudget: ExportBudget = ExportBudget()) {
     val root: Path = directory.toRealPath().also { require(Files.isDirectory(it)) { "Workspace must be a directory" } }
     private val normeinVersion = normeinVersion ?: lockedNormein(root)
 
@@ -108,7 +116,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     fun exportPreview(caseId: String, sheet: String? = null, layoutId: String? = null): DocumentResult {
         val resolved = resolve(caseId, scan(), layoutId)
-        val export = ExcelExport.workbook(resolved.view, resolved.layout)
+        val export = exportWorkbook(resolved)
         export.use {
             val description = export.describe(sheet)
                 ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Worksheet was not found")
@@ -120,13 +128,21 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val resolved = resolve(caseId, scan(), layoutId)
         return when (format) {
             "xlsx" -> {
-                val export = ExcelExport.workbook(resolved.view, resolved.layout)
-                export.use { it.bytes() }
+                val export = exportWorkbook(resolved)
+                try { export.use { it.bytes(exportBudget.maxBytes) } }
+                catch (error: ExcelExportLimitException) { throw WorkspaceException(WorkspaceProblem.TOO_LARGE, error.message.orEmpty()) }
             }
             "html" -> Render.html(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
             "txt" -> Render.text(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
             else -> throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Export format was not found")
         }
+    }
+
+    private fun exportWorkbook(resolved: Resolved): ExcelWorkbook = try {
+        ExcelExport.workbook(resolved.view, resolved.layout,
+            ExcelOptions(maxSheets = exportBudget.maxSheets, maxCells = exportBudget.maxCells))
+    } catch (error: ExcelExportLimitException) {
+        throw WorkspaceException(WorkspaceProblem.TOO_LARGE, error.message.orEmpty())
     }
 
     fun compare(caseId: String, variantCaseId: String?, variantParameters: List<String>?): DocumentResult {

@@ -379,6 +379,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 - **XLSX**：调用 `ExcelExport.workbook(result, layout, options)` 下载实际工作簿；预览响应附带同次构建所得的导出报告：公式单元格数、输入单元格数、命名区域数、只写值的回退清单和求值错误。界面上的 “Formeltreue” 显示的就是这份报告。
 - **工作表预览**：`GET /cases/{case}/export-preview?sheet=<工作表名>&layout=<版式 id>` 返回标准 envelope。`data.sheets[]` 按实际工作簿顺序包含 `name`、`rows`、`columns`；`data.selectedSheet` 是实际选择的工作表名，省略 `sheet` 时选第一张；`data.preview` 包含 `rows`、`columns`、`truncated` 和前 50 行、前 20 列的非空单元格（`address`、`kind`、`value`、`formula`）。`formula` 不带前导 `=`；数值 `value` 是十进制字符串，公式单元格的值来自工作簿求值缓存，求值失败可为空。`data.names[]` 包含工作簿命名区域的 `name`、`refersTo`。`data.report` 直接映射 `ExcelReport`：`formulaCells`、`inputCells`、`names`、`fallbacks[]`（`sheet`、`cell`、`nodeId`、`reason`）、`evaluationErrors[]`。未知工作表返回 404。预览和下载均从当前案例、参数和版式重新构建，不能使用静态示例统计。
+- **资源预算**：服务端为预览与 XLSX 下载最多构建 64 张工作表和 50,000 个已创建单元格；XLSX 序列化最多写 8 MiB。超限返回 413 `MANTRA-WORKBENCH-TOO-LARGE`，不发送部分工作簿。四个服务工作线程各自受同一预算约束。
 - **HTML 和文本**：调用 `Render.html` 与 `Render.text`。
 
 ## 7. 编辑语义
@@ -533,6 +534,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | Explain | 内核 trace 渲染预算；深度 ≤ 5 |
 | Compare | 每次一个变体 |
 | Compare 参数集列表 | 最多 128 项 |
+| 工作簿导出 | 最多 64 张工作表、50,000 个单元格；XLSX 响应最多 8 MiB（§6.9） |
 | 撤销历史 | 每个案例 50 个版本 |
 
 ### 9.5 安全

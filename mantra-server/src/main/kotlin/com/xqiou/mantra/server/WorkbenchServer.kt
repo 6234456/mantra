@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.xqiou.mantra.workbench.WorkspaceCatalog
+import com.xqiou.mantra.workbench.ExportBudget
 import com.xqiou.mantra.workbench.WorkspaceException
 import com.xqiou.mantra.workbench.WorkspaceProblem
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
@@ -28,8 +29,9 @@ class WorkbenchServer(
     workspace: Path,
     port: Int = 8080,
     private val uiDirectory: Path? = Path.of("workbench-ui/dist").takeIf(Files::isDirectory),
+    exportBudget: ExportBudget = ExportBudget(),
 ) : AutoCloseable {
-    private val catalog = WorkspaceCatalog(workspace)
+    private val catalog = WorkspaceCatalog(workspace, exportBudget = exportBudget)
     private val requestJson = ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
         .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
     private val token = ByteArray(32).also(SecureRandom()::nextBytes).joinToString("") { "%02x".format(it) }

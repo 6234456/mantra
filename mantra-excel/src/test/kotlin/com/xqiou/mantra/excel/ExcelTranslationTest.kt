@@ -12,6 +12,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 /** Every kernel construct the translator supports must evaluate in Excel exactly like in the engine. */
 class ExcelTranslationTest {
@@ -65,6 +66,19 @@ class ExcelTranslationTest {
             assertEquals(export.report.names, descriptions.first().names.size)
             assertTrue(descriptions.all { it.preview.cells.all { cell -> cell.address.matches(Regex("[A-Z]+[1-9][0-9]*")) } })
             assertEquals(null, export.describe("missing"))
+        }
+    }
+
+    @Test
+    fun `workbook budgets stop sheet cell and serialized byte growth`() {
+        assertFailsWith<ExcelExportLimitException> {
+            ExcelExport.workbook(result, Presets.DE_STAFFEL_4, ExcelOptions(maxSheets = 1))
+        }
+        assertFailsWith<ExcelExportLimitException> {
+            ExcelExport.workbook(result, Presets.DE_STAFFEL_4, ExcelOptions(maxCells = 1))
+        }
+        ExcelExport.workbook(result, Presets.DE_STAFFEL_4).use { export ->
+            assertFailsWith<ExcelExportLimitException> { export.bytes(64) }
         }
     }
 
