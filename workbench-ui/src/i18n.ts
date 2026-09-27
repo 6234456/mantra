@@ -8,7 +8,7 @@ const copy = {
     retry: 'Erneut laden', statusReady: 'Berechnung aktuell', statusError: 'Fehler', paper: 'Arbeitspapier',
     inspect: 'Zelle auswählen, um den Rechenweg zu sehen.', sourceTree: 'Herkunftsbaum', intermediate: 'Zwischenwerte',
     chooseCase: 'Fall wählen', noResult: 'Kein Ergebnis', noPaper: 'Für diesen Bereich liegt noch kein Arbeitspapier vor.',
-    comparison: 'Vergleich', effect: 'Auswirkungen auf die Hauptlinie', bases: 'Grundlagen',
+    comparison: 'Vergleich', effect: 'Auswirkungen auf die Hauptlinie', bases: 'Grundlagen', continueTree: 'Weitere Quellen laden', traceTruncated: 'Der Rechenweg wurde begrenzt.',
   },
   en: {
     overview: 'Overview', mainline: 'Mainline', auxiliary: 'Additional information', workspace: 'Work areas',
@@ -19,13 +19,14 @@ const copy = {
     retry: 'Reload', statusReady: 'Calculation current', statusError: 'errors', paper: 'Working paper',
     inspect: 'Select a cell to inspect its calculation.', sourceTree: 'Provenance tree', intermediate: 'Intermediate values',
     chooseCase: 'Choose case', noResult: 'No result', noPaper: 'No working paper is available for this panel yet.',
-    comparison: 'Comparison', effect: 'Effect on the mainline', bases: 'Basis',
+    comparison: 'Comparison', effect: 'Effect on the mainline', bases: 'Basis', continueTree: 'Load more sources', traceTruncated: 'This calculation trail was truncated.',
   },
 }
 export type Language = keyof typeof copy
 export function language() : Language {
-  const saved = localStorage.getItem('mantra.workbench.language')
+  const storage = window.localStorage
+  const saved = typeof storage?.getItem === 'function' ? storage.getItem('mantra.workbench.language') : null
   return saved === 'de' || saved === 'en' ? saved : document.documentElement.lang.startsWith('en') ? 'en' : 'de'
 }
-export function chooseLanguage(next: Language) { localStorage.setItem('mantra.workbench.language', next); location.reload() }
+export function chooseLanguage(next: Language) { if (typeof window.localStorage?.setItem === 'function') window.localStorage.setItem('mantra.workbench.language', next); location.reload() }
 export function t(key: keyof typeof copy.de, lang: Language) { return copy[lang][key] }

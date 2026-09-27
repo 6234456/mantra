@@ -39,9 +39,9 @@ For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` 
 
 - Implemented: shared header and navigation, overview mainline and branch map, compass and breadcrumbs, tiered and matrix Paper tables, cell selection in the URL, keyboard movement across selectable cells, inspector with Paper audit fallback, choice comparison, and lazy provenance tree.
 - The Paper row JSON is expected to contain cell objects with `text`, `address`, `editable`, and controlled `style` as specified in contract §6.4. If WP3 serializes a wrapper around these rows, update only `src/data.ts` or an adapter normalization function.
-- Choice comparison and provenance require Explain. Before WP4, the inspector reads Paper audit entries; the other Explain-driven views stay empty or show the unavailable message.
+- Choice comparison uses Paper option rows when Explain is unavailable. The inspector reads member-specific Paper audit entries. Provenance requires Explain and exposes a continue control after depth five.
 - The UI deliberately has no local arithmetic or number formatting. It reads `display` and cell `text` from the engine.
 - The zero-row toggle requires a contract field or endpoint that exposes both shown and hidden rows. Current Paper reflects only the layout's visibility choice, so the toggle is deferred.
 - Editing, formula authoring, import, export, diagnostics and parameters are later work packages. Their links have placeholder states in this shell.
 
-No browser binaries or test daemons are installed by this package.
+No browser binaries or test daemons are installed by this package. Fonts use local system fallbacks; the UI makes no remote font request and remains usable offline.

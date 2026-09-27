@@ -4,6 +4,7 @@ import type { WorkbenchData } from '../data'
 import { configuredData } from '../data'
 import { addressFromPath, addressKey, addressToPath, casePath } from '../address'
 import { chooseLanguage, language, t } from '../i18n'
+import { auditForCell, nodeValue } from '../viewModel'
 
 type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'other'; panelId?: string; address?: Address }
 const lang = language()
@@ -39,7 +40,6 @@ function useLoad<T>(load: (signal: AbortSignal) => Promise<T>, keys: unknown[]):
   return state
 }
 
-function nodeValue(run: Run, node?: string | null, coord = '') { return node ? run.values[node]?.[coord]?.display ?? Object.values(run.values[node] ?? {})[0]?.display : undefined }
 function headlineNode(structure: Structure) { return typeof structure.headline === 'string' ? structure.headline : structure.headline?.node ?? structure.mainline.at(-1)?.result }
 function panelLink(caseId: string, id: string) { return `${casePath(caseId)}/panels/${encodeURIComponent(id)}` }
 
@@ -141,11 +141,11 @@ function PanelPage({ structure, run, paper, panelId, selected, caseId, data, nav
   const choice = useLoad(signal => choiceNode ? data.explain(caseId, { node: choiceNode }, signal) : Promise.reject(new Error('No choice')), [data, caseId, choiceNode])
   if (!panel) return <section className="sheet empty-view">{t('unavailable', lang)}</section>
   const table = paper?.tables.find(item => item.id === panel.id)
-  const audit = paper?.audit.find(item => item.anchor === table?.rows.find(row => row.cells.some(cell => cell.address && focused && addressKey(cell.address) === addressKey(focused)))?.anchor)
+  const audit = auditForCell(paper, table?.rows, focused)
   function select(address: Address) { setFocused(address); const url = new URL(location.href); url.searchParams.set('cell', addressToPath(address)); history.replaceState(null, '', url) }
   return <><Compass structure={structure} run={run} panel={panel} caseId={caseId} navigate={navigate} /><Breadcrumb panel={panel} caseId={caseId} navigate={navigate} />
     <div className="panel-heading"><div><span className={`role-badge ${panel.role}`}>{panel.role}</span><h1>{panel.title}</h1></div><strong>{nodeValue(run, panel.result)}</strong></div>
-    {!!choice.data?.data.options.length && <ChoiceComparison explain={choice.data.data} panel={panel} structure={structure} run={run} />}
+    {(!!choice.data?.data.options.length || !!table?.rows.some(row => row.kind.toUpperCase() === 'OPTION' && row.nodeId === choiceNode)) && <ChoiceComparison explain={choice.data?.data} table={table} choiceNode={choiceNode} panel={panel} structure={structure} run={run} />}
     <div className="panel-columns"><section className="sheet table-sheet"><div className="section-heading"><div><span className="eyebrow">{t('paper', lang)}</span><h2>{table?.title ?? panel.title}</h2></div></div>
       {table ? <PanelTable table={table} selected={focused} onSelect={select} /> : <p className="muted">{t('noPaper', lang)}</p>}</section>
       <Inspector selected={focused} explain={explanation.data?.data} audit={audit} error={explanation.error} caseId={caseId} navigate={navigate} /></div>
@@ -173,8 +173,13 @@ function Inspector({ selected, explain, audit, error, caseId, navigate }: { sele
   return <aside className="sheet inspector"><span className="eyebrow">{t('calculation', lang)}</span>{!selected ? <p className="muted">{t('inspect', lang)}</p> : <><h2>{explain?.label ?? audit?.label ?? selected.node}</h2><strong className="inspector-value">{explain?.result.display ?? audit?.result}</strong>{explain?.formula?.text || audit?.formula ? <pre>{explain?.formula?.text ?? audit?.formula}</pre> : null}{audit?.working && !explain && <p>{audit.working}</p>}{explain?.steps.map((step, i) => <div className="calculation-step" key={i}><code>{step.text}</code><b>{step.display}</b></div>)}{explain?.references.map((ref, i) => <div className="reference-item" key={i}><span>{ref.label}</span><b>{ref.display}</b></div>)}{error && !audit && <p className="muted">{error.message}</p>}<Link href={`${casePath(caseId)}/provenance/${encodeURIComponent(addressToPath(selected))}`} navigate={navigate} className="text-link">{t('provenance', lang)} ↗</Link></>}</aside>
 }
 
-function ChoiceComparison({ explain, panel, structure, run }: { explain: Explain; panel: Panel; structure: Structure; run: Run }) {
-  return <section className="sheet choice"><h2>{t('comparison', lang)}</h2><div className="choice-options">{explain.options.map((option, i) => <div className={`choice-option ${option.selected ? 'chosen' : ''}`} key={option.key ?? i}><span>{option.selected ? '✓ ' : ''}{option.label ?? option.key}</span><strong>{option.display}</strong>{option.differenceDisplay && <small>{option.differenceDisplay}</small>}</div>)}</div><h3>{t('effect', lang)}</h3><div className="choice-effects">{panel.entries.map(entry => <span key={`${entry.step}-${entry.via}`}>{t('step', lang)} {entry.step} · {entry.viaLabel} <b>{nodeValue(run, entry.via) ?? structure.mainline.find(step => step.step === entry.step)?.title}</b></span>)}</div></section>
+function ChoiceComparison({ explain, table, choiceNode, panel, structure, run }: { explain?: Explain; table?: Paper['tables'][number]; choiceNode?: string; panel: Panel; structure: Structure; run: Run }) {
+  const options = explain?.options.length ? explain.options : (table?.rows.filter(row => row.kind.toUpperCase() === 'OPTION' && row.nodeId === choiceNode).map(row => {
+    const cells = row.cells.map(cell => cell.text.trim()).filter(Boolean)
+    const labelIndex = table.columns.findIndex(column => column.id === 'label')
+    return { key: row.optionKey, label: labelIndex >= 0 ? row.cells[labelIndex]?.text : cells[0], display: cells.at(-1), selected: row.flags?.includes('SELECTED') }
+  }) ?? [])
+  return <section className="sheet choice"><h2>{t('comparison', lang)}</h2><div className="choice-options">{options.map((option, i) => <div className={`choice-option ${option.selected ? 'chosen' : ''}`} key={option.key ?? i}><span>{option.selected ? '✓ ' : ''}{option.label ?? option.key}</span><strong>{option.display}</strong>{'differenceDisplay' in option && option.differenceDisplay && <small>{option.differenceDisplay}</small>}</div>)}</div><h3>{t('effect', lang)}</h3><div className="choice-effects">{panel.entries.map(entry => <span key={`${entry.step}-${entry.via}`}>{t('step', lang)} {entry.step} · {entry.viaLabel} <b>{nodeValue(run, entry.via) ?? structure.mainline.find(step => step.step === entry.step)?.title}</b></span>)}</div></section>
 }
 
 function ProvenancePage({ address, structure, run, data, caseId, navigate }: { address: Address; structure: Structure; run: Run; data: WorkbenchData; caseId: string; navigate: (path: string) => void }) {
@@ -185,6 +190,8 @@ function ProvenancePage({ address, structure, run, data, caseId, navigate }: { a
 
 function ProvenanceNode({ address, caseId, data, depth }: { address: Address; caseId: string; data: WorkbenchData; depth: number }) {
   const [open, setOpen] = useState(depth === 0)
+  const [continued, setContinued] = useState(false)
   const explain = useLoad(signal => open ? data.explain(caseId, address, signal) : Promise.reject(new Error('Closed')), [data, caseId, addressKey(address), open])
-  return <div className="tree-node" style={{ marginLeft: Math.min(depth, 5) * 18 }}><button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? '▾' : '▸'} {explain.data?.data.label ?? address.node}<strong>{explain.data?.data.result.display}</strong></button>{open && depth < 5 && explain.data?.data.references.map((ref, i) => <ProvenanceNode key={`${addressKey(ref.address)}-${i}`} address={ref.address} caseId={caseId} data={data} depth={depth + 1} />)}{depth >= 5 && open && <p className="muted">…</p>}</div>
+  const references = explain.data?.data.references ?? []
+  return <div className="tree-node" style={{ marginLeft: Math.min(depth, 5) * 18 }}><button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? '▾' : '▸'} {explain.data?.data.label ?? address.node}<strong>{explain.data?.data.result.display}</strong></button>{open && depth >= 5 && references.length > 0 && !continued && <button type="button" className="continue-tree" onClick={() => setContinued(true)}>{t('continueTree', lang)}</button>}{open && (depth < 5 || continued) && references.map((ref, i) => <ProvenanceNode key={`${addressKey(ref.address)}-${i}`} address={ref.address} caseId={caseId} data={data} depth={depth + 1} />)}{open && explain.data?.data.truncated && <p className="muted">{t('traceTruncated', lang)}</p>}</div>
 }
