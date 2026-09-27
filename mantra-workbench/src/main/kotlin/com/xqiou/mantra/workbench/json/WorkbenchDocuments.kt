@@ -10,6 +10,10 @@ import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.ViewItem
 import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.view.ViewSection
+import com.xqiou.mantra.core.view.groupKey
+import com.xqiou.mantra.core.view.groupTitle
+import com.xqiou.mantra.core.view.headlineId
+import com.xqiou.mantra.core.view.signLabels
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.render.layout.StyleSpec
@@ -37,7 +41,9 @@ object WorkbenchDocuments {
             "schema" to map.schemaId,
             "schemaVersion" to view.schema.text("version"),
             "title" to map.title,
-            "headline" to view.schema.attributes["headline"]?.let(WorkbenchJson::value),
+            "headline" to view.headlineId,
+            "groupTitles" to view.nodes.values.filter { it.kind == NodeKind.INPUT }.mapNotNull { it.groupKey }.distinct()
+                .associateWith(view::groupTitle),
             "mainline" to map.mainline.map { id ->
                 val panel = map.panel(id)
                 linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId)
@@ -108,6 +114,8 @@ object WorkbenchDocuments {
         require(panelId == null || tables.isNotEmpty()) { "No table for panel ${panelId}" }
         return linkedMapOf(
             "title" to paper.title, "subtitle" to paper.subtitle,
+            "headline" to paper.headline?.let { linkedMapOf("node" to it.nodeId, "label" to it.label, "value" to it.value) },
+            "inputGroups" to paper.inputGroups.map { linkedMapOf("key" to it.key, "title" to it.title, "inputs" to it.inputs) },
             "header" to paper.header.map { (key, value) -> listOf(key, value) },
             "overview" to paper.overview.map { step ->
                 linkedMapOf("step" to step.step, "panel" to overviewPanel(step.panel),
@@ -167,6 +175,8 @@ object WorkbenchDocuments {
             "help" to (decl.presentation.attributes["help"] as? Value.Text)?.value,
             "unit" to (decl.presentation.attributes["unit"] as? Value.Kw)?.name,
             "reference" to decl.presentation.reference,
+            "group" to node.groupKey,
+            "groupTitle" to node.groupKey?.let(view::groupTitle),
             "attributes" to decl.presentation.attributes.mapValues { (_, value) -> WorkbenchJson.value(value) },
         )
     }
@@ -183,6 +193,8 @@ object WorkbenchDocuments {
         "op" to (node.line?.op ?: node.choice?.op)?.keyword,
         "reference" to node.presentation.reference, "source" to node.presentation.source,
         "note" to node.presentation.note, "class" to node.presentation.classes,
+        "signLabels" to node.signLabels?.let { linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero) },
+        "group" to node.groupKey,
         "attributes" to node.presentation.attributes.mapValues { (_, value) -> WorkbenchJson.value(value) },
         "formula" to node.line?.formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
         "location" to location(node.location),

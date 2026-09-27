@@ -26,6 +26,27 @@ class FixtureContractTest {
     private val schemaDirectory = Path.of("docs/workbench/schema")
 
     @Test
+    fun `presentation hints project as stable structure and paper fields`() {
+        val directory = Path.of("examples/de-est-2025")
+        val view = CalculationView.of(Mantra.calculate(
+            Mantra.loadSchema(directory.resolve("schema.mantra")),
+            Mantra.loadCase(directory.resolve("case-mustermann.mantra")),
+        ))
+        val structure = WorkbenchDocuments.structure(view)
+        assertEquals("abrechnungsergebnis", structure["headline"])
+        assertEquals("Veranlagungsmerkmale", (structure["groupTitles"] as Map<*, *>)["assessment"])
+        val input = (structure["generalInputs"] as List<*>).map { it as Map<*, *> }.first { it["id"] == "veranlagungsart" }
+        assertEquals("assessment", input["group"])
+        val resultNode = (structure["nodes"] as Map<*, *>)["abrechnungsergebnis"] as Map<*, *>
+        assertEquals("Erstattung", (resultNode["signLabels"] as Map<*, *>)["negative"])
+        val paper = WorkbenchDocuments.paper(view, Render.loadLayout(directory.resolve("layout.mantra")))
+        assertEquals("Nachzahlung", (paper["headline"] as Map<*, *>)["label"])
+        assertTrue((paper["inputGroups"] as List<*>).any {
+            (it as Map<*, *>)["key"] == "assessment" && "veranlagungsart" in (it["inputs"] as List<*>)
+        })
+    }
+
+    @Test
     fun `three acceptance cases generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {

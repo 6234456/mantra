@@ -183,6 +183,8 @@ v1 的变化：
 | 新增 `slots`、`formulaSlots`：id、标题、所在板块、`:uses`、默认公式、当前扩展或绑定 | 用于扩展页和公式槽卡片 |
 | 新增 `schemaVersion`、`headline`（§10） | 用于顶栏和案例列表 |
 
+`headline` 是节点 id 字符串（无法解析时为 `null`），包括未声明时的主线末步默认值。`groupTitles` 是已使用的显式输入组键到显示标题的映射；`fields[]`/`generalInputs[]` 含 `group` 和 `groupTitle`，`nodes` 中还包含 `signLabels` 与 `group`。这些字段只传递展示提示，不参与计算。
+
 ### 6.3 Run（一次计算的结果）
 
 ```json
@@ -212,6 +214,8 @@ v1 的变化：
 ### 6.4 Paper（版式结果）
 
 Paper 是 `WorkingPaper` 的 JSON 投影。请求参数为版式 id 和可选的板块 id。
+
+Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[]` 为 `{key, title, inputs}`。`label` 与表行标签已经按 `:sign-labels` 和当前结果解析，`value` 仍使用版式格式化的带符号结果。输入组仅供导航，不改变表行的顺序与数值。
 
 - **板块视图**：`PaperTable.id` 等于节 id，所以板块视图就是 id 相同的那张表，外加它引用的附表行。
 - **版式未给板块建表时**：服务端按该节的默认表风格（节的 `:layout` 选项或预设）生成（缺口 G2）。

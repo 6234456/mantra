@@ -5,10 +5,23 @@
   "properties": {
     "data": {
       "type": "object",
-      "required": ["title", "subtitle", "header", "overview", "auxiliary", "tables", "audit", "legend", "diagnostics", "theme"],
+      "required": ["title", "subtitle", "headline", "inputGroups", "header", "overview", "auxiliary", "tables", "audit", "legend", "diagnostics", "theme"],
       "properties": {
         "title": { "type": "string" },
         "subtitle": { "type": ["string", "null"] },
+        "headline": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "object", "required": ["node", "label", "value"],
+              "properties": { "node": { "type": "string" }, "label": { "type": "string" }, "value": { "type": "string" } },
+              "additionalProperties": false }
+          ]
+        },
+        "inputGroups": {
+          "type": "array", "items": { "type": "object", "required": ["key", "title", "inputs"],
+            "properties": { "key": { "type": "string" }, "title": { "type": "string" },
+              "inputs": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false }
+        },
         "header": { "type": "array", "items": { "$ref": "#/$defs/textPair" } },
         "overview": { "type": "array", "items": { "type": "object" } },
         "auxiliary": { "type": "array", "items": { "type": "object" } },
