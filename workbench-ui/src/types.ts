@@ -13,8 +13,8 @@ export interface Structure { schema: string; schemaVersion?: string; title: stri
 export interface RunValue { value: Value; display: string; active: boolean; origin?: string; source?: string }
 export interface Run { succeeded: boolean; members: Record<string, { key: string; label: string }[]>; values: Record<string, Record<string, RunValue>>; diagnostics: Diagnostic[] }
 export interface Cell { text: string; address?: Address | null; editable?: boolean; style?: { weight?: string; tone?: string; fill?: string } }
-export interface PaperColumn { id: string; header: string; align?: string; width?: number }
-export interface PaperRow { kind: string; depth: number; cells: Cell[]; nodeId?: string | null; flags?: string[]; anchor?: string; optionKey?: string; sectionId?: string }
+export interface PaperColumn { id: string; header: string; content?: string; align?: string; width?: number }
+export interface PaperRow { kind: string; depth: number; cells: Cell[]; node?: string | null; flags?: string[]; anchor?: string | null; optionKey?: string | null; section?: string | null }
 export interface PaperTable { id: string; ref: string; title: string; breadcrumb?: string; columns: PaperColumn[]; rows: PaperRow[] }
 export interface AuditEntry { anchor: string; citation: string; label: string; member?: string | null; formula: string; working: string; result: string; reference?: string | null }
 export interface Paper { title: string; subtitle?: string | null; headline?: { node: string; label: string; value: string } | null; inputGroups?: Array<{ key: string; title: string; inputs: string[] }>; header: Array<[string, string]>; overview: unknown[]; auxiliary: unknown[]; tables: PaperTable[]; audit: AuditEntry[]; legend: Array<[string, string]>; diagnostics?: Diagnostic[] }

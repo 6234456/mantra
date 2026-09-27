@@ -147,7 +147,7 @@ function PanelPage({ structure, run, paper, panelId, selected, caseId, data, nav
   function select(address: Address) { setFocused(address); const url = new URL(location.href); url.searchParams.set('cell', addressToPath(address)); history.replaceState(null, '', url) }
   return <><Compass structure={structure} run={run} panel={panel} caseId={caseId} navigate={navigate} /><Breadcrumb panel={panel} caseId={caseId} navigate={navigate} />
     <div className="panel-heading"><div><span className={`role-badge ${panel.role}`}>{panel.role}</span><h1>{panel.title}</h1></div><strong>{nodeValue(run, panel.result)}</strong></div>
-    {(!!choice.data?.data.options.length || !!table?.rows.some(row => row.kind.toUpperCase() === 'OPTION' && row.nodeId === choiceNode)) && <ChoiceComparison explain={choice.data?.data} table={table} choiceNode={choiceNode} panel={panel} structure={structure} run={run} />}
+    {(!!choice.data?.data.options.length || !!table?.rows.some(row => row.kind.toLowerCase() === 'option' && row.node === choiceNode)) && <ChoiceComparison explain={choice.data?.data} table={table} choiceNode={choiceNode} panel={panel} structure={structure} run={run} />}
     <div className="panel-columns"><section className="sheet table-sheet"><div className="section-heading"><div><span className="eyebrow">{t('paper', lang)}</span><h2>{table?.title ?? panel.title}</h2></div></div>
       {table ? <PanelTable table={table} selected={focused} onSelect={select} /> : <p className="muted">{t('noPaper', lang)}</p>}</section>
       <Inspector selected={focused} explain={explanation.data?.data} audit={audit} error={explanation.error} caseId={caseId} navigate={navigate} /></div>
@@ -176,10 +176,10 @@ function Inspector({ selected, explain, audit, error, caseId, navigate }: { sele
 }
 
 function ChoiceComparison({ explain, table, choiceNode, panel, structure, run }: { explain?: Explain; table?: Paper['tables'][number]; choiceNode?: string; panel: Panel; structure: Structure; run: Run }) {
-  const options = explain?.options.length ? explain.options : (table?.rows.filter(row => row.kind.toUpperCase() === 'OPTION' && row.nodeId === choiceNode).map(row => {
+  const options = explain?.options.length ? explain.options : (table?.rows.filter(row => row.kind.toLowerCase() === 'option' && row.node === choiceNode).map(row => {
     const cells = row.cells.map(cell => cell.text.trim()).filter(Boolean)
     const labelIndex = table.columns.findIndex(column => column.id === 'label')
-    return { key: row.optionKey, label: labelIndex >= 0 ? row.cells[labelIndex]?.text : cells[0], display: cells.at(-1), selected: row.flags?.includes('SELECTED') }
+    return { key: row.optionKey, label: labelIndex >= 0 ? row.cells[labelIndex]?.text : cells[0], display: row.cells.find(cell => cell.address && cell.text.trim())?.text ?? cells.at(-1), selected: row.flags?.some(flag => flag.toLowerCase() === 'selected') }
   }) ?? [])
   return <section className="sheet choice"><h2>{t('comparison', lang)}</h2><div className="choice-options">{options.map((option, i) => <div className={`choice-option ${option.selected ? 'chosen' : ''}`} key={option.key ?? i}><span>{option.selected ? '✓ ' : ''}{option.label ?? option.key}</span><strong>{option.display}</strong>{'differenceDisplay' in option && option.differenceDisplay && <small>{option.differenceDisplay}</small>}</div>)}</div><h3>{t('effect', lang)}</h3><div className="choice-effects">{panel.entries.map(entry => <span key={`${entry.step}-${entry.via}`}>{t('step', lang)} {entry.step} · {entry.viaLabel} <b>{nodeValue(run, entry.via) ?? structure.mainline.find(step => step.step === entry.step)?.title}</b></span>)}</div></section>
 }
