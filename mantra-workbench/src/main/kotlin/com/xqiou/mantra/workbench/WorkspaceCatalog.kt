@@ -191,9 +191,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val snapshot = scan()
             val base = resolve(caseId, snapshot)
             checkRevision(baseRevision, base.revision)
-            val candidate = editCandidate(caseId, snapshot, base, operations)
+            val candidate = editCandidate(caseId, operations)
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
+            validateFinalCoordinates(variant, operations)
             DocumentResult(base.revision, editData(base, variant, caseId, true))
         }
 
@@ -205,9 +206,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val base = resolve(caseId, snapshot)
             checkRevision(baseRevision, base.revision)
             val original = source(path(caseId)).text
-            val candidate = editCandidate(caseId, snapshot, base, operations)
+            val candidate = editCandidate(caseId, operations)
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
+            validateFinalCoordinates(variant, operations)
             if (candidate != original) {
                 writeCase(caseId, path(caseId), candidate, original, base.revision)
                 history.undo.addLast(original)
@@ -295,21 +297,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         }
     }
 
-    private fun editCandidate(caseId: String, snapshot: Snapshot, base: Resolved,
-                              operations: List<CaseTextEditor.Operation>): String = try {
+    private fun editCandidate(caseId: String, operations: List<CaseTextEditor.Operation>): String = try {
         require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
         var candidate = source(path(caseId)).text
         operations.forEach { operation ->
-            // Member availability can depend on earlier edits. Other targets are declared by the
-            // unchanged schema, so validating them against the base avoids rejecting a batch whose
-            // intermediate bindings are incomplete but whose final document is valid.
-            val needsMembers = when (operation) {
-                is CaseTextEditor.Operation.SetInput -> operation.coord.isNotEmpty()
-                is CaseTextEditor.Operation.ClearInput -> operation.coord.isNotEmpty()
-                else -> false
-            }
-            val current = if (needsMembers) resolveEditMembers(caseId, snapshot, base, candidate) else base
-            validateEditTargets(current, listOf(operation))
             candidate = CaseTextEditor.apply(candidate, listOf(operation))
             require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
                 "Edited document exceeds reader limit"
@@ -320,30 +311,6 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
     } catch (error: IllegalStateException) {
         throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
-    }
-
-    private fun resolveEditMembers(caseId: String, snapshot: Snapshot, base: Resolved, candidate: String): Resolved {
-        val casePath = path(caseId)
-        val parsed = try { Mantra.loadCase(SourceText(caseId, candidate, casePath.parent.toString())) }
-        catch (error: MantraException) {
-            throw WorkspaceException(WorkspaceProblem.INVALID, "Intermediate case is invalid", error.diagnostics)
-        }
-        val bound = (parsed.meta["parameters"] as? Value.Vec)?.items
-        val unfinishedBinding = bound?.any { item ->
-            val id = (item as? Value.Text)?.value
-            id == null || snapshot.kind("parameters").count { it.name == id } != 1
-        } == true
-        // An incomplete parameter binding has no calculable meaning yet. Preserve input edits in
-        // the candidate but use the last committed parameter layer for this coordinate check.
-        // Final validation always resolves the candidate's actual bindings.
-        if (unfinishedBinding) return resolve(caseId, snapshot, parameterOverride = base.parameterIds,
-            includeLayout = false, caseText = candidate)
-        return try { resolve(caseId, snapshot, includeLayout = false, caseText = candidate) }
-        catch (error: WorkspaceException) {
-            if (error.problem != WorkspaceProblem.INVALID || parsed.meta["parameters"] == base.view.case.meta["parameters"])
-                throw error
-            resolve(caseId, snapshot, parameterOverride = base.parameterIds, includeLayout = false, caseText = candidate)
-        }
     }
 
     private fun editData(base: Resolved, variant: Resolved, caseId: String, preview: Boolean): Map<String, Any?> = linkedMapOf(
@@ -369,29 +336,21 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         if (rejected.isNotEmpty()) throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", rejected)
     }
 
-    private fun validateEditTargets(base: Resolved, operations: List<CaseTextEditor.Operation>) {
+    private fun validateFinalCoordinates(final: Resolved, operations: List<CaseTextEditor.Operation>) {
         fun reject(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected",
             listOf(diagnostic("MANTRA-WORKBENCH-EDIT", message)))
-        val view = base.view
+        val view = final.view
         operations.forEach { op ->
-            when (op) {
-                is CaseTextEditor.Operation.SetInput, is CaseTextEditor.Operation.ClearInput -> {
-                    val id = if (op is CaseTextEditor.Operation.SetInput) op.id else (op as CaseTextEditor.Operation.ClearInput).id
-                    val coord = if (op is CaseTextEditor.Operation.SetInput) op.coord else (op as CaseTextEditor.Operation.ClearInput).coord
-                    val node = view.nodes[id]?.takeIf { it.input != null } ?: reject("Unknown input $id")
-                    if (coord.size != node.dims.size || node.dims.zip(coord).any { (dim, member) -> view.members[dim]?.none { it.key == member } != false })
-                        reject("Invalid member coordinate for input $id")
-                }
-                is CaseTextEditor.Operation.SetCell, is CaseTextEditor.Operation.ClearCell -> {
-                    val table = if (op is CaseTextEditor.Operation.SetCell) op.table else (op as CaseTextEditor.Operation.ClearCell).table
-                    val column = if (op is CaseTextEditor.Operation.SetCell) op.column else (op as CaseTextEditor.Operation.ClearCell).column
-                    val input = view.nodes[table]?.input?.takeIf { it.type == ValueType.TABLE } ?: reject("Unknown table input $table")
-                    if (input.columns.none { it.name == column }) reject("Unknown table column $column")
-                }
-                is CaseTextEditor.Operation.SetParam -> if (view.nodes[op.id]?.parameter == null) reject("Unknown parameter ${op.id}")
-                is CaseTextEditor.Operation.ResetParam -> if (view.nodes[op.id]?.parameter == null) reject("Unknown parameter ${op.id}")
-                else -> Unit
+            if (op !is CaseTextEditor.Operation.SetInput || op.coord.isEmpty()) return@forEach
+            var retained: Value? = view.case.inputs[op.id]
+            op.coord.forEach { key ->
+                retained = (retained as? Value.MapV)?.entries?.let { it[Value.Kw(key)] ?: it[Value.Text(key)] }
             }
+            if (retained == null) return@forEach // A later operation cleared this member.
+            val node = view.nodes[op.id]?.takeIf { it.input != null } ?: reject("Unknown input ${op.id}")
+            if (op.coord.size != node.dims.size || node.dims.zip(op.coord).any { (dim, member) ->
+                    view.members[dim]?.none { it.key == member } != false
+                }) reject("Invalid member coordinate for input ${op.id}")
         }
     }
 

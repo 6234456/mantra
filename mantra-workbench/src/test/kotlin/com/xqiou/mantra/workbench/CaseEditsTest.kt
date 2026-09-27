@@ -89,7 +89,7 @@ class CaseEditsTest {
     }
 
     @Test
-    fun `batch validates each coordinate against preceding operation view`() {
+    fun `batch validates a retained member against the final view`() {
         val (dir, case) = copyExample("de-est-2025")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
@@ -104,6 +104,45 @@ class CaseEditsTest {
         val committed = catalog.commitEdits(case, revision, change)
         assertEquals(preview.data["proposedRevision"], committed.revision)
         assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `temporary unknown formula input and parameter edits do not block a valid batch`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val operations = listOf(
+            CaseTextEditor.Operation.BindFormula("missing-slot", "(+ 1 2)"),
+            CaseTextEditor.Operation.SetInput("missing-input", Value.num("1")),
+            CaseTextEditor.Operation.SetParam("missing-param", Value.num("1")),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.UnbindFormula("missing-slot"),
+            CaseTextEditor.Operation.ClearInput("missing-input"),
+            CaseTextEditor.Operation.ResetParam("missing-param"),
+        )
+        val preview = catalog.previewEdits(case, revision, operations)
+        assertTrue(preview.data["preview"] == true)
+        val committed = catalog.commitEdits(case, revision, operations)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `retained inactive member is rejected but a later clear can remove it`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val setB = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B"))
+        val problem = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(setB)) }
+        assertEquals(WorkspaceProblem.INVALID, problem.problem)
+        val cleared = catalog.previewEdits(case, revision, listOf(setB,
+            CaseTextEditor.Operation.ClearInput("bruttoarbeitslohn", listOf("B"))))
+        assertTrue(cleared.data["preview"] == true)
     }
 
     @Test
