@@ -5,10 +5,13 @@ import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.engine.MantraKernel
 import com.xqiou.mantra.core.engine.MantraLibrary
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.Presets
 import com.xqiou.mantra.workbench.Fixtures
+import com.xqiou.mantra.workbench.json.WorkbenchDocuments
+import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.system.exitProcess
@@ -22,6 +25,9 @@ Usage:
   mantra check <schema.mantra> [--case <case.mantra>]
   mantra catalog
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
+  mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
+              [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
+              [--layout <layout.mantra>] [--format json|text] [--out <file>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
@@ -29,6 +35,7 @@ Commands:
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
   fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra
            and optional sibling layout.mantra. --workspace sets the case-id root.
+  diff     Compare two evaluations of one schema (JSON by default).
 """
 
 fun main(args: Array<String>) {
@@ -43,6 +50,7 @@ fun main(args: Array<String>) {
             "check" -> check(options)
             "catalog" -> catalog()
             "fixtures" -> fixtures(options)
+            "diff" -> diff(options)
             null, "help", "--help", "-h" -> println(USAGE.trimIndent())
             else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
         }
@@ -127,6 +135,81 @@ private fun fixtures(options: Options) {
     val out = options.path("out") ?: fail("fixtures requires --out <dir>")
     val entries = Fixtures.writeMany(cases, out, workspaceRoot = options.path("workspace"))
     println("mantra: wrote ${entries.joinToString { it.id }} fixtures to ${out.toAbsolutePath()}")
+}
+
+private fun diff(options: Options) {
+    val (schema, baseCase) = loadInputs(options)
+    val variantCase = options.path("variant-case")?.let(Mantra::loadCase) ?: baseCase
+    fun sets(name: String) = options.named[name].orEmpty().split(',').filter { it.isNotBlank() }
+        .map { Mantra.loadParameters(Path.of(it.trim())) }
+    val baseSets = sets("base-parameters")
+    val variantSets = sets("variant-parameters")
+    if (variantSets.isEmpty() && options.path("variant-case") == null) {
+        fail("diff requires --variant-parameters or --variant-case")
+    }
+    val base = Mantra.calculate(schema, baseCase, baseSets)
+    val variant = Mantra.calculate(schema, variantCase, variantSets)
+    val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(base)
+    val document = WorkbenchDocuments.compare(CalculationView.of(base), CalculationView.of(variant), layout,
+        variantSets.map { it.id })
+    val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
+    val revision = DiffRevision.calculate(
+        schemaPath = schemaPath, schemaSources = schema.sources,
+        baseCase = options.path("case"), variantCase = options.path("variant-case"),
+        layout = options.path("layout"),
+        baseParameters = options.named["base-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
+        variantParameters = options.named["variant-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
+    )
+    var directory: Path? = schemaPath.parent
+    var normein = "unknown"
+    while (directory != null) {
+        val lock = directory.resolve("normein-build.lock")
+        if (Files.isRegularFile(lock)) {
+            normein = Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
+                ?.substringAfter('=')?.take(8) ?: "unknown"
+            break
+        }
+        directory = directory.parent
+    }
+    val envelope = WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, document)
+    val output = when (options.named["format"] ?: "json") {
+        "json" -> WorkbenchJson.write(envelope)
+        "text" -> buildString {
+            appendLine("Compare ${schema.id}")
+            @Suppress("UNCHECKED_CAST")
+            val mainline = document["mainline"] as List<Map<String, Any?>>
+            mainline.forEach { row ->
+                val display = row["display"] as Map<*, *>
+                appendLine("${row["step"]}. ${row["panel"]}: ${display["base"]} → ${display["variant"]} (${display["delta"]})")
+            }
+            @Suppress("UNCHECKED_CAST")
+            val changes = document["changes"] as List<Map<String, Any?>>
+            changes.forEach { group ->
+                appendLine("${group["step"] ?: "·"} ${group["panel"] ?: "general"}")
+                @Suppress("UNCHECKED_CAST")
+                (group["items"] as List<Map<String, Any?>>).forEach { item ->
+                    val display = item["display"] as Map<*, *>
+                    val coord = (item["coord"] as List<*>).joinToString("/")
+                    appendLine("  ${item["node"]}${if (coord.isEmpty()) "" else "[$coord]"}: ${display["base"]} → ${display["variant"]} (${display["delta"] ?: "–"})")
+                }
+            }
+            @Suppress("UNCHECKED_CAST")
+            val parameters = document["parameterChanges"] as List<Map<String, Any?>>
+            if (parameters.isNotEmpty()) appendLine("Parameters")
+            parameters.forEach { item ->
+                val display = item["display"] as Map<*, *>
+                appendLine("  ${item["node"]}: ${display["base"]} → ${display["variant"]} (${display["delta"] ?: "–"})")
+            }
+        }.trimEnd()
+        else -> fail("Unknown --format; use json or text")
+    }
+    options.path("out")?.let { out ->
+        out.toAbsolutePath().parent?.let(Files::createDirectories)
+        Files.writeString(out, output + "\n")
+        System.err.println("mantra: wrote ${out.toAbsolutePath()}")
+    } ?: println(output)
+    (base.diagnostics + variant.diagnostics).forEach { System.err.println(it) }
+    if (!base.succeeded || !variant.succeeded) exitProcess(3)
 }
 
 private fun check(options: Options) {

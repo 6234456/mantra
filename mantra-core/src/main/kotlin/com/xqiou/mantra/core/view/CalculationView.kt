@@ -13,6 +13,7 @@ import com.xqiou.mantra.core.engine.Member
 import com.xqiou.mantra.core.engine.NodeTrace
 import com.xqiou.mantra.core.engine.NodeResult
 import com.xqiou.mantra.core.engine.ParamVertex
+import com.xqiou.mantra.core.engine.ParameterLayer
 import com.xqiou.mantra.core.engine.ResolvedItem
 import com.xqiou.mantra.core.engine.ResolvedNode
 import com.xqiou.mantra.core.engine.ResolvedNote
@@ -83,6 +84,7 @@ class ViewNode(
     val parameter: ParamDecl? = null,
     val parameterValue: Value? = null,
     val parameterSource: String? = null,
+    val parameterLayers: List<ParameterLayer> = emptyList(),
     val line: LineItem? = null,
     val total: TotalItem? = null,
     val choice: ChoiceItem? = null,
@@ -204,7 +206,9 @@ class CalculationView private constructor(
                     location = vertex.location,
                     presentation = (item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation).snapshot(),
                     input = input?.decl?.snapshot(), parameter = param?.decl?.snapshot(), parameterValue = param?.value?.snapshot(),
-                    parameterSource = param?.source, line = line?.item?.snapshot() as? LineItem,
+                    parameterSource = param?.source,
+                    parameterLayers = frozenList(param?.layers?.map { it.copy(value = it.value?.snapshot()) }.orEmpty()),
+                    line = line?.item?.snapshot() as? LineItem,
                     total = total?.item?.snapshot() as? TotalItem, choice = choice?.item?.snapshot() as? ChoiceItem,
                     components = frozenList(total?.components?.map { ViewComponent(it.vertexId, it.sign) }.orEmpty()),
                     guards = frozenList(vertex.guards), ownCondition = vertex.ownCondition?.formula,

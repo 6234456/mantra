@@ -324,36 +324,53 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 {
   "variant": {"parameters": ["de.est/params-2026"]},
   "mainline": [
-    {"step": 1, "panel": "zve", "node": "zu-versteuerndes-einkommen",
+    {"step": 1, "panel": "zve", "node": "zu-versteuerndes-einkommen", "coord": [],
      "base": {"n": "83217.90"}, "variant": {"n": "83061.90"}, "delta": {"n": "-156.00"},
-     "display": {"base": "83.217,90", "variant": "83.061,90", "delta": "−156,00"}}
+     "basePresent": true, "variantPresent": true,
+     "display": {"base": "83.217,90", "variant": "83.061,90", "delta": "-156,00"}}
   ],
   "changes": [],
-  "parameterChanges": [{"id": "tarif-gfb", "base": {"n": "12096"}, "variant": {"n": "12348"}}]
+  "parameterChanges": [{"node": "tarif-gfb", "coord": [], "base": {"n": "12096"}, "variant": {"n": "12348"},
+    "delta": {"n": "252"}, "basePresent": true, "variantPresent": true,
+    "display": {"base": "12.096,00", "variant": "12.348,00", "delta": "252,00"},
+    "baseSource": "schema", "variantSource": "de.est/params-2026"}]
 }
 ```
 
 - 差值由引擎计算（W2）。`changes` 列出所有值有变化的节点和坐标，按主线步骤和板块分组。
 - 编辑成功后的响应也附带同样结构的差异（§7.3），界面用它显示“Wirkung der Eingabe”。
 
+WP5 的确定规则：只能比较同一个方案 id 的两次计算。`mainline` 仅列结果值变化的主线步骤，顺序与 Structure 的 `mainline` 相同；每项是该板块 `result` 节点的标量或成员坐标差异。`changes` 按主线入口步骤、板块顺序分组，形如 `{step, panel, items:[{node, coord, base, variant, delta, display}]}`；不进入主线的辅助板块 `step` 为 `null`，未归属板块的一般输入使用 `panel: null`。参数不重复放入 `changes`，只放在 `parameterChanges`。
+
+`variant.parameters` 是请求的有序参数集 id，案例 id 改变时再附 `variant.case`；尚未写入的编辑预演由 WP6 在请求层标记。
+
+两个坐标只要数值大小不同就算变化；十进制标度不同但数值相等不算变化。非数值按值类型比较，`delta` 为 `null`。某侧没有该坐标时对应值为 `null`，并在差异项上标 `basePresent` / `variantPresent`，以区别“存在且值为 nil”。数值两侧均存在时 `delta = variant − base`；其他情况为 `null`。`display` 按请求版式格式化，各值为字符串或 `null`。节点/坐标、板块和步骤均有确定顺序，重复计算得到相同的文档。
+
 ### 6.8 Parameters（参数分层）
 
 每个参数列出各层的值和出处：
+
+响应 `data` 为 `{"parameters": [参数对象, …]}`，数组按方案声明顺序排列；每个参数对象如下：
 
 ```json
 {
   "id": "tarif-gfb", "label": "Grundfreibetrag (Ende Zone 1)", "reference": "§ 32a Abs. 1 Satz 2 Nr. 1 EStG",
   "layers": [
-    {"layer": "schema", "value": {"n": "12096"}},
-    {"layer": "parameters", "set": "de.est/params-2026", "value": {"n": "12348"},
+    {"layer": "schema", "value": {"n": "12096"}, "declared": true},
+    {"layer": "parameters", "set": "de.est/params-2026", "value": {"n": "12348"}, "declared": true,
      "reference": "§ 32a Abs. 1 Satz 2 Nr. 1 EStG i. d. F. ab VZ 2026"},
-    {"layer": "case", "value": null}
+    {"layer": "case", "value": null, "declared": false}
   ],
   "effective": {"value": {"n": "12348"}, "layer": "parameters", "set": "de.est/params-2026"}
 }
 ```
 
-优先级沿用引擎的规则：方案默认 < 参数集（按给定顺序）< 案例的 `(params …)`。目前 `ParamVertex` 只保存最终值和来源字符串，各层的值需要补充（缺口 G5）。
+优先级沿用引擎的规则：方案默认 < 参数集（按给定顺序）< 案例的 `(params …)`。`ParamVertex` 和只读结果视图保留每层的值及出处。
+
+`layers` 总是以 `schema` 开始，随后按请求顺序列出每个参数集**实际声明**的该参数，最后列出 `case`（未覆盖时 `value: null`、`declared: false`）。每个参数集层携带其 id 与该值自己的引用；`effective` 指向最后一个已声明的层。`declared` 区分未覆盖与明确写入的 `nil`。即使多个参数集写入相同数值，仍保留每层的来源。参数比较只列最终有效值发生变化的参数，内容与 `mainline` 的 `{node, coord, base, variant, delta, display}` 相同，并附两侧的有效来源。
+
+CLI 使用 `mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>`，可选 `--base-parameters <file[,file...]>` 和 `--variant-case <case.mantra>`；两侧参数路径列表从低到高优先，文件均按原样加载。默认输出带 §6 统一外层的 Compare JSON，`--out` 写入文件；`--format text` 输出简表。工作区服务稍后将案例绑定中的参数集 id 解析为路径。
+CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案及片段、两侧案例、版式，以及带索引的两侧参数列表。文件在方案目录以外时，绝对路径不进入哈希；参数列表的顺序会影响修订号。
 
 ### 6.9 Export（导出）
 
@@ -565,3 +582,5 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | v1 草案 | 初稿 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
+| 2026-09-27 | WP5 | 明确 Compare 的同方案、坐标、分组、十进制差值和 CLI 外层；明确参数分层顺序及顶层数组 |
+| 2026-09-27 | WP5 修正 | CLI diff 修订哈希改用稳定逻辑角色与有序参数索引，不包含检出目录绝对路径 |
