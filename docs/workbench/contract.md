@@ -370,6 +370,7 @@ WP5 的确定规则：只能比较同一个方案 id 的两次计算。`mainline
 `layers` 总是以 `schema` 开始，随后按请求顺序列出每个参数集**实际声明**的该参数，最后列出 `case`（未覆盖时 `value: null`、`declared: false`）。每个参数集层携带其 id 与该值自己的引用；`effective` 指向最后一个已声明的层。`declared` 区分未覆盖与明确写入的 `nil`。即使多个参数集写入相同数值，仍保留每层的来源。参数比较只列最终有效值发生变化的参数，内容与 `mainline` 的 `{node, coord, base, variant, delta, display}` 相同，并附两侧的有效来源。
 
 CLI 使用 `mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>`，可选 `--base-parameters <file[,file...]>` 和 `--variant-case <case.mantra>`；两侧参数路径列表从低到高优先，文件均按原样加载。默认输出带 §6 统一外层的 Compare JSON，`--out` 写入文件；`--format text` 输出简表。工作区服务稍后将案例绑定中的参数集 id 解析为路径。
+CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案及片段、两侧案例、版式，以及带索引的两侧参数列表。文件在方案目录以外时，绝对路径不进入哈希；参数列表的顺序会影响修订号。
 
 ### 6.9 Export（导出）
 
@@ -582,3 +583,4 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
 | 2026-09-27 | WP5 | 明确 Compare 的同方案、坐标、分组、十进制差值和 CLI 外层；明确参数分层顺序及顶层数组 |
+| 2026-09-27 | WP5 修正 | CLI diff 修订哈希改用稳定逻辑角色与有序参数索引，不包含检出目录绝对路径 |

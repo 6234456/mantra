@@ -14,7 +14,6 @@ import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
-import java.security.MessageDigest
 import kotlin.system.exitProcess
 
 private const val USAGE = """
@@ -154,26 +153,13 @@ private fun diff(options: Options) {
     val document = WorkbenchDocuments.compare(CalculationView.of(base), CalculationView.of(variant), layout,
         variantSets.map { it.id })
     val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
-    val files = buildList {
-        add(schemaPath)
-        schema.sources.forEach { add(schemaPath.parent.resolve(it).normalize()) }
-        options.path("case")?.let { add(it.toAbsolutePath().normalize()) }
-        options.path("variant-case")?.let { add(it.toAbsolutePath().normalize()) }
-        options.path("layout")?.let { add(it.toAbsolutePath().normalize()) }
-        listOf("base-parameters", "variant-parameters").forEach { name ->
-            options.named[name].orEmpty().split(',').filter { it.isNotBlank() }
-                .forEach { add(Path.of(it.trim()).toAbsolutePath().normalize()) }
-        }
-    }
-    val digest = MessageDigest.getInstance("SHA-256")
-    files.distinct().sortedBy(Path::toString).forEach { file ->
-        val name = if (file.startsWith(schemaPath.parent)) schemaPath.parent.relativize(file).toString() else file.toString()
-        digest.update(name.toByteArray(Charsets.UTF_8))
-        digest.update(0.toByte())
-        digest.update(Files.readAllBytes(file))
-        digest.update(0.toByte())
-    }
-    val revision = digest.digest().take(8).joinToString("") { "%02x".format(it) }
+    val revision = DiffRevision.calculate(
+        schemaPath = schemaPath, schemaSources = schema.sources,
+        baseCase = options.path("case"), variantCase = options.path("variant-case"),
+        layout = options.path("layout"),
+        baseParameters = options.named["base-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
+        variantParameters = options.named["variant-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
+    )
     var directory: Path? = schemaPath.parent
     var normein = "unknown"
     while (directory != null) {
