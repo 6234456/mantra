@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -85,5 +86,62 @@ class CaseEditsTest {
             assertTrue(preview.data.containsKey("difference"))
             assertTrue(original.contentEquals(Files.readAllBytes(dir.resolve(case))))
         }
+    }
+
+    @Test
+    fun `batch validates each coordinate against preceding operation view`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val change = listOf(
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+        )
+        val preview = catalog.previewEdits(case, revision, change)
+        assertTrue(preview.data["preview"] == true)
+        val committed = catalog.commitEdits(case, revision, change)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `external case edit before final replace returns conflict without overwriting it`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        catalog.beforeWriteCheck = {
+            Files.writeString(file, Files.readString(file).replace(":spenden 450", ":spenden 999"))
+        }
+        val conflict = assertFailsWith<WorkspaceException> {
+            catalog.commitEdits(case, revision, listOf(CaseTextEditor.Operation.SetInput("spenden", Value.num("451"))))
+        }
+        assertEquals(WorkspaceProblem.CONFLICT, conflict.problem)
+        assertEquals(catalog.document(case, "run").revision, conflict.currentRevision)
+        assertContains(Files.readString(file), ":spenden 999")
+        assertFalse(Files.readString(file).contains(":spenden 451"))
+    }
+
+    @Test
+    fun `external parameter edit before final replace changes full revision and blocks case write`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":layout \"de.est/steuerberechnung\"",
+            ":layout \"de.est/steuerberechnung\"\n   :parameters [\"de.est/params-2026\"]"))
+        val catalog = WorkspaceCatalog(dir)
+        val original = Files.readString(file)
+        val revision = catalog.document(case, "run").revision
+        val parameterFile = dir.resolve("params-2026.mantra")
+        catalog.beforeWriteCheck = {
+            Files.writeString(parameterFile, Files.readString(parameterFile).replace("tarif-gfb 12348", "tarif-gfb 12349"))
+        }
+        val conflict = assertFailsWith<WorkspaceException> {
+            catalog.commitEdits(case, revision, listOf(CaseTextEditor.Operation.SetInput("spenden", Value.num("451"))))
+        }
+        assertEquals(WorkspaceProblem.CONFLICT, conflict.problem)
+        assertEquals(catalog.document(case, "run").revision, conflict.currentRevision)
+        assertEquals(original, Files.readString(file))
     }
 }

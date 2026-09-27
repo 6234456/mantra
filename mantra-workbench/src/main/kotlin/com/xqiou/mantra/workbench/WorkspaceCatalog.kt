@@ -29,6 +29,8 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.channels.FileChannel
 import java.security.MessageDigest
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
@@ -53,8 +55,14 @@ data class ExplainAddress(val node: String, val coord: List<String> = emptyList(
 /** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
 class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1.0-SNAPSHOT", normeinVersion: String? = null,
                        private val exportBudget: ExportBudget = ExportBudget()) {
+    companion object {
+        /** Serialize distinct catalog instances in this JVM; the channel lock covers other processes. */
+        private val writeLocks = ConcurrentHashMap<Path, Any>()
+    }
     val root: Path = directory.toRealPath().also { require(Files.isDirectory(it)) { "Workspace must be a directory" } }
     private val normeinVersion = normeinVersion ?: lockedNormein(root)
+    /** Test seam for an external file change after calculation and before the final write check. */
+    internal var beforeWriteCheck: (() -> Unit)? = null
     private data class EditHistory(val undo: ArrayDeque<String> = ArrayDeque(), val redo: ArrayDeque<String> = ArrayDeque())
     private val histories = ConcurrentHashMap<String, EditHistory>()
 
@@ -183,8 +191,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val snapshot = scan()
             val base = resolve(caseId, snapshot)
             checkRevision(baseRevision, base.revision)
-            validateEditTargets(base, operations)
-            val candidate = editCandidate(caseId, operations)
+            val candidate = editCandidate(caseId, snapshot, base, operations)
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
             DocumentResult(base.revision, editData(base, variant, caseId, true))
@@ -197,13 +204,12 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val snapshot = scan()
             val base = resolve(caseId, snapshot)
             checkRevision(baseRevision, base.revision)
-            validateEditTargets(base, operations)
             val original = source(path(caseId)).text
-            val candidate = editCandidate(caseId, operations)
+            val candidate = editCandidate(caseId, snapshot, base, operations)
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
             if (candidate != original) {
-                writeCase(path(caseId), candidate, original)
+                writeCase(caseId, path(caseId), candidate, original, base.revision)
                 history.undo.addLast(original)
                 while (history.undo.size > 50) history.undo.removeFirst()
                 history.redo.clear()
@@ -281,7 +287,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val candidate = from.last()
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
-            writeCase(path(caseId), candidate, original)
+            writeCase(caseId, path(caseId), candidate, original, base.revision)
             from.removeLast()
             to.addLast(original)
             while (to.size > 50) to.removeFirst()
@@ -289,13 +295,20 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         }
     }
 
-    private fun editCandidate(caseId: String, operations: List<CaseTextEditor.Operation>): String = try {
+    private fun editCandidate(caseId: String, snapshot: Snapshot, base: Resolved,
+                              operations: List<CaseTextEditor.Operation>): String = try {
         require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
-        CaseTextEditor.apply(source(path(caseId)).text, operations).also { candidate ->
+        var candidate = source(path(caseId)).text
+        var preceding = base
+        operations.forEachIndexed { index, operation ->
+            validateEditTargets(preceding, listOf(operation))
+            candidate = CaseTextEditor.apply(candidate, listOf(operation))
             require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
                 "Edited document exceeds reader limit"
             }
+            if (index < operations.lastIndex) preceding = resolve(caseId, snapshot, caseText = candidate)
         }
+        candidate
     } catch (error: IllegalArgumentException) {
         throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
     } catch (error: IllegalStateException) {
@@ -351,15 +364,24 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         }
     }
 
-    private fun writeCase(target: Path, text: String, expected: String) {
+    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String) {
         val temp = Files.createTempFile(target.parent, ".mantra-edit-", ".tmp")
         try {
             Files.writeString(temp, text)
-            checked(target)
-            if (Files.readString(target) != expected)
-                throw WorkspaceException(WorkspaceProblem.CONFLICT, "Case changed during edit",
-                    currentRevision = runCatching { resolve(relative(target), scan()).revision }.getOrNull())
-            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            beforeWriteCheck?.invoke()
+            synchronized(writeLocks.computeIfAbsent(target) { Any() }) {
+                // A file lock serializes other catalog processes that open this case before writing.
+                // Re-read the complete dependency revision while holding it, immediately before replace.
+                FileChannel.open(checked(target), StandardOpenOption.READ, StandardOpenOption.WRITE).use { channel ->
+                    channel.lock().use {
+                        val current = runCatching { resolve(caseId, scan()).revision }.getOrNull()
+                        if (current != baseRevision || Files.readString(target) != expected)
+                            throw WorkspaceException(WorkspaceProblem.CONFLICT, "Workspace changed during edit",
+                                currentRevision = current)
+                        Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+                    }
+                }
+            }
         } finally {
             Files.deleteIfExists(temp)
         }
