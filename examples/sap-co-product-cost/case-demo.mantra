@@ -1,6 +1,7 @@
 ;; Synthetic demonstration figures in currency units. They do not represent exported SAP postings.
 (case co-demo
   {:schema "sap.co/product-cost"
+   :layout "sap.co/product-cost-paper"
    :title "Manufacturing orders O100, O101 and O200"
    :subject "Demo manufacturing company"
    :period "2026-01"

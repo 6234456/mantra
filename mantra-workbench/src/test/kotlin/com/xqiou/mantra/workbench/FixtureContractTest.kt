@@ -13,6 +13,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -24,6 +25,46 @@ class FixtureContractTest {
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
+
+    @Test
+    fun `fixture layout follows the case binding rather than a sibling file`() {
+        val temp = Files.createTempDirectory("mantra-fixture-layout-")
+        try {
+            val directory = temp.resolve("sample")
+            Files.createDirectories(directory)
+            Files.writeString(directory.resolve("schema.mantra"), """
+                (schema test/example {:title "Default paper" :mainline [main]}
+                  (section main "Main" {:panel true} (field amount "Amount") (total sum "Sum"))
+                  (input amount :decimal))
+            """.trimIndent())
+            Files.writeString(directory.resolve("layout.mantra"), """
+                (layout test/paper {:preset :de-staffel-4 :title "Bound paper"} (table main))
+            """.trimIndent())
+            val casePath = directory.resolve("case.mantra")
+            fun writeCase(layout: String?) {
+                val binding = layout?.let { " :layout \"$it\"" }.orEmpty()
+                Files.writeString(casePath, "(case one {:schema \"test/example\"$binding} (inputs {:amount 12.5}))")
+            }
+            fun paperTitle(): String {
+                val entry = Fixtures.write(casePath, temp.resolve("out"), workspaceRoot = temp)
+                val paper = entry.files.getValue("paper").removePrefix("/fixtures/")
+                val document = com.xqiou.mantra.core.data.Json.parse(Files.readString(temp.resolve("out/$paper")))
+                    as com.xqiou.mantra.core.model.Value.MapV
+                val data = document.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("data"))
+                    as com.xqiou.mantra.core.model.Value.MapV
+                return (data.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("title"))
+                    as com.xqiou.mantra.core.model.Value.Text).value
+            }
+            writeCase(null)
+            assertEquals("Default paper", paperTitle())
+            writeCase("test/paper")
+            assertEquals("Bound paper", paperTitle())
+            writeCase("test/other")
+            assertFailsWith<IllegalArgumentException> { paperTitle() }
+        } finally {
+            Files.walk(temp).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) }
+        }
+    }
 
     @Test
     fun `presentation hints project as stable structure and paper fields`() {

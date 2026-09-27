@@ -36,8 +36,8 @@ Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
   check    Read, compile and order the schema; print its structure and dependency statistics.
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
-  fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra
-           and optional sibling layout.mantra. --workspace sets the case-id root.
+  fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra.
+           A declared :layout resolves to sibling layout.mantra. --workspace sets the case-id root.
   serve    Start the loopback-only, read-only workbench service. Other endpoints report 501 until implemented.
   diff     Compare two evaluations of one schema (JSON by default).
 """

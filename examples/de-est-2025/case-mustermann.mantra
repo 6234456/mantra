@@ -1,6 +1,7 @@
 ;; Fiktiver Fall: Eheleute Mustermann, Zusammenveranlagung 2025, ein Kind.
 (case mustermann-2025
   {:schema "de.est/2025"
+   :layout "de.est/steuerberechnung"
    :title "Eheleute Erika und Max Mustermann"
    :subject "Eheleute Mustermann (fiktiv)"
    :period "VZ 2025"

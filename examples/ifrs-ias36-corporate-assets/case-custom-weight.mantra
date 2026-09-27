@@ -2,6 +2,7 @@
 ;; The user chooses the square of remaining life as the asset weighting method.
 (case ias36-custom-weight
   {:schema "ifrs.ias36/corporate-assets"
+   :layout "ifrs.ias36/working-paper"
    :title "Entity M – custom asset weighting"
    :subject "Entity M"
    :period "End of 20X0"

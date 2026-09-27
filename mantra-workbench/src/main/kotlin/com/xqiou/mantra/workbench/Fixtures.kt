@@ -1,6 +1,7 @@
 package com.xqiou.mantra.workbench
 
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
@@ -24,7 +25,17 @@ object Fixtures {
         val case = Mantra.loadCase(absoluteCase)
         val result = Mantra.calculate(schema, case)
         val view = CalculationView.of(result)
-        val layout = if (Files.isRegularFile(layoutPath)) Render.loadLayout(layoutPath) else Render.defaultLayout(result)
+        val layoutBinding = case.meta["layout"]
+        require(layoutBinding == null || layoutBinding is Value.Text) { "Case :layout must be text: $absoluteCase" }
+        val selectedLayout = if (layoutBinding != null) {
+            require(Files.isRegularFile(layoutPath)) { "Expected layout.mantra next to bound case: $layoutPath" }
+            Render.loadLayout(layoutPath).also { layout ->
+                require(layout.id == (layoutBinding as Value.Text).value) {
+                    "Case binds layout ${(layoutBinding).value}, but $layoutPath declares ${layout.id}"
+                }
+            }
+        } else null
+        val layout = selectedLayout ?: Render.defaultLayout(view)
         val paper = Render.paper(result, layout)
         val documents = buildList {
             add(absoluteCase)
@@ -32,7 +43,7 @@ object Fixtures {
                 val sourcePath = directory.resolve(name).normalize()
                 if (Files.isRegularFile(sourcePath)) add(sourcePath)
             }
-            if (Files.isRegularFile(layoutPath)) add(layoutPath)
+            if (selectedLayout != null) add(layoutPath)
         }.distinct()
         val root = workspaceRoot?.toAbsolutePath()?.normalize() ?: directory.parent
         require(absoluteCase.startsWith(root)) { "Case must be inside workspace root: $root" }
