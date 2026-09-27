@@ -265,8 +265,8 @@ class CsvSource(
     }
 
     companion object {
-    /** Same CSV quoting rules for import inspection and actual calculation. */
-    fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
+      /** Same CSV quoting rules for import inspection and actual calculation. */
+      fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
         val rows = mutableListOf<List<String>>()
         var row = mutableListOf<String>()
         val cell = StringBuilder()
@@ -296,11 +296,12 @@ class CsvSource(
             }
             i++
         }
+        require(!quoted) { "Unclosed quoted CSV field" }
         if (cell.isNotEmpty() || row.isNotEmpty()) {
             row += cell.toString()
             rows += row
         }
         return rows
-    }
+      }
     }
 }

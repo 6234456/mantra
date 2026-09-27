@@ -484,7 +484,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 缺少方案或绑定文件的案例仍列在 `/workspace` 中并带诊断；请求其结果返回 422。
 `/workspace` 的 JSON Schema 见 `schema/workspace.schema.json`。
 
-只读阶段提供 `/workspace`、`structure`、`run`、`paper`、`diagnostics` 和 `parameters`。其余 §9.1
+只读阶段提供 `/workspace`、`structure`、`run`、`paper`、`diagnostics`、`parameters` 和 `/events`。其余 §9.1
 端点在对应工作包完成前返回 501 与 `MANTRA-WORKBENCH-UNAVAILABLE`，不会生成占位结果。
 尚未实现的 `(sources …)` 绑定同样报告诊断并拒绝计算。`GET /cases/{case}/diagnostics`
 直接返回 §6.6 的诊断文档。服务可通过 `--ui <dist目录>` 指定 live 前端构建产物；
@@ -510,6 +510,19 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | GET | `/cases/{case}/export.xlsx`、`/export.html`、`/export.txt`（可带 `?layout=`） | 导出（§6.9） |
 | GET | `/cases/{case}/export-preview`（可带 `?sheet=`、`?layout=`） | 工作簿预览与保真度报告（§6.9） |
 | GET | `/events` | SSE：`documentChanged`、`revision` |
+
+`/events` 建立连接后立即发送 `revision` 事件，`data` 是 `{"revision":"<工作区修订>"}`。
+服务每秒共用一次工作区 `.mantra` 文件扫描：先核对文件清单、大小和修改时间，再轮转复核
+最多约 8 MiB 内容。普通保存立即识别；大小和时间戳均未变化的内容替换在轮转复核时识别。
+内容、新建或删除发生变化时，发送
+`documentChanged`，`data` 是 `{"revision":"<新工作区修订>","paths":["<工作区相对路径>"]}`。
+`paths` 按字典序排列，包含内容变化、新建或删除的文件。修订算法与 `/workspace` 外层一致。
+扫描遇到文件数或单文件大小上限时，流发送
+`workspaceError`，`data` 是 `{"code":"MANTRA-WORKBENCH-TOO-LARGE","message":"…"}`，
+随后每 5 秒重试。恢复后发送 `revision`；界面据错误与恢复事件刷新状态。
+事件流每秒发送 SSE 注释作为心跳。最多同时保留 2 条事件流；超出时返回 503 与
+`MANTRA-WORKBENCH-BUSY`。断开在下一次发送时被检测到并释放名额；服务停止时也会释放。
+服务重连时再次发送当前修订。
 
 ### 9.2 前端路由
 
@@ -541,6 +554,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | 422 | 工作区文档缺失、绑定尚不可用或无效 | 代码 `MANTRA-WORKBENCH-DOCUMENT`，附诊断 |
 | 501 | 端点所属工作包尚未接入 | 代码 `MANTRA-WORKBENCH-UNAVAILABLE` |
 | 500 | 内部错误 | 附关联 id，不向客户端返回堆栈 |
+| 503 | SSE 连接数达到上限 | 代码 `MANTRA-WORKBENCH-BUSY` |
 
 `MANTRA-WORKBENCH-*` 是拟新增的代码。
 
@@ -552,6 +566,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | 导入文件 | 10 MiB |
 | 导入 JSON 请求体 | 14 MiB（容纳 10 MiB 文件的 base64） |
 | 工作区扫描 | 最多 4,096 个 `.mantra` 文件（只读阶段） |
+| SSE 内容复核 | 未变元数据时每轮最多约 8 MiB；变动后完整重算工作区修订 |
 | 单个文档 | 内核读取器上限：固定版本为 65,536 字符；候选内核的 `readForms` 为 1,048,576 字符 |
 | 求值 | 内核预算（每个计数器 100,000）与值上限（集合 10,000 项、嵌套深度 32） |
 | Explain | 内核 trace 渲染预算；深度 ≤ 5 |
