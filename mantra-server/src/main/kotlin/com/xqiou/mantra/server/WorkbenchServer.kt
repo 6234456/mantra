@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.xqiou.mantra.workbench.WorkspaceCatalog
+import com.xqiou.mantra.workbench.CaseTextEditor
 import com.xqiou.mantra.workbench.ExportBudget
 import com.xqiou.mantra.workbench.WorkspaceException
 import com.xqiou.mantra.workbench.WorkspaceProblem
@@ -23,6 +24,9 @@ import java.nio.file.InvalidPathException
 import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.Executors
+import com.xqiou.mantra.core.model.Value
+import java.math.BigDecimal
+import java.time.LocalDate
 
 /** Loopback-only HTTP adapter. All calculation and document resolution are delegated to WorkspaceCatalog. */
 class WorkbenchServer(
@@ -31,6 +35,7 @@ class WorkbenchServer(
     private val uiDirectory: Path? = Path.of("workbench-ui/dist").takeIf(Files::isDirectory),
     exportBudget: ExportBudget = ExportBudget(),
 ) : AutoCloseable {
+    private data class EditAddress(val node: String, val coord: List<String>, val cell: Pair<String, String>?)
     private val catalog = WorkspaceCatalog(workspace, exportBudget = exportBudget)
     private val requestJson = ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
         .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
@@ -83,14 +88,17 @@ class WorkbenchServer(
                 WorkspaceProblem.NOT_FOUND -> 404
                 WorkspaceProblem.INVALID -> 422
                 WorkspaceProblem.TOO_LARGE -> 413
+                WorkspaceProblem.CONFLICT -> 409
             }
             val code = when (problem.problem) {
                 WorkspaceProblem.REQUEST -> "MANTRA-WORKBENCH-REQUEST"
                 WorkspaceProblem.NOT_FOUND -> "MANTRA-WORKBENCH-NOT-FOUND"
                 WorkspaceProblem.INVALID -> "MANTRA-WORKBENCH-DOCUMENT"
                 WorkspaceProblem.TOO_LARGE -> "MANTRA-WORKBENCH-TOO-LARGE"
+                WorkspaceProblem.CONFLICT -> "MANTRA-WORKBENCH-CONFLICT"
             }
-            error(exchange, status, code, problem.message ?: "Workspace error", problem.diagnostics)
+            error(exchange, status, code, problem.message ?: "Workspace error", problem.diagnostics,
+                currentRevision = problem.currentRevision)
         } catch (_: Exception) {
             error(exchange, 500, "MANTRA-WORKBENCH-INTERNAL", "Internal error", correlationId = UUID.randomUUID().toString())
         } finally {
@@ -136,6 +144,18 @@ class WorkbenchServer(
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             val variant = parseCompare(body)
             return json(exchange, 200, catalog.envelope(catalog.compare(caseId, variant.first, variant.second)))
+        }
+        if (method == "POST" && document in setOf("preview", "edits", "undo", "redo")) {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val (revision, operations) = parseEdits(caseId, body, document in setOf("undo", "redo"))
+            val result = when (document) {
+                "preview" -> catalog.previewEdits(caseId, revision, operations)
+                "edits" -> catalog.commitEdits(caseId, revision, operations)
+                "undo" -> catalog.undo(caseId, revision)
+                else -> catalog.redo(caseId, revision)
+            }
+            return json(exchange, 200, catalog.envelope(result))
         }
         if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo",
                 "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
@@ -237,14 +257,140 @@ class WorkbenchServer(
         return case to parameters
     }
 
+    private fun parseEdits(caseId: String, body: ByteArray, history: Boolean): Pair<String, List<CaseTextEditor.Operation>> {
+        fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val root = try { requestJson.readTree(body) ?: bad("Edit body is required") }
+            catch (error: WorkspaceException) { throw error }
+            catch (_: Exception) { bad("Malformed edit JSON") }
+        val expected = if (history) setOf("baseRevision") else setOf("baseRevision", "operations")
+        if (!root.isObject || root.fieldNames().asSequence().toSet() != expected) bad("Unexpected edit request fields")
+        val revision = root["baseRevision"]?.takeIf(JsonNode::isTextual)?.textValue()
+            ?.takeIf { Regex("[0-9a-f]{16}").matches(it) } ?: bad("baseRevision must be 16 hexadecimal characters")
+        if (history) return revision to emptyList()
+        val values = root["operations"]?.takeIf(JsonNode::isArray) ?: bad("operations must be an array")
+        if (values.size() !in 1..100) bad("Expected 1–100 operations")
+        fun requireFields(node: JsonNode, vararg fields: String) {
+            if (!node.isObject || node.fieldNames().asSequence().toSet() != fields.toSet()) bad("Unexpected operation fields")
+        }
+        fun string(node: JsonNode, name: String): String = node[name]?.takeIf(JsonNode::isTextual)?.textValue()
+            ?: bad("$name must be text")
+        fun integer(node: JsonNode, name: String): Int = node[name]?.takeIf(JsonNode::isInt)?.intValue()
+            ?: bad("$name must be an integer")
+        fun address(node: JsonNode): EditAddress {
+            val address = node["address"] ?: bad("address is required")
+            if (!address.isObject || address.fieldNames().asSequence().any { it !in setOf("node", "coord", "cell") } ||
+                (address.has("coord") && address.has("cell"))) bad("Invalid address")
+            val id = string(address, "node")
+            val coord = address["coord"]?.let { array ->
+                if (!array.isArray || array.size() > 8 || array.any { !it.isTextual }) bad("Invalid coordinate")
+                array.map(JsonNode::textValue)
+            }.orEmpty()
+            val cell = address["cell"]?.let { entry ->
+                if (!entry.isObject || entry.fieldNames().asSequence().toSet() != setOf("row", "column")) bad("Invalid cell address")
+                string(entry, "row") to string(entry, "column")
+            }
+            return EditAddress(id, coord, cell)
+        }
+        fun valueOrText(node: JsonNode, id: String, parameter: Boolean, column: String? = null): Value {
+            if (node.has("value") == node.has("text")) bad("Provide exactly one of value and text")
+            return if (node.has("text")) catalog.parseEditText(caseId, id, parameter, string(node, "text"), column)
+            else parseValue(node["value"])
+        }
+        val operations = values.map { op ->
+            val kind = string(op, "op")
+            when (kind) {
+                "setInput" -> {
+                    val target = address(op)
+                    if (op.fieldNames().asSequence().toSet() != setOf("op", "address", if (op.has("text")) "text" else "value")) bad("Unexpected setInput fields")
+                    val value = valueOrText(op, target.node, false, target.cell?.second)
+                    if (target.cell == null) CaseTextEditor.Operation.SetInput(target.node, value, target.coord)
+                    else CaseTextEditor.Operation.SetCell(target.node, target.cell.first, target.cell.second, value,
+                        catalog.tableKeyColumn(caseId, target.node))
+                }
+                "clearInput" -> {
+                    requireFields(op, "op", "address")
+                    val target = address(op)
+                    if (target.cell == null) CaseTextEditor.Operation.ClearInput(target.node, target.coord)
+                    else CaseTextEditor.Operation.ClearCell(target.node, target.cell.first, target.cell.second,
+                        catalog.tableKeyColumn(caseId, target.node))
+                }
+                "setParam" -> {
+                    val id = string(op, "id")
+                    if (op.fieldNames().asSequence().toSet() != setOf("op", "id", if (op.has("text")) "text" else "value")) bad("Unexpected setParam fields")
+                    CaseTextEditor.Operation.SetParam(id, valueOrText(op, id, true))
+                }
+                "resetParam" -> { requireFields(op, "op", "id"); CaseTextEditor.Operation.ResetParam(string(op, "id")) }
+                "insertRow" -> {
+                    if (op.fieldNames().asSequence().any { it !in setOf("op", "table", "row", "index") }) bad("Unexpected insertRow fields")
+                    val row = parseValue(op["row"] ?: bad("row is required")) as? Value.MapV ?: bad("row must be a map value")
+                    CaseTextEditor.Operation.InsertRow(string(op, "table"), row, op["index"]?.let { integer(op, "index") })
+                }
+                "updateRow" -> { requireFields(op, "op", "table", "index", "row"); CaseTextEditor.Operation.UpdateRow(string(op, "table"), integer(op, "index"), parseValue(op["row"]) as? Value.MapV ?: bad("row must be a map value")) }
+                "deleteRow" -> { requireFields(op, "op", "table", "index"); CaseTextEditor.Operation.DeleteRow(string(op, "table"), integer(op, "index")) }
+                "moveRow" -> { requireFields(op, "op", "table", "from", "to"); CaseTextEditor.Operation.MoveRow(string(op, "table"), integer(op, "from"), integer(op, "to")) }
+                "addExtension" -> { requireFields(op, "op", "slot", "id", "title", "formula"); CaseTextEditor.Operation.AddExtension(string(op, "slot"), string(op, "id"), string(op, "title"), string(op, "formula")) }
+                "updateExtension" -> { requireFields(op, "op", "slot", "id", "title", "formula"); CaseTextEditor.Operation.UpdateExtension(string(op, "slot"), string(op, "id"), string(op, "title"), string(op, "formula")) }
+                "removeExtension" -> { requireFields(op, "op", "slot", "id"); CaseTextEditor.Operation.RemoveExtension(string(op, "slot"), string(op, "id")) }
+                "bindFormula" -> { requireFields(op, "op", "id", "formula"); CaseTextEditor.Operation.BindFormula(string(op, "id"), string(op, "formula")) }
+                "unbindFormula" -> { requireFields(op, "op", "id"); CaseTextEditor.Operation.UnbindFormula(string(op, "id")) }
+                "setMeta" -> { requireFields(op, "op", "key", "text"); CaseTextEditor.Operation.SetMeta(string(op, "key"), string(op, "text")) }
+                "setBindings" -> {
+                    if (op.fieldNames().asSequence().any { it !in setOf("op", "parameters", "layout") } || (!op.has("parameters") && !op.has("layout"))) bad("Invalid bindings")
+                    val parameters = op["parameters"]?.let { array ->
+                        if (!array.isArray || array.size() > 128 || array.any { !it.isTextual }) bad("Invalid parameters")
+                        array.map(JsonNode::textValue)
+                    }
+                    val layoutNode = op["layout"]
+                    val layout = layoutNode?.let { if (!it.isTextual && !it.isNull) bad("Invalid layout"); if (it.isNull) null else it.textValue() }
+                    CaseTextEditor.Operation.SetBindings(parameters, layout, clearLayout = layoutNode?.isNull == true)
+                }
+                else -> bad("Unknown edit operation")
+            }
+        }
+        return revision to operations
+    }
+
+    private fun parseValue(node: JsonNode, depth: Int = 0): Value {
+        fun bad(): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, "Invalid encoded value")
+        if (depth > 16) bad()
+        if (node.isNull) return Value.Nil
+        if (node.isBoolean) return Value.Bool(node.booleanValue())
+        if (node.isTextual) return Value.Text(node.textValue())
+        if (node.isArray) return Value.Vec(node.map { parseValue(it, depth + 1) })
+        if (!node.isObject || node.size() != 1) bad()
+        val field = node.fieldNames().next()
+        val item = node[field]
+        return when (field) {
+            "n" -> {
+                if (!item.isTextual || !Regex("-?(?:0|[1-9]\\d*)(?:\\.\\d+)?").matches(item.textValue())) bad()
+                Value.Num(BigDecimal(item.textValue()))
+            }
+            "kw" -> { if (!item.isTextual || !Regex("[A-Za-z][A-Za-z0-9_-]*[?!*]?").matches(item.textValue())) bad(); Value.Kw(item.textValue()) }
+            "date" -> { if (!item.isTextual) bad(); try { Value.Date(LocalDate.parse(item.textValue())) } catch (_: Exception) { bad() } }
+            "map" -> {
+                if (!item.isArray) bad()
+                val entries = linkedMapOf<Value, Value>()
+                item.forEach { entry ->
+                    if (!entry.isArray || entry.size() != 2) bad()
+                    val key = parseValue(entry[0], depth + 1)
+                    if (entries.put(key, parseValue(entry[1], depth + 1)) != null) bad()
+                }
+                Value.MapV(entries)
+            }
+            else -> bad()
+        }
+    }
+
     private fun unavailable(exchange: HttpExchange) =
         error(exchange, 501, "MANTRA-WORKBENCH-UNAVAILABLE", "Endpoint is not implemented in the read-only phase")
 
     private fun error(exchange: HttpExchange, status: Int, code: String, message: String,
-                      diagnostics: List<com.xqiou.mantra.core.Diagnostic> = emptyList(), correlationId: String? = null) {
+                      diagnostics: List<com.xqiou.mantra.core.Diagnostic> = emptyList(), correlationId: String? = null,
+                      currentRevision: String? = null) {
         val detail = linkedMapOf<String, Any?>("code" to code, "message" to message)
         if (diagnostics.isNotEmpty()) detail["diagnostics"] = diagnostics.map(WorkbenchDocuments::diagnostic)
         if (correlationId != null) detail["correlationId"] = correlationId
+        if (currentRevision != null) detail["currentRevision"] = currentRevision
         json(exchange, status, WorkbenchJson.write(mapOf("error" to detail)))
     }
 

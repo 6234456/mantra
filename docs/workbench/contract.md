@@ -403,6 +403,20 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   - 运行时错误（`MANTRA-EVALUATION`）不阻止写入，与现在返回部分结果的行为一致。
 - **预演**：`POST …/preview` 执行同样的步骤但不写入，返回结果和差异，用于公式编辑预览和假设分析。
 
+写请求的 JSON 外层为 `{"baseRevision":"16 位十六进制","operations":[…]}`，`operations` 为 1–100 个操作，顺序执行。撤销、重做只提交 `{"baseRevision":"…"}`。响应使用 §6 的统一外层；预演的外层 `revision` 是基准修订，`data.proposedRevision` 是候选修订；提交、撤销、重做的外层 `revision` 是写入后的修订。`data` 还包含 `document`、`preview`、`diagnostics`、`run` 和 `difference`。
+
+操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
+
+| `op` | JSON 字段 |
+| --- | --- |
+| `setInput` / `clearInput` | `address: {node, coord?}`，或表格单元格 `address: {node, cell: {row, column}}`；设置时另有 `text` 或 `value` |
+| `insertRow` / `updateRow` / `deleteRow` / `moveRow` | `table`；插入或更新用 `row`（编码的 map）；索引为从 0 开始的 `index`，移动用 `from`、`to`；索引只在提交的基准修订中有效 |
+| `setParam` / `resetParam` | `id`；设置时另有 `text` 或 `value` |
+| `addExtension` / `updateExtension` / `removeExtension` | `slot`、`id`；新增/更新另有 `title`、`formula` |
+| `bindFormula` / `unbindFormula` | `id`；绑定时另有 `formula` |
+| `setMeta` | `key`、`text` |
+| `setBindings` | `parameters`（有序 id 数组）和/或 `layout`（id；`null` 清除绑定）。`sources` 待 WP11 的来源读取与校验接入后开放。 |
+
 ### 7.2 最小改动回写
 
 - **只改受影响的形式。** 注释、空白、其他条目的顺序和写法逐字节保持不变。
