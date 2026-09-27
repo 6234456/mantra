@@ -105,7 +105,7 @@ class FixtureContractTest {
                 it.schemas(schemas)
             }
             entries.forEach { entry ->
-                listOf("structure", "run", "paper", "diagnostics").forEach { name ->
+                listOf("structure", "run", "paper", "diagnostics", "parameters").forEach { name ->
                     val file = "$name.json"
                     val relative = entry.files.getValue(name).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))

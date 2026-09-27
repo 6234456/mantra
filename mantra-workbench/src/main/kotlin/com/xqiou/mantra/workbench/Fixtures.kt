@@ -61,6 +61,7 @@ object Fixtures {
             "run" to WorkbenchDocuments.run(view, layout),
             "paper" to WorkbenchDocuments.paper(paper, view),
             "diagnostics" to WorkbenchDocuments.diagnostics(view.diagnostics),
+            "parameters" to WorkbenchDocuments.parameters(view),
         ).forEach { (name, data) ->
             val file = "$name.json"
             Files.writeString(

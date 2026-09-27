@@ -1,5 +1,5 @@
 /** Wire primitives come from JSON Schema. UI projections below refine the schema's open objects. */
-import type { Envelope as WireEnvelope, EnvelopeAddress, EnvelopeDiagnostic, Paper as WirePaper, Run as WireRun, Structure as WireStructure, Value as WireValue, Workspace as WireWorkspace } from './generated/contract'
+import type { Envelope as WireEnvelope, EnvelopeAddress, EnvelopeDiagnostic, Paper as WirePaper, Run as WireRun, Structure as WireStructure, Value as WireValue, Workspace as WireWorkspace, Parameters as WireParameters, Compare as WireCompare } from './generated/contract'
 
 export type Value = WireValue
 export type Envelope<T> = Omit<WireEnvelope, 'data'> & { data: T }
@@ -24,4 +24,7 @@ export interface ExplainReference { address: Address; label: string; display: st
 export interface ExplainOption { label?: string; key?: string; display?: string; selected?: boolean; difference?: Value; differenceDisplay?: string }
 export interface Explain { address: Address; label: string; kind: string; formula?: { text: string }; result: { value: Value; display: string }; status: string; steps: { text: string; display: string }[]; branches: unknown[]; references: ExplainReference[]; parts: unknown[]; options: ExplainOption[]; reference?: string; truncated?: boolean }
 export type CaseSummary = Pick<WireWorkspace['data']['cases'][number], 'id' | 'title'> & { period?: string | null; schema?: string | null; revision?: string | null }
-export interface Workspace { cases: CaseSummary[] }
+export type Parameters = WireParameters['data']
+export type Compare = WireCompare['data']
+export interface Diagnostics { diagnostics: Diagnostic[] }
+export interface Workspace { cases: CaseSummary[]; parameters?: Array<{ id: string; path: string }> }

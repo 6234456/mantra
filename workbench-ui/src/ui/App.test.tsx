@@ -2,7 +2,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { App } from './App'
-import type { Envelope, Explain, Paper, Run, Structure } from '../types'
+import { casePath } from '../address'
+import type { Envelope, Explain, Paper, Run, Structure, Diagnostic } from '../types'
 
 const caseId = 'sample/case.mantra'
 const base = '/cases/sample%2Fcase.mantra'
@@ -28,7 +29,7 @@ const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], 
   { kind: 'option', depth: 0, node: 'choice', optionKey: 'two', cells: [{ text: 'Option two' }, { text: '20.00', address: { node: 'choice' } }, { text: 'Reference' }] },
 ] }] }
 
-function docs(extra: Record<string, unknown> = {}) {
+function docs(extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     '/fixtures/index.json': { cases: [{ id: caseId, title: 'Sample case', files: { structure: '/fixtures/sample/structure.json', run: '/fixtures/sample/run.json', paper: '/fixtures/sample/paper.json', explains: Object.fromEntries(Array.from({ length: 7 }, (_, i) => [`n${i}`, `/fixtures/sample/n${i}.json`])) } }] },
     '/fixtures/sample/structure.json': wrap(structure), '/fixtures/sample/run.json': wrap(run), '/fixtures/sample/paper.json': wrap(paper), ...extra,
@@ -100,5 +101,50 @@ describe('fixture-backed workbench shell', () => {
     expect(screen.queryByRole('button', { name: /n6|Node 6/ })).toBeNull()
     fireEvent.click(continueButton)
     expect(await screen.findByRole('button', { name: /n6|Node 6/ })).toBeTruthy()
+  })
+
+  it('shows actual parameter layers and a server-shaped comparison fixture', async () => {
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }>; parameters?: Array<{ id: string; path: string }> }
+    manifest.parameters = [{ id: 'sample/next', path: 'sample/next.mantra' }]
+    manifest.cases[0].files.parameters = '/fixtures/sample/parameters.json'
+    manifest.cases[0].files.compares = { '["sample/next"]': '/fixtures/sample/compare.json' }
+    fixture['/fixtures/sample/parameters.json'] = wrap({ parameters: [{ id: 'rate', label: 'Example rate', reference: 'Section 1', layers: [
+      { layer: 'schema', value: { n: '10.00' }, declared: true },
+      { layer: 'parameters', set: 'sample/current', value: { n: '12.00' }, declared: true },
+      { layer: 'case', value: null, declared: false },
+    ], effective: { value: { n: '12.00' }, layer: 'parameters', set: 'sample/current' } }] })
+    fixture['/fixtures/sample/compare.json'] = wrap({ variant: { parameters: ['sample/next'] }, mainline: [{ step: 1, panel: 'main', node: 'total', coord: [], base: { n: '30.00' }, variant: { n: '31.00' }, delta: { n: '1.00' }, basePresent: true, variantPresent: true, display: { base: '30.00', variant: '31.00', delta: '+1.00' } }], changes: [], parameterChanges: [{ node: 'rate', coord: [], base: { n: '12.00' }, variant: { n: '13.00' }, delta: { n: '1.00' }, basePresent: true, variantPresent: true, display: { base: '12.00', variant: '13.00', delta: '+1.00' }, baseSource: 'sample/current', variantSource: 'sample/next' }] })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/parameters`)
+    render(<App />)
+    expect(await screen.findByText('Example rate')).toBeTruthy()
+    expect(screen.getByText('Section 1')).toBeTruthy()
+    expect(document.querySelector('.parameter-layer.is-effective')?.textContent).toContain('12.00')
+    fireEvent.change(screen.getByLabelText('Vergleichen mit'), { target: { value: 'sample/next' } })
+    expect(await screen.findByText('30.00 → 31.00')).toBeTruthy()
+    expect(screen.getByText('sample/current → sample/next')).toBeTruthy()
+  })
+
+  it('filters diagnostics, shows locations, and links an addressed finding to its panel', async () => {
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
+    manifest.cases[0].files.diagnostics = '/fixtures/sample/diagnostics.json'
+    const findings: Diagnostic[] = [
+      { severity: 'error', code: 'MANTRA-INPUT-TYPE', message: 'Wrong type', location: null, address: { node: 'value', coord: ['B'] }, related: [] },
+      { severity: 'warning', code: 'DSL-EXAMPLE', message: 'Check source', location: { document: 'case.mantra', line: 7, column: 4, startOffset: 42, endOffset: 47 }, address: { node: 'value', coord: ['B'] }, related: [{ document: 'schema.mantra', line: 2, column: 8 }] },
+    ]
+    fixture['/fixtures/sample/diagnostics.json'] = wrap({ diagnostics: findings })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/diagnostics`)
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: 'MANTRA-INPUT-TYPE' })).toBeTruthy()
+    fireEvent.change(screen.getByLabelText('Schweregrad'), { target: { value: 'warning' } })
+    expect(screen.queryByRole('heading', { name: 'MANTRA-INPUT-TYPE' })).toBeNull()
+    expect(screen.getByText('case.mantra:7:4', { selector: '.finding-location code' })).toBeTruthy()
+    expect(screen.getByText('schema.mantra:2:8')).toBeTruthy()
+    fireEvent.click(screen.getByRole('link', { name: /Zum betroffenen Wert/ }))
+    expect(location.pathname).toBe(`${casePath(caseId)}/panels/detail`)
+    expect(new URLSearchParams(location.search).get('cell')).toBe('value@B')
   })
 })

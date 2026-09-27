@@ -300,7 +300,7 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 ### 6.6.1 只读测试数据清单
 
 `mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]` 在输出目录下写出 `index.json` 和每个案例的
-`structure.json`、`run.json`、`paper.json`、`diagnostics.json`。四份文档都使用 §6 的
+`structure.json`、`run.json`、`paper.json`、`diagnostics.json`、`parameters.json`。五份文档都使用 §6 的
 `contract`/`revision`/`engine`/`data` 外层。清单本身只用于静态文件分发，不是 HTTP API 响应：
 
 ```json
@@ -582,7 +582,7 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 ## 12. 验收
 
 - **契约测试**（mantra-workbench）：
-  - 三个验收方案各有 Structure、Run、Paper 和 Diagnostics 的 golden 文件；
+  - 三个验收方案各有 Structure、Run、Paper、Diagnostics 和 Parameters 的 golden 文件；
   - 另有选定地址的 Explain，以及 ESt 2025 对 `params-2026` 的 Compare；
   - golden 文件和服务端测试中的每个响应都通过 JSON Schema 校验。
 - **数值来源**：golden 记录的是引擎输出，验收断言仍须来自独立来源（CLAUDE.md）。例如 ESt 用 `verify_expected.py` 独立复算（需扩展到 2026 参数），IAS 36 用 IE8 公布的数字。
