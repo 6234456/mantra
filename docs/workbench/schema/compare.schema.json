@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/compare.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["variant", "mainline", "changes", "parameterChanges"],
+      "properties": {
+        "variant": {
+          "type": "object", "required": ["parameters"],
+          "properties": {
+            "parameters": { "type": "array", "items": { "type": "string" } },
+            "case": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "mainline": { "type": "array", "items": {
+          "allOf": [{ "$ref": "#/$defs/change" }],
+          "required": ["step", "panel"],
+          "properties": { "step": { "type": "integer", "minimum": 1 }, "panel": { "type": "string" } }
+        } },
+        "changes": { "type": "array", "items": {
+          "type": "object", "required": ["step", "panel", "items"],
+          "properties": {
+            "step": { "type": ["integer", "null"], "minimum": 1 },
+            "panel": { "type": ["string", "null"] },
+            "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/change" } }
+          }, "additionalProperties": false
+        } },
+        "parameterChanges": { "type": "array", "items": {
+          "allOf": [{ "$ref": "#/$defs/change" }],
+          "required": ["baseSource", "variantSource"],
+          "properties": { "baseSource": { "type": "string" }, "variantSource": { "type": "string" } }
+        } }
+      }, "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "change": {
+      "type": "object",
+      "required": ["node", "coord", "base", "variant", "delta", "basePresent", "variantPresent", "display"],
+      "properties": {
+        "node": { "type": "string" },
+        "coord": { "type": "array", "items": { "type": "string" } },
+        "base": { "$ref": "value.schema.json" },
+        "variant": { "$ref": "value.schema.json" },
+        "delta": { "oneOf": [{ "type": "null" }, { "type": "object", "required": ["n"], "properties": { "n": { "type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$" } }, "additionalProperties": false }] },
+        "basePresent": { "type": "boolean" }, "variantPresent": { "type": "boolean" },
+        "display": {
+          "type": "object", "required": ["base", "variant", "delta"],
+          "properties": {
+            "base": { "type": ["string", "null"] },
+            "variant": { "type": ["string", "null"] },
+            "delta": { "type": ["string", "null"] }
+          }, "additionalProperties": false
+        },
+        "step": { "type": "integer", "minimum": 1 },
+        "panel": { "type": "string" },
+        "baseSource": { "type": "string" },
+        "variantSource": { "type": "string" }
+      }, "additionalProperties": false
+    }
+  }
+}

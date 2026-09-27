@@ -4,8 +4,12 @@
 It shares no code with the Mantra engine or the schema; it re-implements the statutory rules used in
 schema.mantra so the expected values in EinkommensteuerTest.kt can be checked by a second route.
 Run: python3 examples/de-est-2025/verify_expected.py
+     python3 examples/de-est-2025/verify_expected.py --verify-compare
 """
+import argparse
+import json
 from decimal import Decimal as D, ROUND_FLOOR
+from pathlib import Path
 
 
 def floor(x, places=0):
@@ -117,7 +121,51 @@ def compute(p):
     return rows
 
 
-for year in (2025, 2026):
-    print(f"--- parameters {year}")
-    for name, value in compute(PARAMS[year]):
-        print(f"{name:32s} {value}")
+def verify_compare(path):
+    """Check the engine's Compare golden against this independent statutory recomputation."""
+    golden = json.loads(path.read_text())
+    assert golden["contract"] == "mantra.workbench/1"
+    observed = golden["data"]
+    year = {y: dict(compute(PARAMS[y])) for y in (2025, 2026)}
+    for y in year:
+        year[y]["zuschlagsteuern-summe"] = year[y]["solidaritaetszuschlag"] + year[y]["kirchensteuer"]
+    expected_mainline = [
+        "zu-versteuerndes-einkommen", "festzusetzende-est", "zuschlagsteuern-summe", "abrechnungsergebnis"
+    ]
+    assert [item["node"] for item in observed["mainline"]] == expected_mainline
+    for item in observed["mainline"]:
+        node = item["node"]
+        base, variant = D(year[2025][node]), D(year[2026][node])
+        assert D(item["base"]["n"]) == base, (node, "base")
+        assert D(item["variant"]["n"]) == variant, (node, "variant")
+        assert D(item["delta"]["n"]) == variant - base, (node, "delta")
+    parameter_ids = {
+        "tarif-gfb": "gfb", "tarif-g2": "g2", "tarif-g3": "g3", "tarif-g4": "g4",
+        "tarif-a2": "a2", "tarif-a3": "a3", "tarif-c3": "c3", "tarif-c4": "c4", "tarif-c5": "c5",
+        "kinderfreibetrag": "kfb", "kindergeld-monat": "kindergeld",
+        "soli-freigrenze": "soli", "hoechstbetrag-altersvorsorge": "av",
+    }
+    changed = {name: field for name, field in parameter_ids.items() if D(PARAMS[2025][field]) != D(PARAMS[2026][field])}
+    assert {item["node"] for item in observed["parameterChanges"]} == set(changed)
+    for item in observed["parameterChanges"]:
+        field = changed[item["node"]]
+        base, variant = D(PARAMS[2025][field]), D(PARAMS[2026][field])
+        assert D(item["base"]["n"]) == base, item["node"]
+        assert D(item["variant"]["n"]) == variant, item["node"]
+        assert D(item["delta"]["n"]) == variant - base, item["node"]
+    print(f"verified {len(expected_mainline)} mainline and {len(changed)} parameter differences against independent Decimal rules")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verify-compare", nargs="?", const=Path(__file__).parents[2] /
+                        "mantra-workbench/src/test/resources/golden/de-est-2025-case-mustermann-b598e71c/compare-2026.json",
+                        type=Path)
+    args = parser.parse_args()
+    if args.verify_compare:
+        verify_compare(args.verify_compare)
+    else:
+        for year in (2025, 2026):
+            print(f"--- parameters {year}")
+            for name, value in compute(PARAMS[year]):
+                print(f"{name:32s} {value}")

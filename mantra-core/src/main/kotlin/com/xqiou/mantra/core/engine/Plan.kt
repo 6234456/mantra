@@ -67,8 +67,12 @@ sealed class ValueVertex(id: String, location: SourceLocation) : Vertex(id, loca
     var ownCondition: CompiledFormula? = null
 }
 
+/** One declared value of a parameter, retained even when a later layer overrides it. */
+data class ParameterLayer(val layer: String, val value: Value?, val set: String? = null,
+    val reference: String? = null, val declared: Boolean = true)
+
 /** A parameter; [source] is `schema`, the id of the parameter set that supplied it, or `case`. */
-class ParamVertex(val decl: ParamDecl, val value: Value, val source: String) : ValueVertex(decl.id, decl.location) {
+class ParamVertex(val decl: ParamDecl, val value: Value, val source: String, val layers: List<ParameterLayer>) : ValueVertex(decl.id, decl.location) {
     val overridden: Boolean get() = source != "schema"
     override val dims: List<String> = emptyList()
     override val type: ValueType = when (value) {
