@@ -105,13 +105,35 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         return DocumentResult(resolved.revision, data)
     }
 
+    fun compare(caseId: String, variantCaseId: String?, variantParameters: List<String>?): DocumentResult {
+        val snapshot = scan()
+        val base = resolve(caseId, snapshot)
+        val variant = resolve(variantCaseId ?: caseId, snapshot, parameterOverride = variantParameters, includeLayout = false)
+        if (base.view.schema.id != variant.view.schema.id)
+            throw WorkspaceException(WorkspaceProblem.REQUEST, "Comparison requires the same schema id")
+        val digest = MessageDigest.getInstance("SHA-256")
+        listOf(caseId, base.revision, variantCaseId ?: caseId, variant.revision,
+            variant.parameterIds.size.toString(), *variant.parameterIds.toTypedArray()).forEach { value ->
+            val bytes = value.toByteArray(Charsets.UTF_8)
+            digest.update(bytes.size.toString().toByteArray(Charsets.UTF_8))
+            digest.update(0.toByte())
+            digest.update(bytes)
+        }
+        val compareRevision = digest.digest().take(8).joinToString("") { "%02x".format(it) }
+        return DocumentResult(compareRevision,
+            WorkbenchDocuments.compare(base.view, variant.view, base.layout, variant.parameterIds,
+                variantCaseId?.takeIf { it != caseId }))
+    }
+
     fun envelope(document: DocumentResult): String = WorkbenchJson.write(
         WorkbenchJson.envelope(document.revision, mantraVersion, normeinVersion, document.data)
     )
 
-    private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String)
+    private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String,
+                                val parameterIds: List<String>)
 
-    private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null): Resolved {
+    private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
+                        parameterOverride: List<String>? = null, includeLayout: Boolean = true): Resolved {
         val casePath = path(caseId)
         val entry = snapshot.kind("case").singleOrNull { it.path == casePath }
             ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
@@ -132,9 +154,9 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             throw WorkspaceException(WorkspaceProblem.INVALID, "Schema document is invalid", error.diagnostics)
         }
         val parameterBinding = case.meta["parameters"]
-        if (parameterBinding != null && parameterBinding !is Value.Vec)
+        if (parameterOverride == null && parameterBinding != null && parameterBinding !is Value.Vec)
             throw WorkspaceException(WorkspaceProblem.INVALID, ":parameters must be a list")
-        val parameterIds = (parameterBinding as? Value.Vec)?.items?.map { (it as? Value.Text)?.value
+        val parameterIds = parameterOverride ?: (parameterBinding as? Value.Vec)?.items?.map { (it as? Value.Text)?.value
             ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter id must be text") }.orEmpty()
         val parameterFiles = parameterIds.map { id ->
             val matched = snapshot.kind("parameters").filter { it.name == id }
@@ -148,9 +170,9 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be calculated", error.diagnostics)
         }
         val view = CalculationView.of(result)
-        if (case.meta["layout"] != null && case.meta["layout"] !is Value.Text)
+        if (includeLayout && case.meta["layout"] != null && case.meta["layout"] !is Value.Text)
             throw WorkspaceException(WorkspaceProblem.INVALID, ":layout must be text")
-        val selectedLayout = layoutOverride ?: case.text("layout")
+        val selectedLayout = if (includeLayout) layoutOverride ?: case.text("layout") else null
         val layoutFile = selectedLayout?.let { id ->
             val matched = snapshot.kind("layout").filter { it.name == id }
             if (matched.size != 1) throw WorkspaceException(WorkspaceProblem.INVALID, "Layout $id cannot be resolved")
@@ -161,7 +183,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         } } ?: Render.defaultLayout(view)
         val sourceFiles = schema.sources.map { path(it) }
         val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile))
-        return Resolved(view, layout, revision)
+        return Resolved(view, layout, revision, parameterIds)
     }
 
     private fun scan(): Snapshot {

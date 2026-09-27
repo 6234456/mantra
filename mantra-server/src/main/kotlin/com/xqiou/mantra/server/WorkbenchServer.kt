@@ -1,5 +1,9 @@
 package com.xqiou.mantra.server
 
+import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.xqiou.mantra.workbench.WorkspaceCatalog
@@ -10,9 +14,11 @@ import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.net.InetSocketAddress
 import java.net.InetAddress
 import java.net.URLDecoder
+import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
+import java.nio.file.InvalidPathException
 import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -24,6 +30,8 @@ class WorkbenchServer(
     private val uiDirectory: Path? = Path.of("workbench-ui/dist").takeIf(Files::isDirectory),
 ) : AutoCloseable {
     private val catalog = WorkspaceCatalog(workspace)
+    private val requestJson = ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
+        .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
     private val token = ByteArray(32).also(SecureRandom()::nextBytes).joinToString("") { "%02x".format(it) }
     private val executor = Executors.newFixedThreadPool(4)
     private val servers: List<HttpServer> = run {
@@ -60,9 +68,11 @@ class WorkbenchServer(
             if (method == "POST" && exchange.requestHeaders.getFirst("X-Mantra-Token") != token)
                 return error(exchange, 403, "MANTRA-WORKBENCH-TOKEN", "Session token is required")
             val limit = if ("/imports/" in path) 10 * 1024 * 1024 else 1024 * 1024
-            if (exchange.requestHeaders.getFirst("Content-Length")?.toLongOrNull()?.let { it > limit } == true || !withinBodyLimit(exchange, limit))
+            if (exchange.requestHeaders.getFirst("Content-Length")?.toLongOrNull()?.let { it > limit } == true)
                 return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
-            if (path.startsWith("/api/")) api(exchange, path, method)
+            val body = readBody(exchange, limit)
+                ?: return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
+            if (path.startsWith("/api/")) api(exchange, path, method, body)
             else if (method == "GET" || method == "HEAD") static(exchange, path, method == "HEAD")
             else error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         } catch (problem: WorkspaceException) {
@@ -86,7 +96,7 @@ class WorkbenchServer(
         }
     }
 
-    private fun api(exchange: HttpExchange, rawPath: String, method: String) {
+    private fun api(exchange: HttpExchange, rawPath: String, method: String, body: ByteArray) {
         if (rawPath == "/api/v1/workspace" && method == "GET") return json(exchange, 200, catalog.envelope(catalog.workspace()))
         if (rawPath == "/api/v1/events" && method == "GET") return unavailable(exchange)
         val match = Regex("^/api/v1/cases/([^/]+)/(.+)$").matchEntire(rawPath)
@@ -98,6 +108,12 @@ class WorkbenchServer(
             if (query.keys.any { it !in setOf("panel", "layout") } || (document != "paper" && query.isNotEmpty()))
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             return json(exchange, 200, catalog.envelope(catalog.document(caseId, document, query["panel"], query["layout"])))
+        }
+        if (method == "POST" && document == "compare") {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val variant = parseCompare(body)
+            return json(exchange, 200, catalog.envelope(catalog.compare(caseId, variant.first, variant.second)))
         }
         if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo", "export.xlsx", "export.html", "export.txt",
                 "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
@@ -158,15 +174,45 @@ class WorkbenchServer(
         throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed URL encoding")
     }
 
-    private fun withinBodyLimit(exchange: HttpExchange, limit: Int): Boolean {
+    private fun readBody(exchange: HttpExchange, limit: Int): ByteArray? {
         var total = 0
         val buffer = ByteArray(8192)
+        val output = ByteArrayOutputStream()
         while (true) {
             val count = exchange.requestBody.read(buffer)
-            if (count < 0) return true
+            if (count < 0) return output.toByteArray()
             total += count
-            if (total > limit) return false
+            if (total > limit) return null
+            output.write(buffer, 0, count)
         }
+    }
+
+    private fun parseCompare(body: ByteArray): Pair<String?, List<String>?> {
+        fun invalid(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val root: JsonNode = try { requestJson.readTree(body) ?: invalid("Comparison body is required") }
+            catch (error: WorkspaceException) { throw error }
+            catch (_: Exception) { invalid("Malformed comparison JSON") }
+        if (!root.isObject || root.size() != 1 || !root.has("variant")) invalid("Expected a variant object")
+        val variant = root["variant"]
+        if (!variant.isObject || variant.size() !in 1..2 ||
+            variant.fieldNames().asSequence().any { it !in setOf("case", "parameters") })
+            invalid("Expected case or parameters in variant")
+        val case = variant.get("case")?.let { node ->
+            if (!node.isTextual || node.textValue().isBlank()) invalid("Variant case must be a nonempty path")
+            val value = node.textValue()
+            val path = try { Path.of(value) } catch (_: InvalidPathException) { invalid("Variant case path is invalid") }
+            if (path.isAbsolute || path.normalize().toString() != value || '\\' in value)
+                invalid("Variant case must be a canonical workspace-relative path")
+            value
+        }
+        val parameters = variant.get("parameters")?.let { node ->
+            if (!node.isArray || node.size() > 128) invalid("Variant parameters must be an array of at most 128 ids")
+            node.map { id ->
+                if (!id.isTextual || id.textValue().isBlank()) invalid("Parameter id must be nonempty text")
+                id.textValue()
+            }
+        }
+        return case to parameters
     }
 
     private fun unavailable(exchange: HttpExchange) =

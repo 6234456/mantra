@@ -120,7 +120,7 @@ class WorkbenchServerTest {
             val preview = "/api/v1/cases/sample%2Fcase.mantra/preview"
             assertEquals(403, request(port, preview, "POST").status)
             assertEquals(501, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
-            assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
+            assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
                 headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain?address=sum").status)
             assertEquals(404, request(port, "/api/v1/cases/..%2F..%2Fsecret.mantra/structure").status)
@@ -205,6 +205,64 @@ class WorkbenchServerTest {
             assertEquals(200, after.status, after.body)
             assertFalse(after.body.contains("\"revision\":\"$oldRevision\""))
         }
+    }
+
+    @Test fun `compare calculates a variant without writing and validates its request`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/schema.mantra"), """
+            (schema test/example {:title "Test" :mainline [main]}
+              (param adjustment 1)
+              (section main "Main" {:panel true}
+                (line adjusted "Adjusted" (+ base-value adjustment))
+                (total sum "Sum"))
+              (input base-value :decimal))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/case.mantra"), """
+            (case one {:schema "test/example"} (inputs {:base-value 12.5}))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/other.mantra"), """
+            (case one {:schema "test/example" :layout "missing/layout"} (inputs {:base-value 20}))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/bad-binding.mantra"), """
+            (case one {:schema "test/example" :parameters "invalid"} (inputs {:base-value 20}))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/params.mantra"), """
+            (parameters test/variant {:for "test/example"} (values {:adjustment 3}))
+        """.trimIndent())
+        val before = Files.readString(root.resolve("sample/case.mantra"))
+        val ui = temp.resolve("dist")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body>workbench</body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val token = Regex("content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val path = "/api/v1/cases/sample%2Fcase.mantra/compare"
+            fun post(json: String) = request(port, path, "POST", headers = mapOf("X-Mantra-Token" to token),
+                body = json.toByteArray())
+            val variant = post("""{"variant":{"parameters":["test/variant"]}}""")
+            assertEquals(200, variant.status, variant.body)
+            validate("compare", variant.body)
+            assertContains(variant.body, "\"delta\":{\"n\":\"2\"}")
+            assertContains(variant.body, "\"parameters\":[\"test/variant\"]")
+            val other = post("""{"variant":{"case":"sample/other.mantra"}}""")
+            assertEquals(200, other.status, other.body)
+            validate("compare", other.body)
+            assertContains(other.body, "\"case\":\"sample/other.mantra\"")
+            assertEquals(200, post("""{"variant":{"case":"sample/bad-binding.mantra","parameters":[]}}""").status)
+            assertFalse(other.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"").find(variant.body)!!.value))
+            for (invalid in listOf("{}", "{", """{"variant":{"parameters":[3]}}""",
+                    """{"variant":{"parameters":["missing"]}}""",
+                    """{"variant":{"case":"/sample/other.mantra"}}""",
+                    """{"variant":{"case":"sample/../sample/other.mantra"}}""",
+                    """{"variant":{"case":"sample/other.mantra","extra":1}}""",
+                    """{"variant":{"case":"sample/other.mantra","case":"sample/case.mantra"}}""")) {
+                assertTrue(post(invalid).status in setOf(400, 422), invalid)
+            }
+            assertEquals(403, request(port, path, "POST", body = "{}".toByteArray()).status)
+        }
+        assertEquals(before, Files.readString(root.resolve("sample/case.mantra")))
     }
 
     @Test fun `unimplemented source binding reports a diagnostic without calculating`() {

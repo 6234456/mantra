@@ -52,7 +52,8 @@ object WorkbenchDocuments {
 
     /** Exact engine differences projected with the same number formatter used by Paper and Run. */
     fun compare(base: CalculationView, variant: CalculationView, layout: LayoutSpec,
-        variantParameterSets: List<String> = emptyList()): Map<String, Any?> {
+        variantParameterSets: List<String> = emptyList(),
+        variantCaseId: String? = variant.case.id.takeIf { it != base.case.id }): Map<String, Any?> {
         val diff = CalculationCompare.between(base, variant)
         val formatter = NumberFormatter(layout.number)
         fun change(value: ValueChange): Map<String, Any?> {
@@ -70,7 +71,7 @@ object WorkbenchDocuments {
         }
         return linkedMapOf(
             "variant" to linkedMapOf<String, Any?>("parameters" to variantParameterSets).apply {
-                if (base.case.id != variant.case.id) put("case", variant.case.id)
+                if (variantCaseId != null) put("case", variantCaseId)
             },
             "mainline" to diff.mainline.map { entry ->
                 linkedMapOf<String, Any?>("step" to entry.step, "panel" to entry.panel).apply { putAll(change(entry.value)) }

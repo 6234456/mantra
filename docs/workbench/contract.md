@@ -321,6 +321,8 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 
 请求包含基准（当前案例）和一个变体。变体可以是另一组参数集、另一份案例，或一组尚未写入的编辑（§7.1 的预演）。
 
+`POST /cases/{case}/compare` 的 JSON 请求为 `{"variant":{"parameters":["参数集 id"],"case":"工作区相对案例路径"}}`。`variant` 必填，`parameters` 与 `case` 至少提供一个；两者均可单独使用。基准使用 URL 中案例绑定的参数集和版式；变体案例的版式不参与比较。提供 `parameters` 时，有序列表**替换**变体案例自身的参数集绑定（空数组表示不使用参数集）；省略时沿用变体案例的绑定。省略 `case` 时使用 URL 中的案例。另一案例必须使用相同方案 id；不存在的案例返回 404，未能解析的参数集返回 422，错误类型、非规范案例路径、重复 JSON 键及额外字段返回 400。请求不写文档，因此不使用 `baseRevision`。未写入的编辑预演在 WP6 接入之前返回 501。
+
 ```json
 {
   "variant": {"parameters": ["de.est/params-2026"]},
@@ -370,7 +372,7 @@ WP5 的确定规则：只能比较同一个方案 id 的两次计算。`mainline
 
 `layers` 总是以 `schema` 开始，随后按请求顺序列出每个参数集**实际声明**的该参数，最后列出 `case`（未覆盖时 `value: null`、`declared: false`）。每个参数集层携带其 id 与该值自己的引用；`effective` 指向最后一个已声明的层。`declared` 区分未覆盖与明确写入的 `nil`。即使多个参数集写入相同数值，仍保留每层的来源。参数比较只列最终有效值发生变化的参数，内容与 `mainline` 的 `{node, coord, base, variant, delta, display}` 相同，并附两侧的有效来源。
 
-CLI 使用 `mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>`，可选 `--base-parameters <file[,file...]>` 和 `--variant-case <case.mantra>`；两侧参数路径列表从低到高优先，文件均按原样加载。默认输出带 §6 统一外层的 Compare JSON，`--out` 写入文件；`--format text` 输出简表。工作区只读服务已将案例绑定中的参数集 id 解析为路径，并通过 `GET …/parameters` 展示分层；`POST …/compare` 的请求解析待接入。
+CLI 使用 `mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>`，可选 `--base-parameters <file[,file...]>` 和 `--variant-case <case.mantra>`；两侧参数路径列表从低到高优先，文件均按原样加载。默认输出带 §6 统一外层的 Compare JSON，`--out` 写入文件；`--format text` 输出简表。工作区只读服务已将案例绑定中的参数集 id 解析为路径，并通过 `GET …/parameters` 展示分层；`POST …/compare` 已支持有序参数集或另一份案例的只读变体计算。
 CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案及片段、两侧案例、版式，以及带索引的两侧参数列表。文件在方案目录以外时，绝对路径不进入哈希；参数列表的顺序会影响修订号。
 
 ### 6.9 Export（导出）
@@ -529,6 +531,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | 求值 | 内核预算（每个计数器 100,000）与值上限（集合 10,000 项、嵌套深度 32） |
 | Explain | 内核 trace 渲染预算；深度 ≤ 5 |
 | Compare | 每次一个变体 |
+| Compare 参数集列表 | 最多 128 项 |
 | 撤销历史 | 每个案例 50 个版本 |
 
 ### 9.5 安全
@@ -609,3 +612,4 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | WP5 | 明确 Compare 的同方案、坐标、分组、十进制差值和 CLI 外层；明确参数分层顺序及顶层数组 |
 | 2026-09-27 | WP5 修正 | CLI diff 修订哈希改用稳定逻辑角色与有序参数索引，不包含检出目录绝对路径 |
 | 2026-09-27 | WP7 接入 WP5 | GET 参数分层接入工作区绑定，POST Compare 保留 501 待请求解析 |
+| 2026-09-27 | WP7 Compare | POST Compare 接入工作区解析与请求校验，支持有序参数集、另一案例及只读修订 |
