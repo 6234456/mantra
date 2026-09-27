@@ -283,7 +283,6 @@ class WorkbenchServer(
         if (!eventSlots.tryAcquire())
             return error(exchange, 503, "MANTRA-WORKBENCH-BUSY", "Too many event streams")
         try {
-            var previous = catalog.workspaceStamp()
             exchange.responseHeaders.set("Content-Type", "text/event-stream; charset=utf-8")
             exchange.responseHeaders.set("Cache-Control", "no-store")
             exchange.responseHeaders.set("X-Accel-Buffering", "no")
@@ -293,26 +292,39 @@ class WorkbenchServer(
                 output.write("event: $name\ndata: ${WorkbenchJson.write(data)}\n\n".toByteArray(Charsets.UTF_8))
                 output.flush()
             }
-            sendEvent("revision", mapOf("revision" to previous.revision))
+            var previous: WorkspaceCatalog.WorkspaceStamp? = null
+            var scanError: String? = null
             while (running && !Thread.currentThread().isInterrupted) {
-                Thread.sleep(1_000)
-                val current = catalog.workspaceStamp()
-                if (current.revision != previous.revision) {
-                    val changed = (previous.files.keys + current.files.keys).filter {
-                        previous.files[it] != current.files[it]
-                    }.sorted()
+                val current = try {
+                    catalog.workspaceStamp()
+                } catch (problem: WorkspaceException) {
+                    val code = when (problem.problem) {
+                        WorkspaceProblem.TOO_LARGE -> "MANTRA-WORKBENCH-TOO-LARGE"
+                        else -> "MANTRA-WORKBENCH-DOCUMENT"
+                    }
+                    val signature = "$code:${problem.message}"
+                    if (scanError != signature) {
+                        sendEvent("workspaceError", mapOf("code" to code, "message" to problem.message))
+                        scanError = signature
+                    }
+                    Thread.sleep(5_000)
+                    continue
+                }
+                if (previous == null || scanError != null) {
+                    sendEvent("revision", mapOf("revision" to current.revision))
+                } else if (current.revision != previous.revision) {
+                    val changed = (previous.files.keys + current.files.keys).filter { previous.files[it] != current.files[it] }.sorted()
                     sendEvent("documentChanged", mapOf("revision" to current.revision, "paths" to changed))
-                    previous = current
                 } else {
                     output.write(": keepalive\n\n".toByteArray(Charsets.UTF_8))
                     output.flush()
                 }
+                previous = current
+                scanError = null
+                Thread.sleep(1_000)
             }
         } catch (_: IOException) {
             // A closed browser tab is observed when the next event or heartbeat is written.
-        } catch (_: WorkspaceException) {
-            // A changed workspace can exceed a resource limit after headers were sent.
-            // Close the stream so EventSource can reconnect after the document is repaired.
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         } finally {

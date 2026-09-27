@@ -6,6 +6,9 @@ import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.xqiou.mantra.workbench.ExportBudget
+import com.xqiou.mantra.workbench.WorkspaceCatalog
+import com.xqiou.mantra.workbench.WorkspaceException
+import com.xqiou.mantra.workbench.WorkspaceProblem
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -21,6 +24,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class WorkbenchServerTest {
     @TempDir lateinit var temp: Path
@@ -115,6 +119,8 @@ class WorkbenchServerTest {
 
     @Test fun `events report content changes with workspace revision and release stream slots`() {
         val root = workspace()
+        assertEquals(WorkspaceProblem.TOO_LARGE,
+            assertFailsWith<WorkspaceException> { WorkspaceCatalog(root).workspaceStamp(maxBytes = 1) }.problem)
         WorkbenchServer(root, 0).use { server ->
             server.start()
             EventStream(server.localPort).use { first ->
@@ -137,6 +143,11 @@ class WorkbenchServerTest {
                     assertEquals(listOf("sample/new.mantra"), first.event("documentChanged")["paths"])
                     Files.delete(added)
                     assertEquals(listOf("sample/new.mantra"), first.event("documentChanged")["paths"])
+                    Files.writeString(added, "x".repeat(1_048_577))
+                    assertEquals("MANTRA-WORKBENCH-TOO-LARGE", first.event("workspaceError")["code"])
+                    Files.delete(added)
+                    val recovered = first.event("revision")["revision"] as String
+                    assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), recovered)
                 }
             }
             // Closed streams are removed on the next heartbeat; a fresh reader receives the current revision.

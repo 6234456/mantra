@@ -60,12 +60,20 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     /** Cheap content snapshot for the event stream; it does not evaluate case documents. */
     data class WorkspaceStamp(val revision: String, val files: Map<String, String>)
 
-    fun workspaceStamp(): WorkspaceStamp {
+    fun workspaceStamp(maxBytes: Long = 64L * 1024 * 1024): WorkspaceStamp {
+        require(maxBytes > 0)
         val digest = MessageDigest.getInstance("SHA-256")
         val files = linkedMapOf<String, String>()
+        var totalBytes = 0L
         mantraFiles().forEach { file ->
-            if (Files.size(file) > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            val size = Files.size(file)
+            if (size > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            if (totalBytes + size > maxBytes)
+                throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Event scan exceeds $maxBytes bytes")
             val bytes = Files.readAllBytes(checked(file))
+            totalBytes += bytes.size
+            if (totalBytes > maxBytes)
+                throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Event scan exceeds $maxBytes bytes")
             val name = relative(file)
             val nameBytes = name.toByteArray(Charsets.UTF_8)
             digest.update(nameBytes.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(nameBytes)
