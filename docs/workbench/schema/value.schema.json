@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/value.schema.json",
+  "title": "Mantra workbench value v1",
+  "description": "Exact engine value encoding; decimal values are strings.",
+  "oneOf": [
+    { "type": "null" },
+    { "type": "boolean" },
+    { "type": "string" },
+    { "type": "array", "items": { "$ref": "#" } },
+    {
+      "type": "object",
+      "required": ["n"],
+      "properties": { "n": { "type": "string", "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$" } },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["kw"],
+      "properties": { "kw": { "type": "string" } },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["date"],
+      "properties": { "date": { "type": "string", "format": "date" } },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["map"],
+      "properties": {
+        "map": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [{ "$ref": "#" }, { "$ref": "#" }],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
