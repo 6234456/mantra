@@ -8,8 +8,9 @@ import { auditForCell, nodeValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
+import { SourcesPage } from './SourcesPage'
 
-type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'inputs' | 'parameters' | 'diagnostics' | 'export' | 'other'; panelId?: string; groupId?: string; address?: Address; compare?: string }
+type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'inputs' | 'parameters' | 'sources' | 'diagnostics' | 'export' | 'other'; panelId?: string; groupId?: string; address?: Address; compare?: string }
 const lang = language()
 
 function route(): Route {
@@ -22,6 +23,7 @@ function route(): Route {
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
   if (parts[2] === 'inputs') return { caseId, page: 'inputs', groupId: parts[3] ? decodeURIComponent(parts[3]) : undefined }
   if (parts[2] === 'parameters') return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
+  if (parts[2] === 'sources') return { caseId, page: 'sources' }
   if (parts[2] === 'diagnostics') return { caseId, page: 'diagnostics' }
   if (parts[2] === 'export') return { caseId, page: 'export' }
   return { caseId, page: 'other' }
@@ -82,6 +84,7 @@ export function App() {
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
           current.page === 'inputs' ? <InputsPage caseId={caseId!} groupId={current.groupId} structure={structure.data!.data} run={run.data!.data} revision={run.data!.revision} data={data} effect={editEffect} onSaved={difference => { setEditEffect(difference); setRefresh(value => value + 1) }} navigate={navigate} /> :
           current.page === 'parameters' ? <ParametersPage caseId={caseId!} structure={structure.data!.data} workspace={workspace.data} data={data} compareSet={current.compare} refresh={refresh} revision={run.data!.revision} onSaved={() => setRefresh(value => value + 1)} navigate={navigate} /> :
+          current.page === 'sources' ? <SourcesPage caseId={caseId!} structure={structure.data!.data} revision={run.data!.revision} data={data} onSaved={() => setRefresh(value => value + 1)} /> :
           current.page === 'diagnostics' ? <DiagnosticsPage caseId={caseId!} structure={structure.data!.data} data={data} navigate={navigate} /> :
           current.page === 'export' ? <ExportPage caseId={caseId!} data={data} layouts={workspace.data?.layouts} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}

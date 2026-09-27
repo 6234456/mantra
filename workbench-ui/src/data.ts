@@ -1,4 +1,4 @@
-import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare, EditOperation, EditResult } from './types'
+import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare, EditOperation, EditResult, Sources, ImportInspection } from './types'
 import { addressToPath } from './address'
 
 export interface WorkbenchData {
@@ -13,6 +13,9 @@ export interface WorkbenchData {
   exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
   exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt', layout?: string): string | undefined
   edit(caseId: string, baseRevision: string, operations: EditOperation[], preview?: boolean): Promise<Envelope<EditResult>>
+  sources(caseId: string, signal?: AbortSignal): Promise<Envelope<Sources>>
+  importInspect(caseId: string, name: string, format: string, contentBase64: string): Promise<Envelope<ImportInspection>>
+  importApply(caseId: string, name: string, format: string, contentBase64: string, baseRevision: string, options: Record<string, unknown>): Promise<Envelope<EditResult>>
 }
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
@@ -29,6 +32,21 @@ function contract<T>(raw: Envelope<T>): Envelope<T> {
 const apiCase = (id: string) => `/api/v1/cases/${encodeURIComponent(id)}`
 
 export class LiveData implements WorkbenchData {
+  private async post<T>(url: string, body: unknown): Promise<Envelope<T>> {
+    const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
+    if (!token) throw new Error('A workbench server session is required')
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Mantra-Token': token }, body: JSON.stringify(body) })
+    const payload = await response.json()
+    if (!response.ok) throw new Error(payload?.error?.diagnostics?.[0]?.message ?? payload?.error?.message ?? `${response.status} ${response.statusText}`)
+    return contract(payload as Envelope<T>)
+  }
+  sources(id: string, signal?: AbortSignal) { return json<Envelope<Sources>>(`${apiCase(id)}/sources`, signal).then(contract) }
+  importInspect(id: string, name: string, format: string, contentBase64: string) {
+    return this.post<ImportInspection>(`${apiCase(id)}/imports/inspect`, { name, format, contentBase64 })
+  }
+  importApply(id: string, name: string, format: string, contentBase64: string, baseRevision: string, options: Record<string, unknown>) {
+    return this.post<EditResult>(`${apiCase(id)}/imports/apply`, { name, format, contentBase64, baseRevision, options })
+  }
   async edit(id: string, baseRevision: string, operations: EditOperation[], preview = false) {
     const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
     if (!token) throw new Error('Editing requires a workbench server session')
@@ -79,6 +97,9 @@ export class LiveData implements WorkbenchData {
 
 /** WP3 writes public/fixtures/index.json and one directory per case. No sample values live in UI source. */
 export class FixtureData implements WorkbenchData {
+  sources(_id: string): Promise<Envelope<Sources>> { return Promise.resolve({ contract: 'mantra.workbench/1', revision: '', engine: { mantra: '', normein: '' }, data: { sources: [] } }) }
+  importInspect(_id: string, _name: string, _format: string, _contentBase64: string): Promise<Envelope<ImportInspection>> { return Promise.reject(new Error('Import requires a workbench server session')) }
+  importApply(_id: string, _name: string, _format: string, _contentBase64: string, _baseRevision: string, _options: Record<string, unknown>): Promise<Envelope<EditResult>> { return Promise.reject(new Error('Import requires a workbench server session')) }
   edit(_id: string, _baseRevision: string, _operations: EditOperation[], _preview = false): Promise<Envelope<EditResult>> {
     return Promise.reject(new Error('Editing requires a workbench server session'))
   }
