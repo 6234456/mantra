@@ -185,6 +185,8 @@ v1 的变化：
 
 `headline` 是节点 id 字符串（无法解析时为 `null`），包括未声明时的主线末步默认值。`groupTitles` 是已使用的显式输入组键到显示标题的映射；`fields[]`/`generalInputs[]` 含 `group` 和 `groupTitle`，`nodes` 中还包含 `signLabels` 与 `group`。这些字段只传递展示提示，不参与计算。
 
+表格输入字段另含 `keyColumn`（若作为维度来源则为稳定行键列名，否则为 `null`）。前端编辑单元格时按此列取 `address.cell.row`；无稳定键的表格使用零起始行索引。该字段只表达现有维度声明，不由界面推断。
+
 ### 6.3 Run（一次计算的结果）
 
 ```json
@@ -412,7 +414,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | `op` | JSON 字段 |
 | --- | --- |
 | `setInput` / `clearInput` | `address: {node, coord?}`，或表格单元格 `address: {node, cell: {row, column}}`；设置时另有 `text` 或 `value` |
-| `insertRow` / `updateRow` / `deleteRow` / `moveRow` | `table`；插入或更新用 `row`（编码的 map）；索引为从 0 开始的 `index`，移动用 `from`、`to`；索引只在提交的基准修订中有效 |
+| `insertRow` / `updateRow` / `deleteRow` / `moveRow` | `table`；插入或更新用 `row`（编码的 map），插入也可用 `rowText`（列名到用户原文的映射，由服务端按列类型解析，空值省略）；索引为从 0 开始的 `index`，移动用 `from`、`to`；索引只在提交的基准修订中有效 |
 | `setParam` / `resetParam` | `id`；设置时另有 `text` 或 `value` |
 | `addExtension` / `updateExtension` / `removeExtension` | `slot`、`id`；新增/更新另有 `title`、`formula` |
 | `bindFormula` / `unbindFormula` | `id`；绑定时另有 `formula` |
@@ -629,6 +631,8 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 日期 | 版本 | 内容 |
 | --- | --- | --- |
 | 2026-09-27 | v1 草案 | 初稿 |
+| 2026-09-27 | WP10 表格录入 | Structure 输入字段增加 `keyColumn`，供前端构造稳定的单元格地址 |
+| 2026-09-27 | WP10 表格原文 | `insertRow` 接受 `rowText`，逐列在服务端解析，前端不处理数字格式 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
 | 2026-09-27 | WP7 只读阶段 | 细化 `/workspace`、诊断端点、未接入端点状态与静态前端/令牌约定 |

@@ -359,6 +359,7 @@ object WorkbenchDocuments {
             "options" to decl.options, "columns" to decl.columns.map { col ->
                 linkedMapOf("name" to col.name, "type" to col.type.keyword, "optional" to col.optional)
             },
+            "keyColumn" to view.dimensions.values.firstOrNull { it.fromTable == id }?.keyColumn,
             "references" to decl.references,
             "constraints" to decl.presentation.attributes.filterKeys { it in setOf("min", "max", "required", "pattern", "max-length") }
                 .mapValues { (_, value) -> WorkbenchJson.value(value) },

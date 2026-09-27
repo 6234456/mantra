@@ -184,6 +184,32 @@ class WorkbenchServerTest {
         }
     }
 
+    @Test fun `table row text is parsed by the server using each declared column type`() {
+        val root = temp.resolve("table-workspace")
+        val target = root.resolve("sample")
+        Files.createDirectories(target)
+        Files.list(Path.of("examples/de-est-2025")).use { stream ->
+            stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, target.resolve(it.fileName)) }
+        }
+        val ui = temp.resolve("table-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body>workbench</body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val path = "/api/v1/cases/sample%2Fcase-mustermann.mantra"
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val revision = ObjectMapper().readTree(request(port, "$path/run").body)["revision"].asText()
+            val body = """{"baseRevision":"$revision","operations":[{"op":"insertRow","table":"vermietungsobjekte","rowText":{"id":"berlin","bezeichnung":"Berlin","mieten":"1.234,56","afa":"100,00","schuldzinsen":"20,00","sonstige-wk":"10,00"}}]}"""
+            val response = request(port, "$path/preview", "POST", headers = mapOf("X-Mantra-Token" to token), body = body.toByteArray())
+            assertEquals(200, response.status, response.body)
+            assertContains(response.body, "berlin")
+            val invalid = body.replace("1.234,56", "1.234,xx")
+            assertEquals(422, request(port, "$path/preview", "POST", headers = mapOf("X-Mantra-Token" to token), body = invalid.toByteArray()).status)
+        }
+    }
+
     @Test fun `export preview and downloads come from the selected layout and generated workbook`() {
         val root = workspace()
         Files.writeString(root.resolve("sample/layout.mantra"),
