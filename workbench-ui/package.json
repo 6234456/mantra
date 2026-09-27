@@ -8,9 +8,13 @@
     "predev": "npm run fixtures",
     "dev": "vite",
     "prebuild": "npm run fixtures",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "build": "npm run types:check && tsc --noEmit && vite build",
+    "types:generate": "node scripts/generate-contract-types.mjs",
+    "types:check": "node scripts/generate-contract-types.mjs --check",
+    "typecheck": "npm run types:check && tsc --noEmit",
+    "test": "npm run types:check && vitest run",
+    "pretest:e2e": "npm run fixtures",
+    "test:e2e": "node scripts/browser-e2e.mjs"
   },
   "dependencies": {
     "react": "19.2.8",

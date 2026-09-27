@@ -10,6 +10,7 @@ npm ci
 npm run dev
 npm run build
 npm test
+npm run test:e2e
 ```
 
 Fixture mode is the default. `npm run dev` and `npm run build` copy the tracked
@@ -34,6 +35,10 @@ is generated and ignored by Git. Its `index.json` has this shape:
 ```
 
 Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. WP3 supplies the manifest and three golden case sets; Explain fixtures are added with WP4.
+
+`npm run types:generate` derives `src/generated/contract.ts` from the checked-in JSON Schemas. The generated file is committed, and `npm test`, `npm run typecheck`, and `npm run build` fail if it is stale. `src/types.ts` uses those wire types and refines the schema's intentionally open presentation objects for UI components.
+
+`npm test` exercises all three tracked golden cases through the full React fixture adapter in jsdom. `npm run test:e2e` starts Vite and the already-installed system Chrome with a separate task-specific temporary profile, then checks overview → panel → addressed Paper cell in all three cases. It stops both processes and removes the profile on success or failure. Set `MANTRA_TEST_CHROME` to another installed Chrome-compatible executable if needed; the script never downloads a browser.
 
 For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` to `http://127.0.0.1:8080`; set the server to that port or adjust the proxy. A production build for server hosting must also set `VITE_WORKBENCH_MODE=live`. Live mode removes generated fixtures before starting or building, so they are not served with the live UI.
 
