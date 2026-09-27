@@ -84,13 +84,14 @@ class WorkbenchServerTest {
             val run = request(server.localPort, "/api/v1/cases/$case/run")
             val paper = request(server.localPort, "/api/v1/cases/$case/paper?panel=main")
             val diagnostics = request(server.localPort, "/api/v1/cases/$case/diagnostics")
-            for (response in listOf(structure, run, paper, diagnostics)) {
+            val parameters = request(server.localPort, "/api/v1/cases/$case/parameters")
+            for (response in listOf(structure, run, paper, diagnostics, parameters)) {
                 assertEquals(200, response.status, response.body)
                 assertContains(response.body, "\"contract\":\"mantra.workbench/1\"")
                 assertContains(response.body, "\"revision\":")
             }
-            listOf("structure", "run", "paper", "diagnostics")
-                .zip(listOf(structure, run, paper, diagnostics))
+            listOf("structure", "run", "paper", "diagnostics", "parameters")
+                .zip(listOf(structure, run, paper, diagnostics, parameters))
                 .forEach { (name, response) -> validate(name, response.body) }
             assertContains(run.body, "\"n\":\"12.5\"")
             assertContains(paper.body, "\"id\":\"main\"")
@@ -119,6 +120,8 @@ class WorkbenchServerTest {
             val preview = "/api/v1/cases/sample%2Fcase.mantra/preview"
             assertEquals(403, request(port, preview, "POST").status)
             assertEquals(501, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
+            assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
+                headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain?address=sum").status)
             assertEquals(404, request(port, "/api/v1/cases/..%2F..%2Fsecret.mantra/structure").status)
             assertEquals(404, request(port, "/%2e%2e/secret.txt").status)
@@ -191,6 +194,11 @@ class WorkbenchServerTest {
             assertContains(before.body, "\"source\":\"test/variant\"")
             val paper = request(server.localPort, "$path/paper?layout=test%2Fbrief")
             assertEquals(200, paper.status, paper.body)
+            val parameters = request(server.localPort, "$path/parameters")
+            assertEquals(200, parameters.status, parameters.body)
+            validate("parameters", parameters.body)
+            assertContains(parameters.body, "\"set\":\"test/variant\"")
+            assertContains(parameters.body, "\"layer\":\"parameters\"")
             val oldRevision = Regex("\"revision\":\"([a-f0-9]{16})\"").find(before.body)!!.groupValues[1]
             Files.writeString(root.resolve("sample/layout.mantra"), "(layout test/brief {:preset :de-staffel-4 :zero \"0\"} (table main))")
             val after = request(server.localPort, "$path/run")

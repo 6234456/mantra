@@ -6,6 +6,8 @@ import com.xqiou.mantra.core.engine.NodeTrace
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.CalculationCompare
+import com.xqiou.mantra.core.view.ValueChange
 import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.ViewItem
 import com.xqiou.mantra.core.view.ViewNode
@@ -26,6 +28,66 @@ import com.xqiou.mantra.render.paper.WorkingPaper
 
 /** Pure projections of the public read-only calculation and presentation views. */
 object WorkbenchDocuments {
+    /** Parameter defaults, every supplied set value, case override, and the effective layer. */
+    fun parameters(view: CalculationView): Map<String, Any?> = linkedMapOf(
+        "parameters" to view.structure.params.map { id ->
+            val node = view.node(id)
+            val source = node.parameterSource ?: "schema"
+            linkedMapOf(
+                "id" to id, "label" to node.label, "reference" to node.presentation.reference,
+                "layers" to node.parameterLayers.map { layer ->
+                    linkedMapOf<String, Any?>("layer" to layer.layer, "value" to layer.value?.let(WorkbenchJson::value),
+                        "declared" to layer.declared).apply {
+                        layer.set?.let { put("set", it) }
+                        layer.reference?.let { put("reference", it) }
+                    }
+                },
+                "effective" to linkedMapOf<String, Any?>(
+                    "value" to node.parameterValue?.let(WorkbenchJson::value),
+                    "layer" to if (source == "case" || source == "schema") source else "parameters",
+                ).apply { if (source != "case" && source != "schema") put("set", source) },
+            )
+        },
+    )
+
+    /** Exact engine differences projected with the same number formatter used by Paper and Run. */
+    fun compare(base: CalculationView, variant: CalculationView, layout: LayoutSpec,
+        variantParameterSets: List<String> = emptyList()): Map<String, Any?> {
+        val diff = CalculationCompare.between(base, variant)
+        val formatter = NumberFormatter(layout.number)
+        fun change(value: ValueChange): Map<String, Any?> {
+            val node = variant.nodes[value.node] ?: base.nodes[value.node]
+            fun display(v: Value?): String? = v?.let { formatter.value(it, node?.presentation?.format, node?.presentation?.precision) }
+            return linkedMapOf(
+                "node" to value.node, "coord" to value.coord,
+                "base" to value.base?.let(WorkbenchJson::value),
+                "variant" to value.variant?.let(WorkbenchJson::value),
+                "delta" to value.delta?.let { WorkbenchJson.value(Value.Num(it)) },
+                "basePresent" to value.basePresent, "variantPresent" to value.variantPresent,
+                "display" to linkedMapOf("base" to display(value.base), "variant" to display(value.variant),
+                    "delta" to value.delta?.let { display(Value.Num(it)) }),
+            )
+        }
+        return linkedMapOf(
+            "variant" to linkedMapOf<String, Any?>("parameters" to variantParameterSets).apply {
+                if (base.case.id != variant.case.id) put("case", variant.case.id)
+            },
+            "mainline" to diff.mainline.map { entry ->
+                linkedMapOf<String, Any?>("step" to entry.step, "panel" to entry.panel).apply { putAll(change(entry.value)) }
+            },
+            "changes" to diff.changes.map { group ->
+                linkedMapOf("step" to group.step, "panel" to group.panel, "items" to group.items.map(::change))
+            },
+            "parameterChanges" to diff.parameterChanges.map { entry ->
+                linkedMapOf<String, Any?>().apply {
+                    putAll(change(entry.value))
+                    put("baseSource", entry.baseSource)
+                    put("variantSource", entry.variantSource)
+                }
+            },
+        )
+    }
+
     /** A panel always has a paper table, even when the chosen layout did not declare one. */
     fun paper(view: CalculationView, layout: LayoutSpec, panelId: String? = null): Map<String, Any?> {
         val rendered = Render.paper(view, layout)

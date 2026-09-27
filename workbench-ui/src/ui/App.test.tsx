@@ -24,8 +24,8 @@ const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], 
   { anchor: 't1-r1-B', citation: '1', label: 'Member value B', formula: 'Formula B', working: 'Calculation B', result: '20.00' },
 ], tables: [{ id: 'detail', ref: '1', title: 'Member detail', columns: [{ id: 'label', header: 'Label' }, { id: 'A', header: 'A' }, { id: 'B', header: 'B' }], rows: [
   { kind: 'VALUE', depth: 0, anchor: 't1-r1', cells: [{ text: 'Member value' }, { text: '10.00', address: { node: 'value', coord: ['A'] } }, { text: '20.00', address: { node: 'value', coord: ['B'] } }] },
-  { kind: 'OPTION', depth: 0, nodeId: 'choice', optionKey: 'one', flags: ['SELECTED'], cells: [{ text: 'Option one' }, { text: '' }, { text: '18.00' }] },
-  { kind: 'OPTION', depth: 0, nodeId: 'choice', optionKey: 'two', cells: [{ text: 'Option two' }, { text: '' }, { text: '20.00' }] },
+  { kind: 'option', depth: 0, node: 'choice', optionKey: 'one', flags: ['selected'], cells: [{ text: 'Option one' }, { text: '18.00', address: { node: 'choice' } }, { text: 'Reference' }] },
+  { kind: 'option', depth: 0, node: 'choice', optionKey: 'two', cells: [{ text: 'Option two' }, { text: '20.00', address: { node: 'choice' } }, { text: 'Reference' }] },
 ] }] }
 
 function docs(extra: Record<string, unknown> = {}) {
@@ -70,6 +70,9 @@ describe('fixture-backed workbench shell', () => {
     expect(screen.queryByText('Formula A')).toBeNull()
     expect(location.search).toContain('cell=value%40B')
     expect(screen.getByText(/Option one/, { selector: '.choice-option span' })).toBeTruthy()
+    const chosen = screen.getByText(/Option one/, { selector: '.choice-option span' }).closest('.choice-option')!
+    expect(chosen.classList.contains('chosen')).toBe(true)
+    expect(within(chosen as HTMLElement).getByText('18.00')).toBeTruthy()
   })
 
   it('shows a fixture error state without invented values', async () => {

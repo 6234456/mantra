@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/parameters.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object", "required": ["parameters"],
+      "properties": {
+        "parameters": { "type": "array", "items": {
+          "type": "object", "required": ["id", "label", "reference", "layers", "effective"],
+          "properties": {
+            "id": { "type": "string" }, "label": { "type": "string" },
+            "reference": { "type": ["string", "null"] },
+            "layers": { "type": "array", "minItems": 2, "items": {
+              "type": "object", "required": ["layer", "value", "declared"],
+              "properties": {
+                "layer": { "enum": ["schema", "parameters", "case"] },
+                "value": { "$ref": "value.schema.json" },
+                "declared": { "type": "boolean" },
+                "set": { "type": "string" }, "reference": { "type": "string" }
+              }, "additionalProperties": false
+            } },
+            "effective": {
+              "type": "object", "required": ["value", "layer"],
+              "properties": {
+                "value": { "$ref": "value.schema.json" },
+                "layer": { "enum": ["schema", "parameters", "case"] },
+                "set": { "type": "string" }
+              }, "additionalProperties": false
+            }
+          }, "additionalProperties": false
+        } }
+      }, "additionalProperties": false
+    }
+  }
+}

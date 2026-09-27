@@ -89,12 +89,19 @@ class Planner(private val sink: DiagnosticSink) {
         // 1. Parameters and top-level inputs.
         schema.params.forEach { decl ->
             val fromSet = parameterSets.lastOrNull { decl.id in it.values }
+            val layers = buildList {
+                add(ParameterLayer("schema", decl.value, reference = decl.presentation.reference))
+                parameterSets.forEach { set ->
+                    set.values[decl.id]?.let { add(ParameterLayer("parameters", it, set.id, set.references[decl.id])) }
+                }
+                add(ParameterLayer("case", case.params[decl.id], declared = decl.id in case.params))
+            }
             val (value, source) = when {
                 decl.id in case.params -> case.params.getValue(decl.id) to "case"
                 fromSet != null -> fromSet.values.getValue(decl.id) to fromSet.id
                 else -> decl.value to "schema"
             }
-            register(ParamVertex(decl, value, source))
+            register(ParamVertex(decl, value, source, layers))
         }
         // 2. Item tree (fields register their inputs while walking).
         val tree = walkSection(schema.root, emptyList(), emptyList())

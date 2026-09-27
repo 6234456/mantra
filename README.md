@@ -70,7 +70,7 @@ mantra-cli/build/install/mantra/bin/mantra catalog
 mantra-cli/build/install/mantra/bin/mantra serve examples --port 8080
 ```
 
-服务提供 `/api/v1/workspace` 以及案例的 Structure、Run、Paper、Diagnostics JSON。
+服务提供 `/api/v1/workspace` 以及案例的 Structure、Run、Paper、Diagnostics、Parameters JSON。
 若已有 live 前端构建产物，可加 `--ui workbench-ui/dist` 托管页面；
 Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前返回 501。
 

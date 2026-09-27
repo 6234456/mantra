@@ -93,13 +93,13 @@ class WorkbenchServer(
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
         val document = match.groupValues[2]
-        if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics")) {
+        if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics", "parameters")) {
             val query = query(exchange.requestURI.rawQuery)
             if (query.keys.any { it !in setOf("panel", "layout") } || (document != "paper" && query.isNotEmpty()))
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             return json(exchange, 200, catalog.envelope(catalog.document(caseId, document, query["panel"], query["layout"])))
         }
-        if (document in setOf("explain", "parameters", "compare", "preview", "edits", "undo", "redo", "export.xlsx", "export.html", "export.txt",
+        if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo", "export.xlsx", "export.html", "export.txt",
                 "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
             return unavailable(exchange)
         error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")

@@ -93,6 +93,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val data = when (name) {
             "structure" -> WorkbenchDocuments.structure(view)
             "run" -> WorkbenchDocuments.run(view, resolved.layout)
+            "parameters" -> WorkbenchDocuments.parameters(view)
             "paper" -> {
                 if (panel != null && view.structure.panels.none { it.id == panel })
                     throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Panel was not found")
