@@ -400,10 +400,26 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | `setBindings` | 参数集、版式、数据来源 | 案例元数据 `:parameters`、`:layout` 与 `(sources …)`（§4.4） | 能否解析 |
 
 - **原文解析**：用户原文由服务端按版式区域解析，规则与 CSV 导入相同（德语默认 `1.234,56`）。前端不解析数字（W4）。
+- **维度化输入**：无成员坐标的 `setInput` 若替换整个值，必须提交与输入维度数相同层级的成员映射，且映射中每一层的键都属于最终视图中该维度的可用成员；标量值必须指定成员坐标。最终状态不符合映射形态或成员集合时整批返回 422。
 - **原子批处理**：一个请求可以包含多个操作，按顺序原子执行。服务端先在内存副本上应用这些操作，再读取、计划、计算。
+  中间状态可暂时不满足方案约束；成员坐标对最终仍保留的输入按最终成员集合校验。
   - 出现读取、案例、输入、公式或循环错误时（`MANTRA-READ-*`、`MANTRA-CASE-*`、`MANTRA-INPUT-*`、`MANTRA-FORMULA`、`MANTRA-CYCLE`），整批拒绝，返回 422，文件保持不变。
   - 运行时错误（`MANTRA-EVALUATION`）不阻止写入，与现在返回部分结果的行为一致。
 - **预演**：`POST …/preview` 执行同样的步骤但不写入，返回结果和差异，用于公式编辑预览和假设分析。
+
+写请求的 JSON 外层为 `{"baseRevision":"16 位十六进制","operations":[…]}`，`operations` 为 1–100 个操作，顺序执行。撤销、重做只提交 `{"baseRevision":"…"}`。响应使用 §6 的统一外层；预演的外层 `revision` 是基准修订，`data.proposedRevision` 是候选修订；提交、撤销、重做的外层 `revision` 是写入后的修订。`data` 还包含 `document`、`preview`、`diagnostics`、`run` 和 `difference`。
+
+操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
+
+| `op` | JSON 字段 |
+| --- | --- |
+| `setInput` / `clearInput` | `address: {node, coord?}`，或表格单元格 `address: {node, cell: {row, column}}`；设置时另有 `text` 或 `value` |
+| `insertRow` / `updateRow` / `deleteRow` / `moveRow` | `table`；插入或更新用 `row`（编码的 map）；索引为从 0 开始的 `index`，移动用 `from`、`to`；索引只在提交的基准修订中有效 |
+| `setParam` / `resetParam` | `id`；设置时另有 `text` 或 `value` |
+| `addExtension` / `updateExtension` / `removeExtension` | `slot`、`id`；新增/更新另有 `title`、`formula` |
+| `bindFormula` / `unbindFormula` | `id`；绑定时另有 `formula` |
+| `setMeta` | `key`、`text` |
+| `setBindings` | `parameters`（有序 id 数组）和/或 `layout`（id；`null` 清除绑定）。`sources` 待 WP11 的来源读取与校验接入后开放。 |
 
 ### 7.2 最小改动回写
 
@@ -421,6 +437,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 ### 7.3 并发、撤销与响应
 
 - **并发**：每个案例同一时间只允许一个写入；读取使用不可变快照，可以并发。
+- **写入前复核**：案例文件锁覆盖最后一次完整修订哈希与原子替换；复核包含方案、参数集和版式等全部参与文件。复核发现外部改动时返回 409，不写候选案例。该文件锁是 advisory 锁，可协调遵守锁的写者；普通文本编辑器若不遵守锁，仍可能在最终复核与原子替换之间修改文件并被覆盖。跨平台文件 API 没有通用的原子比较并替换操作。
 - **外部修改**：服务监视工作区文件。文本编辑器改动文件后，服务重新加载，并通过 SSE 推送 `documentChanged`（附新修订），界面随之刷新。此后若再用旧的 `baseRevision` 写入，会得到 409。
 - **撤销与重做**：服务为每个案例在内存中保存最近 50 个文档版本。撤销是一次普通写入，同样检查修订。持久的历史交给版本控制（D4）。
 - **写入成功的响应**：新修订、改动的文档路径、诊断，以及前后两次计算的差异（格式同 §6.7）。

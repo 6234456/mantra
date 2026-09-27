@@ -227,7 +227,7 @@ class WorkbenchServerTest {
             assertTrue(token != null)
             val preview = "/api/v1/cases/sample%2Fcase.mantra/preview"
             assertEquals(403, request(port, preview, "POST").status)
-            assertEquals(501, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
+            assertEquals(400, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
                 headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain").status)
@@ -236,6 +236,47 @@ class WorkbenchServerTest {
             assertEquals(413, request(port, preview, "POST", headers = mapOf(
                 "X-Mantra-Token" to token, "Content-Length" to "${1024 * 1024 + 1}"),
             ).status)
+        }
+    }
+
+    @Test fun `edit preview commit undo and redo honor token revision and atomic validation`() {
+        val root = workspace()
+        val ui = temp.resolve("edit-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body>workbench</body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val path = "/api/v1/cases/sample%2Fcase.mantra"
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val headers = mapOf("X-Mantra-Token" to token)
+            val original = Files.readString(root.resolve("sample/case.mantra"))
+            val revision = ObjectMapper().readTree(request(port, "$path/run").body)["revision"].asText()
+            fun post(route: String, body: String) = request(port, "$path/$route", "POST", headers = headers, body = body.toByteArray())
+            val edit = """{"baseRevision":"$revision","operations":[{"op":"setInput","address":{"node":"amount"},"text":"1.234,56"}]}"""
+            val preview = post("preview", edit)
+            assertEquals(200, preview.status, preview.body)
+            assertEquals(original, Files.readString(root.resolve("sample/case.mantra")))
+            assertEquals(400, post("preview", """{"baseRevision":"$revision","baseRevision":"$revision","operations":[]}""").status)
+            assertEquals(400, post("preview", """{"baseRevision":"$revision","operations":[{"op":"setInput","address":{"node":"amount"},"value":12.5}]}""").status)
+            val proposed = ObjectMapper().readTree(preview.body)["data"]["proposedRevision"].asText()
+            val committed = post("edits", edit)
+            assertEquals(200, committed.status, committed.body)
+            assertEquals(proposed, ObjectMapper().readTree(committed.body)["revision"].asText())
+            assertContains(Files.readString(root.resolve("sample/case.mantra")), ":amount 1234.56")
+            val stale = post("edits", edit)
+            assertEquals(409, stale.status, stale.body)
+            assertContains(stale.body, "\"currentRevision\":\"$proposed\"")
+            val invalid = post("edits", """{"baseRevision":"$proposed","operations":[{"op":"setInput","address":{"node":"amount"},"value":"wrong"}]}""")
+            assertEquals(422, invalid.status, invalid.body)
+            assertContains(Files.readString(root.resolve("sample/case.mantra")), ":amount 1234.56")
+            val undo = post("undo", """{"baseRevision":"$proposed"}""")
+            assertEquals(200, undo.status, undo.body)
+            assertEquals(original, Files.readString(root.resolve("sample/case.mantra")))
+            val redo = post("redo", """{"baseRevision":"$revision"}""")
+            assertEquals(200, redo.status, redo.body)
+            assertContains(Files.readString(root.resolve("sample/case.mantra")), ":amount 1234.56")
         }
     }
 

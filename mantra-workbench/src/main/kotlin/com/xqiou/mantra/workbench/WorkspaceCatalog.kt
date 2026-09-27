@@ -7,6 +7,7 @@ import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.mantra.core.engine.ExplainTrace
 import com.xqiou.mantra.core.read.Document
 import com.xqiou.mantra.core.read.SourceResolver
@@ -28,9 +29,15 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
+import java.nio.channels.FileChannel
 import java.security.MessageDigest
+import java.math.BigDecimal
+import java.text.DecimalFormatSymbols
+import java.util.concurrent.ConcurrentHashMap
 
-enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE }
+enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE, CONFLICT }
 
 data class ExportBudget(val maxSheets: Int = 64, val maxCells: Int = 50_000, val maxBytes: Int = 8 * 1024 * 1024) {
     init { require(maxSheets > 0 && maxCells > 0 && maxBytes > 0) }
@@ -40,6 +47,7 @@ class WorkspaceException(
     val problem: WorkspaceProblem,
     message: String,
     val diagnostics: List<Diagnostic> = emptyList(),
+    val currentRevision: String? = null,
 ) : RuntimeException(message)
 
 data class ExplainAddress(val node: String, val coord: List<String> = emptyList(),
@@ -48,8 +56,16 @@ data class ExplainAddress(val node: String, val coord: List<String> = emptyList(
 /** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
 class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1.0-SNAPSHOT", normeinVersion: String? = null,
                        private val exportBudget: ExportBudget = ExportBudget()) {
+    companion object {
+        /** Serialize distinct catalog instances in this JVM; the channel lock covers other processes. */
+        private val writeLocks = ConcurrentHashMap<Path, Any>()
+    }
     val root: Path = directory.toRealPath().also { require(Files.isDirectory(it)) { "Workspace must be a directory" } }
     private val normeinVersion = normeinVersion ?: lockedNormein(root)
+    /** Test seam for an external file change after calculation and before the final write check. */
+    internal var beforeWriteCheck: (() -> Unit)? = null
+    private data class EditHistory(val undo: ArrayDeque<String> = ArrayDeque(), val redo: ArrayDeque<String> = ArrayDeque())
+    private val histories = ConcurrentHashMap<String, EditHistory>()
 
     private data class Indexed(val path: Path, val id: String, val kind: String, val name: String?, val diagnostics: List<Diagnostic>)
     private data class Snapshot(val files: List<Indexed>) {
@@ -221,6 +237,232 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 variantCaseId?.takeIf { it != caseId }))
     }
 
+    /** Calculates an edited in-memory case, including the same semantic checks as a committed edit. */
+    fun previewEdits(caseId: String, baseRevision: String, operations: List<CaseTextEditor.Operation>): DocumentResult =
+        synchronized(histories.computeIfAbsent(caseId) { EditHistory() }) {
+            val snapshot = scan()
+            val base = resolve(caseId, snapshot)
+            checkRevision(baseRevision, base.revision)
+            val candidate = editCandidate(caseId, operations)
+            val variant = resolve(caseId, snapshot, caseText = candidate)
+            checkEditDiagnostics(variant)
+            validateFinalCoordinates(variant, operations)
+            DocumentResult(base.revision, editData(base, variant, caseId, true))
+        }
+
+    /** Serializes writes for each case and records the previous exact source for bounded undo. */
+    fun commitEdits(caseId: String, baseRevision: String, operations: List<CaseTextEditor.Operation>): DocumentResult {
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val snapshot = scan()
+            val base = resolve(caseId, snapshot)
+            checkRevision(baseRevision, base.revision)
+            val original = source(path(caseId)).text
+            val candidate = editCandidate(caseId, operations)
+            val variant = resolve(caseId, snapshot, caseText = candidate)
+            checkEditDiagnostics(variant)
+            validateFinalCoordinates(variant, operations)
+            if (candidate != original) {
+                writeCase(caseId, path(caseId), candidate, original, base.revision)
+                history.undo.addLast(original)
+                while (history.undo.size > 50) history.undo.removeFirst()
+                history.redo.clear()
+            }
+            DocumentResult(variant.revision, editData(base, variant, caseId, false))
+        }
+    }
+
+    fun undo(caseId: String, baseRevision: String): DocumentResult = restore(caseId, baseRevision, undo = true)
+    fun redo(caseId: String, baseRevision: String): DocumentResult = restore(caseId, baseRevision, undo = false)
+
+    /** Parses author text by the declared input/parameter type; numerals follow German layout syntax. */
+    fun parseEditText(caseId: String, id: String, parameter: Boolean, text: String, column: String? = null): Value {
+        val resolved = resolve(caseId, scan())
+        val view = resolved.view
+        val type = if (parameter) {
+            val declared = view.nodes[id]?.parameter?.value
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown parameter $id")
+            when (declared) {
+                is Value.Num -> ValueType.DECIMAL
+                is Value.Bool -> ValueType.BOOLEAN
+                is Value.Kw -> ValueType.KEYWORD
+                else -> ValueType.TEXT
+            }
+        } else {
+            val input = view.nodes[id]?.input ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown input $id")
+            if (column == null) input.type else input.columns.firstOrNull { it.name == column }?.type
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table column $column")
+        }
+        return try {
+            when (type) {
+                ValueType.DECIMAL, ValueType.INTEGER -> {
+                    val raw = text.trim()
+                    val symbols = DecimalFormatSymbols.getInstance(resolved.layout.number.locale)
+                    val group = symbols.groupingSeparator
+                    val decimal = symbols.decimalSeparator
+                    val pattern = Regex("-?(?:\\d{1,3}(?:${Regex.escape(group.toString())}\\d{3})+|\\d+)(?:${Regex.escape(decimal.toString())}\\d+)?")
+                    require(pattern.matches(raw)) { "Invalid decimal text" }
+                    val number = BigDecimal(raw.replace(group.toString(), "").replace(decimal, '.'))
+                    require(type != ValueType.INTEGER || number.stripTrailingZeros().scale() <= 0) { "Expected an integer" }
+                    Value.Num(number)
+                }
+                ValueType.BOOLEAN -> when (text.trim().lowercase()) {
+                    "true", "ja" -> Value.Bool(true)
+                    "false", "nein" -> Value.Bool(false)
+                    else -> throw IllegalArgumentException("Expected a boolean")
+                }
+                ValueType.KEYWORD -> Value.Kw(text.trim().removePrefix(":"))
+                ValueType.TEXT, ValueType.DATE, ValueType.ANY -> Value.Text(text)
+                ValueType.TABLE -> throw IllegalArgumentException("Table input requires encoded rows")
+            }
+        } catch (error: IllegalArgumentException) {
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Input text was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
+        }
+    }
+
+    /** A table-backed dimension supplies the stable row key; other tables use revision-local indexes. */
+    fun tableKeyColumn(caseId: String, table: String): String? {
+        val view = resolve(caseId, scan()).view
+        if (view.nodes[table]?.input?.type != ValueType.TABLE)
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table input $table")
+        return view.dimensions.values.firstOrNull { it.fromTable == table }?.keyColumn
+    }
+
+    private fun restore(caseId: String, baseRevision: String, undo: Boolean): DocumentResult {
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val snapshot = scan()
+            val base = resolve(caseId, snapshot)
+            checkRevision(baseRevision, base.revision)
+            val from = if (undo) history.undo else history.redo
+            val to = if (undo) history.redo else history.undo
+            if (from.isEmpty()) throw WorkspaceException(WorkspaceProblem.REQUEST, "No ${if (undo) "undo" else "redo"} version")
+            val original = source(path(caseId)).text
+            val candidate = from.last()
+            val variant = resolve(caseId, snapshot, caseText = candidate)
+            checkEditDiagnostics(variant)
+            writeCase(caseId, path(caseId), candidate, original, base.revision)
+            from.removeLast()
+            to.addLast(original)
+            while (to.size > 50) to.removeFirst()
+            DocumentResult(variant.revision, editData(base, variant, caseId, false))
+        }
+    }
+
+    private fun editCandidate(caseId: String, operations: List<CaseTextEditor.Operation>): String = try {
+        require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
+        var candidate = source(path(caseId)).text
+        operations.forEach { operation ->
+            candidate = CaseTextEditor.apply(candidate, listOf(operation))
+            require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
+                "Edited document exceeds reader limit"
+            }
+        }
+        candidate
+    } catch (error: IllegalArgumentException) {
+        throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
+    } catch (error: IllegalStateException) {
+        throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
+    }
+
+    private fun editData(base: Resolved, variant: Resolved, caseId: String, preview: Boolean): Map<String, Any?> = linkedMapOf(
+        "document" to caseId,
+        "preview" to preview,
+        "proposedRevision" to variant.revision,
+        "diagnostics" to variant.view.diagnostics.map(WorkbenchDocuments::diagnostic),
+        "run" to WorkbenchDocuments.run(variant.view, variant.layout),
+        "difference" to WorkbenchDocuments.compare(base.view, variant.view, base.layout),
+    )
+
+    private fun checkRevision(expected: String, actual: String) {
+        if (expected != actual) throw WorkspaceException(WorkspaceProblem.CONFLICT, "Base revision is stale", currentRevision = actual)
+    }
+
+    private fun checkEditDiagnostics(candidate: Resolved) {
+        val rejected = candidate.view.diagnostics.filter { finding ->
+            val code = finding.code
+            code.startsWith("MANTRA-READ-") || code.startsWith("MANTRA-CASE-") ||
+                code.startsWith("MANTRA-INPUT-") || code.startsWith("MANTRA-FORMULA") || code.startsWith("MANTRA-CYCLE")
+                || code.startsWith("MANTRA-DIMENSION-")
+        }
+        if (rejected.isNotEmpty()) throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", rejected)
+    }
+
+    private fun validateFinalCoordinates(final: Resolved, operations: List<CaseTextEditor.Operation>) {
+        fun reject(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected",
+            listOf(diagnostic("MANTRA-WORKBENCH-EDIT", message)))
+        val view = final.view
+        fun memberMap(value: Value, levels: Int): Boolean = when {
+            levels == 0 -> true
+            value !is Value.MapV -> false
+            else -> value.entries.all { (key, child) ->
+                (key is Value.Kw || key is Value.Text) && memberMap(child, levels - 1)
+            }
+        }
+        view.nodes.values.filter { it.input != null && it.dims.isNotEmpty() }.forEach { node ->
+            val supplied = view.case.inputs[node.id] ?: return@forEach
+            if (!memberMap(supplied, node.dims.size))
+                reject("Dimensioned input ${node.id} requires ${node.dims.size} level(s) of member maps")
+        }
+        // A whole-map replacement must use members available in the final view. Existing maps may
+        // retain dormant members when a separate edit changes the active member selection.
+        fun validMemberKeys(value: Value, dims: List<String>, level: Int = 0): Boolean {
+            if (level == dims.size) return true
+            val entries = (value as? Value.MapV)?.entries ?: return false
+            val allowed = view.members[dims[level]].orEmpty().mapTo(mutableSetOf()) { it.key }
+            return entries.all { (key, child) ->
+                val member = when (key) {
+                    is Value.Kw -> key.name
+                    is Value.Text -> key.value
+                    else -> null
+                }
+                member != null && member in allowed && validMemberKeys(child, dims, level + 1)
+            }
+        }
+        operations.filterIsInstance<CaseTextEditor.Operation.SetInput>()
+            .filter { it.coord.isEmpty() }.map { it.id }.distinct().forEach { id ->
+                val node = view.nodes[id]?.takeIf { it.input != null && it.dims.isNotEmpty() } ?: return@forEach
+                val supplied = view.case.inputs[id] ?: return@forEach
+                if (!validMemberKeys(supplied, node.dims))
+                    reject("Dimensioned input $id contains an invalid member key")
+            }
+        operations.forEach { op ->
+            if (op !is CaseTextEditor.Operation.SetInput || op.coord.isEmpty()) return@forEach
+            var retained: Value? = view.case.inputs[op.id]
+            op.coord.forEach { key ->
+                retained = (retained as? Value.MapV)?.entries?.let { it[Value.Kw(key)] ?: it[Value.Text(key)] }
+            }
+            if (retained == null) return@forEach // A later operation cleared this member.
+            val node = view.nodes[op.id]?.takeIf { it.input != null } ?: reject("Unknown input ${op.id}")
+            if (op.coord.size != node.dims.size || node.dims.zip(op.coord).any { (dim, member) ->
+                    view.members[dim]?.none { it.key == member } != false
+                }) reject("Invalid member coordinate for input ${op.id}")
+        }
+    }
+
+    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String) {
+        val temp = Files.createTempFile(target.parent, ".mantra-edit-", ".tmp")
+        try {
+            Files.writeString(temp, text)
+            beforeWriteCheck?.invoke()
+            synchronized(writeLocks.computeIfAbsent(target) { Any() }) {
+                // A file lock serializes other catalog processes that open this case before writing.
+                // Re-read the complete dependency revision while holding it, immediately before replace.
+                FileChannel.open(checked(target), StandardOpenOption.READ, StandardOpenOption.WRITE).use { channel ->
+                    channel.lock().use {
+                        val current = runCatching { resolve(caseId, scan()).revision }.getOrNull()
+                        if (current != baseRevision || Files.readString(target) != expected)
+                            throw WorkspaceException(WorkspaceProblem.CONFLICT, "Workspace changed during edit",
+                                currentRevision = current)
+                        Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+                    }
+                }
+            }
+        } finally {
+            Files.deleteIfExists(temp)
+        }
+    }
+
     fun explain(caseId: String, address: ExplainAddress, depth: Int = 1): DocumentResult {
         if (depth !in 1..5) throw WorkspaceException(WorkspaceProblem.REQUEST, "Explain depth must be between 1 and 5")
         val snapshot = scan()
@@ -291,12 +533,12 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
                         parameterOverride: List<String>? = null, includeLayout: Boolean = true,
-                        explain: ExplainAddress? = null): Resolved {
+                        caseText: String? = null, explain: ExplainAddress? = null): Resolved {
         val casePath = path(caseId)
         val entry = snapshot.kind("case").singleOrNull { it.path == casePath }
             ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
         if (entry.diagnostics.isNotEmpty()) throw WorkspaceException(WorkspaceProblem.INVALID, "Case document is invalid", entry.diagnostics)
-        val case = try { loadCase(casePath) } catch (error: MantraException) {
+        val case = try { if (caseText == null) loadCase(casePath) else Mantra.loadCase(SourceText(caseId, caseText, casePath.parent.toString())) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Case document is invalid", error.diagnostics)
         }
         val schemaId = case.schemaId ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Case has no schema",
@@ -343,7 +585,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             throw WorkspaceException(WorkspaceProblem.INVALID, "Layout document is invalid", error.diagnostics)
         } } ?: Render.defaultLayout(view)
         val sourceFiles = schema.sources.map { path(it) }
-        val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile))
+        val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile),
+            if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)))
         return Resolved(view, layout, revision, parameterIds, result.explainTrace)
     }
 
@@ -395,10 +638,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     private fun relative(path: Path): String = root.relativize(path).toString().replace('\\', '/')
 
-    private fun revision(files: List<Path>): String {
+    private fun revision(files: List<Path>, replacements: Map<Path, ByteArray> = emptyMap()): String {
         val digest = MessageDigest.getInstance("SHA-256")
         files.distinct().sortedBy(::relative).forEach { file ->
-            val bytes = Files.readAllBytes(checked(file))
+            val bytes = replacements[file] ?: Files.readAllBytes(checked(file))
             val name = relative(file).toByteArray(Charsets.UTF_8)
             digest.update(name.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(name)
             digest.update(0.toByte()); digest.update(bytes.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(bytes)
