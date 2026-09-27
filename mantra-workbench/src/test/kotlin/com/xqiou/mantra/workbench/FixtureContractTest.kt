@@ -5,12 +5,16 @@ import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SchemaLocation
 import com.networknt.schema.SpecificationVersion
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.read.SourceResolver
+import com.xqiou.mantra.core.read.SourceText
+import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
+import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -129,6 +133,28 @@ class FixtureContractTest {
         val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/value.schema.json"))
         assertFalse(schema.validate("12.50", InputFormat.JSON).isEmpty())
         assertTrue(schema.validate(WorkbenchJson.write(mapOf("n" to "12.50")), InputFormat.JSON).isEmpty())
+    }
+
+    @Test
+    fun `value limit diagnostics retain the dimension address`() {
+        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+            (schema test/limit {}
+              (dimension member {:members [:A :B]})
+              (section result "Result" {:per member}
+                (field principal "Principal")
+                (line value "Value" principal)))
+        """.trimIndent()), SourceResolver { _, _ -> null })
+        val supplied = Mantra.loadCase(SourceText("case.mantra", "(case c)"))
+            .copy(inputs = mapOf("principal" to Value.MapV(linkedMapOf(
+                Value.Kw("A") to Value.num(1),
+                Value.Kw("B") to Value.Num(BigDecimal("1E-1001")),
+            ))))
+        val result = Mantra.calculate(schema, supplied)
+        val finding = result.diagnostics.single { it.code == "MANTRA-VALUE-LIMIT" }
+        assertEquals(listOf("B"), finding.coord)
+        val document = WorkbenchDocuments.diagnostics(result.diagnostics)
+        val encoded = (document["diagnostics"] as List<*>).single() as Map<*, *>
+        assertEquals(mapOf("node" to "value", "coord" to listOf("B")), encoded["address"])
     }
 
     @Test

@@ -478,6 +478,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             "${failure.violation.code}: ${failure.violation}${coordText(formula.dims, coord)}",
             formula.formula.location,
             nodeId,
+            coord,
         )
         null
     }

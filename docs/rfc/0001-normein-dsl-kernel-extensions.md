@@ -62,7 +62,7 @@ Identities must not depend on the position. Today this already holds for `logica
 
 **D1.** `(apply min (vals m))` is typed `Any`, so `(decimal/divide x (apply min (vals m)) 4)` fails with `DSL-TYPE-CALL-ARGUMENT`. *Workaround:* Mantra added `dim/min` and `dim/max`. **Fixed in the assessed candidate:** the expression is typed `Decimal` there.
 
-**D2.** `decimal/round`, `decimal/floor`, `decimal/ceil` and `decimal/truncate` are typed `number?` for all inputs, so a host cannot compile a rounded formula against a non-null expected type (`DSL-TYPE-EXPECTED`). *Workaround:* Mantra compiles numeric lines against nullable expected types and maps `nil` to 0. *Proposal:* follow the Clojure-parity rule already applied to `-`, `/`, `min` and `max`: a non-null result for non-null numeric inputs, and typed diagnostics for invalid scales. `decimal/divide` stays nullable, because division by zero returns a documented `nil`. Still open in the candidate.
+**D2.** The previous pin typed `decimal/round`, `decimal/floor`, `decimal/ceil` and `decimal/truncate` as `number?` for every input, preventing a rounded formula from compiling against a non-null expected type (`DSL-TYPE-EXPECTED`). The new pin returns non-null `Decimal` for non-null numeric inputs and reports invalid scales as diagnostics. `decimal/divide` remains nullable because division by zero returns a documented `nil`.
 
 ## E. Semantics of OPTIONAL roots that are absent (documentation only)
 

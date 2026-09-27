@@ -212,7 +212,7 @@ class NormeinRfcContractTest {
     }
 
     @Test
-    fun `C - records need a declared type and structural failures carry no field path`() {
+    fun `C - records need a declared type and structural failures identify the field`() {
         val scope = scope("row" to DslTypes.ref(rowTypeId))
         val map = DslValues.map(listOf(kw("key") to kw("A"), kw("n") to DslValues.integer(BigInteger.ONE)))
         val rejected = assertIs<DslEvaluationOutcome.Failure>(evaluate(compiled(compile("row.n", scope)), mapOf("row" to map)))
@@ -243,7 +243,7 @@ class NormeinRfcContractTest {
     }
 
     @Test
-    fun `D - apply is typed Any and decimal rounding results are nullable`() {
+    fun `D - apply and decimal rounding have precise result types`() {
         val scope = scope("m" to DslTypes.map(DslType.Keyword, DslType.Decimal), "x" to DslType.Decimal)
         assertEquals(DslType.Decimal, compiled(compile("(apply min (vals m))", scope)).inferredType)
         compiled(compile("(decimal/divide 1 (apply min (vals m)) 4)", scope))
