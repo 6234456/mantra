@@ -11,7 +11,7 @@
 | WP8 | 只读界面已合入；Schema 生成的 TypeScript 类型、三个 golden 流程的浏览器端到端测试已通过（`1f6a324`） |
 | WP7 | 工作区、只读文档、Compare POST 和导出端点已合入；编辑与 SSE 端点待 WP6 |
 | WP1 | 新 Normein 接入已合入，锁定已发布的 `0a3ae1de`（language 25 / stdlib 33）；主分支全套测试通过 |
-| WP4 | Explain 内核跟踪、CLI、JSON 契约、服务端点和三个案例的 golden 已在隔离分支实现并测试；待独立审阅和合入 |
+| WP4 | Explain 内核跟踪、CLI、JSON 契约、服务端点和三个案例的 golden 已实现、独立审阅并合入主分支（`49a188e`） |
 | WP10 | 参数与诊断只读界面已合入；录入和校验编辑待 WP6 |
 | WP12 | 导出预览、Excel 下载和资源上限已实现、审阅并合入主分支（`6ea82d9`） |
 | WP6、WP9、WP11 | 尚未合入；依赖关系见 §2 |
@@ -53,7 +53,7 @@
         WP12 导出视图（WP7、WP8）   WP11 数据接入（D1、WP6、WP7、WP10）
 ```
 
-Normein 提交 `0a3ae1de` 已发布并接入当前仓库；现有工作包无需等待 Normein 回复。WP4 在独立分支待审阅，WP6 案例回写可在当前 workspace 开始。WP9 需等 WP6 的编辑接口；WP10 的录入和校验编辑、WP11 的数据接入也需先完成 WP6。WP7 的 SSE 可独立推进。
+Normein 提交 `0a3ae1de` 已发布并接入当前仓库；现有工作包无需等待 Normein 回复。WP4 已合入，WP6 案例回写在本地工作树实施。WP9 需等 WP6 的编辑接口；WP10 的录入和校验编辑、WP11 的数据接入也需先完成 WP6。WP7 的 SSE 可独立推进。
 
 ## 3. 工作包
 
