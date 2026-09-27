@@ -146,6 +146,25 @@ class CaseEditsTest {
     }
 
     @Test
+    fun `dimensioned input cannot be replaced by scalar without a member coordinate`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        val original = Files.readString(file)
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val scalar = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("40000"))
+        val rejected = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(scalar)) }
+        assertEquals(WorkspaceProblem.INVALID, rejected.problem)
+        assertContains(rejected.diagnostics.single().message, "member maps")
+        assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(scalar)) }
+        assertEquals(original, Files.readString(file))
+        val repaired = catalog.previewEdits(case, revision, listOf(scalar,
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        assertTrue(repaired.data["preview"] == true)
+    }
+
+    @Test
     fun `batch may repair an intermediate invalid layout before final validation`() {
         val (dir, case) = copyExample("de-est-2025")
         val catalog = WorkspaceCatalog(dir)

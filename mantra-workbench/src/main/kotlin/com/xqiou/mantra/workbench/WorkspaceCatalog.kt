@@ -340,6 +340,18 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         fun reject(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected",
             listOf(diagnostic("MANTRA-WORKBENCH-EDIT", message)))
         val view = final.view
+        fun memberMap(value: Value, levels: Int): Boolean = when {
+            levels == 0 -> true
+            value !is Value.MapV -> false
+            else -> value.entries.all { (key, child) ->
+                (key is Value.Kw || key is Value.Text) && memberMap(child, levels - 1)
+            }
+        }
+        view.nodes.values.filter { it.input != null && it.dims.isNotEmpty() }.forEach { node ->
+            val supplied = view.case.inputs[node.id] ?: return@forEach
+            if (!memberMap(supplied, node.dims.size))
+                reject("Dimensioned input ${node.id} requires ${node.dims.size} level(s) of member maps")
+        }
         operations.forEach { op ->
             if (op !is CaseTextEditor.Operation.SetInput || op.coord.isEmpty()) return@forEach
             var retained: Value? = view.case.inputs[op.id]
