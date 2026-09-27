@@ -1,0 +1,17 @@
+;; Synthetic variant demonstrating an application-declared formula extension point.
+;; The user chooses the square of remaining life as the asset weighting method.
+(case ias36-custom-weight
+  {:schema "ifrs.ias36/corporate-assets"
+   :title "Entity M – custom asset weighting"
+   :subject "Entity M"
+   :period "End of 20X0"
+   :prepared-by "Mantra acceptance example"
+   :reference "Synthetic weighting variant"}
+  (inputs
+    {:cgus [{:id :A :name "A" :carrying-amount 100 :remaining-life 10 :value-in-use 199}
+            {:id :B :name "B" :carrying-amount 150 :remaining-life 20 :value-in-use 164}
+            {:id :C :name "C" :carrying-amount 200 :remaining-life 20 :value-in-use 271}]
+     :allocable-corporate 150
+     :unallocable-corporate 50
+     :group-recoverable-amount 720})
+  (bind weighting (* remaining-life remaining-life)))

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Informationsarchitektur</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&amp;display=swap">
+<style>
+body{margin:0;background:#F4F1EA;color:#1C1B18;font-family:"IBM Plex Sans","Helvetica Neue",Helvetica,sans-serif}
+a{color:#1E4A8A}a:hover{color:#15345F}
+.serif{font-family:Newsreader,"Iowan Old Style",Georgia,serif}
+.mono{font-family:"IBM Plex Mono",Menlo,Consolas,monospace}
+.tn{font-variant-numeric:tabular-nums lining-nums}
+</style>
+</helmet>
+<div style="width:1440px;height:1000px;box-sizing:border-box;padding:56px 64px;display:flex;flex-direction:column;gap:32px;background:#F4F1EA">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Mantra Workbench</span>
+<h1 class="serif" style="margin:0;font-size:40px;line-height:46px;font-weight:500">Informationsarchitektur</h1>
+</div>
+<section aria-labelledby="ebenen-titel" style="display:flex;flex-direction:column;gap:14px">
+<h2 id="ebenen-titel" style="margin:0;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#4F4A40">Ebenen der Navigation</h2>
+<div style="display:grid;grid-template-columns:repeat(5, minmax(0, 1fr));gap:0;align-items:stretch">
+<div style="display:flex;flex-direction:column;gap:6px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px 0 0 10px">
+<span class="serif" style="font-size:20px">Arbeitsbereich</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Mandanten und Fälle, nach Schema und Zeitraum</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-left:0">
+<span class="serif" style="font-size:20px">Fall</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Schema · Parametersatz · Eingaben · Anpassungen</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:16px;background:#E4EBF6;border:1px solid #BFD0E8;border-left:0">
+<span class="serif" style="font-size:20px;color:#15345F">Übersicht</span>
+<span style="font-size:13px;line-height:18px;color:#15345F">Hauptlinie mit allen Bereichen und Ergebnis</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-left:0">
+<span class="serif" style="font-size:20px">Bereich</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Hauptlinienschritt, Nebenrechnung oder Nebeninformation</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-left:0;border-radius:0 10px 10px 0">
+<span class="serif" style="font-size:20px">Zeile</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Rechenweg, Zwischenwerte, Herkunft</span>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px dashed #C9C0AE;border-radius:10px;font-size:13px;color:#4F4A40">
+<span style="font-weight:600;color:#1C1B18">Querschnitt je Fall</span>
+<span>Stammdaten &amp; Eingaben</span><span aria-hidden="true">·</span>
+<span>Parameter</span><span aria-hidden="true">·</span>
+<span>Datenquellen</span><span aria-hidden="true">·</span>
+<span>Anpassungen</span><span aria-hidden="true">·</span>
+<span>Prüfungen</span><span aria-hidden="true">·</span>
+<span>Export</span>
+</div>
+</section>
+<div style="display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:32px;align-items:start">
+<section aria-labelledby="vertrag-titel" style="display:flex;flex-direction:column;gap:12px">
+<h2 id="vertrag-titel" style="margin:0;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#4F4A40">Vertrag eines Bereichs · Oberfläche ↔ Strukturdaten</h2>
+<table style="width:100%;border-collapse:collapse;font-size:13px;line-height:18px;background:#FFFDF8;border:1px solid #DDD5C6">
+<thead><tr>
+<th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Element der Oberfläche</th>
+<th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Feld</th>
+<th scope="col" style="text-align:left;padding:10px 12px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Verhalten</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Kompass und Pfad</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">entries · breadcrumb</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Schritt, übernehmende Zeile und Weg zur Hauptlinie</td></tr>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Rolle des Bereichs</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">role · step</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Hauptlinie, Nebenrechnung oder Nebeninformation</td></tr>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Eingabezellen</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">fields</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">bearbeitbar, mit Typ, Kz, Hilfe und Quelle</td></tr>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Übernommene Werte</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">imports</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">nur lesen, Sprung zur Herkunft</td></tr>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">„Wird verwendet in“</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">exports</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Ziele in anderen Bereichen</td></tr>
+<tr><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">Stammdaten</td><td class="mono" style="padding:9px 12px;border-bottom:1px solid #EDE7DB;font-size:12px">generalInputs</td><td style="padding:9px 12px;border-bottom:1px solid #EDE7DB">außerhalb der Bereiche gepflegt</td></tr>
+<tr><td style="padding:9px 12px">Parameter</td><td class="mono" style="padding:9px 12px;font-size:12px">params · source · ref</td><td style="padding:9px 12px">wirksamer Wert, Ebene, Rechtsgrundlage</td></tr>
+</tbody>
+</table>
+</section>
+<section aria-labelledby="links-titel" style="display:flex;flex-direction:column;gap:12px">
+<h2 id="links-titel" style="margin:0;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#4F4A40">Direkte Adressen</h2>
+<div style="display:flex;flex-direction:column;gap:8px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px">
+<code class="mono" style="font-size:12px;line-height:18px">/faelle/est-2025-01/uebersicht</code>
+<code class="mono" style="font-size:12px;line-height:18px">/faelle/est-2025-01/bereiche/einkuenfte#zeile-5</code>
+<code class="mono" style="font-size:12px;line-height:18px">/faelle/est-2025-01/herkunft/abrechnungsergebnis</code>
+<code class="mono" style="font-size:12px;line-height:18px">/faelle/est-2025-01/parameter?vergleich=params-2026</code>
+</div>
+<h2 style="margin:12px 0 0;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#4F4A40">Farbsprache</h2>
+<div style="display:flex;flex-direction:column;gap:8px;padding:16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px;font-size:13px;line-height:18px">
+<span style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:4px;border-radius:2px;background:#1E4A8A"></span>Tintenblau · Hauptlinie und Eingaben</span>
+<span style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:2px;background:#B24E17"></span>Siena · Nebenrechnungen, die einfließen</span>
+<span style="display:flex;align-items:center;gap:10px"><span style="width:20px;height:12px;box-sizing:border-box;border:1.5px dashed #7A7466;border-radius:3px"></span>Grau gestrichelt · Nebeninformation</span>
+<span style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:12px;border-radius:3px;background:#9E1B12"></span>Dunkelrot mit Symbol · Fehler</span>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

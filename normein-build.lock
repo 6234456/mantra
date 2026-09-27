@@ -1,0 +1,4 @@
+# Normein composite-build lock. Mantra consumes only the domain-neutral `normein-dsl` kernel.
+# Update this file together with docs/architecture and re-run the full test suite.
+normeinVersion=0.3.0
+normeinCommit=be7648b57c019a8d0efe6ae8b2a8a5695078c475

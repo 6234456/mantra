@@ -1,0 +1,94 @@
+;; IAS 36 – impairment test of cash-generating units with corporate assets
+;; (IAS 36.100–108; structure follows Illustrative Example 8, IE69–IE79).
+;;
+;; Acceptance example for the Mantra engine. This file is domain content built only from generic
+;; engine forms (dimension, section, line, choice, total) and kernel functions (alloc/pro-rata,
+;; dim/sum). It is not part of the engine library.
+
+(schema ifrs.ias36/corporate-assets
+  {:title "IAS 36 – Impairment test with corporate assets"
+   :subtitle "Allocation of corporate assets to CGUs, impairment test per CGU and for the smallest group of CGUs"
+   :version "0.1"
+   :preset :ifrs-schedule
+   :basis "IAS 36.100–108, IE69–IE79"
+   :mainline [step-1 step-2 step-3 step-4 summary]}
+
+  ;; ── Inputs ───────────────────────────────────────────────────────────────────────────────────
+  (input cgus :table
+    {:label "Cash-generating units"
+     :columns {:id :keyword :name :text :carrying-amount :decimal :goodwill :decimal?
+               :remaining-life :decimal :value-in-use :decimal :fvlcd :decimal?}})
+  (input allocable-corporate :decimal
+    {:label "Corporate assets allocable on a reasonable and consistent basis (headquarters building)"})
+  (input unallocable-corporate :decimal
+    {:label "Corporate assets that cannot be allocated (research centre)"})
+  (input group-recoverable-amount :decimal
+    {:label "Recoverable amount of the smallest group of CGUs"})
+  (input weight-by-life :boolean {:default true})
+  (param rounding 0 {:label "Rounding scale of allocations"})
+
+  (dimension cgu {:label "CGU" :from cgus :key :id :title :name :total-label "Total"})
+
+  ;; ── Step 1: allocate the allocable corporate asset (IAS 36.102(a), IE70) ────────────────────
+  (section step-1 "Step 1 – Allocation of the headquarters building to the CGUs"
+    {:per cgu :display :schedule :reference "IAS 36.102(a), IE70"}
+    (line carrying-amount "Carrying amount of the CGU" cgu.carrying-amount)
+    (line remaining-life "Remaining useful life (years)" cgu.remaining-life
+      {:op :info :format :integer :aggregate false})
+    (formula-slot weighting "Weighting based on useful life"
+      (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
+      {:op :info :format :number :aggregate false :uses [remaining-life carrying-amount weight-by-life]})
+    (line weighted-amount "Carrying amount after weighting" (* carrying-amount weighting) {:op :info})
+    (line allocation-key "Pro-rata allocation factor"
+      (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
+      {:op :info :format :percent :precision 1})
+    (line corporate-share "Allocation of the headquarters building"
+      (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
+      {:spread true :reference "IAS 36.102(a)(i)"})
+    (total carrying-amount-allocated "Carrying amount after allocation"))
+
+  ;; ── Step 2: impairment test of each CGU including its share of corporate assets ─────────────
+  (section step-2 "Step 2 – Impairment test of each CGU"
+    {:per cgu :display :schedule :reference "IAS 36.102(a)(ii)"}
+    (line tested-amount "Carrying amount (including allocated corporate asset)" carrying-amount-allocated {:op :info})
+    (choice recoverable-amount "Recoverable amount (higher of value in use and FVLCD)"
+      {:rule :max :op :info :reference "IAS 36.18"}
+      (option :viu "Value in use" cgu.value-in-use)
+      (option :fvlcd "Fair value less costs of disposal" cgu.fvlcd {:when (some? cgu.fvlcd)}))
+    (line impairment-loss "Impairment loss" (max 0 (- tested-amount recoverable-amount))
+      {:op :info :reference "IAS 36.59, 104"}))
+
+  ;; ── Step 3: allocate each CGU's loss to goodwill, then pro rata (IAS 36.104) ─────────────────
+  (section step-3 "Step 3 – Allocation of the impairment losses within the CGUs"
+    {:per cgu :display :schedule :reference "IAS 36.104"}
+    (line loss-to-goodwill "To goodwill" (min impairment-loss (or cgu.goodwill 0)) {:reference "IAS 36.104(a)"})
+    (line loss-to-corporate "To the allocated headquarters building"
+      (get (alloc/pro-rata (- impairment-loss loss-to-goodwill)
+                           {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))}
+                           rounding)
+           :corporate)
+      {:reference "IAS 36.104(b)"})
+    (line loss-to-own-assets "To the other assets of the CGU"
+      (- impairment-loss loss-to-goodwill loss-to-corporate)
+      {:reference "IAS 36.104(b)"})
+    (total loss-allocated "Impairment loss allocated"))
+
+  ;; ── Step 4: smallest group of CGUs including the research centre (IAS 36.102(b)) ────────────
+  (section step-4 "Step 4 – Impairment test of the smallest group of CGUs (entity M)"
+    {:display :schedule :reference "IAS 36.102(b)"}
+    (line group-cgu-assets "Carrying amount of the CGUs (A, B, C)" (dim/sum carrying-amount))
+    (line group-building "Headquarters building" allocable-corporate)
+    (line group-research "Research centre" unallocable-corporate)
+    (total group-before "Carrying amount before step-1 losses")
+    (line group-step1-losses "Impairment losses recognised in steps 2–3" (dim/sum loss-allocated) {:op :minus})
+    (total group-carrying-amount "Carrying amount of the group after step 1")
+    (line group-ra "Recoverable amount of the group" group-recoverable-amount {:op :info :reference "IAS 36.102(b)(iii)"})
+    (line group-loss "Impairment loss of the group" (max 0 (- group-carrying-amount group-ra)) {:op :info}))
+
+  ;; ── Summary ───────────────────────────────────────────────────────────────────────────────────
+  (section summary "Summary of impairment losses recognised" {:display :schedule}
+    (line summary-goodwill "Goodwill" (dim/sum loss-to-goodwill))
+    (line summary-own "Other assets of the CGUs" (dim/sum loss-to-own-assets))
+    (line summary-corporate "Headquarters building" (dim/sum loss-to-corporate))
+    (line summary-group "Additional loss at group level (research centre and other assets)" group-loss)
+    (total total-impairment "Total impairment loss")))

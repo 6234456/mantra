@@ -1,0 +1,19 @@
+;; Parametersatz Veranlagungszeitraum 2026 (Steuerfortentwicklungsgesetz). Nur Werte, die sich
+;; gegenüber den Schema-Standardwerten (VZ 2025) ändern; alle übrigen gelten unverändert weiter.
+(parameters de.est/params-2026
+  {:for "de.est/2025"
+   :label "Parameter VZ 2026"
+   :valid-from "2026-01-01"}
+  (value tarif-gfb 12348 {:reference "§ 32a Abs. 1 Satz 2 Nr. 1 EStG i. d. F. ab VZ 2026"})
+  (value tarif-g2 17799)
+  (value tarif-g3 69878)
+  (value tarif-g4 277825)
+  (value tarif-a2 914.51)
+  (value tarif-a3 173.10)
+  (value tarif-c3 1034.87)
+  (value tarif-c4 11135.63)
+  (value tarif-c5 19470.38)
+  (value kinderfreibetrag 3414 {:reference "§ 32 Abs. 6 Satz 1 EStG"})
+  (value kindergeld-monat 259 {:reference "§ 66 Abs. 1 EStG"})
+  (value soli-freigrenze 20350 {:reference "§ 3 Abs. 3 SolZG 1995"})
+  (value hoechstbetrag-altersvorsorge 30826 {:reference "§ 10 Abs. 3 Satz 1 EStG"}))

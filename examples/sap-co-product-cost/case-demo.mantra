@@ -1,0 +1,31 @@
+;; Synthetic demonstration figures in currency units. They do not represent exported SAP postings.
+(case co-demo
+  {:schema "sap.co/product-cost"
+   :title "Manufacturing orders O100, O101 and O200"
+   :subject "Demo manufacturing company"
+   :period "2026-01"
+   :prepared-by "Mantra acceptance example"
+   :reference "CO-DEMO/01"}
+  (inputs
+    {:primary-postings
+     [{:cost-element "500100" :expense-account "500100" :mode :direct :order-id :O100 :amount 4000}
+      {:cost-element "510100" :expense-account "510100" :mode :direct :order-id :O100 :amount 1000}
+      {:cost-element "500100" :expense-account "500100" :mode :direct :order-id :O101 :amount 2400}
+      {:cost-element "510100" :expense-account "510100" :mode :direct :order-id :O101 :amount 600}
+      {:cost-element "500100" :expense-account "500100" :mode :direct :order-id :O200 :amount 3600}
+      {:cost-element "510100" :expense-account "510100" :mode :direct :order-id :O200 :amount 800}
+      {:cost-element "620100" :expense-account "620100" :mode :pool :amount 600}
+      {:cost-element "630100" :expense-account "630100" :mode :pool :amount 300}]
+     :secondary-postings
+     [{:cost-element "940100" :source-cost-center "MACHINE" :amount 1200}
+      {:cost-element "950100" :source-cost-center "OVERHEAD" :amount 600}]
+     :orders
+     [{:id :O100 :name "Order O100 · Product A" :product-id :A :quantity 100 :allocation-base 10
+       :standard-unit-cost 58}
+      {:id :O101 :name "Order O101 · Product A" :product-id :A :quantity 50 :allocation-base 30
+       :standard-unit-cost 64}
+      {:id :O200 :name "Order O200 · Product B" :product-id :B :quantity 80 :allocation-base 20
+       :standard-unit-cost 62}]
+     :products
+     [{:id :A :name "Product A"}
+      {:id :B :name "Product B"}]}))

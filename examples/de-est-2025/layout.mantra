@@ -1,0 +1,38 @@
+;; Darstellung als Steuerberechnung (Arbeitspapier). Nur Präsentation: Tabellen, Spalten und
+;; Zahlenformate werden aus den eingebauten Tabellen-Primitiven zusammengesetzt.
+(layout de.est/steuerberechnung
+  {:preset :de-staffel-4
+   :title "Einkommensteuer 2025 – Steuerberechnung"
+   :subtitle "Arbeitspapier: Ermittlung nach § 2 EStG / R 2 EStR mit Nebenrechnungen"
+   :row-numbers :table
+   :header [:subject :period :schema :prepared-by :date :reference]}
+
+  (operators {:plus "+"})
+
+  ;; 行号列由 :row-numbers 自动加入，以下只定义其余列。
+  (columns :tiered
+    :operator
+    :label
+    (col :pre {:header "Vorspalte EUR"})
+    (col :main {:header "Hauptspalte EUR"})
+    :status
+    :reference)
+
+  ;; Nebenrechnungen je Person: Person A | Person B | Gesamt
+  (columns :matrix
+    :operator
+    :label
+    (members person)
+    :cross-total
+    :status
+    :reference)
+
+  (table zve {:title "Ermittlung des zu versteuernden Einkommens (R 2 Abs. 1 EStR)" :style :tiered})
+  (table est {:title "Ermittlung der festzusetzenden Einkommensteuer (R 2 Abs. 2 EStR)" :style :tiered})
+  (table zuschlagsteuern {:title "Solidaritätszuschlag und Kirchensteuer" :style :tiered})
+  (table abrechnung {:title "Abrechnung" :style :matrix})
+  (table einkuenfte {:title "Nebenrechnung: Einkünfte aus den Einkunftsarten" :style :matrix})
+  (table sonderausgaben {:title "Nebenrechnung: Sonderausgaben" :style :matrix})
+  (table agb {:title "Nebenrechnung: Außergewöhnliche Belastungen"})
+  (table kinder-pruefung {:title "Nebenrechnung: Günstigerprüfung Kindergeld / Freibeträge"})
+  (table abgeltung {:title "Nebenrechnung: Abgeltungsteuer"}))

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Bereich – Einkünfte</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&amp;display=swap">
+<style>
+body{margin:0;background:#F4F1EA;color:#1C1B18;font-family:"IBM Plex Sans","Helvetica Neue",Helvetica,sans-serif}
+a{color:#1E4A8A}a:hover{color:#15345F}
+.serif{font-family:Newsreader,"Iowan Old Style",Georgia,serif}
+.mono{font-family:"IBM Plex Mono",Menlo,Consolas,monospace}
+.tn{font-variant-numeric:tabular-nums lining-nums}
+</style>
+</helmet>
+<div style="width:1440px;height:1100px;display:flex;flex-direction:column;background:#F4F1EA;overflow:hidden">
+<header style="height:60px;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:0 20px;background:#FBF9F4;border-bottom:1px solid #DDD5C6">
+<a href="Main.dc.html" aria-label="Mantra – Übersicht" style="display:flex;align-items:center;gap:10px;color:#1C1B18;text-decoration:none">
+<svg width="30" height="18" viewBox="0 0 30 18" aria-hidden="true"><path d="M1 11h28" stroke="#1E4A8A" stroke-width="2.4"/><path d="M15 2.5v5" stroke="#B24E17" stroke-width="2"/><circle cx="6" cy="11" r="3.4" fill="#1E4A8A"/><circle cx="15" cy="11" r="3.4" fill="#FBF9F4" stroke="#1E4A8A" stroke-width="2"/><circle cx="24" cy="11" r="3.4" fill="#1E4A8A"/></svg>
+<span class="serif" style="font-size:23px;font-weight:600;letter-spacing:-0.01em">Mantra</span>
+</a>
+<div style="width:1px;height:28px;background:#DDD5C6"></div>
+<button type="button" aria-label="Fall wechseln" style="display:flex;align-items:center;gap:12px;height:42px;padding:0 12px;border:1px solid #DDD5C6;border-radius:8px;background:#FFFDF8;color:#1C1B18;font-family:inherit">
+<span style="display:flex;flex-direction:column;align-items:flex-start;gap:1px"><span style="font-size:14px;font-weight:600">Eheleute Mustermann (fiktiv)</span><span style="font-size:12px;color:#4F4A40">VZ 2025 · Index ESt-2025/01</span></span>
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="#4F4A40" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="display:flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:#E4EBF6;color:#15345F;font-size:12px;font-weight:500">Schema: Einkommensteuer 2025 · v2025.1</span>
+<span style="display:flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:#EFEBE2;border:1px solid #DDD5C6;color:#4F4A40;font-size:12px;font-weight:500">Parameter: Schema-Standard VZ 2025</span>
+</div>
+<div style="flex:1"></div>
+<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#4F4A40"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#1E4A8A"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.4 8.2l1.8 1.8 3.4-3.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Berechnung aktuell · 0 Fehler</span>
+<a href="Export.dc.html" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;background:#1E4A8A;color:#FFFFFF;text-decoration:none;font-size:14px;font-weight:600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10V2.8M5 5.5l3-3 3 3M2.5 10.5v3h11v-3" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportieren</a>
+</header>
+<div style="flex:1;display:flex;min-height:0">
+<nav aria-label="Fallnavigation" style="width:272px;flex:none;box-sizing:border-box;padding:18px 14px;background:#EFEBE2;border-right:1px solid #DDD5C6;display:flex;flex-direction:column;gap:20px">
+<a href="Main.dc.html" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:14px">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#1E4A8A"><path d="M1.5 8h13" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="4" cy="8" r="2" fill="currentColor"/><circle cx="12" cy="8" r="2" fill="currentColor"/></svg>
+<span>Übersicht</span>
+</a>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="padding:0 10px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Hauptlinie</span>
+<div style="position:relative;display:flex;flex-direction:column;gap:1px">
+<div aria-hidden="true" style="position:absolute;left:20px;top:18px;bottom:18px;width:2px;background:#1E4A8A"></div>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">1</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Zu versteuerndes Einkommen</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">83.217,90</span>
+</a>
+<a href="Panel.dc.html" aria-current="page" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none;background:#FFFDF8;box-shadow:inset 0 0 0 1px #C9C0AE;font-weight:600">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Einkünfte</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">112.380,00</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Sonderausgaben</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">19.562,10</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Außergew. Belastungen</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">0,00</span>
+</a>
+<a href="Guenstiger.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Günstigerprüfung Kinder</span>
+<span style="font-size:11px;font-weight:600;color:#8F3E12">→ 1 · 2 · 3</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">2</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Festzusetzende ESt</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">17.996,00</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">3</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Soli und Kirchensteuer</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.344,24</span>
+</a>
+<a href="Pruefpfad.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">4</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Abrechnung</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.462,24</span>
+</a>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="padding:0 10px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Nebeninformation</span>
+<a href="Main.dc.html" style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:22px;height:22px;box-sizing:border-box;border-radius:11px;border:2px dashed #7A7466"></span>
+<span style="font-size:13px">Abgeltungsteuer</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">224,18</span>
+</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px">
+<span style="padding:0 10px 4px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Arbeitsbereiche</span>
+<a href="Eingaben.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M3 13l.8-3.2L10.5 3l2.5 2.5-6.7 6.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Stammdaten &amp; Eingaben</span></a>
+<a href="Parameter.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M2.5 5h11M2.5 11h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="5" r="1.9" fill="#EFEBE2" stroke="currentColor" stroke-width="1.5"/><circle cx="10.5" cy="11" r="1.9" fill="#EFEBE2" stroke="currentColor" stroke-width="1.5"/></svg><span>Parameter</span></a>
+<a href="Datenquellen.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M8 2.5v7M5 6.8l3 3 3-3M2.5 10.5v3h11v-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Datenquellen</span></a>
+<a href="Anpassungen.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5.5v5M5.5 8h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span style="flex:1">Anpassungen</span><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#F7E7DB;color:#8F3E12;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">1</span></a>
+<a href="Pruefungen.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.4 8.2l1.8 1.8 3.4-3.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="flex:1">Prüfungen</span><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#E4EBF6;color:#15345F;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">0</span></a>
+<a href="Export.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M8 10V2.8M5 5.5l3-3 3 3M2.5 10.5v3h11v-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Export</span></a>
+</div>
+<div style="flex:1"></div>
+<div style="padding:12px 10px 0;border-top:1px solid #DDD5C6;font-size:12px;line-height:18px;color:#6E685C">Schema de.est/2025 · v2025.1<br>Layout: Staffel (Standard)</div>
+</nav>
+<main style="flex:1;min-width:0;box-sizing:border-box;padding:22px 32px 28px;display:flex;flex-direction:column;gap:16px">
+<section aria-label="Position in der Hauptlinie" style="display:flex;align-items:center;gap:24px;padding:14px 20px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px">
+<div style="display:flex;flex-direction:column;gap:3px;width:150px;flex:none">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Hauptlinie</span>
+<span style="font-size:13px;line-height:17px;color:#4F4A40">Einstieg dieses Bereichs</span>
+</div>
+<div style="position:relative;flex:1;display:flex;justify-content:space-between;align-items:flex-start">
+<div aria-hidden="true" style="position:absolute;left:75px;right:75px;top:13px;height:2px;background:#1E4A8A"></div>
+<a href="Main.dc.html" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:150px;color:#1C1B18;text-decoration:none">
+<span style="width:28px;height:28px;border-radius:14px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;box-shadow:0 0 0 4px #FFFDF8,0 0 0 6px #B24E17">1</span>
+<span style="font-size:12px;line-height:15px;font-weight:600;text-align:center">Zu versteuerndes Einkommen</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">83.217,90</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:150px;color:#1C1B18;text-decoration:none">
+<span style="width:28px;height:28px;box-sizing:border-box;border-radius:14px;background:#FFFDF8;border:2px solid #1E4A8A;color:#1E4A8A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">2</span>
+<span style="font-size:12px;line-height:15px;text-align:center;color:#4F4A40">Festzusetzende ESt</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">17.996,00</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:150px;color:#1C1B18;text-decoration:none">
+<span style="width:28px;height:28px;box-sizing:border-box;border-radius:14px;background:#FFFDF8;border:2px solid #1E4A8A;color:#1E4A8A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">3</span>
+<span style="font-size:12px;line-height:15px;text-align:center;color:#4F4A40">Soli und Kirchensteuer</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.344,24</span>
+</a>
+<a href="Pruefpfad.dc.html" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:150px;color:#1C1B18;text-decoration:none">
+<span style="width:28px;height:28px;box-sizing:border-box;border-radius:14px;background:#FFFDF8;border:2px solid #1E4A8A;color:#1E4A8A;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">4</span>
+<span style="font-size:12px;line-height:15px;text-align:center;color:#4F4A40">Abrechnung</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.462,24</span>
+</a>
+</div>
+<div style="flex:none;width:230px;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:8px;background:#FBF1E9;border:1px solid #E3C9B5">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#8F3E12">Fließt ein in</span>
+<span style="font-size:13px;line-height:17px">Schritt 1 · Zeile 1<br>Summe der Einkünfte</span>
+</div>
+</section>
+<nav aria-label="Pfad zur Hauptlinie" style="display:flex;align-items:center;gap:8px;font-size:13px;color:#4F4A40;flex-wrap:wrap">
+<a href="Main.dc.html" style="text-decoration:none">Hauptlinie</a><span aria-hidden="true">›</span>
+<a href="Main.dc.html" style="text-decoration:none">1 Ermittlung des zu versteuernden Einkommens</a><span aria-hidden="true">›</span>
+<span>„Summe der Einkünfte“</span><span aria-hidden="true">›</span>
+<span aria-current="page" style="color:#1C1B18;font-weight:600">Einkünfte aus den einzelnen Einkunftsarten</span>
+</nav>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:8px;align-items:center">
+<span style="display:flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;background:#FBF1E9;border:1px solid #E3C9B5;color:#8F3E12;font-size:12px;font-weight:600">Nebenrechnung</span>
+<span style="display:flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;background:#EFEBE2;color:#4F4A40;font-size:12px;font-weight:500">je Person · A · B</span>
+<span style="display:flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;background:#EFEBE2;color:#4F4A40;font-size:12px;font-weight:500">9 Eingaben</span>
+</div>
+<h1 class="serif" style="margin:0;font-size:30px;line-height:36px;font-weight:500">Einkünfte aus den einzelnen Einkunftsarten</h1>
+</div>
+<div style="display:flex;align-items:center;gap:16px">
+<button type="button" aria-pressed="true" style="display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:1px solid #DDD5C6;border-radius:8px;background:#FFFDF8;color:#1C1B18;font-family:inherit;font-size:13px"><span style="width:28px;height:16px;border-radius:8px;background:#1E4A8A;display:flex;align-items:center;justify-content:flex-end;padding:2px;box-sizing:border-box"><span style="width:12px;height:12px;border-radius:6px;background:#FFFFFF"></span></span>Nullzeilen ausblenden</button>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+<span style="font-size:12px;color:#4F4A40">Summe der Einkünfte</span>
+<span class="serif tn" style="font-size:28px;line-height:32px">112.380,00</span>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:24px;align-items:flex-start">
+<div style="width:740px;flex:none;box-sizing:border-box;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px;padding:4px 14px 12px">
+<table style="width:710px;border-collapse:collapse;font-size:13px;line-height:18px">
+<thead>
+<tr>
+<th scope="col" style="width:40px;text-align:left;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18">Zeile</th>
+<th scope="col" style="width:34px;text-align:left;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Rechenzeichen</span></th>
+<th scope="col" style="text-align:left;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18">Bezeichnung</th>
+<th scope="col" style="width:112px;text-align:right;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18">Person A</th>
+<th scope="col" style="width:112px;text-align:right;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18">Person B</th>
+<th scope="col" style="width:120px;text-align:right;padding:10px 6px 8px;font-size:11px;font-weight:600;color:#4F4A40;border-bottom:1px solid #1C1B18">Gesamt EUR</th>
+</tr>
+</thead>
+<tbody>
+<tr><td colspan="6" style="padding:12px 6px 4px"><div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:600">2. Gewerbebetrieb</span><span style="font-size:12px;color:#6E685C">§§ 15–17 EStG</span></div></td></tr>
+<tr>
+<td class="tn" style="padding:3px 6px;color:#6E685C">1</td><td style="padding:3px 6px;color:#4F4A40">+</td><td style="padding:3px 6px">Gewinn</td>
+<td style="padding:3px 6px"><input aria-label="Gewinn Gewerbebetrieb, Person A" class="tn" value="12.400,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td style="padding:3px 6px"><input aria-label="Gewinn Gewerbebetrieb, Person B" class="tn" value="0,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td class="tn" style="padding:3px 15px 3px 6px;text-align:right">12.400,00</td>
+</tr>
+<tr style="font-weight:600">
+<td class="tn" style="padding:5px 6px;color:#6E685C;font-weight:400">2</td><td style="padding:5px 6px">=</td><td style="padding:5px 6px">Einkünfte aus Gewerbebetrieb</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">12.400,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">0,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">12.400,00</td>
+</tr>
+<tr><td colspan="6" style="padding:12px 6px 4px"><div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:600">4. Nichtselbständige Arbeit</span><span style="font-size:12px;color:#6E685C">§ 19 EStG</span></div></td></tr>
+<tr>
+<td class="tn" style="padding:3px 6px;color:#6E685C">3</td><td style="padding:3px 6px;color:#4F4A40">+</td><td style="padding:3px 6px"><span style="display:flex;align-items:center;gap:6px">Bruttoarbeitslohn<span style="font-size:11px;color:#6E685C">Kz 110/111</span><span style="font-size:10px;font-weight:600;letter-spacing:0.04em;padding:1px 5px;border-radius:4px;background:#EFEBE2;color:#4F4A40">CSV</span></span></td>
+<td style="padding:3px 6px"><input aria-label="Bruttoarbeitslohn, Person A" class="tn" value="68.500,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td style="padding:3px 6px"><input aria-label="Bruttoarbeitslohn, Person B" class="tn" value="31.200,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td class="tn" style="padding:3px 15px 3px 6px;text-align:right">99.700,00</td>
+</tr>
+<tr>
+<td class="tn" style="padding:3px 6px;color:#6E685C">4</td><td style="padding:3px 6px"></td><td style="padding:3px 6px;color:#4F4A40">Werbungskosten lt. Einzelnachweis</td>
+<td style="padding:3px 6px"><input aria-label="Werbungskosten lt. Einzelnachweis, Person A" class="tn" value="2.340,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td style="padding:3px 6px"><input aria-label="Werbungskosten lt. Einzelnachweis, Person B" class="tn" value="650,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td class="tn" style="padding:3px 15px 3px 6px;text-align:right;color:#4F4A40">2.990,00</td>
+</tr>
+<tr>
+<td class="tn" style="padding:5px 6px;color:#6E685C">5</td><td style="padding:5px 6px;color:#4F4A40">./.</td><td style="padding:5px 6px">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right">2.340,00</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;background:#E4EBF6;box-shadow:inset 0 0 0 2px #1E4A8A;font-weight:600">1.230,00</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right">3.570,00</td>
+</tr>
+<tr style="font-weight:600">
+<td class="tn" style="padding:5px 6px;color:#6E685C;font-weight:400">6</td><td style="padding:5px 6px">=</td><td style="padding:5px 6px">Einkünfte aus nichtselbständiger Arbeit</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">66.160,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">29.970,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">96.130,00</td>
+</tr>
+<tr><td colspan="6" style="padding:12px 6px 4px"><div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:600">5. Kapitalvermögen</span><span style="font-size:12px;color:#6E685C">§ 20 EStG</span></div></td></tr>
+<tr>
+<td class="tn" style="padding:3px 6px;color:#6E685C">7</td><td style="padding:3px 6px;color:#4F4A40">+</td><td style="padding:3px 6px">Kapitalerträge</td>
+<td style="padding:3px 6px"><input aria-label="Kapitalerträge, Person A" class="tn" value="620,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td style="padding:3px 6px"><input aria-label="Kapitalerträge, Person B" class="tn" value="1.850,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td class="tn" style="padding:3px 15px 3px 6px;text-align:right">2.470,00</td>
+</tr>
+<tr>
+<td class="tn" style="padding:5px 6px;color:#6E685C">8</td><td style="padding:5px 6px;color:#4F4A40">./.</td><td style="padding:5px 6px">Sparer-Pauschbetrag</td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right">620,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right">1.000,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right">1.620,00</td>
+</tr>
+<tr style="font-weight:600">
+<td class="tn" style="padding:5px 6px;color:#6E685C;font-weight:400">9</td><td style="padding:5px 6px">=</td><td style="padding:5px 6px"><span style="display:flex;align-items:center;gap:8px">Einkünfte aus Kapitalvermögen<span style="font-size:11px;font-weight:600;color:#8F3E12;background:#FBF1E9;border:1px solid #E3C9B5;border-radius:4px;padding:0 5px">→ Abgeltungsteuer</span></span></td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">0,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">850,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">850,00</td>
+</tr>
+<tr><td colspan="6" style="padding:12px 6px 4px"><div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:600">6. Vermietung und Verpachtung</span><span style="font-size:12px;color:#6E685C">§ 21 EStG</span></div></td></tr>
+<tr>
+<td class="tn" style="padding:5px 6px;color:#6E685C">10–14</td><td style="padding:5px 6px"></td><td colspan="3" style="padding:5px 6px"><button type="button" aria-expanded="false" style="display:flex;align-items:center;gap:6px;padding:0;border:0;background:none;color:#1E4A8A;font-family:inherit;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Vermietete Objekte · 1 Objekt (ETW Leipzig, Karl-Heine-Str.)</button></td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;color:#4F4A40">3.850,00</td>
+</tr>
+<tr style="font-weight:600">
+<td class="tn" style="padding:5px 6px;color:#6E685C;font-weight:400">15</td><td style="padding:5px 6px">=</td><td style="padding:5px 6px">Einkünfte aus Vermietung und Verpachtung</td>
+<td style="padding:5px 6px"></td><td style="padding:5px 6px"></td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;border-top:1px solid #1C1B18">3.850,00</td>
+</tr>
+<tr><td colspan="6" style="padding:12px 6px 4px"><div style="display:flex;justify-content:space-between;gap:12px"><span style="font-weight:600">7. Sonstige Einkünfte</span><span style="font-size:12px;color:#6E685C">§§ 22, 23 EStG</span></div></td></tr>
+<tr>
+<td class="tn" style="padding:3px 6px;color:#6E685C">16</td><td style="padding:3px 6px"></td><td style="padding:3px 6px;color:#4F4A40">Gewinn aus privaten Veräußerungsgeschäften</td>
+<td style="padding:3px 6px"><input aria-label="Gewinn aus privaten Veräußerungsgeschäften, Person A" class="tn" value="0,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td style="padding:3px 6px"><input aria-label="Gewinn aus privaten Veräußerungsgeschäften, Person B" class="tn" value="740,00" style="width:100%;box-sizing:border-box;height:26px;padding:0 8px;text-align:right;border:1px solid #BFD0E8;border-radius:4px;background:#EEF3FA;color:#1E4A8A;font-family:inherit;font-size:13px"></td>
+<td class="tn" style="padding:3px 15px 3px 6px;text-align:right;color:#4F4A40">740,00</td>
+</tr>
+<tr>
+<td class="tn" style="padding:5px 6px;color:#6E685C;vertical-align:top">17</td><td style="padding:5px 6px;color:#4F4A40;vertical-align:top">+</td><td style="padding:5px 6px"><span style="display:flex;flex-direction:column;gap:2px"><span>Private Veräußerungsgeschäfte (Freigrenze)</span><span style="font-size:12px;line-height:16px;color:#6E685C;font-style:italic">0, weil der Gewinn von 740,00 unter der Freigrenze von 1.000 € liegt</span></span></td>
+<td class="tn" style="padding:5px 15px 5px 6px;text-align:right;vertical-align:top">0,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;vertical-align:top">0,00</td><td class="tn" style="padding:5px 15px 5px 6px;text-align:right;vertical-align:top">0,00</td>
+</tr>
+<tr>
+<td colspan="6" style="padding:8px 6px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:6px;background:#F4F1EA;font-size:12px;color:#4F4A40"><span>Ausgeblendet: 1. Land- und Forstwirtschaft, 3. Selbständige Arbeit, 7. Sonstige Einkünfte (Summe) – jeweils 0,00</span><button type="button" style="padding:0;border:0;background:none;color:#1E4A8A;font-family:inherit;font-size:12px;font-weight:500">Anzeigen</button></div></td>
+</tr>
+<tr style="font-weight:600">
+<td class="tn" style="padding:8px 6px;color:#6E685C;font-weight:400">19</td><td style="padding:8px 6px">=</td><td style="padding:8px 6px"><span style="display:flex;align-items:center;gap:8px">Summe der Einkünfte<span style="font-size:11px;font-weight:600;color:#8F3E12;background:#FBF1E9;border:1px solid #E3C9B5;border-radius:4px;padding:0 5px">→ Schritt 1, Z. 1</span></span></td>
+<td style="padding:8px 6px;border-top:1px solid #1C1B18;border-bottom:3px double #1C1B18"></td><td style="padding:8px 6px;border-top:1px solid #1C1B18;border-bottom:3px double #1C1B18"></td><td class="tn" style="padding:8px 15px 8px 6px;text-align:right;border-top:1px solid #1C1B18;border-bottom:3px double #1C1B18">112.380,00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<aside aria-label="Rechenweg der gewählten Zelle" style="width:340px;flex:none;box-sizing:border-box;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Rechenweg · Zeile 5 · Person B</span>
+<span style="font-size:15px;line-height:20px;font-weight:600">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag</span>
+<span class="serif tn" style="font-size:30px;line-height:36px">1.230,00</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;font-weight:600;color:#4F4A40">Formel</span>
+<code class="mono" style="display:block;padding:10px 12px;background:#F4F1EA;border-radius:6px;font-size:12px;line-height:18px;white-space:pre-wrap;color:#1C1B18">(if (&gt; wk-nachgewiesen an-pauschbetrag)
+    wk-nachgewiesen
+    (min an-pauschbetrag bruttoarbeitslohn))</code>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;font-weight:600;color:#4F4A40">Rechenweg</span>
+<code class="mono" style="display:block;padding:10px 12px;background:#F4F1EA;border-radius:6px;font-size:12px;line-height:18px;white-space:pre-wrap;color:#1C1B18">if(650 &gt; 1.230; 650; min(1.230; 31.200))
+= 1.230,00</code>
+</div>
+<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:#E4EBF6;font-size:13px;line-height:18px;color:#15345F">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.3v3.9M8 5v.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+<span>650 &gt; 1.230 ist nicht erfüllt: angesetzt wird der Arbeitnehmer-Pauschbetrag, höchstens der Bruttoarbeitslohn.</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;font-weight:600;color:#4F4A40">Eingeflossen</span>
+<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:17px">
+<li style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px"><span>Werbungskosten lt. Einzelnachweis · B</span><span class="tn" style="color:#1E4A8A;font-weight:600">650,00</span><span style="grid-column:1 / span 2;font-size:12px;color:#6E685C">Eingabe</span></li>
+<li style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px"><span>Arbeitnehmer-Pauschbetrag</span><span class="tn" style="font-weight:600">1.230,00</span><span style="grid-column:1 / span 2;font-size:12px;color:#6E685C">Parameter · Schema-Standard · § 9a Satz 1 Nr. 1 Buchst. a EStG</span></li>
+<li style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px"><span>Bruttoarbeitslohn · B</span><span class="tn" style="color:#1E4A8A;font-weight:600">31.200,00</span><span style="grid-column:1 / span 2;font-size:12px;color:#6E685C">Eingabe · aus CSV-Import</span></li>
+</ul>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;font-weight:600;color:#4F4A40">Verwendet in</span>
+<span style="font-size:13px;line-height:18px">Zeile 6 · Einkünfte aus nichtselbständiger Arbeit (B) <span class="tn" style="font-weight:600">29.970,00</span></span>
+</div>
+<div style="display:flex;gap:8px">
+<a href="Pruefpfad.dc.html" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;border:1px solid #1E4A8A;color:#1E4A8A;text-decoration:none;font-size:13px;font-weight:600">Herkunft verfolgen</a>
+<a href="Export.dc.html" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:8px;border:1px solid #DDD5C6;color:#1C1B18;text-decoration:none;font-size:13px">In Excel zeigen</a>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-09-26T14:30:00Z"},
+  "title": "Mantra Workbench UI/UX",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 1000, "title": "Übersicht · Hauptlinie", "is_interactive": true},
+    "Panel.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 1100, "title": "Bereich · Einkünfte mit Kompass und Rechenweg", "is_interactive": true},
+    "Pruefpfad.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 1060, "title": "Herkunft einer Zahl", "is_interactive": true},
+    "Guenstiger.dc.html": {"x": 0, "y": 1520, "w": 1440, "h": 1060, "title": "Günstigerprüfung · speist drei Schritte", "is_interactive": true},
+    "Eingaben.dc.html": {"x": 1520, "y": 1520, "w": 1440, "h": 1060, "title": "Stammdaten & Eingaben", "is_interactive": true},
+    "Parameter.dc.html": {"x": 3040, "y": 1520, "w": 1440, "h": 1060, "title": "Parameter · Ebenen und Vergleich VZ 2026", "is_interactive": true},
+    "Datenquellen.dc.html": {"x": 0, "y": 3000, "w": 1440, "h": 1000, "title": "Datenquellen · Import zuordnen", "is_interactive": true},
+    "Export.dc.html": {"x": 1520, "y": 3000, "w": 1440, "h": 1060, "title": "Export · Excel mit Formeln", "is_interactive": true},
+    "Pruefungen.dc.html": {"x": 3040, "y": 3000, "w": 1440, "h": 1000, "title": "Prüfungen · Befunde mit Fundstelle", "is_interactive": true},
+    "Anpassungen.dc.html": {"x": 0, "y": 4480, "w": 1440, "h": 1000, "title": "Anpassungen · eigene Zeile im Slot", "is_interactive": true},
+    "IAS36.dc.html": {"x": 1520, "y": 4480, "w": 1440, "h": 1000, "title": "Same shell, other domain · IAS 36 matrix", "is_interactive": true},
+    "Navigation.dc.html": {"x": 3040, "y": 4480, "w": 1440, "h": 1000, "title": "Informationsarchitektur"}
+  },
+  "order": [
+    "Main.dc.html",
+    "Panel.dc.html",
+    "Pruefpfad.dc.html",
+    "Guenstiger.dc.html",
+    "Eingaben.dc.html",
+    "Parameter.dc.html",
+    "Datenquellen.dc.html",
+    "Export.dc.html",
+    "Pruefungen.dc.html",
+    "Anpassungen.dc.html",
+    "IAS36.dc.html",
+    "Navigation.dc.html"
+  ],
+  "notes": {
+    "row1": {"x": 0, "y": -300, "text": "主线定位与独立板块 · Hauptlinie, Bereich, Herkunft", "kind": "title1", "maxW": 4480},
+    "row2": {"x": 0, "y": 1220, "text": "择优、录入与参数 · Günstigerprüfung, Eingaben, Parameter", "kind": "title1", "maxW": 4480},
+    "row3": {"x": 0, "y": 2700, "text": "数据接入、Excel 导出与校验 · Datenquellen, Export, Prüfungen", "kind": "title1", "maxW": 4480},
+    "row4": {"x": 0, "y": 4180, "text": "扩展与通用性 · Anpassungen, IAS 36, Informationsarchitektur", "kind": "title1", "maxW": 4480},
+    "sticky1": {"x": 4640, "y": 0, "w": 400, "fill": "blue", "text": "主线罗盘出现在每个板块顶部：显示本板块进入主线的步骤、承接行和路径，点击站点即可跳转。板块可单独打开和编辑；从其他板块导入的值只读，并可追溯来源。"},
+    "sticky2": {"x": 4640, "y": 1520, "w": 400, "fill": "orange", "text": "输入用蓝色字体，计算结果用黑色字体（审计底稿惯例）。每个输入都标明来源（手工、CSV、XLSX、JSON），并显示会影响到主线的哪些位置。参数分三层：方案默认 ← 参数集 ← 案例覆盖，差异和对本案的影响即时可见。"},
+    "sticky3": {"x": 4640, "y": 3000, "w": 400, "fill": "green", "text": "Excel 工作簿的结构与主线一致：所有计算单元格都保留为公式（0 处以数值替代），221 个命名区域可用于回读。每条诊断都有稳定代码，并精确定位到文档的行和列。"},
+    "sticky4": {"x": 4640, "y": 4480, "w": 400, "fill": "purple", "text": "同一套外壳可以渲染任意方案：界面只读取 SchemaMap（panels、flows、entries、breadcrumb）和版式，不含任何业务逻辑。右侧 IAS 36 为英文界面示例。"}
+  },
+  "designSystems": []
+}

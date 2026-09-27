@@ -1,0 +1,195 @@
+;; Einkommensteuer 2025 – Berechnungsschema nach § 2 EStG und R 2 EStR.
+;;
+;; Acceptance example for the Mantra engine (domain content, not part of the engine library).
+;; Vereinfachungen gegenüber dem Gesetz sind jeweils als ";; Vereinfachung" kommentiert.
+
+(schema de.est/2025
+  {:title "Einkommensteuer 2025"
+   :subtitle "Ermittlung des zu versteuernden Einkommens und der festzusetzenden Einkommensteuer (§ 2 EStG, R 2 EStR)"
+   :version "2025.1"
+   :period "Veranlagungszeitraum 2025"
+   :preset :de-staffel-4
+   ;; Hauptlinie (R 2 EStR): alle übrigen Bereiche sind Nebenrechnungen, die in sie einfließen.
+   :mainline [zve est zuschlagsteuern abrechnung]}
+
+  ;; ── Veranlagungsmerkmale ─────────────────────────────────────────────────────────────────────
+  (input veranlagungsart :keyword
+    {:label "Veranlagungsart" :default :zusammen
+     :options {:einzel "Einzelveranlagung (§ 25 EStG)" :zusammen "Zusammenveranlagung (§§ 26, 26b EStG)"}})
+  (input kinder :integer {:label "Kinder mit Anspruch auf Kindergeld bzw. Freibeträge" :default 0 :min 0 :max 20
+                          :help "Anzahl der Kinder, für die ganzjährig Anspruch auf Kindergeld besteht (Anlage Kind)."})
+  (input alleinerziehend :boolean {:default false})
+  (input guenstigerpruefung-kap :boolean {:label "Antrag auf Günstigerprüfung (§ 32d Abs. 6 EStG)" :default false})
+  (input kirchensteuersatz :decimal {:label "Kirchensteuersatz (0, 0,08 oder 0,09)" :default 0 :min 0 :max 0.09
+                                     :unit :percent :help "8 % in Bayern und Baden-Württemberg, sonst 9 %; 0 ohne Kirchenmitgliedschaft."})
+  (input vermietungsobjekte :table
+    {:label "Vermietete Objekte (Anlage V)"
+     :columns {:id :keyword :bezeichnung :text :mieten :decimal :afa :decimal :schuldzinsen :decimal :sonstige-wk :decimal}})
+  (input verlustvortrag :decimal {:label "Verlustvortrag zum 31.12.2024 (§ 10d Abs. 4 EStG)" :default 0})
+  (input altersentlastung-prozent :decimal {:per person :default 0})
+  (input altersentlastung-hoechstbetrag :decimal {:per person :default 0})
+  (input gewst-messbetrag :decimal {:per person :default 0})
+  (input gewst-gezahlt :decimal {:per person :default 0})
+  (input haushaltsnahe-dienstleistungen :decimal {:label "Arbeitskosten haushaltsnahe Dienstleistungen" :default 0})
+  (input handwerkerleistungen :decimal {:label "Arbeitskosten Handwerkerleistungen" :default 0})
+
+  (dimension person
+    {:label "Steuerpflichtige Person"
+     :members [{:key :A :label "Person A"}
+               {:key :B :label "Person B" :when (= veranlagungsart :zusammen)}]
+     :total-label "Gesamt"})
+  (dimension objekt {:label "Objekt" :from vermietungsobjekte :key :id :title :bezeichnung})
+
+  ;; ── Parameter VZ 2025 ────────────────────────────────────────────────────────────────────────
+  (param an-pauschbetrag 1230 {:label "Arbeitnehmer-Pauschbetrag" :reference "§ 9a Satz 1 Nr. 1 Buchst. a EStG"})
+  (param wk-pauschbetrag-renten 102 {:label "Werbungskosten-Pauschbetrag § 22" :reference "§ 9a Satz 1 Nr. 3 EStG"})
+  (param sparer-pauschbetrag 1000 {:label "Sparer-Pauschbetrag je Person" :reference "§ 20 Abs. 9 EStG"})
+  (param freigrenze-23 1000 {:label "Freigrenze private Veräußerungsgeschäfte" :reference "§ 23 Abs. 3 Satz 5 EStG"})
+  (param entlastungsbetrag-ae 4260 {:reference "§ 24b Abs. 2 Satz 1 EStG"})
+  (param entlastungsbetrag-ae-weitere 240 {:reference "§ 24b Abs. 2 Satz 2 EStG"})
+  (param freibetrag-luf 900 {:reference "§ 13 Abs. 3 Satz 1 EStG"})
+  (param grenze-luf 30700 {:reference "§ 13 Abs. 3 Satz 2 EStG"})
+  (param sonderausgaben-pauschbetrag 36 {:reference "§ 10c Satz 1 EStG"})
+  (param hoechstbetrag-altersvorsorge 29344 {:reference "§ 10 Abs. 3 Satz 1 EStG"})
+  (param hoechstbetrag-vorsorge-an 1900 {:reference "§ 10 Abs. 4 Satz 2 EStG"})
+  (param hoechstbetrag-vorsorge 2800 {:reference "§ 10 Abs. 4 Satz 1 EStG"})
+  (param spenden-hoechstsatz 0.2 {:reference "§ 10b Abs. 1 Satz 1 Nr. 1 EStG"})
+  (param kinderfreibetrag 3336 {:label "Kinderfreibetrag je Elternteil" :reference "§ 32 Abs. 6 Satz 1 EStG"})
+  (param bea-freibetrag 1464 {:label "BEA-Freibetrag je Elternteil" :reference "§ 32 Abs. 6 Satz 1 EStG"})
+  (param kindergeld-monat 255 {:reference "§ 66 Abs. 1 EStG"})
+  (param soli-satz 0.055 {:reference "§ 4 Satz 1 SolZG 1995"})
+  (param soli-freigrenze 19950 {:reference "§ 3 Abs. 3 Satz 1 Nr. 2 SolZG 1995"})
+  (param soli-milderungssatz 0.119 {:reference "§ 4 Satz 2 SolZG 1995"})
+  (param abgeltungsteuersatz 0.25 {:reference "§ 32d Abs. 1 Satz 1 EStG"})
+
+  ;; § 32a Abs. 1 EStG: Zonengrenzen und Koeffizienten sind Parameter (Standardwerte VZ 2025),
+  ;; ein Parametersatz wie params-2026.mantra ersetzt sie für einen anderen Veranlagungszeitraum.
+  (param tarif-gfb 12096 {:label "Grundfreibetrag (Ende Zone 1)" :reference "§ 32a Abs. 1 Satz 2 Nr. 1 EStG"})
+  (param tarif-g2 17443 {:label "Ende Zone 2" :reference "§ 32a Abs. 1 Satz 2 Nr. 2 EStG"})
+  (param tarif-g3 68480 {:label "Ende Zone 3" :reference "§ 32a Abs. 1 Satz 2 Nr. 3 EStG"})
+  (param tarif-g4 277825 {:label "Ende Zone 4" :reference "§ 32a Abs. 1 Satz 2 Nr. 4 EStG"})
+  (param tarif-a2 932.3 {:label "Koeffizient y (Zone 2)" :reference "§ 32a Abs. 1 Satz 2 Nr. 2 EStG"})
+  (param tarif-a3 176.64 {:label "Koeffizient z (Zone 3)" :reference "§ 32a Abs. 1 Satz 2 Nr. 3 EStG"})
+  (param tarif-c3 1015.13 {:label "Konstante Zone 3" :reference "§ 32a Abs. 1 Satz 2 Nr. 3 EStG"})
+  (param tarif-c4 10911.92 {:label "Abzug Zone 4" :reference "§ 32a Abs. 1 Satz 2 Nr. 4 EStG"})
+  (param tarif-c5 19246.67 {:label "Abzug Zone 5" :reference "§ 32a Abs. 1 Satz 2 Nr. 5 EStG"})
+
+  ;; zvE und Steuerbetrag werden auf volle Euro abgerundet.
+  (defn est-grundtarif [^Decimal zve]
+    (let [x (decimal/floor zve 0)]
+      (decimal/floor
+        (cond
+          (<= x tarif-gfb) 0
+          (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y))
+          (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3))
+          (<= x tarif-g4) (- (* 0.42 x) tarif-c4)
+          :else (- (* 0.45 x) tarif-c5))
+        0)))
+
+  ;; § 32a Abs. 5 EStG: Splittingverfahren – das Zweifache der Steuer auf die Hälfte des zvE.
+  (defn est-tarif [^Decimal zve ^Boolean splitting]
+    (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)))
+
+  ;; § 33 Abs. 3 EStG: Prozentsätze je Stufe (bis 15.340 € / bis 51.130 € / darüber), stufenweise.
+  (defn zumutbare-belastung-baender [^Integer kinder ^Boolean zusammen]
+    (let [saetze (cond (>= kinder 3) [0.01 0.01 0.02]
+                       (>= kinder 1) [0.02 0.03 0.04]
+                       zusammen [0.04 0.05 0.06]
+                       :else [0.05 0.06 0.07])]
+      [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]]))
+
+  (section merkmale "Veranlagungsmerkmale" {:display :hidden}
+    (line zusammen "Zusammenveranlagung (Splittingverfahren)" (= veranlagungsart :zusammen) {:type :boolean :op :info}))
+
+  ;; ── Nebenrechnungen ──────────────────────────────────────────────────────────────────────────
+  (include "einkuenfte.mantra")
+  (include "abzuege.mantra")
+
+  ;; ── Hauptrechnung 1: zu versteuerndes Einkommen (R 2 Abs. 1 EStR) ─────────────────────────────
+  (section zve "Ermittlung des zu versteuernden Einkommens"
+    {:display :schedule :reference "§ 2 Abs. 1–5 EStG, R 2 Abs. 1 EStR"}
+    (line summe-einkuenfte "Summe der Einkünfte" summe-der-einkuenfte {:reference "§ 2 Abs. 2 EStG"})
+    ;; Vereinfachung: Bemessungsgrundlage ohne Versorgungsbezüge und ohne Anteile an Einkünften § 21.
+    (line altersentlastungsbetrag "Altersentlastungsbetrag"
+      (min altersentlastung-hoechstbetrag
+           (* altersentlastung-prozent
+              (+ bruttoarbeitslohn
+                 (max 0 (+ einkuenfte-luf einkuenfte-gewerbe einkuenfte-selbstaendig einkuenfte-kap-tariflich veraeusserung-steuerpflichtig)))))
+      {:per person :op :minus :when (pos? altersentlastung-prozent) :reference "§ 24a EStG"})
+    ;; Verzweigung: nur bei Einzelveranlagung Alleinerziehender mit Kind(ern).
+    (line entlastungsbetrag-alleinerziehende "Entlastungsbetrag für Alleinerziehende"
+      (+ entlastungsbetrag-ae (* entlastungsbetrag-ae-weitere (dec kinder)))
+      {:op :minus :when (and alleinerziehend (not zusammen) (pos? kinder)) :reference "§ 24b EStG"})
+    ;; Verzweigung: nur bei positiven Einkünften § 13 und Summe der Einkünfte bis 30.700 / 61.400 €.
+    (line freibetrag-luf-abzug "Freibetrag für Land- und Forstwirte"
+      (min (dim/sum einkuenfte-luf) (if zusammen (* 2 freibetrag-luf) freibetrag-luf))
+      {:op :minus
+       :when (and (pos? (dim/sum einkuenfte-luf)) (<= summe-einkuenfte (if zusammen (* 2 grenze-luf) grenze-luf)))
+       :reference "§ 13 Abs. 3 EStG"})
+    (total gesamtbetrag-der-einkuenfte "Gesamtbetrag der Einkünfte" {:reference "§ 2 Abs. 3 EStG"})
+    ;; Vereinfachung: ohne Sockelbetrag/Mindestbesteuerung des § 10d Abs. 2 EStG.
+    (line verlustabzug "Verlustabzug" (min verlustvortrag (max 0 gesamtbetrag-der-einkuenfte))
+      {:op :minus :when (pos? verlustvortrag) :reference "§ 10d EStG"})
+    (line sonderausgaben-abzug "Sonderausgaben" sonderausgaben-summe {:op :minus :reference "§§ 10–10c EStG"})
+    (line agb-abzug "Außergewöhnliche Belastungen" agb-summe {:op :minus :reference "§§ 33–33b EStG"})
+    (total einkommen "Einkommen" {:reference "§ 2 Abs. 4 EStG"})
+    (line freibetraege-kinder "Freibeträge für Kinder (soweit günstiger als Kindergeld)"
+      (if kfb-guenstiger kfb-summe 0)
+      {:op :minus :reference "§§ 31, 32 Abs. 6 EStG"})
+    (total zu-versteuerndes-einkommen "Zu versteuerndes Einkommen" {:reference "§ 2 Abs. 5 EStG"}))
+
+  ;; ── Hauptrechnung 2: festzusetzende Einkommensteuer (R 2 Abs. 2 EStR) ─────────────────────────
+  (section est "Ermittlung der festzusetzenden Einkommensteuer"
+    {:display :schedule :reference "§ 2 Abs. 6 EStG, R 2 Abs. 2 EStR"}
+    (line tarifliche-est "Tarifliche Einkommensteuer" (est-tarif zu-versteuerndes-einkommen zusammen)
+      {:reference "§ 32a Abs. 1, 5 EStG"})
+    (line gewst-anrechnungsbetrag "Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)"
+      (min (* 4 gewst-messbetrag) gewst-gezahlt)
+      {:per person :op :info :when (pos? gewst-messbetrag) :reference "§ 35 Abs. 1 EStG"})
+    ;; Vereinfachung: Ermäßigungshöchstbetrag nach § 35 Abs. 1 Satz 2 EStG nicht berechnet.
+    (line ermaessigung-35 "Steuerermäßigung bei Einkünften aus Gewerbebetrieb"
+      (min tarifliche-est (dim/sum gewst-anrechnungsbetrag))
+      {:op :minus :when (pos? (dim/sum gewst-messbetrag)) :reference "§ 35 EStG"})
+    (line ermaessigung-35a "Steuerermäßigung für haushaltsnahe Dienstleistungen und Handwerkerleistungen"
+      (min (max 0 (- tarifliche-est ermaessigung-35))
+           (+ (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) (min (* 0.2 handwerkerleistungen) 1200)))
+      {:op :minus :reference "§ 35a Abs. 2, 3 EStG"})
+    (line kindergeld-hinzurechnung "Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen)"
+      (if kfb-guenstiger kindergeld-anspruch 0)
+      {:reference "§ 31 Satz 4, § 2 Abs. 6 Satz 3 EStG"})
+    (total festzusetzende-est "Festzusetzende Einkommensteuer" {:reference "§ 2 Abs. 6 EStG"}))
+
+  (section zuschlagsteuern "Solidaritätszuschlag und Kirchensteuer"
+    {:display :schedule :reference "SolZG 1995; § 51a EStG"}
+    (line bmg-zuschlagsteuern "Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)"
+      (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen)
+                ermaessigung-35 ermaessigung-35a))
+      {:op :info :reference "§ 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG"})
+    (line solidaritaetszuschlag "Solidaritätszuschlag (Freigrenze, Milderungszone)"
+      (let [grenze (if zusammen (* 2 soli-freigrenze) soli-freigrenze)]
+        (if (<= bmg-zuschlagsteuern grenze)
+          0
+          (min (* soli-satz bmg-zuschlagsteuern) (* soli-milderungssatz (- bmg-zuschlagsteuern grenze)))))
+      {:round [2 :floor] :reference "§§ 3, 4 SolZG 1995"})
+    (line kirchensteuer "Kirchensteuer" (* kirchensteuersatz bmg-zuschlagsteuern)
+      {:round [2 :floor] :reference "§ 51a EStG i. V. m. KiStG"})
+    (total zuschlagsteuern-summe "Zuschlagsteuern"))
+
+  (section abgeltung "Gesondert besteuerte Kapitalerträge (Abgeltungsteuer)"
+    {:display :schedule :when (not guenstigerpruefung-kap) :reference "§ 32d Abs. 1 EStG"}
+    ;; Vereinfachung: ohne Kirchensteuer-Minderung nach § 32d Abs. 1 Satz 4 EStG.
+    (line kap-abgeltung-bmg "Einkünfte aus Kapitalvermögen nach Sparer-Pauschbetrag" (dim/sum einkuenfte-kap) {:op :info})
+    (line abgeltungsteuer "Abgeltungsteuer (25 %)" (* abgeltungsteuersatz kap-abgeltung-bmg) {:round [2 :floor]})
+    (line abgeltung-soli "Solidaritätszuschlag zur Abgeltungsteuer" (* soli-satz abgeltungsteuer) {:round [2 :floor]})
+    (total abgeltung-summe "Durch Steuerabzug abgegolten"))
+
+  (section abrechnung "Abrechnung" {:display :schedule}
+    (line abr-est "Festzusetzende Einkommensteuer" festzusetzende-est)
+    (line abr-soli "Solidaritätszuschlag" solidaritaetszuschlag)
+    (line abr-kist "Kirchensteuer" kirchensteuer)
+    (total festgesetzte-steuern "Festgesetzte Steuern")
+    (field lohnsteuer "Einbehaltene Lohnsteuer" {:per person :op :minus :kz "140/141"})
+    (field soli-lohnsteuer "Einbehaltener Solidaritätszuschlag" {:per person :op :minus :kz "150/151"})
+    (field kist-lohnsteuer "Einbehaltene Kirchensteuer" {:per person :op :minus :kz "142/143"})
+    (field vorauszahlungen "Geleistete Vorauszahlungen" {:op :minus})
+    (total abrechnungsergebnis "Nachzahlung (+) / Erstattung (−)")))

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Datenquellen – Import</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&amp;display=swap">
+<style>
+body{margin:0;background:#F4F1EA;color:#1C1B18;font-family:"IBM Plex Sans","Helvetica Neue",Helvetica,sans-serif}
+a{color:#1E4A8A}a:hover{color:#15345F}
+.serif{font-family:Newsreader,"Iowan Old Style",Georgia,serif}
+.mono{font-family:"IBM Plex Mono",Menlo,Consolas,monospace}
+.tn{font-variant-numeric:tabular-nums lining-nums}
+</style>
+</helmet>
+<div style="width:1440px;height:1000px;display:flex;flex-direction:column;background:#F4F1EA;overflow:hidden">
+<header style="height:60px;flex:none;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:0 20px;background:#FBF9F4;border-bottom:1px solid #DDD5C6">
+<a href="Main.dc.html" aria-label="Mantra – Übersicht" style="display:flex;align-items:center;gap:10px;color:#1C1B18;text-decoration:none">
+<svg width="30" height="18" viewBox="0 0 30 18" aria-hidden="true"><path d="M1 11h28" stroke="#1E4A8A" stroke-width="2.4"/><path d="M15 2.5v5" stroke="#B24E17" stroke-width="2"/><circle cx="6" cy="11" r="3.4" fill="#1E4A8A"/><circle cx="15" cy="11" r="3.4" fill="#FBF9F4" stroke="#1E4A8A" stroke-width="2"/><circle cx="24" cy="11" r="3.4" fill="#1E4A8A"/></svg>
+<span class="serif" style="font-size:23px;font-weight:600;letter-spacing:-0.01em">Mantra</span>
+</a>
+<div style="width:1px;height:28px;background:#DDD5C6"></div>
+<button type="button" aria-label="Fall wechseln" style="display:flex;align-items:center;gap:12px;height:42px;padding:0 12px;border:1px solid #DDD5C6;border-radius:8px;background:#FFFDF8;color:#1C1B18;font-family:inherit">
+<span style="display:flex;flex-direction:column;align-items:flex-start;gap:1px"><span style="font-size:14px;font-weight:600">Eheleute Mustermann (fiktiv)</span><span style="font-size:12px;color:#4F4A40">VZ 2025 · Index ESt-2025/01</span></span>
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="#4F4A40" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="display:flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:#E4EBF6;color:#15345F;font-size:12px;font-weight:500">Schema: Einkommensteuer 2025 · v2025.1</span>
+<span style="display:flex;align-items:center;height:28px;padding:0 10px;border-radius:14px;background:#EFEBE2;border:1px solid #DDD5C6;color:#4F4A40;font-size:12px;font-weight:500">Parameter: Schema-Standard VZ 2025</span>
+</div>
+<div style="flex:1"></div>
+<span style="display:flex;align-items:center;gap:6px;font-size:13px;color:#4F4A40"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#1E4A8A"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.4 8.2l1.8 1.8 3.4-3.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Berechnung aktuell · 0 Fehler</span>
+<a href="Export.dc.html" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;background:#1E4A8A;color:#FFFFFF;text-decoration:none;font-size:14px;font-weight:600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10V2.8M5 5.5l3-3 3 3M2.5 10.5v3h11v-3" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportieren</a>
+</header>
+<div style="flex:1;display:flex;min-height:0">
+<nav aria-label="Fallnavigation" style="width:272px;flex:none;box-sizing:border-box;padding:18px 14px;background:#EFEBE2;border-right:1px solid #DDD5C6;display:flex;flex-direction:column;gap:20px">
+<a href="Main.dc.html" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:14px">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#1E4A8A"><path d="M1.5 8h13" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="4" cy="8" r="2" fill="currentColor"/><circle cx="12" cy="8" r="2" fill="currentColor"/></svg>
+<span>Übersicht</span>
+</a>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="padding:0 10px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Hauptlinie</span>
+<div style="position:relative;display:flex;flex-direction:column;gap:1px">
+<div aria-hidden="true" style="position:absolute;left:20px;top:18px;bottom:18px;width:2px;background:#1E4A8A"></div>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">1</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Zu versteuerndes Einkommen</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">83.217,90</span>
+</a>
+<a href="Panel.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Einkünfte</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">112.380,00</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Sonderausgaben</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">19.562,10</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Außergew. Belastungen</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">0,00</span>
+</a>
+<a href="Guenstiger.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:4px 10px 4px 21px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M0 0v10h18" fill="none" stroke="#B24E17" stroke-width="1.6"/></svg>
+<span style="font-size:13px;line-height:17px">Günstigerprüfung Kinder</span>
+<span style="font-size:11px;font-weight:600;color:#8F3E12">→ 1 · 2 · 3</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">2</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Festzusetzende ESt</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">17.996,00</span>
+</a>
+<a href="Main.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">3</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Soli und Kirchensteuer</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.344,24</span>
+</a>
+<a href="Pruefpfad.dc.html" style="position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">4</span>
+<span style="font-size:13px;line-height:17px;font-weight:500">Abrechnung</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">1.462,24</span>
+</a>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="padding:0 10px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Nebeninformation</span>
+<a href="Main.dc.html" style="display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 10px 6px 9px;border-radius:6px;color:#1C1B18;text-decoration:none">
+<span style="width:22px;height:22px;box-sizing:border-box;border-radius:11px;border:2px dashed #7A7466"></span>
+<span style="font-size:13px">Abgeltungsteuer</span>
+<span class="tn" style="font-size:12px;color:#4F4A40">224,18</span>
+</a>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px">
+<span style="padding:0 10px 4px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Arbeitsbereiche</span>
+<a href="Eingaben.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M3 13l.8-3.2L10.5 3l2.5 2.5-6.7 6.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span>Stammdaten &amp; Eingaben</span></a>
+<a href="Parameter.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M2.5 5h11M2.5 11h11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="5" r="1.9" fill="#EFEBE2" stroke="currentColor" stroke-width="1.5"/><circle cx="10.5" cy="11" r="1.9" fill="#EFEBE2" stroke="currentColor" stroke-width="1.5"/></svg><span>Parameter</span></a>
+<a href="Datenquellen.dc.html" aria-current="page" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px;background:#FFFDF8;box-shadow:inset 0 0 0 1px #C9C0AE;font-weight:600"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#1E4A8A"><path d="M8 2.5v7M5 6.8l3 3 3-3M2.5 10.5v3h11v-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Datenquellen</span></a>
+<a href="Anpassungen.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5.5v5M5.5 8h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span style="flex:1">Anpassungen</span><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#F7E7DB;color:#8F3E12;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">1</span></a>
+<a href="Pruefungen.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.4 8.2l1.8 1.8 3.4-3.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="flex:1">Prüfungen</span><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#E4EBF6;color:#15345F;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center">0</span></a>
+<a href="Export.dc.html" style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:#1C1B18;text-decoration:none;font-size:13px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40"><path d="M8 10V2.8M5 5.5l3-3 3 3M2.5 10.5v3h11v-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Export</span></a>
+</div>
+<div style="flex:1"></div>
+<div style="padding:12px 10px 0;border-top:1px solid #DDD5C6;font-size:12px;line-height:18px;color:#6E685C">Schema de.est/2025 · v2025.1<br>Layout: Staffel (Standard)</div>
+</nav>
+<main style="flex:1;min-width:0;box-sizing:border-box;padding:24px 32px 28px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Arbeitsbereich</span>
+<h1 class="serif" style="margin:0;font-size:32px;line-height:38px;font-weight:500">Datenquellen · Import</h1>
+</div>
+<ol aria-label="Importschritte" style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:12px">
+<li style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:#FFFDF8;border:1px solid #DDD5C6;font-size:13px"><span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8.3l2.6 2.6L12 5.4" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Quelle wählen</li>
+<li aria-current="step" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:#FFFDF8;border:2px solid #1E4A8A;font-size:13px;font-weight:600"><span style="width:24px;height:24px;border-radius:12px;background:#1E4A8A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:12px">2</span>Zuordnen</li>
+<li style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:#F4F1EA;border:1px solid #DDD5C6;font-size:13px;color:#4F4A40"><span style="width:24px;height:24px;box-sizing:border-box;border-radius:12px;border:2px solid #C9C0AE;display:flex;align-items:center;justify-content:center;font-size:12px">3</span>Prüfen</li>
+<li style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:#F4F1EA;border:1px solid #DDD5C6;font-size:13px;color:#4F4A40"><span style="width:24px;height:24px;box-sizing:border-box;border-radius:12px;border:2px solid #C9C0AE;display:flex;align-items:center;justify-content:center;font-size:12px">4</span>Übernehmen</li>
+</ol>
+<div style="display:flex;gap:24px;align-items:flex-start">
+<section aria-labelledby="map-titel" style="width:720px;flex:none;box-sizing:border-box;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:8px;background:#F4F1EA">
+<svg width="28" height="28" viewBox="0 0 16 16" aria-hidden="true" style="color:#4F4A40;flex:none"><path d="M4 1.8h5.2l2.8 2.8v9.6H4z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M9 1.8v3h3M6 8.2h4.5M6 10.7h4.5M8.2 8.2v4.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+<div style="display:flex;flex-direction:column;gap:2px;flex:1"><span style="font-size:14px;font-weight:600">Lohnsteuerbescheinigung_2025.csv</span><span style="font-size:12px;color:#4F4A40">CSV · Trennzeichen „;“ · deutsches Zahlenformat erkannt · Spalte „Person“ = Dimension Person (A, B)</span></div>
+<button type="button" style="height:32px;padding:0 12px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFDF8;color:#1C1B18;font-family:inherit;font-size:13px">Andere Datei</button>
+</div>
+<h2 id="map-titel" class="serif" style="margin:0;font-size:19px;line-height:24px;font-weight:500">Spalten den Eingaben zuordnen</h2>
+<table style="width:684px;border-collapse:collapse;font-size:13px;line-height:17px">
+<thead><tr>
+<th scope="col" style="text-align:left;padding:7px 6px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Quellspalte</th>
+<th scope="col" style="width:92px;text-align:right;padding:7px 6px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Wert A</th>
+<th scope="col" style="width:250px;text-align:left;padding:7px 6px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Eingabe im Schema</th>
+<th scope="col" style="width:120px;text-align:left;padding:7px 6px;border-bottom:1px solid #1C1B18;font-size:11px;font-weight:600;color:#4F4A40">Status</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB">Bruttoarbeitslohn</td><td class="tn" style="padding:8px 6px;text-align:right;border-bottom:1px solid #EDE7DB">68.500,00</td><td style="padding:6px;border-bottom:1px solid #EDE7DB"><select aria-label="Ziel für Bruttoarbeitslohn" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px"><option>Bruttoarbeitslohn · Kz 110/111</option></select></td><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB;color:#15345F">zugeordnet</td></tr>
+<tr><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB">Einbehaltene Lohnsteuer</td><td class="tn" style="padding:8px 6px;text-align:right;border-bottom:1px solid #EDE7DB">11.020,00</td><td style="padding:6px;border-bottom:1px solid #EDE7DB"><select aria-label="Ziel für Einbehaltene Lohnsteuer" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px"><option>Einbehaltene Lohnsteuer · Kz 140/141</option></select></td><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB;color:#15345F">zugeordnet</td></tr>
+<tr><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB">Einbehaltener Soli</td><td class="tn" style="padding:8px 6px;text-align:right;border-bottom:1px solid #EDE7DB">0,00</td><td style="padding:6px;border-bottom:1px solid #EDE7DB"><select aria-label="Ziel für Einbehaltener Soli" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px"><option>Einbehaltener Solidaritätszuschlag · Kz 150/151</option></select></td><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB;color:#15345F">zugeordnet</td></tr>
+<tr><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB">Einbehaltene Kirchensteuer</td><td class="tn" style="padding:8px 6px;text-align:right;border-bottom:1px solid #EDE7DB">991,80</td><td style="padding:6px;border-bottom:1px solid #EDE7DB"><select aria-label="Ziel für Einbehaltene Kirchensteuer" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px"><option>Einbehaltene Kirchensteuer · Kz 142/143</option></select></td><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB;color:#15345F">zugeordnet</td></tr>
+<tr><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB">AG-Anteil Rentenversicherung</td><td class="tn" style="padding:8px 6px;text-align:right;border-bottom:1px solid #EDE7DB">6.370,50</td><td style="padding:6px;border-bottom:1px solid #EDE7DB"><select aria-label="Ziel für AG-Anteil Rentenversicherung" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px"><option>davon steuerfreier Arbeitgeberanteil</option></select></td><td style="padding:8px 6px;border-bottom:1px solid #EDE7DB;color:#15345F">zugeordnet</td></tr>
+<tr><td style="padding:8px 6px">Steuerklasse</td><td class="tn" style="padding:8px 6px;text-align:right">III</td><td style="padding:6px"><select aria-label="Ziel für Steuerklasse" style="width:100%;height:30px;border:1px solid #DDD5C6;border-radius:6px;background:#FFFFFF;font-family:inherit;font-size:13px;color:#4F4A40"><option>nicht übernehmen</option></select></td><td style="padding:8px 6px;color:#4F4A40">keine Eingabe im Schema</td></tr>
+</tbody>
+</table>
+<div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px">
+<button type="button" style="height:36px;padding:0 12px;border:1px solid #DDD5C6;border-radius:8px;background:#FFFDF8;color:#1C1B18;font-family:inherit;font-size:13px">Zuordnung als Vorlage speichern</button>
+<button type="button" style="height:40px;padding:0 18px;border:0;border-radius:8px;background:#1E4A8A;color:#FFFFFF;font-family:inherit;font-size:14px;font-weight:600">Weiter zur Prüfung</button>
+</div>
+</section>
+<aside aria-label="Weitere Quellen" style="width:360px;flex:none;display:flex;flex-direction:column;gap:12px">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#6E685C">Weitere Quellen</span>
+<div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px">
+<span style="font-size:14px;font-weight:600">Excel-Rundreise (.xlsx)</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Eine aus Mantra exportierte Arbeitsmappe wird über ihre benannten Eingabezellen zurückgelesen – Änderungen aus Excel landen genau in den richtigen Eingaben.</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px">
+<span style="font-size:14px;font-weight:600">JSON (Schnittstelle)</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Werte aus Buchhaltung oder Vorsystem; Beträge werden als exakte Dezimalzahlen übernommen.</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:#FFFDF8;border:1px solid #DDD5C6;border-radius:10px">
+<span style="font-size:14px;font-weight:600">CSV (Tabelle oder Schlüssel–Wert)</span>
+<span style="font-size:13px;line-height:18px;color:#4F4A40">Für Tabelleneingaben wie vermietete Objekte oder für einzelne Werte je Person.</span>
+</div>
+<div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:8px;background:#E4EBF6;font-size:13px;line-height:18px;color:#15345F">
+<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="flex:none;margin-top:1px"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 7.3v3.9M8 5v.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+<span>Importierte Werte bleiben als Quelle am Feld sichtbar und können manuell überschrieben werden.</span>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+;; Fiktiver Fall: Eheleute Mustermann, Zusammenveranlagung 2025, ein Kind.
+(case mustermann-2025
+  {:schema "de.est/2025"
+   :title "Eheleute Erika und Max Mustermann"
+   :subject "Eheleute Mustermann (fiktiv)"
+   :period "VZ 2025"
+   :prepared-by "Mantra (Abnahmebeispiel)"
+   :date "2026-03-15"
+   :reference "ESt-2025/01"}
+
+  (inputs
+    {:veranlagungsart :zusammen
+     :kinder 1
+     :kirchensteuersatz 0.09
+
+     ;; Anlage N
+     :bruttoarbeitslohn {:A 68500 :B 31200}
+     :wk-nachgewiesen {:A 2340 :B 650}
+     ;; Anlage G (Nebengewerbe, kein Gewerbesteuermessbetrag)
+     :gewinn-gewerbe {:A 12400}
+     ;; Anlage KAP (Abgeltungsteuer, keine Günstigerprüfung)
+     :kapitalertraege {:A 620 :B 1850}
+     ;; Anlage SO
+     :veraeusserungsgewinn {:B 740}
+     ;; Anlage V
+     :vermietungsobjekte [{:id :leipzig :bezeichnung "ETW Leipzig, Karl-Heine-Str." :mieten 9600 :afa 2450
+                           :schuldzinsen 2180 :sonstige-wk 1120}]
+
+     ;; Anlage Vorsorgeaufwand
+     :rv-beitraege {:A 12741.00 :B 5803.20}
+     :rv-ag-anteil {:A 6370.50 :B 2901.60}
+     :kv-pv-basis {:A 5480 :B 2610}
+     :weitere-vorsorge {:A 820 :B 380}
+     ;; Anlage Sonderausgaben / außergewöhnliche Belastungen / § 35a
+     :kirchensteuer-gezahlt 1210
+     :spenden 450
+     :agb-aufwendungen 3100
+     :haushaltsnahe-dienstleistungen 1200
+     :handwerkerleistungen 2500
+
+     ;; Abrechnung
+     :lohnsteuer {:A 11020 :B 3180}
+     :kist-lohnsteuer {:A 991.80 :B 286.20}
+     :vorauszahlungen 2400})
+
+  ;; Benutzerdefinierte Zeile im vom Schema vorgesehenen Slot.
+  (extend weitere-sonderausgaben
+    (line schulgeld "Schulgeld Privatschule (30 %, höchstens 5.000 €)" (min 5000 (* 0.3 1800))
+      {:reference "§ 10 Abs. 1 Nr. 9 EStG"})))
