@@ -1,16 +1,14 @@
 package com.xqiou.mantra.render.paper
 
-import com.xqiou.mantra.core.engine.CalculationResult
-import com.xqiou.mantra.core.engine.ChoiceVertex
+import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.engine.Coord
-import com.xqiou.mantra.core.engine.LineVertex
-import com.xqiou.mantra.core.engine.NodeResult
+import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.engine.NodeTrace
-import com.xqiou.mantra.core.engine.ResolvedItem
-import com.xqiou.mantra.core.engine.ResolvedNode
-import com.xqiou.mantra.core.engine.ResolvedNote
-import com.xqiou.mantra.core.engine.ResolvedSection
-import com.xqiou.mantra.core.engine.TotalVertex
+import com.xqiou.mantra.core.view.ViewItem
+import com.xqiou.mantra.core.view.ViewTreeNode
+import com.xqiou.mantra.core.view.ViewNote
+import com.xqiou.mantra.core.view.ViewSection
+import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.engine.TraceRef
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceRule
@@ -35,11 +33,11 @@ import com.xqiou.mantra.render.layout.styleRole
 import java.math.BigDecimal
 
 /**
- * Applies a [LayoutSpec] to a [CalculationResult]. With [includeAll], value-dependent hiding
+ * Applies a [LayoutSpec] to a [CalculationView]. With [includeAll], value-dependent hiding
  * (zero and inactive rows) is disabled so that spreadsheet exports keep every line of logic.
  */
 class WorkingPaperBuilder(
-    private val result: CalculationResult,
+    private val result: CalculationView,
     private val layout: LayoutSpec,
     private val includeAll: Boolean = false,
 ) {
@@ -48,13 +46,13 @@ class WorkingPaperBuilder(
     private val texts = layout.texts
     private val audit = mutableListOf<AuditEntry>()
     private var documentRowNumber = 0
-    private val sections = linkedMapOf<String, ResolvedSection>()
+    private val sections = linkedMapOf<String, ViewSection>()
     private val tableRefs = linkedMapOf<String, String>()
 
     init {
-        fun index(section: ResolvedSection) {
+        fun index(section: ViewSection) {
             sections[section.id] = section
-            section.children.filterIsInstance<ResolvedSection>().forEach(::index)
+            section.children.filterIsInstance<ViewSection>().forEach(::index)
         }
         index(result.tree)
     }
@@ -62,7 +60,7 @@ class WorkingPaperBuilder(
     /** Table ref of the table that presents each node (used to annotate carry-over lines). */
     private val nodeTables = hashMapOf<String, String>()
 
-    private val map: SchemaMap by lazy { SchemaMaps.of(result.plan) }
+    private val map: SchemaMap by lazy { result.structure }
 
     /** Table presenting a panel: the panel's own table, or the table of an enclosing section. */
     private fun tableOfPanel(panelId: String): String? = tableRefs[panelId] ?: map.panels.firstOrNull { it.id == panelId }?.resultId?.let(nodeTables::get)
@@ -95,11 +93,11 @@ class WorkingPaperBuilder(
         specs.forEachIndexed { index, spec -> tableRefs[spec.sectionId] = (index + 1).toString() }
         specs.forEach { spec ->
             val ref = tableRefs.getValue(spec.sectionId)
-            fun visit(item: ResolvedItem, root: Boolean) {
+            fun visit(item: ViewItem, root: Boolean) {
                 when (item) {
-                    is ResolvedSection -> if (root || item.id !in tableRefs) item.children.forEach { visit(it, false) }
-                    is ResolvedNode -> nodeTables.putIfAbsent(item.id, ref)
-                    is ResolvedNote -> Unit
+                    is ViewSection -> if (root || item.id !in tableRefs) item.children.forEach { visit(it, false) }
+                    is ViewTreeNode -> nodeTables.putIfAbsent(item.id, ref)
+                    is ViewNote -> Unit
                 }
             }
             sections[spec.sectionId]?.let { visit(it, true) }
@@ -107,8 +105,8 @@ class WorkingPaperBuilder(
         val tables = specs.mapNotNull(::buildTable)
         val schema = result.schema
         return WorkingPaper(
-            title = layout.title ?: schema.meta.title,
-            subtitle = layout.subtitle ?: schema.meta.text("subtitle"),
+            title = layout.title ?: schema.title,
+            subtitle = layout.subtitle ?: schema.text("subtitle"),
             header = header(),
             overview = overview(),
             auxiliary = map.panels.filter { it.role == PanelRole.AUXILIARY }.map(::overviewPanel),
@@ -123,7 +121,7 @@ class WorkingPaperBuilder(
 
     // ── Tables ─────────────────────────────────────────────────────────────────────────────────
 
-    private fun isScheduleSection(section: ResolvedSection): Boolean =
+    private fun isScheduleSection(section: ViewSection): Boolean =
         section.id !in layout.inline &&
             (section.item.display == SectionDisplay.SCHEDULE || section.id in layout.schedules || layout.tables.any { it.sectionId == section.id })
 
@@ -138,8 +136,8 @@ class WorkingPaperBuilder(
             }
         }
         val specs = mutableListOf(TableSpec(result.tree.id))
-        fun collect(section: ResolvedSection) {
-            section.children.filterIsInstance<ResolvedSection>().forEach { child ->
+        fun collect(section: ViewSection) {
+            section.children.filterIsInstance<ViewSection>().forEach { child ->
                 if (child.item.display == SectionDisplay.HIDDEN || isHidden(child.id, child.item.presentation)) return@forEach
                 if (isScheduleSection(child)) specs += TableSpec(child.id)
                 collect(child)
@@ -149,20 +147,20 @@ class WorkingPaperBuilder(
         return specs
     }
 
-    private fun dimsIn(section: ResolvedSection): List<String> {
+    private fun dimsIn(section: ViewSection): List<String> {
         val found = linkedSetOf<String>()
-        fun visit(item: ResolvedItem) {
+        fun visit(item: ViewItem) {
             when (item) {
-                is ResolvedSection -> if (item === section || !isScheduleSection(item)) {
+                is ViewSection -> if (item === section || !isScheduleSection(item)) {
                     found += item.dims
                     item.children.forEach(::visit)
                 }
-                is ResolvedNode -> found += item.dims
-                is ResolvedNote -> Unit
+                is ViewTreeNode -> found += item.dims
+                is ViewNote -> Unit
             }
         }
         visit(section)
-        return result.plan.dimensionOrder(found)
+        return result.dimensionOrder(found)
     }
 
     private fun buildTable(spec: TableSpec): PaperTable? {
@@ -188,7 +186,7 @@ class WorkingPaperBuilder(
         val rows = RowWalker(context).walk()
         if (rows.none { it.kind != RowKind.HEADING && it.kind != RowKind.NOTE }) return null
         val hierarchy = visibleHierarchy(rows)
-        val title = spec.title ?: section.item.title ?: if (section === result.tree) result.schema.meta.title else section.label
+        val title = spec.title ?: section.item.title ?: if (section === result.tree) result.schema.title else section.label
         val cells = rows.map { row -> columns.map { cell(it, row, context) } }
         // Columns without any content are dropped (e.g. an unused lead column or reference column).
         val keep = columns.indices.filter { index ->
@@ -294,7 +292,7 @@ class WorkingPaperBuilder(
     }
 
     private class TableContext(
-        val section: ResolvedSection,
+        val section: ViewSection,
         val ref: String,
         val style: TableStyle,
         val memberDim: String?,
@@ -364,7 +362,7 @@ class WorkingPaperBuilder(
         private var counter = 0
         private val root = context.section
         private val path = mutableListOf(root.id)
-        private val lastRootTotal = root.children.filterIsInstance<ResolvedNode>().lastOrNull { it.item is TotalItem }?.id
+        private val lastRootTotal = root.children.filterIsInstance<ViewTreeNode>().lastOrNull { it.item is TotalItem }?.id
 
         private fun addRow(row: RowData, childSection: String? = null, parentRowIndex: Int? = null) {
             row.sectionPath = path.toList() + listOfNotNull(childSection)
@@ -382,20 +380,20 @@ class WorkingPaperBuilder(
             RowNumberMode.TABLE, null -> (++counter).toString()
         }
 
-        private fun walkChildren(section: ResolvedSection, depth: Int, childLevel: Int, resultLevel: Int) {
+        private fun walkChildren(section: ViewSection, depth: Int, childLevel: Int, resultLevel: Int) {
             for (child in section.children) {
                 when (child) {
-                    is ResolvedSection -> walkSection(child, depth, childLevel)
-                    is ResolvedNode -> {
+                    is ViewSection -> walkSection(child, depth, childLevel)
+                    is ViewTreeNode -> {
                         val isResult = child.id == section.resultId && section !== root
                         nodeRows(child, depth, if (isResult) resultLevel else childLevel, if (isResult) section else null)
                     }
-                    is ResolvedNote -> if (!isHidden("", child.item.presentation)) addRow(RowData(RowKind.NOTE, depth, child.item.text, presentation = child.item.presentation))
+                    is ViewNote -> if (!isHidden("", child.item.presentation)) addRow(RowData(RowKind.NOTE, depth, child.item.text, presentation = child.item.presentation))
                 }
             }
         }
 
-        private fun walkSection(section: ResolvedSection, depth: Int, level: Int) {
+        private fun walkSection(section: ViewSection, depth: Int, level: Int) {
             if (section.item.display == SectionDisplay.HIDDEN || isHidden(section.id, section.item.presentation)) return
             if (!includeAll && !layout.showInactive && sectionInactive(section)) return
             if (!includeAll && layout.hideZero && sectionZero(section)) return
@@ -417,7 +415,7 @@ class WorkingPaperBuilder(
             path.removeAt(path.lastIndex)
         }
 
-        private fun referenceRow(section: ResolvedSection, depth: Int, level: Int): RowData {
+        private fun referenceRow(section: ViewSection, depth: Int, level: Int): RowData {
             val target = tableRefs[section.id]
             val node = section.resultId?.let { result.nodes[it] }
             val label = section.label + (target?.let { " (→ ${texts.table} $it)" } ?: "")
@@ -444,7 +442,7 @@ class WorkingPaperBuilder(
             )
         }
 
-        private fun nodeRows(node: ResolvedNode, depth: Int, level: Int, resultOf: ResolvedSection?) {
+        private fun nodeRows(node: ViewTreeNode, depth: Int, level: Int, resultOf: ViewSection?) {
             val item = node.item
             val nodeResult = result.nodes[node.id] ?: return
             if (isHidden(node.id, item.presentation)) return
@@ -480,10 +478,10 @@ class WorkingPaperBuilder(
             val scalarText = when {
                 !nodeResult.anyActive -> texts.notApplicable
                 nodeResult.dims.isEmpty() -> format(nodeResult, scalarValue)
-                nodeResult.vertex.type.isNumeric && nodeResult.crossTotal() != null -> format(nodeResult, scalarValue)
+                nodeResult.type.isNumeric && nodeResult.crossTotal() != null -> format(nodeResult, scalarValue)
                 else -> ""
             }
-            val carried = (nodeResult.vertex as? LineVertex)?.item?.formula?.form?.let { form ->
+            val carried = nodeResult.line?.formula?.form?.let { form ->
                 (form as? com.xqiou.normein.dsl.form.DslForm.Atom)?.sourceText
             }?.let { source -> nodeTables[source]?.takeIf { it != context.ref } }
             addRow(RowData(
@@ -495,7 +493,7 @@ class WorkingPaperBuilder(
                 placement = if (level == 0) Placement.MAIN else Placement.PRE,
                 scalar = scalarText,
                 members = memberCells(nodeResult, negate),
-                crossTotal = if (nodeResult.vertex.type.isNumeric || nodeResult.dims.isEmpty()) scalarText else "",
+                crossTotal = if (nodeResult.type.isNumeric || nodeResult.dims.isEmpty()) scalarText else "",
                 presentation = item.presentation,
                 flags = rowFlags,
                 formula = formulaText(nodeResult),
@@ -522,7 +520,7 @@ class WorkingPaperBuilder(
             }
         }
 
-        private fun optionRows(item: ChoiceItem, node: NodeResult, depth: Int, level: Int, parentRowIndex: Int) {
+        private fun optionRows(item: ChoiceItem, node: ViewNode, depth: Int, level: Int, parentRowIndex: Int) {
             item.options.forEach { option ->
                 val perCoord = node.traces.mapValues { (_, trace) -> (trace as? NodeTrace.Choice)?.options?.firstOrNull { it.key == option.key } }
                 val selectedAnywhere = node.traces.values.any { (it as? NodeTrace.Choice)?.selected == option.key }
@@ -554,13 +552,13 @@ class WorkingPaperBuilder(
             }
         }
 
-        private fun optionText(node: NodeResult, outcome: com.xqiou.mantra.core.engine.TraceOption?, selected: Boolean): String {
+        private fun optionText(node: ViewNode, outcome: com.xqiou.mantra.core.engine.TraceOption?, selected: Boolean): String {
             if (outcome == null) return ""
             if (!outcome.available) return texts.notApplicable
             return format(node, outcome.value) + if (selected) " ✓" else ""
         }
 
-        private fun memberCells(node: NodeResult, negate: Boolean = false): Map<String, String> {
+        private fun memberCells(node: ViewNode, negate: Boolean = false): Map<String, String> {
             val dim = context.memberDim ?: return emptyMap()
             val index = node.dims.indexOf(dim)
             if (index < 0) return emptyMap()
@@ -588,47 +586,39 @@ class WorkingPaperBuilder(
     private fun signed(value: Value, negate: Boolean): Value =
         if (negate && value is Value.Num) Value.Num(value.value.negate()) else value
 
-    private fun format(node: NodeResult, value: Value): String =
-        numbers.value(value, node.vertex.let { presentationOf(it.id)?.format }, presentationOf(node.id)?.precision)
+    private fun format(node: ViewNode, value: Value): String =
+        numbers.value(value, presentationOf(node.id)?.format, presentationOf(node.id)?.precision)
 
-    private fun presentationOf(id: String): Presentation? = result.plan.valueVertices[id]?.let { vertex ->
-        when (vertex) {
-            is LineVertex -> vertex.item.presentation
-            is ChoiceVertex -> vertex.item.presentation
-            is TotalVertex -> vertex.item.presentation
-            is com.xqiou.mantra.core.engine.InputVertex -> vertex.decl.presentation
-            is com.xqiou.mantra.core.engine.ParamVertex -> vertex.decl.presentation
-        }
-    }
+    private fun presentationOf(id: String): Presentation? = result.nodes[id]?.presentation
 
     /**
      * A zero line is kept when it turned non-zero inputs into zero (Freigrenze, exemption threshold,
      * cap): that zero is the explanation. Parameters do not count as such inputs.
      */
-    private fun explainsZero(node: NodeResult): Boolean = node.traces.values.any { trace ->
+    private fun explainsZero(node: ViewNode): Boolean = node.traces.values.any { trace ->
         trace is NodeTrace.Computed && trace.references.any { ref ->
-            val source = result.plan.valueVertices[ref.id.removePrefix("all.")]
-            source != null && source !is com.xqiou.mantra.core.engine.ParamVertex &&
+            val source = result.nodes[ref.id.removePrefix("all.")]
+            source != null && source.kind != NodeKind.PARAM &&
                 (ref.value as? Value.Num)?.value?.signum()?.let { it != 0 } == true
         }
     }
 
-    private fun isZero(node: NodeResult): Boolean =
+    private fun isZero(node: ViewNode): Boolean =
         node.values.values.all { it == Value.Nil || (it is Value.Num && it.value.signum() == 0) }
 
-    private fun sectionZero(section: ResolvedSection): Boolean = section.children.all { child ->
+    private fun sectionZero(section: ViewSection): Boolean = section.children.all { child ->
         when (child) {
-            is ResolvedSection -> sectionZero(child)
-            is ResolvedNode -> result.nodes[child.id]?.let(::isZero) ?: true
-            is ResolvedNote -> true
+            is ViewSection -> sectionZero(child)
+            is ViewTreeNode -> result.nodes[child.id]?.let(::isZero) ?: true
+            is ViewNote -> true
         }
     }
 
-    private fun sectionInactive(section: ResolvedSection): Boolean = section.children.all { child ->
+    private fun sectionInactive(section: ViewSection): Boolean = section.children.all { child ->
         when (child) {
-            is ResolvedSection -> sectionInactive(child)
-            is ResolvedNode -> result.nodes[child.id]?.anyActive != true
-            is ResolvedNote -> true
+            is ViewSection -> sectionInactive(child)
+            is ViewTreeNode -> result.nodes[child.id]?.anyActive != true
+            is ViewNote -> true
         }
     }
 
@@ -636,25 +626,26 @@ class WorkingPaperBuilder(
         result.members[dim]?.firstOrNull { it.key == coord[index] }?.label ?: coord[index]
     }.joinToString(" / ")
 
-    private fun formulaText(node: NodeResult): String = when (val vertex = node.vertex) {
-        is LineVertex -> compact(vertex.item.formula.source)
-        is ChoiceVertex -> (if (vertex.item.rule == ChoiceRule.MIN) "min" else "max") + "(" + vertex.item.options.joinToString("; ") { compact(it.formula.source) } + ")"
-        is TotalVertex -> vertex.components.joinToString(" ") { (if (it.sign < 0) "− " else "+ ") + it.vertexId }.removePrefix("+ ")
-        else -> ""
+    private fun formulaText(node: ViewNode): String {
+        node.line?.let { return compact(it.formula.source) }
+        node.choice?.let { choice ->
+            return (if (choice.rule == ChoiceRule.MIN) "min" else "max") + "(" + choice.options.joinToString("; ") { compact(it.formula.source) } + ")"
+        }
+        return if (node.total != null) node.components.joinToString(" ") { (if (it.sign < 0) "− " else "+ ") + it.vertexId }.removePrefix("+ ") else ""
     }
 
     private fun compact(source: String): String = source.replace(Regex("\\s+"), " ").trim()
 
-    private fun explainText(node: NodeResult, coord: Coord): String {
+    private fun explainText(node: ViewNode, coord: Coord): String {
         val trace = node.trace(coord) ?: return ""
         val records = node.dims.mapIndexed { index, dim ->
             dim to (result.members[dim]?.firstOrNull { it.key == coord.getOrNull(index) }?.record.orEmpty())
         }.toMap()
         return when (trace) {
             is NodeTrace.Computed -> {
-                val vertex = node.vertex as? LineVertex ?: return ""
+                val vertex = node.line ?: return ""
                 val values = trace.references.associate { ref -> ref.id to ref.value }
-                val working = explainer.explain(vertex.item.formula.form, values, records)
+                val working = explainer.explain(vertex.formula.form, values, records)
                 val final = node.value(coord)
                 val rounded = trace.rounding?.takeIf { trace.raw is Value.Num && final is Value.Num && (trace.raw as Value.Num).value.compareTo(final.value) != 0 }
                     ?.let { " → ${numbers.explain(trace.raw)} ${roundingText(it)}" }.orEmpty()
@@ -665,11 +656,11 @@ class WorkingPaperBuilder(
                 sign + numbers.plain(part.value)
             }.joinToString(" ")
             is NodeTrace.Choice -> {
-                val vertex = node.vertex as ChoiceVertex
-                val rule = if (vertex.item.rule == ChoiceRule.MIN) "min" else "max"
+                val vertex = node.choice ?: return ""
+                val rule = if (vertex.rule == ChoiceRule.MIN) "min" else "max"
                 rule + "(" + trace.options.joinToString("; ") { option ->
                     option.label + " " + if (option.available) numbers.explain(option.value) else texts.notApplicable
-                } + ")" + (trace.selected?.let { selected -> " → " + vertex.item.options.first { it.key == selected }.label } ?: "")
+                } + ")" + (trace.selected?.let { selected -> " → " + vertex.options.first { it.key == selected }.label } ?: "")
             }
             else -> ""
         }
@@ -678,11 +669,10 @@ class WorkingPaperBuilder(
     private fun roundingText(rounding: com.xqiou.mantra.core.model.Rounding): String =
         "(${rounding.scale} ${rounding.mode.name.lowercase().replace('_', '-')})"
 
-    private fun recordAudit(node: NodeResult, citation: String, anchor: String) {
-        if (node.vertex !is LineVertex && node.vertex !is ChoiceVertex && node.vertex !is TotalVertex) return
-        val vertex = node.vertex
-        if (vertex is LineVertex && vertex.item.formula.form.let { it is com.xqiou.normein.dsl.form.DslForm.Atom || it is com.xqiou.normein.dsl.form.DslForm.Postfix }) return
-        if (vertex is TotalVertex && vertex.components.size < 2) return
+    private fun recordAudit(node: ViewNode, citation: String, anchor: String) {
+        if (node.line == null && node.choice == null && node.total == null) return
+        if (node.line?.formula?.form?.let { it is com.xqiou.normein.dsl.form.DslForm.Atom || it is com.xqiou.normein.dsl.form.DslForm.Postfix } == true) return
+        if (node.total != null && node.components.size < 2) return
         node.values.keys.forEach { coord ->
             if (!node.isActive(coord)) return@forEach
             val working = explainText(node, coord)
@@ -690,7 +680,7 @@ class WorkingPaperBuilder(
             audit += AuditEntry(
                 anchor = if (coord.isEmpty()) anchor else "$anchor-${coord.joinToString("-")}",
                 citation = citation,
-                label = node.vertex.label,
+                label = node.label,
                 member = if (coord.isEmpty()) null else memberLabel(node.dims, coord),
                 formula = formulaText(node),
                 working = working,
@@ -707,8 +697,8 @@ class WorkingPaperBuilder(
         return layout.header.mapNotNull { key ->
             when (key) {
                 "subject" -> (meta("subject") ?: meta("title"))?.let { texts.subject to it }
-                "period" -> (meta("period") ?: schema.meta.text("period"))?.let { texts.period to it }
-                "schema" -> texts.schema to listOfNotNull(schema.meta.title, schema.meta.text("version")?.let { "v$it" }, "[${schema.id}]").joinToString(" ")
+                "period" -> (meta("period") ?: schema.text("period"))?.let { texts.period to it }
+                "schema" -> texts.schema to listOfNotNull(schema.title, schema.text("version")?.let { "v$it" }, "[${schema.id}]").joinToString(" ")
                 "prepared-by" -> meta("prepared-by")?.let { texts.preparedBy to it }
                 "reviewed-by" -> meta("reviewed-by")?.let { texts.reviewedBy to it }
                 "date" -> meta("date")?.let { texts.date to it }

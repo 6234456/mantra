@@ -1,6 +1,7 @@
 package com.xqiou.mantra.render
 
 import com.xqiou.mantra.core.engine.CalculationResult
+import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.render.html.HtmlRenderer
 import com.xqiou.mantra.render.layout.LayoutReader
@@ -15,8 +16,10 @@ import java.nio.file.Path
 /** Public entry point of the presentation layer. */
 object Render {
     /** Resolves the layout: explicit layout document, schema `:preset` metadata, or the German Staffel preset. */
-    fun defaultLayout(result: CalculationResult): LayoutSpec {
-        val preset = (result.schema.meta.attributes["preset"] as? com.xqiou.mantra.core.model.Value.Kw)?.name
+    fun defaultLayout(result: CalculationResult): LayoutSpec = defaultLayout(CalculationView.of(result))
+
+    fun defaultLayout(view: CalculationView): LayoutSpec {
+        val preset = (view.schema.attributes["preset"] as? com.xqiou.mantra.core.model.Value.Kw)?.name
         return preset?.let(Presets::of) ?: Presets.DE_STAFFEL_4
     }
 
@@ -25,15 +28,23 @@ object Render {
         return LayoutReader.read(SourceText(absolute.fileName.toString(), Files.readString(absolute), absolute.parent?.toString()))
     }
 
-    fun paper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper =
-        WorkingPaperBuilder(result, layout).build()
+    fun paper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper = paper(CalculationView.of(result), layout)
+
+    fun paper(view: CalculationView, layout: LayoutSpec = defaultLayout(view)): WorkingPaper =
+        WorkingPaperBuilder(view, layout).build()
 
     /** Paper with every row of every table, independent of current values (basis for spreadsheet export). */
-    fun completePaper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper =
-        WorkingPaperBuilder(result, layout.copy(hideZero = false, showInactive = true, expandMembers = false), includeAll = true).build()
+    fun completePaper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper = completePaper(CalculationView.of(result), layout)
+
+    fun completePaper(view: CalculationView, layout: LayoutSpec = defaultLayout(view)): WorkingPaper =
+        WorkingPaperBuilder(view, layout.copy(hideZero = false, showInactive = true, expandMembers = false), includeAll = true).build()
 
     fun html(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): String = HtmlRenderer.render(paper(result, layout))
+    fun html(view: CalculationView, layout: LayoutSpec = defaultLayout(view)): String = HtmlRenderer.render(paper(view, layout))
 
     fun text(result: CalculationResult, layout: LayoutSpec = defaultLayout(result), includeAudit: Boolean = false): String =
         TextRenderer.render(paper(result, layout), includeAudit)
+
+    fun text(view: CalculationView, layout: LayoutSpec = defaultLayout(view), includeAudit: Boolean = false): String =
+        TextRenderer.render(paper(view, layout), includeAudit)
 }
