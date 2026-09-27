@@ -15,6 +15,7 @@ import com.xqiou.normein.dsl.runtime.DslEvaluationRequest
 import com.xqiou.normein.dsl.runtime.DslInputCandidate
 import com.xqiou.normein.dsl.runtime.DslInputRootCandidate
 import com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin
+import com.xqiou.normein.dsl.ast.DslNodeOrigin
 import com.xqiou.normein.dsl.trace.DslTraceNode
 import com.xqiou.normein.dsl.trace.DslTraceNodeKind
 import com.xqiou.normein.dsl.trace.DslTracePolicy
@@ -568,42 +569,52 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     }
 
     private fun projectTrace(formula: CompiledFormula, root: DslTraceNode, kernelTruncated: Boolean): ExplainTrace {
-        val sourceStart = formula.formula.location.startOffset ?: return ExplainTrace(emptyList(), emptyList(), kernelTruncated)
-        val source = formula.formula.source
         val index = formula.expression.sourceIndex
         val steps = linkedMapOf<Pair<Int, Int>, ExplainStep>()
         val branches = mutableListOf<ExplainBranch>()
         var truncated = kernelTruncated
         val visited = mutableListOf<DslTraceNode>()
         fun walk(node: DslTraceNode) {
-            visited += node
             if (node.summaryTruncated || node.resultSummary?.truncated == true) truncated = true
             node.children.forEach(::walk)
+            visited += node
         }
         walk(root)
-        val visitedIds = visited.filter { it.kind == DslTraceNodeKind.AST_NODE }.map { it.nodeId }.toSet()
+        fun executedChild(node: DslTraceNode, id: com.xqiou.normein.dsl.identity.DslCanonicalNodeId): DslTraceNode? {
+            fun find(candidate: DslTraceNode): DslTraceNode? =
+                if (candidate.kind == DslTraceNodeKind.AST_NODE && candidate.nodeId == id) candidate
+                else candidate.children.firstNotNullOfOrNull(::find)
+            return node.children.firstNotNullOfOrNull(::find)
+        }
         fun snippet(node: DslTraceNode): Pair<String, SourceLocation>? {
             val entry = index[node.nodeId] ?: return null
-            if (entry.origin !is DslSourceIndexOrigin.Expression) return null
+            val (source, owner) = when (val origin = entry.origin) {
+                is DslSourceIndexOrigin.Expression -> formula.formula.source to formula.formula.location
+                is DslSourceIndexOrigin.NamedDefinition -> (formula.namedSources[origin.name] ?: return null).let {
+                    it.source to it.location
+                }
+            }
+            val sourceStart = owner.startOffset ?: return null
             val start = entry.span.startOffset - sourceStart
             val end = entry.span.endOffset - sourceStart
             if (start < 0 || end > source.length || start >= end) return null
-            return source.substring(start, end) to SourceLocation(formula.formula.location.source,
+            return source.substring(start, end) to SourceLocation(owner.source,
                 entry.span.line, entry.span.column, entry.span.startOffset, entry.span.endOffset)
         }
         for (node in visited.filter { it.kind == DslTraceNodeKind.AST_NODE }) {
             val (text, location) = snippet(node) ?: continue
-            if (text.startsWith("(if ") || text.startsWith("(cond ")) {
-                val branch = when {
-                    node.nodeId.child(1) in visitedIds -> node.nodeId.child(1)
-                    node.nodeId.child(2) in visitedIds -> node.nodeId.child(2)
-                    else -> null
-                }
-                val branchNode = visited.firstOrNull { it.nodeId == branch && it.kind == DslTraceNodeKind.AST_NODE }
+            val nodeOrigin = index[node.nodeId]?.nodeOrigin
+            val conditional = Regex("^\\s*\\((if|cond)(?=\\s|\\))").containsMatchIn(text) ||
+                (nodeOrigin is DslNodeOrigin.Lowered && nodeOrigin.surface == "cond")
+            if (conditional) {
+                val branchNode = executedChild(node, node.nodeId.child(1))
+                    ?: executedChild(node, node.nodeId.child(2))
                 val branchSnippet = branchNode?.let(::snippet)
-                if (branchSnippet != null) branches += ExplainBranch(branchSnippet.first, true, branchSnippet.second)
+                if (branchSnippet != null && branchSnippet.first != text &&
+                    !Regex("^\\s*\\(cond(?=\\s|\\))").containsMatchIn(branchSnippet.first))
+                    branches += ExplainBranch(branchSnippet.first, true, branchSnippet.second)
             }
-            if (!text.startsWith('(') || text == source) continue
+            if (!text.startsWith('(') || text == formula.formula.source) continue
             val number = node.resultSummary?.rendered?.toBigDecimalOrNull() ?: continue
             if (steps.size < 64) steps.putIfAbsent(location.startOffset!! to location.endOffset!!,
                 ExplainStep(text, Value.Num(number), location))

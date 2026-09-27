@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.engine.NodeTrace
 import com.xqiou.mantra.core.engine.ExplainTrace
+import com.xqiou.mantra.core.engine.TraceRef
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationView
@@ -42,9 +43,10 @@ object WorkbenchDocuments {
         }
         val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
             val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
-            val targetCoord = aligned(target)
+            val targetCoord = if (ref.kind == TraceRef.Kind.ALL) emptyList() else aligned(target)
+            val targetId = if (ref.kind == TraceRef.Kind.ALL) ref.id else target.id
             linkedMapOf<String, Any?>(
-                "address" to address(target.id, targetCoord), "label" to target.label,
+                "address" to address(targetId, targetCoord), "label" to target.label,
                 "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
                 "kind" to ref.kind.name.lowercase().replace('_', '-'),
                 "origin" to when (val origin = target.trace(targetCoord)) {
@@ -101,6 +103,41 @@ object WorkbenchDocuments {
                 "selected" to branch.selected, "location" to location(branch.location)) },
             "references" to references, "parts" to parts, "options" to options,
             "reference" to node.presentation.reference, "truncated" to (full?.truncated ?: false),
+        )
+    }
+
+    /** A navigable source-tree node for an `all.<id>` reference to a dimensioned member map. */
+    fun memberMap(view: CalculationView, layout: LayoutSpec, nodeId: String): Map<String, Any?> {
+        val node = view.node(nodeId)
+        require(node.dims.isNotEmpty()) { "Member map requires a dimensioned node" }
+        val formatter = NumberFormatter(layout.number)
+        fun build(dims: List<String>, coord: List<String>): Value {
+            if (dims.isEmpty()) return node.values[coord] ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
+            return Value.MapV(linkedMapOf<Value, Value>().apply {
+                view.members[dims.first()].orEmpty().forEach { member ->
+                    put(Value.Kw(member.key), build(dims.drop(1), coord + member.key))
+                }
+            })
+        }
+        val value = build(node.dims, emptyList())
+        val members = node.values.keys.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
+        val references = members.take(63).map { coord ->
+            val item = node.value(coord)
+            linkedMapOf<String, Any?>("address" to address(nodeId, coord), "label" to node.label,
+                "value" to WorkbenchJson.value(item),
+                "display" to formatter.value(item, node.presentation.format, node.presentation.precision),
+                "kind" to "member", "origin" to null)
+        }
+        return linkedMapOf(
+            "address" to address("all.$nodeId", emptyList()), "label" to node.label,
+            "kind" to "member-map", "formula" to null,
+            "result" to linkedMapOf("value" to WorkbenchJson.value(value),
+                "display" to formatter.value(value, node.presentation.format, node.presentation.precision),
+                "rounding" to null),
+            "status" to "active", "reason" to null,
+            "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
+            "references" to references, "parts" to emptyList<Any>(), "options" to emptyList<Any>(),
+            "reference" to node.presentation.reference, "truncated" to (members.size > 63),
         )
     }
 

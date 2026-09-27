@@ -294,6 +294,15 @@ class WorkbenchServerTest {
             val nested = request(server.localPort, "$path&depth=2")
             assertEquals(200, nested.status, nested.body)
             validate("explain", nested.body)
+            val mapPath = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=allocation-key%40B&depth=2"
+            val mapReference = request(server.localPort, mapPath)
+            assertEquals(200, mapReference.status, mapReference.body)
+            validate("explain", mapReference.body)
+            assertContains(mapReference.body, "\"node\":\"all.weighted-amount\"")
+            val directMap = request(server.localPort,
+                "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
+            assertEquals(200, directMap.status, directMap.body)
+            validate("explain", directMap.body)
         }
     }
 

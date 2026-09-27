@@ -176,12 +176,18 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         lateinit var revision: String
         fun project(target: ExplainAddress, level: Int): Map<String, Any?> {
             if (--remaining < 0) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Explain exceeds 64 nodes")
-            val resolved = resolve(caseId, snapshot, explain = target)
+            val memberMap = target.node.startsWith("all.")
+            if (memberMap && (target.coord.isNotEmpty() || target.cell != null))
+                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map address cannot have a coordinate or cell")
+            val nodeId = if (memberMap) target.node.removePrefix("all.") else target.node
+            val resolved = resolve(caseId, snapshot, explain = target.takeUnless { memberMap })
             revision = resolved.revision
-            val node = resolved.view.nodes[target.node]
+            val node = resolved.view.nodes[nodeId]
                 ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain node was not found")
-            if (node.dims.size != target.coord.size || target.coord !in node.values)
+            if (!memberMap && (node.dims.size != target.coord.size || target.coord !in node.values))
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain coordinate was not found")
+            if (memberMap && node.dims.isEmpty())
+                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member map was not found")
             val cellValue = target.cell?.let { (row, column) ->
                 val rows = node.value(target.coord) as? Value.Vec
                 val item = row.toIntOrNull()?.let { rows?.items?.getOrNull(it) } as? Value.MapV
@@ -189,8 +195,9 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                     key == Value.Kw(column) || key == Value.Text(column)
                 }?.value ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain cell was not found")
             }
-            val data = WorkbenchDocuments.explain(resolved.view, resolved.layout, target.node, target.coord,
-                resolved.explainTrace, target.cell, cellValue).toMutableMap()
+            val data = if (memberMap) WorkbenchDocuments.memberMap(resolved.view, resolved.layout, nodeId).toMutableMap()
+                else WorkbenchDocuments.explain(resolved.view, resolved.layout, nodeId, target.coord,
+                    resolved.explainTrace, target.cell, cellValue).toMutableMap()
             if (level > 1) {
                 @Suppress("UNCHECKED_CAST")
                 val refs = data["references"] as List<Map<String, Any?>>

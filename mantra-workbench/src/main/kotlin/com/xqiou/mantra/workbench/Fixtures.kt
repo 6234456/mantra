@@ -80,18 +80,23 @@ object Fixtures {
         if (explainAddresses.isNotEmpty()) {
             val explains = linkedMapOf<String, String>()
             explainAddresses.distinct().forEach { address ->
-                val explained = Mantra.calculateForExplain(schema, case, emptyList(), address.node, address.coord)
+                val memberMap = address.node.startsWith("all.")
+                val nodeId = if (memberMap) address.node.removePrefix("all.") else address.node
+                val explained = if (memberMap) result
+                    else Mantra.calculateForExplain(schema, case, emptyList(), nodeId, address.coord)
                 val explainedView = CalculationView.of(explained)
-                val node = explainedView.nodes[address.node]
-                require(node != null && node.dims.size == address.coord.size && address.coord in node.values) {
+                val node = explainedView.nodes[nodeId]
+                require(node != null && (if (memberMap) node.dims.isNotEmpty() && address.coord.isEmpty()
+                    else node.dims.size == address.coord.size && address.coord in node.values)) {
                     "Explain address is not a calculated value: $address"
                 }
                 require(address.cell == null) { "Fixture Explain cell addresses are not supported" }
                 val key = addressPath(address)
                 val file = "explain-" + MessageDigest.getInstance("SHA-256")
                     .digest(key.toByteArray(Charsets.UTF_8)).take(8).joinToString("") { "%02x".format(it) } + ".json"
-                val data = WorkbenchDocuments.explain(explainedView, layout, address.node, address.coord,
-                    explained.explainTrace)
+                val data = if (memberMap) WorkbenchDocuments.memberMap(explainedView, layout, nodeId)
+                    else WorkbenchDocuments.explain(explainedView, layout, nodeId, address.coord,
+                        explained.explainTrace)
                 Files.writeString(target.resolve(file),
                     WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n")
                 explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"

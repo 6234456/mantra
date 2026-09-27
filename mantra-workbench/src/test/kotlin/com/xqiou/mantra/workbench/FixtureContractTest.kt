@@ -98,8 +98,11 @@ class FixtureContractTest {
             val cases = examples.map { (directory, case) -> Path.of("examples", directory, case) }
             val entries = Fixtures.writeMany(cases, temp, explainAddresses = mapOf(
                 "de-est-2025/case-mustermann.mantra" to listOf(ExplainAddress("ermaessigung-35a"),
-                    ExplainAddress("zu-versteuerndes-einkommen")),
-                "ifrs-ias36-corporate-assets/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B"))),
+                    ExplainAddress("zu-versteuerndes-einkommen"), ExplainAddress("tarifliche-est")),
+                "ifrs-ias36-corporate-assets/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B")),
+                    ExplainAddress("allocation-key", listOf("B")), ExplainAddress("all.weighted-amount"),
+                    ExplainAddress("weighted-amount", listOf("A")), ExplainAddress("weighted-amount", listOf("B")),
+                    ExplainAddress("weighted-amount", listOf("C"))),
                 "sap-co-product-cost/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
             ))
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })

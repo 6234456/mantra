@@ -38,5 +38,21 @@ class ExplainTraceTest {
         assertTrue(trace.steps.any { it.value == Value.Num(BigDecimal("240.0")) && it.text.contains("haushaltsnahe-dienstleistungen") })
         assertTrue(trace.steps.any { it.value == Value.Num(BigDecimal("500.0")) && it.text.contains("handwerkerleistungen") })
         assertTrue(trace.steps.all { it.location.source.endsWith("schema.mantra") && it.location.startOffset != null })
+        val inner = trace.steps.indexOfFirst { it.text.startsWith("(- tarifliche-est") }
+        val outer = trace.steps.indexOfFirst { it.text.startsWith("(max 0") }
+        assertTrue(inner >= 0 && outer > inner)
+    }
+
+    @Test fun `named tariff function reports the executed cond branch and child first steps`() {
+        val directory = Path.of("examples/de-est-2025")
+        val result = Mantra.calculateForExplain(Mantra.loadSchema(directory.resolve("schema.mantra")),
+            Mantra.loadCase(directory.resolve("case-mustermann.mantra")), emptyList(), "tarifliche-est")
+        val trace = assertNotNull(result.explainTrace)
+        assertTrue(trace.steps.any { it.location.line == 86 && it.text.startsWith("(let [z ") })
+        assertTrue(trace.branches.any { it.location.line == 86 && it.text.startsWith("(let [z ") })
+        assertFalse(trace.branches.any { it.text.trimStart().startsWith("(cond") })
+        val inner = trace.steps.indexOfFirst { it.text == "(- x tarif-g2)" }
+        val outer = trace.steps.indexOfFirst { it.text == "(/ (- x tarif-g2) 10000)" }
+        assertTrue(inner >= 0 && outer > inner)
     }
 }
