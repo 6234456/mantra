@@ -165,6 +165,29 @@ class CaseEditsTest {
     }
 
     @Test
+    fun `whole dimensioned input replacement rejects unknown member keys`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        val original = Files.readString(file)
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val unknownMember = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+            Value.Kw("Z") to Value.num("40000"))))
+        val rejected = assertFailsWith<WorkspaceException> {
+            catalog.previewEdits(case, revision, listOf(unknownMember))
+        }
+        assertEquals(WorkspaceProblem.INVALID, rejected.problem)
+        assertContains(rejected.diagnostics.single().message, "invalid member key")
+        assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(unknownMember)) }
+        assertEquals(original, Files.readString(file))
+
+        val repaired = catalog.previewEdits(case, revision, listOf(unknownMember,
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        assertTrue(repaired.data["preview"] == true)
+    }
+
+    @Test
     fun `batch may repair an intermediate invalid layout before final validation`() {
         val (dir, case) = copyExample("de-est-2025")
         val catalog = WorkspaceCatalog(dir)

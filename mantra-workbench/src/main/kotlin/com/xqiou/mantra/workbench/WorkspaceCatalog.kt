@@ -352,6 +352,28 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             if (!memberMap(supplied, node.dims.size))
                 reject("Dimensioned input ${node.id} requires ${node.dims.size} level(s) of member maps")
         }
+        // A whole-map replacement must use members available in the final view. Existing maps may
+        // retain dormant members when a separate edit changes the active member selection.
+        fun validMemberKeys(value: Value, dims: List<String>, level: Int = 0): Boolean {
+            if (level == dims.size) return true
+            val entries = (value as? Value.MapV)?.entries ?: return false
+            val allowed = view.members[dims[level]].orEmpty().mapTo(mutableSetOf()) { it.key }
+            return entries.all { (key, child) ->
+                val member = when (key) {
+                    is Value.Kw -> key.name
+                    is Value.Text -> key.value
+                    else -> null
+                }
+                member != null && member in allowed && validMemberKeys(child, dims, level + 1)
+            }
+        }
+        operations.filterIsInstance<CaseTextEditor.Operation.SetInput>()
+            .filter { it.coord.isEmpty() }.map { it.id }.distinct().forEach { id ->
+                val node = view.nodes[id]?.takeIf { it.input != null && it.dims.isNotEmpty() } ?: return@forEach
+                val supplied = view.case.inputs[id] ?: return@forEach
+                if (!validMemberKeys(supplied, node.dims))
+                    reject("Dimensioned input $id contains an invalid member key")
+            }
         operations.forEach { op ->
             if (op !is CaseTextEditor.Operation.SetInput || op.coord.isEmpty()) return@forEach
             var retained: Value? = view.case.inputs[op.id]
