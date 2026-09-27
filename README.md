@@ -70,9 +70,18 @@ mantra-cli/build/install/mantra/bin/mantra catalog
 mantra-cli/build/install/mantra/bin/mantra serve examples --port 8080
 ```
 
+要同时打开前端页面，先构建 live 资源，再由服务托管：
+
+```bash
+cd workbench-ui
+npm ci
+VITE_WORKBENCH_MODE=live npm run build
+cd ..
+mantra-cli/build/install/mantra/bin/mantra serve examples --port 8090 --ui workbench-ui/dist
+```
+
 服务提供 `/api/v1/workspace` 以及案例的 Structure、Run、Paper、Diagnostics、Parameters JSON。
-若已有 live 前端构建产物，可加 `--ui workbench-ui/dist` 托管页面；
-Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前返回 501。
+Compare POST、Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前返回 501。
 
 ## 一个最小方案
 
@@ -95,7 +104,7 @@ Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前�
 | `mantra-render` | 版式 DSL、预设、WorkingPaper 网格模型、HTML/Text 渲染、公式解释器 |
 | `mantra-workbench` | 工作区扫描、修订与只读契约文档 |
 | `mantra-server` | 回环地址 HTTP 服务、安全检查与 live 前端静态文件 |
-| `mantra-cli` | `run`、`check`、`catalog`、`fixtures`、`serve` |
+| `mantra-cli` | `run`、`check`、`catalog`、`fixtures`、`diff`、`serve` |
 | `workbench-ui` | 工作台 React 前端 |
 | `examples/` | 验收样例（不属于引擎库）：`de-est-2025`、`ifrs-ias36-corporate-assets`、`sap-co-product-cost` |
 | `docs/` | [架构设计](docs/architecture.md)、[引擎与应用职责契约](docs/engine-application-boundary.md)、[DSL 参考](docs/dsl-reference.md)、[RFC](docs/rfc/) |
