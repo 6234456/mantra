@@ -12,6 +12,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.net.Socket
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
@@ -79,6 +81,72 @@ class WorkbenchServerTest {
             val header = response.substring(0, split)
             return Response(header.lineSequence().first().split(' ')[1].toInt(), header,
                 bytes.copyOfRange(split + 4, bytes.size))
+        }
+    }
+
+    private class EventStream(port: Int, host: String = "127.0.0.1:$port") : AutoCloseable {
+        private val socket = Socket("127.0.0.1", port).apply { soTimeout = 7_000 }
+        private val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))
+        val status: Int
+
+        init {
+            socket.getOutputStream().write(
+                "GET /api/v1/events HTTP/1.1\r\nHost: $host\r\nConnection: keep-alive\r\n\r\n"
+                    .toByteArray(Charsets.US_ASCII)
+            )
+            status = reader.readLine().split(' ')[1].toInt()
+            while (reader.readLine().isNotEmpty()) Unit
+        }
+
+        fun event(name: String): Map<*, *> {
+            var event: String? = null
+            var data: String? = null
+            while (true) {
+                val line = reader.readLine() ?: error("Event stream closed before $name")
+                if (line.startsWith("event: ")) event = line.removePrefix("event: ")
+                if (line.startsWith("data: ")) data = line.removePrefix("data: ")
+                if (line.isEmpty() && event == name && data != null)
+                    return ObjectMapper().readValue(data, Map::class.java)
+            }
+        }
+
+        override fun close() = socket.close()
+    }
+
+    @Test fun `events report content changes with workspace revision and release stream slots`() {
+        val root = workspace()
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            EventStream(server.localPort).use { first ->
+                assertEquals(200, first.status)
+                val initial = first.event("revision")["revision"] as String
+                assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), initial)
+                EventStream(server.localPort).use { second ->
+                    assertEquals(200, second.status)
+                    assertEquals(initial, second.event("revision")["revision"])
+                    assertEquals(503, request(server.localPort, "/api/v1/events").status)
+                    assertEquals(200, request(server.localPort, "/api/v1/workspace").status)
+                    val case = root.resolve("sample/case.mantra")
+                    Files.writeString(case, Files.readString(case).replace("12.5", "14.5"))
+                    val changed = first.event("documentChanged")
+                    assertEquals(listOf("sample/case.mantra"), changed["paths"])
+                    assertFalse(initial == changed["revision"])
+                    assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), changed["revision"])
+                    val added = root.resolve("sample/new.mantra")
+                    Files.writeString(added, "(parameters new {})")
+                    assertEquals(listOf("sample/new.mantra"), first.event("documentChanged")["paths"])
+                    Files.delete(added)
+                    assertEquals(listOf("sample/new.mantra"), first.event("documentChanged")["paths"])
+                }
+            }
+            // Closed streams are removed on the next heartbeat; a fresh reader receives the current revision.
+            Thread.sleep(1_200)
+            EventStream(server.localPort).use { stream ->
+                assertEquals(200, stream.status)
+                assertTrue((stream.event("revision")["revision"] as String).isNotEmpty())
+            }
+            assertEquals(403, request(server.localPort, "/api/v1/events", host = "evil.example:${server.localPort}").status)
+            assertEquals(400, request(server.localPort, "/api/v1/events?unexpected=1").status)
         }
     }
 

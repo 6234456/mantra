@@ -465,7 +465,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 缺少方案或绑定文件的案例仍列在 `/workspace` 中并带诊断；请求其结果返回 422。
 `/workspace` 的 JSON Schema 见 `schema/workspace.schema.json`。
 
-只读阶段提供 `/workspace`、`structure`、`run`、`paper`、`diagnostics` 和 `parameters`。其余 §9.1
+只读阶段提供 `/workspace`、`structure`、`run`、`paper`、`diagnostics`、`parameters` 和 `/events`。其余 §9.1
 端点在对应工作包完成前返回 501 与 `MANTRA-WORKBENCH-UNAVAILABLE`，不会生成占位结果。
 尚未实现的 `(sources …)` 绑定同样报告诊断并拒绝计算。`GET /cases/{case}/diagnostics`
 直接返回 §6.6 的诊断文档。服务可通过 `--ui <dist目录>` 指定 live 前端构建产物；
@@ -490,6 +490,14 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | GET | `/cases/{case}/export.xlsx`、`/export.html`、`/export.txt`（可带 `?layout=`） | 导出（§6.9） |
 | GET | `/cases/{case}/export-preview`（可带 `?sheet=`、`?layout=`） | 工作簿预览与保真度报告（§6.9） |
 | GET | `/events` | SSE：`documentChanged`、`revision` |
+
+`/events` 建立连接后立即发送 `revision` 事件，`data` 是 `{"revision":"<工作区修订>"}`。
+服务每秒核对工作区中的 `.mantra` 文件内容；内容、新建或删除发生变化时，发送
+`documentChanged`，`data` 是 `{"revision":"<新工作区修订>","paths":["<工作区相对路径>"]}`。
+`paths` 按字典序排列，包含内容变化、新建或删除的文件。修订算法与 `/workspace` 外层一致。
+事件流每秒发送 SSE 注释作为心跳。最多同时保留 2 条事件流；超出时返回 503 与
+`MANTRA-WORKBENCH-BUSY`。断开在下一次发送时被检测到并释放名额；服务停止时也会释放。
+服务重连时再次发送当前修订。
 
 ### 9.2 前端路由
 
@@ -521,6 +529,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | 422 | 工作区文档缺失、绑定尚不可用或无效 | 代码 `MANTRA-WORKBENCH-DOCUMENT`，附诊断 |
 | 501 | 端点所属工作包尚未接入 | 代码 `MANTRA-WORKBENCH-UNAVAILABLE` |
 | 500 | 内部错误 | 附关联 id，不向客户端返回堆栈 |
+| 503 | SSE 连接数达到上限 | 代码 `MANTRA-WORKBENCH-BUSY` |
 
 `MANTRA-WORKBENCH-*` 是拟新增的代码。
 

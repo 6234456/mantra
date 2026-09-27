@@ -55,11 +55,29 @@ function Link({ href, navigate, children, className, current }: { href: string; 
 export function App() {
   const [current, navigate] = useRoute()
   const data = useMemo(configuredData, [])
-  const workspace = useLoad(signal => data.workspace(signal), [data])
+  const [refresh, setRefresh] = useState(0)
+  useEffect(() => {
+    if (import.meta.env.VITE_WORKBENCH_MODE !== 'live') return
+    const source = new EventSource('/api/v1/events')
+    let revision: string | undefined
+    const onRevision = (event: MessageEvent) => {
+      const next = (JSON.parse(event.data) as { revision: string }).revision
+      if (revision && revision !== next) setRefresh(value => value + 1)
+      revision = next
+    }
+    const onChanged = (event: MessageEvent) => {
+      revision = (JSON.parse(event.data) as { revision: string }).revision
+      setRefresh(value => value + 1)
+    }
+    source.addEventListener('revision', onRevision)
+    source.addEventListener('documentChanged', onChanged)
+    return () => source.close()
+  }, [])
+  const workspace = useLoad(signal => data.workspace(signal), [data, refresh])
   const caseId = current.caseId ?? workspace.data?.cases[0]?.id
-  const structure = useLoad(signal => caseId ? data.structure(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId])
-  const run = useLoad(signal => caseId ? data.run(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId])
-  const paper = useLoad(signal => caseId ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal) : Promise.reject(new Error('No case')), [data, caseId, current.page, current.panelId])
+  const structure = useLoad(signal => caseId ? data.structure(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId, refresh])
+  const run = useLoad(signal => caseId ? data.run(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId, refresh])
+  const paper = useLoad(signal => caseId ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal) : Promise.reject(new Error('No case')), [data, caseId, current.page, current.panelId, refresh])
   const selectedCase = workspace.data?.cases.find(item => item.id === caseId)
   const failure = workspace.error ?? structure.error ?? run.error ?? paper.error
   const ready = structure.data && run.data
@@ -69,7 +87,7 @@ export function App() {
     <AppBar cases={workspace.data.cases} selectedCase={selectedCase} structure={structure.data?.data} run={run.data?.data} paper={paper.data?.data} revision={run.data?.revision} navigate={navigate} caseId={caseId!} />
     <div className="body-shell">
       {ready && <Sidebar structure={structure.data!.data} run={run.data!.data} caseId={caseId!} activePanel={current.panelId} activePage={current.page} navigate={navigate} />}
-      <main className="content">
+      <main className="content" key={refresh}>
         {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
         {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
