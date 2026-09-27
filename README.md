@@ -18,13 +18,13 @@ layout.mantra  ─┘
 
 要求：JDK 21（Normein 以 17 为目标），Git。
 
-当前锁定的 Normein 提交 `0a3ae1de` 还在本机，尚未推送远端。先从本地 Normein 仓库建立干净的依赖检出（完整 commit 见 `normein-build.lock`）：
+建立锁定的 Normein 依赖检出（完整 commit 见 `normein-build.lock`）：
 
 ```bash
-NORMEIN_SOURCE=~/IdeaProjects/xrechnung scripts/bootstrap-normein.sh
+scripts/bootstrap-normein.sh
 ```
 
-待该提交推送到 Normein 远端后，其他环境可直接运行 `scripts/bootstrap-normein.sh`。
+本机已有 Normein 仓库时，也可使用 `NORMEIN_SOURCE=~/IdeaProjects/xrechnung scripts/bootstrap-normein.sh`。
 
 构建并运行全部测试：
 

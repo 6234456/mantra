@@ -12,7 +12,7 @@
 
 ## 摘要（中文）
 
-Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定干净提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。该提交尚未推送到远端。
+Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定发布的提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。
 
 - **新内核已实现**：A 的多形式读取、B 的宿主绝对位置、C 的结构错误字段路径、D 的静态结果类型、F 的源码索引和非标量 trace、I 的公开字面量分类。Mantra 已使用 B 与 I，并通过锁定内核的完整测试。
 - **仍需在 Mantra 完成**：Explain 渲染、案例编辑回写、数据接入与导入导出工作包。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
@@ -121,7 +121,7 @@ Each contract states:
 | G bounded iteration | | ✓ (candidate) | `reduce` pattern or callback function | |
 | H authoring | | B prerequisite (candidate) | editor integration, host-form docs | |
 | I literal classification | | `DslFormLiterals` (candidate) | delegate from Mantra reader | |
-| J qualified node references | | | form-aware rewrite (implemented in Mantra candidate branch) | |
+| J qualified node references | | | form-aware rewrite (implemented by WP1) | |
 
 ### Identity model used below
 
@@ -166,7 +166,7 @@ Observed at the pin (contract B):
 
 ### B. Absolute positions for embedded expressions
 
-- **Classification:** fixed in the candidate; adopted by Mantra's candidate branch.
+- **Classification:** fixed in the new pin; adopted by Mantra WP1.
 - **Current (candidate)**, `B - diagnostics of an embedded expression…` and `B - identities ignore…`:
   - `compile("(+ a\n     zzz)", logicalLocation = "line.zve")` → `DSL-REF-UNKNOWN-SYMBOL` at 2:6, relative to the expression, with `logicalLocation = "line.zve"` echoed.
   - Changing `logicalLocation` changes no fingerprint. Changing only whitespace changes `sourceFingerprint` but not `canonicalAstHash` or `executionFingerprint`.
@@ -300,20 +300,20 @@ Observed at the pin (contract B):
 
 ### I. Literal classification
 
-- **Classification:** fixed in the candidate; Mantra's candidate branch delegates literal parsing and reports value-limit failures.
+- **Classification:** fixed in the new pin; Mantra WP1 delegates literal parsing and reports value-limit failures.
 - **Current (candidate)**, `I - numeric literal rules of the kernel`:
   - The kernel reads `.5`, `1.`, `1e3` and `-0.0` as `Decimal`, `+7` as `Integer`, and rejects `1.5M`, `1N`, `0x10` and `1/2`.
   - A literal of scale 1,001 → `DSL-VALUE-NUMERIC-SCALE-LIMIT`, and `DslValues.decimal(1E-1001)` throws with the same code.
-  - Mantra's candidate branch accepts `.5` and `1.`, reports scale-limit literals as `MANTRA-READ-LITERAL`, and converts kernel value construction failures to diagnostics.
+  - Mantra WP1 accepts `.5` and `1.`, reports scale-limit literals as `MANTRA-READ-LITERAL`, and converts kernel value construction failures to diagnostics.
 - **Acceptance:**
   - `DslFormLiterals.classify` returns:
     - `1.5M` → `Symbol`, and `.5` → `Number(0.5)`.
     - `:de.est/zve` → `Keyword("de.est", "zve")`.
     - A scale-1,001 literal → failure `DSL-VALUE-NUMERIC-SCALE-LIMIT`.
   - A differential test shows that the classifier and `DslSemanticCompiler` agree on every atom in the reader corpus.
-- **Versions and fingerprints:** tied to the parser version (3 at the pin, 7 in the current candidate). Additive API; Mantra 数据字面量行为随接入更新。
+- **Versions and fingerprints:** tied to the parser version (3 at the previous pin, 7 in the new pin). Additive API; Mantra 数据字面量行为随接入更新。
 - **Limits:** numeric precision and scale 1,000 (`DslValueLimits`).
-- **Mantra migration:** candidate branch delegates `Forms.number` and `Forms.keyword` to `DslFormLiterals`, validates numeric data at read time, and converts `DslValueConstructionException` into a diagnostic at the evaluation boundary. `M` and `N` suffixes are rejected as data numbers; no example uses them.
+- **Mantra migration:** WP1 delegates `Forms.number` and `Forms.keyword` to `DslFormLiterals`, validates numeric data at read time, and converts `DslValueConstructionException` into a diagnostic at the evaluation boundary. `M` and `N` suffixes are rejected as data numbers; no example uses them.
 
 ### J. Qualified node references `mantra/<id>` (not requested)
 
@@ -323,7 +323,7 @@ Observed at the pin (contract B):
   - Root names cannot contain `/`. `(+ mantra/amount 1)` fails with `DSL-NAME-INVALID` at the pin. In the candidate it fails with `DSL-REF-UNKNOWN-SYMBOL`, because a `/` symbol in value position resolves as a namespaced callable.
 - **Consequence:**
   - Mantra keeps its equal-length rewrite `mantra/<id>` → root `mantra_<id>` before compilation, and never registers functions under `mantra/`.
-  - Mantra's candidate branch now rewrites symbol atoms only, using public form spans; strings, keywords, regular expressions and comments remain unchanged.
+  - Mantra WP1 rewrites symbol atoms only, using public form spans; strings, keywords, regular expressions and comments remain unchanged.
 - **Versions and fingerprints:** `sourceFingerprint` covers the rewritten text. A form-aware rewrite changes fingerprints only of formulas that contain `mantra/` inside strings or keywords.
 
 ### Cross-cutting resource limits
@@ -332,9 +332,9 @@ Observed at the pin (contract B):
 | --- | --- | --- | --- |
 | Reader | 65,536 chars, 8,192 tokens, nesting 128; lower only | about 511 line forms per document; about 1,360 inline two-column case rows | Domain: `include`, data sources for bulk data |
 | Items per value | 10,000; a record costs `1 + 2 × fields` | a table referenced by a formula holds ≤ 1,428 rows of 3 columns (≤ 2,000 of 2); Mantra reports `MANTRA-RECORD` | Domain: pre-aggregate large tables |
-| Entries per collection | 5,000 | member maps (`all.<id>`, member-map roots) hold ≤ 5,000 members; candidate branch converts over-limit construction failures to `MANTRA-VALUE-LIMIT` | Domain: diagnostic implemented in candidate branch |
+| Entries per collection | 5,000 | member maps (`all.<id>`, member-map roots) hold ≤ 5,000 members; WP1 converts over-limit construction failures to `MANTRA-VALUE-LIMIT` | Domain: diagnostic implemented by WP1 |
 | Depth | 32 | one level per extra dimension of a member map | none |
-| Numeric precision / scale | 1,000 / 1,000 | candidate branch validates data literals and reports kernel limit diagnostics | Domain: implemented in candidate branch |
+| Numeric precision / scale | 1,000 / 1,000 | WP1 validates data literals and reports kernel limit diagnostics | Domain: implemented by WP1 |
 | Evaluation budget | 100,000 per counter per evaluation (numeric operations, function calls, evaluated nodes, …), 16 MiB byte counters, 128 open cursors | applies per formula and member tuple; the kernel has no run-level budget | Domain: Mantra needs a run-level cap (member tuples × lines) |
 | Library charging | handlers charge what they declare | Mantra's handlers charge `arguments.size` numeric operations per call, regardless of map size or iterations (`alloc/capped`) | Domain: charge in proportion to entries × iterations |
 | Trace | 10,000 events, 64 collection entries, 1,000,000 text characters | `FULL` trace for audit output only | Domain |
@@ -351,7 +351,7 @@ Observed at the pin (contract B):
 3. **Pin the commit:** update `normein-build.lock`, run `scripts/bootstrap-normein.sh` and the full suite, and update the kernel baseline in this header.
 4. **Fingerprints:** every language or stdlib bump changes `environmentFingerprint`, `executionFingerprint` and the receipts' execution artifacts; canonicalization bumps may change `canonicalAstHash`. Mantra stores none of them, so no data migrates. Mantra versions pinned to an older commit keep their behaviour exactly.
 
-Assessment of 2026-09-27 (locked commit `0a3ae1de`, language 25 / stdlib 33): the old Mantra contract reported five expected differences (version, C, D, F and I). After adaptation, the clean pinned checkout passes `./gradlew test --rerun-tasks`, including all three acceptance examples. The Normein commit remains local until upstream publishes it.
+Assessment of 2026-09-27 (locked commit `0a3ae1de`, language 25 / stdlib 33): the old Mantra contract reported five expected differences (version, C, D, F and I). After adaptation, the clean pinned checkout passes `./gradlew test --rerun-tasks`, including all three acceptance examples.
 
 ---
 

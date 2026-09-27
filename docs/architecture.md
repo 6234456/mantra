@@ -175,7 +175,7 @@ SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产�
 * 以 composite build 引用固定 commit（`normein-build.lock`，与 invoice-parser 的做法一致），只替换 `com.xqiou:normein-dsl`。
 * Mantra 自己的函数库 `mantra.calc@1`（`alloc/*`、`calc/stepwise`、`dim/*`、`fin/*`）作为普通领域库通过 `DslLibraryDescriptor` 组合到标准环境中；Normein 内核不做任何修改。
 * 使用中发现的内核层需求记录在 [RFC 0001](rfc/0001-normein-dsl-kernel-extensions.md)。
-* WP1 接入分支锁定 `0a3ae1de`，用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。该提交目前仅在本机，供其他环境获取前须先由 Normein 仓库发布。
+* WP1 接入分支锁定已发布的 `0a3ae1de`，用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。
 
 ## 8. 覆盖情况与迭代路线
 
