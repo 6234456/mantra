@@ -122,7 +122,7 @@ class WorkbenchServerTest {
             assertEquals(501, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
                 headers = mapOf("X-Mantra-Token" to token)).status)
-            assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain?address=sum").status)
+            assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain").status)
             assertEquals(404, request(port, "/api/v1/cases/..%2F..%2Fsecret.mantra/structure").status)
             assertEquals(404, request(port, "/%2e%2e/secret.txt").status)
             assertEquals(413, request(port, preview, "POST", headers = mapOf(
@@ -164,6 +164,40 @@ class WorkbenchServerTest {
                 assertEquals(200, paper.status, "$id: ${paper.body}")
                 assertContains(run.body, "\"succeeded\":true")
             }
+        }
+    }
+
+    @Test fun `explain returns a bounded source trace through the address route`() {
+        WorkbenchServer(Path.of("examples"), 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/de-est-2025%2Fcase-mustermann.mantra/explain"
+            val response = request(server.localPort, "$path?address=ermaessigung-35a")
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            assertContains(response.body, "\"node\":\"ermaessigung-35a\"")
+            assertContains(response.body, "\"n\":\"740.0\"")
+            assertContains(response.body, "\"n\":\"240.0\"")
+            assertContains(response.body, "\"n\":\"500.0\"")
+            val nested = request(server.localPort, "$path?address=ermaessigung-35a&depth=2")
+            assertEquals(200, nested.status, nested.body)
+            validate("explain", nested.body)
+            assertContains(nested.body, "\"explanation\":")
+            assertEquals(400, request(server.localPort, "$path?address=ermaessigung-35a&depth=6").status)
+            assertEquals(404, request(server.localPort, "$path?address=missing").status)
+            assertEquals(400, request(server.localPort, "$path?address=ermaessigung-35a&extra=x").status)
+        }
+    }
+
+    @Test fun `explain resolves a dimensioned choice and its option difference`() {
+        WorkbenchServer(Path.of("examples"), 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=recoverable-amount%40B"
+            val response = request(server.localPort, path)
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            assertContains(response.body, "\"coord\":[\"B\"]")
+            assertContains(response.body, "\"options\":[")
+            assertContains(response.body, "\"difference\":")
         }
     }
 

@@ -23,6 +23,11 @@ data class TracePart(val id: String, val sign: Int, val value: BigDecimal, val c
 
 data class TraceOption(val key: String, val label: String, val value: Value, val available: Boolean)
 
+/** Bounded source-level details captured for one requested node coordinate. */
+data class ExplainStep(val text: String, val value: Value, val location: com.xqiou.mantra.core.SourceLocation)
+data class ExplainBranch(val text: String, val selected: Boolean, val location: com.xqiou.mantra.core.SourceLocation)
+data class ExplainTrace(val steps: List<ExplainStep>, val branches: List<ExplainBranch>, val truncated: Boolean)
+
 /** How a value came about; renderers turn this into the audit trail ("Rechenweg"). */
 sealed interface NodeTrace {
     data class Input(val origin: InputOrigin) : NodeTrace
@@ -63,6 +68,7 @@ class CalculationResult(
     val members: Map<String, List<Member>>,
     val nodes: Map<String, NodeResult>,
     val diagnostics: List<Diagnostic>,
+    val explainTrace: ExplainTrace? = null,
 ) {
     val schema: Schema get() = plan.schema
     val case: CaseData get() = plan.case

@@ -7,6 +7,7 @@ import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.core.engine.ExplainTrace
 import com.xqiou.mantra.core.read.Document
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
@@ -31,6 +32,9 @@ class WorkspaceException(
     message: String,
     val diagnostics: List<Diagnostic> = emptyList(),
 ) : RuntimeException(message)
+
+data class ExplainAddress(val node: String, val coord: List<String> = emptyList(),
+                          val cell: Pair<String, String>? = null)
 
 /** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
 class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1.0-SNAPSHOT", normeinVersion: String? = null) {
@@ -125,15 +129,55 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 variantCaseId?.takeIf { it != caseId }))
     }
 
+    fun explain(caseId: String, address: ExplainAddress, depth: Int = 1): DocumentResult {
+        if (depth !in 1..5) throw WorkspaceException(WorkspaceProblem.REQUEST, "Explain depth must be between 1 and 5")
+        val snapshot = scan()
+        var remaining = 64
+        lateinit var revision: String
+        fun project(target: ExplainAddress, level: Int): Map<String, Any?> {
+            if (--remaining < 0) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Explain exceeds 64 nodes")
+            val resolved = resolve(caseId, snapshot, explain = target)
+            revision = resolved.revision
+            val node = resolved.view.nodes[target.node]
+                ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain node was not found")
+            if (node.dims.size != target.coord.size || target.coord !in node.values)
+                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain coordinate was not found")
+            val cellValue = target.cell?.let { (row, column) ->
+                val rows = node.value(target.coord) as? Value.Vec
+                val item = row.toIntOrNull()?.let { rows?.items?.getOrNull(it) } as? Value.MapV
+                item?.entries?.entries?.firstOrNull { (key, _) ->
+                    key == Value.Kw(column) || key == Value.Text(column)
+                }?.value ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain cell was not found")
+            }
+            val data = WorkbenchDocuments.explain(resolved.view, resolved.layout, target.node, target.coord,
+                resolved.explainTrace, target.cell, cellValue).toMutableMap()
+            if (level > 1) {
+                @Suppress("UNCHECKED_CAST")
+                val refs = data["references"] as List<Map<String, Any?>>
+                data["references"] = refs.map { ref ->
+                    @Suppress("UNCHECKED_CAST")
+                    val linked = ref["address"] as Map<String, Any?>
+                    val child = ExplainAddress(linked.getValue("node") as String,
+                        (linked["coord"] as? List<*>)?.filterIsInstance<String>().orEmpty())
+                    ref + ("explanation" to project(child, level - 1))
+                }
+            }
+            return data
+        }
+        val data = project(address, depth)
+        return DocumentResult(revision, data)
+    }
+
     fun envelope(document: DocumentResult): String = WorkbenchJson.write(
         WorkbenchJson.envelope(document.revision, mantraVersion, normeinVersion, document.data)
     )
 
     private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String,
-                                val parameterIds: List<String>)
+                                val parameterIds: List<String>, val explainTrace: ExplainTrace? = null)
 
     private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
-                        parameterOverride: List<String>? = null, includeLayout: Boolean = true): Resolved {
+                        parameterOverride: List<String>? = null, includeLayout: Boolean = true,
+                        explain: ExplainAddress? = null): Resolved {
         val casePath = path(caseId)
         val entry = snapshot.kind("case").singleOrNull { it.path == casePath }
             ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
@@ -166,7 +210,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val parameters = try { parameterFiles.map(Mantra::loadParameters) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter document is invalid", error.diagnostics)
         }
-        val result = try { Mantra.calculate(schema, case, parameters) } catch (error: MantraException) {
+        val result = try {
+            if (explain == null) Mantra.calculate(schema, case, parameters)
+            else Mantra.calculateForExplain(schema, case, parameters, explain.node, explain.coord)
+        } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be calculated", error.diagnostics)
         }
         val view = CalculationView.of(result)
@@ -183,7 +230,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         } } ?: Render.defaultLayout(view)
         val sourceFiles = schema.sources.map { path(it) }
         val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile))
-        return Resolved(view, layout, revision, parameterIds)
+        return Resolved(view, layout, revision, parameterIds, result.explainTrace)
     }
 
     private fun scan(): Snapshot {

@@ -51,7 +51,7 @@ class FixtureContractTest {
             }
             fun paperTitle(): String {
                 val entry = Fixtures.write(casePath, temp.resolve("out"), workspaceRoot = temp)
-                val paper = entry.files.getValue("paper").removePrefix("/fixtures/")
+                val paper = (entry.files.getValue("paper") as String).removePrefix("/fixtures/")
                 val document = com.xqiou.mantra.core.data.Json.parse(Files.readString(temp.resolve("out/$paper")))
                     as com.xqiou.mantra.core.model.Value.MapV
                 val data = document.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("data"))
@@ -96,7 +96,12 @@ class FixtureContractTest {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("examples", directory, case) }
-            val entries = Fixtures.writeMany(cases, temp)
+            val entries = Fixtures.writeMany(cases, temp, explainAddresses = mapOf(
+                "de-est-2025/case-mustermann.mantra" to listOf(ExplainAddress("ermaessigung-35a"),
+                    ExplainAddress("zu-versteuerndes-einkommen")),
+                "ifrs-ias36-corporate-assets/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B"))),
+                "sap-co-product-cost/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
+            ))
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
             assertEquals("Eheleute Erika und Max Mustermann", entries.first().title)
             assertEquals(Files.readString(golden.resolve("index.json")), Files.readString(temp.resolve("index.json")))
@@ -111,12 +116,21 @@ class FixtureContractTest {
             entries.forEach { entry ->
                 listOf("structure", "run", "paper", "diagnostics").forEach { name ->
                     val file = "$name.json"
-                    val relative = entry.files.getValue(name).removePrefix("/fixtures/")
+                    val relative = (entry.files.getValue(name) as String).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
                     assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$file changed")
                     val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json"))
                     val errors = schema.validate(generated, InputFormat.JSON)
                     assertTrue(errors.isEmpty(), "${entry.id}/$file: $errors")
+                }
+                @Suppress("UNCHECKED_CAST")
+                val explains = entry.files["explains"] as Map<String, String>
+                explains.values.forEach { path ->
+                    val relative = path.removePrefix("/fixtures/")
+                    val generated = Files.readString(temp.resolve(relative))
+                    assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$relative changed")
+                    val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/explain.schema.json"))
+                    assertTrue(schema.validate(generated, InputFormat.JSON).isEmpty(), "${entry.id}/$relative")
                 }
             }
         } finally {

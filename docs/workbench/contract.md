@@ -236,6 +236,8 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 
 请求：地址，外加可选的深度。响应示例（节选，ESt 样例 [schema.mantra:153](../../examples/de-est-2025/schema.mantra)）：
 
+HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`node[@成员/成员…][#行.列]`。每个节点、成员、行、列分别做百分号编码，再将整个字符串编码为查询参数；服务端先解查询参数、再解各段。成员顺序须与节点声明的维度顺序一致；表格单元的行是从 0 开始的索引，列是记录键。`depth` 为 1–5 的整数，省略时为 1。深度大于 1 时，引用项的 `explanation` 递归承载下一层；每次请求最多展开 64 个值，超出返回 413。不存在的节点、坐标或单元格返回 404，格式错误返回 400。响应仍使用 §6.1 的结构化 `address` 对象。
+
 ```json
 {
   "address": {"node": "ermaessigung-35a"},
@@ -274,6 +276,7 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 | 公式与步骤的精确起止位置 | `hostPosition` | 需采用新内核 |
 
 - **预算**：一次 Explain 只对一个节点的一个坐标以 FULL trace 重新求值。渲染量受内核的 trace 渲染预算约束（默认总计 1,000,000 字符，单个值 4 KiB），超出时返回 `truncated: true`。
+- `steps` 按被执行的、带数值结果的子表达式顺序列出，最多 64 项；`branches` 只列实际选中的 `if` / `cond` 分支。择优节点先按通常方式计算所有选项，再对选中选项做一次 FULL trace 求值；`options[].difference = 被选值 − 该选项值`，不可用或非数值选项的差额为 `null`。
 - **来源树（Herkunft）**：前端逐层按需请求，每层是一次 Explain，`references` 中的地址就是下一层。`depth` 默认 1，最大 5。依赖图无环（`MANTRA-CYCLE` 已保证），所以展开一定会终止。
 
 ### 6.6 Diagnostics（诊断）

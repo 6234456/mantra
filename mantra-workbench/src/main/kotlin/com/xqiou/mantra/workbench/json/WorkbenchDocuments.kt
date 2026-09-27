@@ -3,6 +3,7 @@ package com.xqiou.mantra.workbench.json
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.engine.NodeTrace
+import com.xqiou.mantra.core.engine.ExplainTrace
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationView
@@ -28,6 +29,81 @@ import com.xqiou.mantra.render.paper.WorkingPaper
 
 /** Pure projections of the public read-only calculation and presentation views. */
 object WorkbenchDocuments {
+    /** One calculated value and its bounded source trace; no evaluator state reaches the UI. */
+    fun explain(view: CalculationView, layout: LayoutSpec, nodeId: String, coord: List<String>,
+                full: ExplainTrace?, cell: Pair<String, String>? = null, cellValue: Value? = null): Map<String, Any?> {
+        val node = view.node(nodeId)
+        val formatter = NumberFormatter(layout.number)
+        val trace = node.trace(coord)
+        fun display(value: Value, source: ViewNode = node) =
+            formatter.value(value, source.presentation.format, source.presentation.precision)
+        fun aligned(other: ViewNode): List<String> = other.dims.mapNotNull { dim ->
+            node.dims.indexOf(dim).takeIf { it >= 0 }?.let(coord::get)
+        }
+        val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
+            val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
+            val targetCoord = aligned(target)
+            linkedMapOf<String, Any?>(
+                "address" to address(target.id, targetCoord), "label" to target.label,
+                "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
+                "kind" to ref.kind.name.lowercase().replace('_', '-'),
+                "origin" to when (val origin = target.trace(targetCoord)) {
+                    is NodeTrace.Input -> origin.origin.name.lowercase()
+                    is NodeTrace.Param -> origin.source
+                    else -> null
+                },
+            )
+        }
+        val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
+            val target = view.nodes[part.id] ?: return@mapNotNull null
+            linkedMapOf<String, Any?>("address" to address(part.id, aligned(target)), "label" to target.label,
+                "sign" to part.sign, "value" to WorkbenchJson.value(Value.Num(part.value)),
+                "display" to display(Value.Num(part.value), target), "crossFooted" to part.crossFooted)
+        }
+        val choice = trace as? NodeTrace.Choice
+        val selectedValue = choice?.options?.firstOrNull { it.key == choice.selected }?.value
+        val options = choice?.options.orEmpty().map { option ->
+            val optionValue = option.value
+            val difference = if (selectedValue is Value.Num && optionValue is Value.Num)
+                Value.Num(selectedValue.value - optionValue.value) else null
+            linkedMapOf<String, Any?>("key" to option.key, "label" to option.label,
+                "value" to WorkbenchJson.value(optionValue), "display" to display(optionValue),
+                "available" to option.available, "selected" to (option.key == choice?.selected),
+                "difference" to difference?.let(WorkbenchJson::value),
+                "differenceDisplay" to difference?.let { display(it) })
+        }
+        val rounding = when (trace) {
+            is NodeTrace.Computed -> trace.rounding
+            is NodeTrace.Choice -> trace.rounding
+            else -> null
+        }
+        val formula = node.line?.formula
+        val value = cellValue ?: node.value(coord)
+        val requestedAddress = address(nodeId, coord).toMutableMap().apply {
+            if (cell != null) put("cell", linkedMapOf("row" to cell.first, "column" to cell.second))
+        }
+        return linkedMapOf(
+            "address" to requestedAddress, "label" to node.label,
+            "kind" to node.kind.name.lowercase().replace('_', '-'),
+            "formula" to formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
+            "result" to linkedMapOf("value" to WorkbenchJson.value(value), "display" to display(value),
+                "rounding" to rounding?.let { linkedMapOf("scale" to it.scale, "mode" to it.mode.name.lowercase()) }),
+            "status" to when (trace) {
+                is NodeTrace.Inactive -> "inactive"
+                is NodeTrace.Failed -> "failed"
+                else -> if (node.isActive(coord)) "active" else "inactive"
+            },
+            "reason" to when (trace) { is NodeTrace.Inactive -> trace.reason; is NodeTrace.Failed -> trace.message; else -> null },
+            "steps" to full?.steps.orEmpty().map { step -> linkedMapOf("text" to step.text,
+                "value" to WorkbenchJson.value(step.value), "display" to display(step.value),
+                "location" to location(step.location)) },
+            "branches" to full?.branches.orEmpty().map { branch -> linkedMapOf("text" to branch.text,
+                "selected" to branch.selected, "location" to location(branch.location)) },
+            "references" to references, "parts" to parts, "options" to options,
+            "reference" to node.presentation.reference, "truncated" to (full?.truncated ?: false),
+        )
+    }
+
     /** Parameter defaults, every supplied set value, case override, and the effective layer. */
     fun parameters(view: CalculationView): Map<String, Any?> = linkedMapOf(
         "parameters" to view.structure.params.map { id ->

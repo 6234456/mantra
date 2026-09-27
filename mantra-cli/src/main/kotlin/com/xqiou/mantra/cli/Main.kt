@@ -31,6 +31,9 @@ Usage:
   mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
               [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
               [--layout <layout.mantra>] [--format json|text] [--out <file>]
+  mantra explain <schema.mantra> --case <case.mantra> --address <node>
+                 [--coord <member[,member...]>] [--parameters <file[,file...]>]
+                 [--layout <layout.mantra>] [--format json|text] [--out <file>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
@@ -40,6 +43,7 @@ Commands:
            A declared :layout resolves to sibling layout.mantra. --workspace sets the case-id root.
   serve    Start the loopback-only, read-only workbench service. Other endpoints report 501 until implemented.
   diff     Compare two evaluations of one schema (JSON by default).
+  explain  Explain one calculated value with bounded source steps (JSON by default).
 """
 
 fun main(args: Array<String>) {
@@ -56,6 +60,7 @@ fun main(args: Array<String>) {
             "fixtures" -> fixtures(options)
             "serve" -> serve(options)
             "diff" -> diff(options)
+            "explain" -> explain(options)
             null, "help", "--help", "-h" -> println(USAGE.trimIndent())
             else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
         }
@@ -229,6 +234,54 @@ private fun diff(options: Options) {
     } ?: println(output)
     (base.diagnostics + variant.diagnostics).forEach { System.err.println(it) }
     if (!base.succeeded || !variant.succeeded) exitProcess(3)
+}
+
+private fun explain(options: Options) {
+    val (schema, case) = loadInputs(options)
+    if (options.path("case") == null) fail("explain requires --case <case.mantra>")
+    val nodeId = options.named["address"]?.takeIf(String::isNotBlank)
+        ?: fail("explain requires --address <node>")
+    val coord = options.named["coord"]?.split(',')?.map(String::trim) ?: emptyList()
+    if (coord.any(String::isBlank)) fail("--coord must contain nonempty member keys")
+    val parameterPaths = options.named["parameters"].orEmpty().split(',').filter(String::isNotBlank).map { Path.of(it.trim()) }
+    val result = Mantra.calculateForExplain(schema, case, parameterPaths.map(Mantra::loadParameters), nodeId, coord)
+    val view = CalculationView.of(result)
+    val node = view.nodes[nodeId] ?: fail("Explain node was not found: $nodeId")
+    if (node.dims.size != coord.size || coord !in node.values) fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
+    val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
+    val document = WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
+    val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
+    val revision = DiffRevision.calculate(schemaPath, schema.sources, options.path("case"), null,
+        options.path("layout"), parameterPaths, emptyList())
+    var directory: Path? = schemaPath.parent
+    var normein = "unknown"
+    while (directory != null) {
+        val lock = directory.resolve("normein-build.lock")
+        if (Files.isRegularFile(lock)) {
+            normein = Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
+                ?.substringAfter('=')?.take(8) ?: "unknown"
+            break
+        }
+        directory = directory.parent
+    }
+    val output = when (options.named["format"] ?: "json") {
+        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, document))
+        "text" -> buildString {
+            appendLine("${document["label"]}: ${(document["result"] as Map<*, *>) ["display"]}")
+            @Suppress("UNCHECKED_CAST")
+            (document["steps"] as List<Map<String, Any?>>).forEach { step ->
+                appendLine("  ${step["text"]} = ${step["display"]}")
+            }
+        }.trimEnd()
+        else -> fail("Unknown --format; use json or text")
+    }
+    options.path("out")?.let { out ->
+        out.toAbsolutePath().parent?.let(Files::createDirectories)
+        Files.writeString(out, output + "\n")
+        System.err.println("mantra: wrote ${out.toAbsolutePath()}")
+    } ?: println(output)
+    result.diagnostics.forEach { System.err.println(it) }
+    if (!result.succeeded) exitProcess(3)
 }
 
 private fun check(options: Options) {

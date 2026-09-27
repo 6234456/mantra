@@ -14,6 +14,11 @@ import com.xqiou.normein.dsl.runtime.DslEvaluationOutcome
 import com.xqiou.normein.dsl.runtime.DslEvaluationRequest
 import com.xqiou.normein.dsl.runtime.DslInputCandidate
 import com.xqiou.normein.dsl.runtime.DslInputRootCandidate
+import com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin
+import com.xqiou.normein.dsl.trace.DslTraceNode
+import com.xqiou.normein.dsl.trace.DslTraceNodeKind
+import com.xqiou.normein.dsl.trace.DslTracePolicy
+import com.xqiou.normein.dsl.trace.DslTraceStatus
 import com.xqiou.normein.dsl.type.DslType
 import com.xqiou.normein.dsl.type.DslTypes
 import com.xqiou.normein.dsl.value.DslValue
@@ -25,7 +30,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 /** Executes a [CalculationPlan] vertex by vertex in dependency order. */
-internal class Evaluator(private val plan: CalculationPlan, private val sink: DiagnosticSink) {
+internal class Evaluator(private val plan: CalculationPlan, private val sink: DiagnosticSink,
+                         private val explainTarget: Pair<String, Coord>? = null) {
     private val engine = DslEvaluationEngine()
     private val environment = MantraKernel.environment
     private val inputIdentity = MantraKernel.inputIdentity(plan.case.id, plan.case.source + "|" + plan.schema.id)
@@ -34,8 +40,9 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     private val active = hashMapOf<String, MutableMap<Coord, Boolean>>()
     private val traces = hashMapOf<String, MutableMap<Coord, NodeTrace>>()
     private val guardValues = hashMapOf<String, MutableMap<Coord, Boolean>>()
+    private var explainTrace: ExplainTrace? = null
 
-    private class Outcome(val value: Value, val references: List<TraceRef>)
+    private class Outcome(val value: Value, val references: List<TraceRef>, val explainTrace: ExplainTrace?)
 
     fun run(): CalculationResult {
         for (vertex in plan.order) {
@@ -58,7 +65,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 traces[vertex.id].orEmpty(),
             )
         }
-        return CalculationResult(plan, members, nodes, sink.all)
+        return CalculationResult(plan, members, nodes, sink.all, explainTrace)
     }
 
     // ── Dimensions and guards ──────────────────────────────────────────────────────────────────
@@ -329,6 +336,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 continue
             }
             val value = round(coerce(outcome.value, vertex), item.rounding)
+            if (explainTarget == (vertex.id to coord)) explainTrace = outcome.explainTrace
             store(vertex, coord, value, NodeTrace.Computed(outcome.references, outcome.value, item.rounding, spread = false))
         }
     }
@@ -370,8 +378,8 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
             val references = mutableListOf<TraceRef>()
             val outcomes = vertex.options.map { option ->
-                val available = option.condition?.let { evaluate(it, coord, vertex.id)?.value?.truthy ?: false } ?: true
-                val result = if (available) evaluate(option.formula, coord, vertex.id) else null
+                val available = option.condition?.let { evaluate(it, coord, vertex.id, captureTrace = false)?.value?.truthy ?: false } ?: true
+                val result = if (available) evaluate(option.formula, coord, vertex.id, captureTrace = false) else null
                 result?.let { references += it.references }
                 TraceOption(option.option.key, option.option.label, result?.value ?: Value.Nil, available && result?.value is Value.Num)
             }
@@ -386,6 +394,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 if (better) selected = candidate
             }
             val raw = selected?.value ?: Value.ZERO
+            if (explainTarget == (vertex.id to coord)) {
+                val chosen = vertex.options.firstOrNull { it.option.key == selected?.key }
+                explainTrace = chosen?.let { evaluate(it.formula, coord, vertex.id)?.explainTrace }
+            }
             store(vertex, coord, round(raw, item.rounding), NodeTrace.Choice(outcomes, selected?.key, raw, item.rounding))
         }
     }
@@ -470,8 +482,8 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
         }
 
-    private fun evaluate(formula: CompiledFormula, coord: Coord, nodeId: String): Outcome? = try {
-        evaluateUnchecked(formula, coord, nodeId)
+    private fun evaluate(formula: CompiledFormula, coord: Coord, nodeId: String, captureTrace: Boolean = true): Outcome? = try {
+        evaluateUnchecked(formula, coord, nodeId, captureTrace)
     } catch (failure: DslValueConstructionException) {
         sink.error(
             if (failure.violation.code.contains("LIMIT")) "MANTRA-VALUE-LIMIT" else "MANTRA-VALUE",
@@ -483,7 +495,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         null
     }
 
-    private fun evaluateUnchecked(formula: CompiledFormula, coord: Coord, nodeId: String): Outcome? {
+    private fun evaluateUnchecked(formula: CompiledFormula, coord: Coord, nodeId: String, captureTrace: Boolean): Outcome? {
         val roots = mutableListOf<DslInputRootCandidate>()
         val references = mutableListOf<TraceRef>()
         for ((root, ref) in formula.rootNames) {
@@ -528,11 +540,14 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         val request = DslEvaluationRequest(
             expression = formula.expression,
             environment = environment,
-            input = DslEvaluationInput(roots = roots, bindings = emptyList(), inputIdentity = inputIdentity),
+            input = DslEvaluationInput(roots = roots, bindings = emptyList(), inputIdentity = inputIdentity,
+                tracePolicy = if (captureTrace && explainTarget == (nodeId to coord)) DslTracePolicy.FULL else DslTracePolicy.NONE),
             kernelArtifact = MantraKernel.kernelArtifact,
         )
         return when (val outcome = engine.evaluate(request)) {
-            is DslEvaluationOutcome.Success -> Outcome(Values.fromDsl(outcome.value), references)
+            is DslEvaluationOutcome.Success -> Outcome(Values.fromDsl(outcome.value), references,
+                outcome.trace?.let { projectTrace(formula, it,
+                    outcome.receipt.traceStatus == DslTraceStatus.TRUNCATED) })
             is DslEvaluationOutcome.Failure -> {
                 outcome.diagnostics.forEach { diagnostic ->
                     val span = diagnostic.span
@@ -550,6 +565,51 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 null
             }
         }
+    }
+
+    private fun projectTrace(formula: CompiledFormula, root: DslTraceNode, kernelTruncated: Boolean): ExplainTrace {
+        val sourceStart = formula.formula.location.startOffset ?: return ExplainTrace(emptyList(), emptyList(), kernelTruncated)
+        val source = formula.formula.source
+        val index = formula.expression.sourceIndex
+        val steps = linkedMapOf<Pair<Int, Int>, ExplainStep>()
+        val branches = mutableListOf<ExplainBranch>()
+        var truncated = kernelTruncated
+        val visited = mutableListOf<DslTraceNode>()
+        fun walk(node: DslTraceNode) {
+            visited += node
+            if (node.summaryTruncated || node.resultSummary?.truncated == true) truncated = true
+            node.children.forEach(::walk)
+        }
+        walk(root)
+        val visitedIds = visited.filter { it.kind == DslTraceNodeKind.AST_NODE }.map { it.nodeId }.toSet()
+        fun snippet(node: DslTraceNode): Pair<String, SourceLocation>? {
+            val entry = index[node.nodeId] ?: return null
+            if (entry.origin !is DslSourceIndexOrigin.Expression) return null
+            val start = entry.span.startOffset - sourceStart
+            val end = entry.span.endOffset - sourceStart
+            if (start < 0 || end > source.length || start >= end) return null
+            return source.substring(start, end) to SourceLocation(formula.formula.location.source,
+                entry.span.line, entry.span.column, entry.span.startOffset, entry.span.endOffset)
+        }
+        for (node in visited.filter { it.kind == DslTraceNodeKind.AST_NODE }) {
+            val (text, location) = snippet(node) ?: continue
+            if (text.startsWith("(if ") || text.startsWith("(cond ")) {
+                val branch = when {
+                    node.nodeId.child(1) in visitedIds -> node.nodeId.child(1)
+                    node.nodeId.child(2) in visitedIds -> node.nodeId.child(2)
+                    else -> null
+                }
+                val branchNode = visited.firstOrNull { it.nodeId == branch && it.kind == DslTraceNodeKind.AST_NODE }
+                val branchSnippet = branchNode?.let(::snippet)
+                if (branchSnippet != null) branches += ExplainBranch(branchSnippet.first, true, branchSnippet.second)
+            }
+            if (!text.startsWith('(') || text == source) continue
+            val number = node.resultSummary?.rendered?.toBigDecimalOrNull() ?: continue
+            if (steps.size < 64) steps.putIfAbsent(location.startOffset!! to location.endOffset!!,
+                ExplainStep(text, Value.Num(number), location))
+            else truncated = true
+        }
+        return ExplainTrace(steps.values.toList(), branches.take(32), truncated || branches.size > 32)
     }
 
     private fun coordText(dims: List<String>, coord: Coord): String =
