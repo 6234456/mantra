@@ -1,4 +1,4 @@
-import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare } from './types'
+import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare, AuthoringTarget, AuthoringCheck, AuthoringCompletion, AuthoringHover, FormulaOperation, FormulaEditResult } from './types'
 import { addressToPath } from './address'
 
 export interface WorkbenchData {
@@ -12,6 +12,10 @@ export interface WorkbenchData {
   compare(caseId: string, parameterSets: string[], signal?: AbortSignal): Promise<Envelope<Compare>>
   exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
   exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt', layout?: string): string | undefined
+  authoring(caseId: string, action: 'complete', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringCompletion>>
+  authoring(caseId: string, action: 'hover', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringHover>>
+  authoring(caseId: string, action: 'check', target: AuthoringTarget, source: string): Promise<Envelope<AuthoringCheck>>
+  formulaEdit(caseId: string, baseRevision: string, operation: FormulaOperation, preview: boolean): Promise<Envelope<FormulaEditResult>>
 }
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
@@ -28,6 +32,23 @@ function contract<T>(raw: Envelope<T>): Envelope<T> {
 const apiCase = (id: string) => `/api/v1/cases/${encodeURIComponent(id)}`
 
 export class LiveData implements WorkbenchData {
+  private async post<T>(url: string, body: unknown): Promise<Envelope<T>> {
+    const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
+    if (!token) throw new Error('Editing requires a workbench server session')
+    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Mantra-Token': token }, body: JSON.stringify(body) })
+    const payload = await response.json()
+    if (!response.ok) throw new Error(payload?.error?.diagnostics?.[0]?.message ?? payload?.error?.message ?? `${response.status} ${response.statusText}`)
+    return contract(payload as Envelope<T>)
+  }
+  authoring(id: string, action: 'complete', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringCompletion>>
+  authoring(id: string, action: 'hover', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringHover>>
+  authoring(id: string, action: 'check', target: AuthoringTarget, source: string): Promise<Envelope<AuthoringCheck>>
+  authoring(id: string, action: 'complete' | 'hover' | 'check', target: AuthoringTarget, source: string, cursorOffset?: number): Promise<Envelope<AuthoringCompletion | AuthoringHover | AuthoringCheck>> {
+    return this.post(`${apiCase(id)}/authoring/${action}`, { target, source, ...(cursorOffset === undefined ? {} : { cursorOffset }) })
+  }
+  formulaEdit(id: string, baseRevision: string, operation: FormulaOperation, preview: boolean) {
+    return this.post<FormulaEditResult>(`${apiCase(id)}/${preview ? 'preview' : 'edits'}`, { baseRevision, operations: [operation] })
+  }
   workspace(signal?: AbortSignal) { return json<Envelope<Workspace>>('/api/v1/workspace', signal).then(response => contract(response).data) }
   structure(id: string, signal?: AbortSignal) { return json<Envelope<Structure>>(`${apiCase(id)}/structure`, signal).then(contract) }
   run(id: string, signal?: AbortSignal) { return json<Envelope<Run>>(`${apiCase(id)}/run`, signal).then(contract) }
@@ -63,6 +84,13 @@ export class LiveData implements WorkbenchData {
 
 /** WP3 writes public/fixtures/index.json and one directory per case. No sample values live in UI source. */
 export class FixtureData implements WorkbenchData {
+  authoring(_id: string, action: 'complete', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringCompletion>>
+  authoring(_id: string, action: 'hover', target: AuthoringTarget, source: string, cursorOffset: number): Promise<Envelope<AuthoringHover>>
+  authoring(_id: string, action: 'check', target: AuthoringTarget, source: string): Promise<Envelope<AuthoringCheck>>
+  authoring(): Promise<never> { return Promise.reject(new Error('Authoring requires a workbench server session')) }
+  formulaEdit(_id: string, _baseRevision: string, _operation: FormulaOperation, _preview: boolean): Promise<Envelope<FormulaEditResult>> {
+    return Promise.reject(new Error('Editing requires a workbench server session'))
+  }
   private manifest?: Promise<{ cases: Array<CaseSummary & { files: { structure: string; run: string; paper: string; parameters?: string; diagnostics?: string; compares?: Record<string, string>; explains?: Record<string, string>; 'export-preview'?: string; [key: string]: string | Record<string, string> | undefined } }>; parameters?: Array<{ id: string; path: string }> }>
   private index() {
     // Cache the manifest independently of view cancellation. React may abort an initial

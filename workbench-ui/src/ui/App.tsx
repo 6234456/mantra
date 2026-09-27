@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { Address, CaseSummary, Explain, Paper, Panel, Run, Structure } from '../types'
 import type { WorkbenchData } from '../data'
 import { configuredData } from '../data'
@@ -7,8 +7,10 @@ import { chooseLanguage, language, t } from '../i18n'
 import { auditForCell, nodeValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
+const ExtensionsPage = lazy(() => import('./AuthoringPages').then(module => ({ default: module.ExtensionsPage })))
+const FormulaSlotCard = lazy(() => import('./AuthoringPages').then(module => ({ default: module.FormulaSlotCard })))
 
-type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'parameters' | 'diagnostics' | 'export' | 'other'; panelId?: string; address?: Address; compare?: string }
+type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'parameters' | 'diagnostics' | 'extensions' | 'export' | 'other'; panelId?: string; address?: Address; compare?: string }
 const lang = language()
 
 function route(): Route {
@@ -21,6 +23,7 @@ function route(): Route {
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
   if (parts[2] === 'parameters') return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
   if (parts[2] === 'diagnostics') return { caseId, page: 'diagnostics' }
+  if (parts[2] === 'extensions') return { caseId, page: 'extensions' }
   if (parts[2] === 'export') return { caseId, page: 'export' }
   return { caseId, page: 'other' }
 }
@@ -54,12 +57,13 @@ function Link({ href, navigate, children, className, current }: { href: string; 
 
 export function App() {
   const [current, navigate] = useRoute()
+  const [refresh, setRefresh] = useState(0)
   const data = useMemo(configuredData, [])
-  const workspace = useLoad(signal => data.workspace(signal), [data])
+  const workspace = useLoad(signal => data.workspace(signal), [data, refresh])
   const caseId = current.caseId ?? workspace.data?.cases[0]?.id
-  const structure = useLoad(signal => caseId ? data.structure(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId])
-  const run = useLoad(signal => caseId ? data.run(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId])
-  const paper = useLoad(signal => caseId ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal) : Promise.reject(new Error('No case')), [data, caseId, current.page, current.panelId])
+  const structure = useLoad(signal => caseId ? data.structure(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId, refresh])
+  const run = useLoad(signal => caseId ? data.run(caseId, signal) : Promise.reject(new Error('No case')), [data, caseId, refresh])
+  const paper = useLoad(signal => caseId ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal) : Promise.reject(new Error('No case')), [data, caseId, current.page, current.panelId, refresh])
   const selectedCase = workspace.data?.cases.find(item => item.id === caseId)
   const failure = workspace.error ?? structure.error ?? run.error ?? paper.error
   const ready = structure.data && run.data
@@ -73,10 +77,11 @@ export function App() {
         {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
         {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
-          <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} data={data} navigate={navigate} /> : current.page === 'provenance' && current.address ?
+          <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} revision={run.data!.revision} data={data} onSaved={() => setRefresh(value => value + 1)} navigate={navigate} /> : current.page === 'provenance' && current.address ?
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
           current.page === 'parameters' ? <ParametersPage caseId={caseId!} structure={structure.data!.data} workspace={workspace.data} data={data} compareSet={current.compare} navigate={navigate} /> :
           current.page === 'diagnostics' ? <DiagnosticsPage caseId={caseId!} structure={structure.data!.data} data={data} navigate={navigate} /> :
+          current.page === 'extensions' ? <Suspense fallback={<div className="skeleton" role="status" aria-label="Loading editor" />}><ExtensionsPage caseId={caseId!} structure={structure.data!.data} revision={run.data!.revision} data={data} onSaved={() => setRefresh(value => value + 1)} /></Suspense> :
           current.page === 'export' ? <ExportPage caseId={caseId!} data={data} layouts={workspace.data?.layouts} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}
       </main>
@@ -142,7 +147,7 @@ function Compass({ structure, run, panel, caseId, navigate }: { structure: Struc
 
 function Breadcrumb({ panel, caseId, navigate }: { panel: Panel; caseId: string; navigate: (path: string) => void }) { return <nav className="breadcrumb" aria-label="Breadcrumb">{panel.breadcrumb.map((crumb, index) => <span key={index}>{index > 0 && <span aria-hidden="true">›</span>}{crumb.panel ? <Link href={panelLink(caseId, crumb.panel)} navigate={navigate}>{crumb.label}</Link> : crumb.kind === 'mainline' ? <Link href={`${casePath(caseId)}/overview`} navigate={navigate}>{t('mainline', lang)}</Link> : <span>{crumb.label}</span>}</span>)}</nav> }
 
-function PanelPage({ structure, run, paper, panelId, selected, caseId, data, navigate }: { structure: Structure; run: Run; paper?: Paper; panelId?: string; selected?: Address; caseId: string; data: WorkbenchData; navigate: (path: string) => void }) {
+function PanelPage({ structure, run, paper, panelId, selected, caseId, revision, data, onSaved, navigate }: { structure: Structure; run: Run; paper?: Paper; panelId?: string; selected?: Address; caseId: string; revision: string; data: WorkbenchData; onSaved: () => void; navigate: (path: string) => void }) {
   const panel = structure.panels.find(item => item.id === panelId)
   const [focused, setFocused] = useState<Address | undefined>(selected)
   useEffect(() => setFocused(selected), [selected?.node, JSON.stringify(selected?.coord), JSON.stringify(selected?.cell)])
@@ -156,6 +161,7 @@ function PanelPage({ structure, run, paper, panelId, selected, caseId, data, nav
   return <><Compass structure={structure} run={run} panel={panel} caseId={caseId} navigate={navigate} /><Breadcrumb panel={panel} caseId={caseId} navigate={navigate} />
     <div className="panel-heading"><div><span className={`role-badge ${panel.role}`}>{panel.role}</span><h1>{panel.title}</h1></div><strong>{nodeValue(run, panel.result)}</strong></div>
     {(!!choice.data?.data.options.length || !!table?.rows.some(row => row.kind.toLowerCase() === 'option' && row.node === choiceNode)) && <ChoiceComparison explain={choice.data?.data} table={table} choiceNode={choiceNode} panel={panel} structure={structure} run={run} />}
+    {structure.formulaSlots?.filter(slot => slot.panel === panel.id).map(slot => <Suspense key={slot.id} fallback={<div className="skeleton" role="status" aria-label="Loading editor" />}><FormulaSlotCard slot={slot} caseId={caseId} revision={revision} data={data} onSaved={onSaved} /></Suspense>)}
     <div className="panel-columns"><section className="sheet table-sheet"><div className="section-heading"><div><span className="eyebrow">{t('paper', lang)}</span><h2>{table?.title ?? panel.title}</h2></div></div>
       {table ? <PanelTable table={table} selected={focused} onSelect={select} /> : <p className="muted">{t('noPaper', lang)}</p>}</section>
       <Inspector selected={focused} explain={explanation.data?.data} audit={audit} error={explanation.error} caseId={caseId} navigate={navigate} /></div>

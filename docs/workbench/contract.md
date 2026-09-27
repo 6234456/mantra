@@ -467,6 +467,17 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **预览**：通过 `…/preview`（§7.1）返回该行的值和差异，对应设计稿中的 “540,00 ▲”。
 - **上限**：公式原文受内核读取器上限约束；补全最多返回 200 项。
 
+三个 authoring POST 共用请求 `{target, source, cursorOffset?}`。`target` 是
+`{kind:"extension", slot, id, title}` 或 `{kind:"formulaSlot", id}`；`source`
+是公式原文，`cursorOffset` 是从零开始的 UTF-16 光标偏移（只在补全、悬停时必填）。
+`complete` 的 `data` 为 `{query,replacementRange:{startOffset,endOffset},items:[{label,insertText,kind,detail,documentation?,deprecated}]}`；
+`hover` 的 `data` 为 `{hover:null|{range,symbol,kind,detail,documentation?,current?}}`，其中 `current` 是当前 Run 的值条目；
+`check` 的 `data` 为 `{valid,diagnostics:[{severity,code,message,range?}]}`，位置偏移相对于 `source`。
+补全与悬停只返回当前插槽允许引用的根，`check` 还用同一个编辑预演检查公式槽的 `:uses`、维度和循环。
+请求只读取工作区，不修改案例；保存仍走 §7.1 的 `/edits`。
+CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonce；页面通过
+`mantra-style-nonce` meta 传给编辑器，`style-src` 只放行同源样式与该 nonce。
+
 ## 9. HTTP 接口（`mantra serve`）
 
 ### 9.1 端点
@@ -625,6 +636,7 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 日期 | 版本 | 内容 |
 | --- | --- | --- |
 | 2026-09-27 | v1 草案 | 初稿 |
+| 2026-09-27 | WP9 authoring | 明确 complete、hover、check 的目标、光标、响应及来源偏移契约 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
 | 2026-09-27 | WP7 只读阶段 | 细化 `/workspace`、诊断端点、未接入端点状态与静态前端/令牌约定 |

@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.xqiou.mantra.workbench.WorkspaceCatalog
 import com.xqiou.mantra.workbench.CaseTextEditor
+import com.xqiou.mantra.workbench.AuthoringTarget
 import com.xqiou.mantra.workbench.ExplainAddress
 import com.xqiou.mantra.workbench.ExportBudget
 import com.xqiou.mantra.workbench.WorkspaceException
@@ -167,6 +168,13 @@ class WorkbenchServer(
             }
             return json(exchange, 200, catalog.envelope(result))
         }
+        if (method == "POST" && document in setOf("authoring/complete", "authoring/hover", "authoring/check")) {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val (target, source, cursor) = parseAuthoring(body, document.substringAfter('/'))
+            return json(exchange, 200, catalog.envelope(catalog.authoring(caseId, target, source, cursor,
+                document.substringAfter('/'))))
+        }
         if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo",
                 "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
             return unavailable(exchange)
@@ -195,7 +203,10 @@ class WorkbenchServer(
         }
         val bytes = if (suffix == "html") {
             val html = Files.readString(file)
-            val meta = "<meta name=\"mantra-session-token\" content=\"$token\">"
+            val styleNonce = ByteArray(18).also(SecureRandom()::nextBytes)
+                .joinToString("") { "%02x".format(it) }
+            exchange.responseHeaders.set("Content-Security-Policy", "default-src 'self'; connect-src 'self'; script-src 'self'; style-src 'self' 'nonce-$styleNonce'; img-src 'self' data:; object-src 'none'; base-uri 'none'")
+            val meta = "<meta name=\"mantra-session-token\" content=\"$token\"><meta name=\"mantra-style-nonce\" content=\"$styleNonce\">"
             if (!html.contains("</head>")) return error(exchange, 500, "MANTRA-WORKBENCH-INTERNAL", "Live UI index is invalid",
                 correlationId = UUID.randomUUID().toString())
             html.replaceFirst("</head>", "$meta</head>").toByteArray(Charsets.UTF_8)
@@ -378,6 +389,34 @@ class WorkbenchServer(
             }
         }
         return revision to operations
+    }
+
+    private fun parseAuthoring(body: ByteArray, action: String): Triple<AuthoringTarget, String, Int?> {
+        fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val root = try { requestJson.readTree(body) ?: bad("Authoring body is required") }
+            catch (error: WorkspaceException) { throw error }
+            catch (_: Exception) { bad("Malformed authoring JSON") }
+        val expected = if (action == "check") setOf("target", "source") else setOf("target", "source", "cursorOffset")
+        if (!root.isObject || root.fieldNames().asSequence().toSet() != expected) bad("Unexpected authoring request fields")
+        val source = root["source"]?.takeIf(JsonNode::isTextual)?.textValue() ?: bad("source must be text")
+        val cursor = if (action == "check") null else root["cursorOffset"]?.takeIf(JsonNode::isInt)?.intValue()
+            ?.takeIf { it in 0..source.length } ?: bad("cursorOffset is outside source")
+        val node = root["target"]?.takeIf(JsonNode::isObject) ?: bad("target must be an object")
+        val kind = node["kind"]?.takeIf(JsonNode::isTextual)?.textValue() ?: bad("target kind is required")
+        fun string(name: String): String = node[name]?.takeIf(JsonNode::isTextual)?.textValue()
+            ?.takeIf(String::isNotBlank) ?: bad("$name must be text")
+        val target = when (kind) {
+            "extension" -> {
+                if (node.fieldNames().asSequence().toSet() != setOf("kind", "slot", "id", "title")) bad("Unexpected extension target fields")
+                AuthoringTarget.Extension(string("slot"), string("id"), string("title"))
+            }
+            "formulaSlot" -> {
+                if (node.fieldNames().asSequence().toSet() != setOf("kind", "id")) bad("Unexpected formula slot target fields")
+                AuthoringTarget.FormulaSlot(string("id"))
+            }
+            else -> bad("Unknown authoring target")
+        }
+        return Triple(target, source, cursor)
     }
 
     private fun parseValue(node: JsonNode, depth: Int = 0): Value {

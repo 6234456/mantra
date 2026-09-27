@@ -438,6 +438,9 @@ class Planner(private val sink: DiagnosticSink) {
         }
     }
 
+    /** The same typed analysis scope used to compile a formula at these dimensions. */
+    fun authoringScope(dims: List<String>): DslAnalysisScope = scopeFor(dims)
+
     // ── Compilation ────────────────────────────────────────────────────────────────────────────
 
     private fun compileAll() {
