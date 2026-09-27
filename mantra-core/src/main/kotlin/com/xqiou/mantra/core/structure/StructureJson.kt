@@ -5,6 +5,10 @@ import com.xqiou.mantra.core.engine.CalculationResult
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.groupKey
+import com.xqiou.mantra.core.view.groupTitle
+import com.xqiou.mantra.core.view.headlineId
+import com.xqiou.mantra.core.view.signLabels
 
 /**
  * JSON projection of a [SchemaMap] (and optionally the values of one calculation) for UI clients:
@@ -21,6 +25,11 @@ object StructureJson {
         val root = linkedMapOf<String, Any?>(
             "schema" to map.schemaId,
             "title" to map.title,
+            "headline" to view.headlineId,
+            "groupTitles" to view.schema.attributes["group-titles"]?.let(::plain),
+            "signLabels" to view.nodes.mapNotNull { (id, node) ->
+                node.signLabels?.let { id to linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero) }
+            }.toMap().takeIf { it.isNotEmpty() },
             "mainline" to map.mainline.map { id ->
                 val panel = map.panel(id)
                 linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId, "value" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) })
@@ -73,6 +82,8 @@ object StructureJson {
             "help" to (decl.presentation.attributes["help"] as? Value.Text)?.value,
             "unit" to (decl.presentation.attributes["unit"] as? Value.Kw)?.name,
             "reference" to decl.presentation.reference,
+            "group" to input.groupKey,
+            "groupTitle" to input.groupKey?.let(view::groupTitle),
             "attributes" to decl.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() },
             "value" to if (includeValues) value(view, id) else null,
         )

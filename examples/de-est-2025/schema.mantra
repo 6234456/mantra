@@ -9,12 +9,14 @@
    :version "2025.1"
    :period "Veranlagungszeitraum 2025"
    :preset :de-staffel-4
+   :headline abrechnungsergebnis
+   :group-titles {:assessment "Veranlagungsmerkmale"}
    ;; Hauptlinie (R 2 EStR): alle übrigen Bereiche sind Nebenrechnungen, die in sie einfließen.
    :mainline [zve est zuschlagsteuern abrechnung]}
 
   ;; ── Veranlagungsmerkmale ─────────────────────────────────────────────────────────────────────
   (input veranlagungsart :keyword
-    {:label "Veranlagungsart" :default :zusammen
+    {:label "Veranlagungsart" :group :assessment :default :zusammen
      :options {:einzel "Einzelveranlagung (§ 25 EStG)" :zusammen "Zusammenveranlagung (§§ 26, 26b EStG)"}})
   (input kinder :integer {:label "Kinder mit Anspruch auf Kindergeld bzw. Freibeträge" :default 0 :min 0 :max 20
                           :help "Anzahl der Kinder, für die ganzjährig Anspruch auf Kindergeld besteht (Anlage Kind)."})
@@ -192,4 +194,5 @@
     (field soli-lohnsteuer "Einbehaltener Solidaritätszuschlag" {:per person :op :minus :kz "150/151"})
     (field kist-lohnsteuer "Einbehaltene Kirchensteuer" {:per person :op :minus :kz "142/143"})
     (field vorauszahlungen "Geleistete Vorauszahlungen" {:op :minus})
-    (total abrechnungsergebnis "Nachzahlung (+) / Erstattung (−)")))
+    (total abrechnungsergebnis "Nachzahlung (+) / Erstattung (−)"
+      {:sign-labels {:positive "Nachzahlung" :negative "Erstattung" :zero "Ausgeglichen"}})))

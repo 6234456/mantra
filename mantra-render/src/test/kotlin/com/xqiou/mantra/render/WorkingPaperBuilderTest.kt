@@ -22,6 +22,29 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class WorkingPaperBuilderTest {
+    @Test
+    fun `sign labels headline and input grouping are generic presentation hints`() {
+        val hinted = Mantra.loadSchema(SourceText("hints.mantra", """
+            (schema t/hints {:headline balance :group-titles {:facts "Facts"} :mainline [result]}
+              (input base-amount :decimal {:group :facts})
+              (section result "Result" {:display :schedule}
+                (line balance "Balance" (+ base-amount 0)
+                  {:sign-labels {:positive "Surplus" :negative "Deficit" :zero "Even"}})))
+        """.trimIndent()), SourceResolver { _, _ -> null })
+        val layout = LayoutReader.read(SourceText("hints-layout.mantra", "(layout t/hints-paper {:preset :ifrs-schedule})"))
+        fun paper(amount: Long) = Render.paper(Mantra.calculate(hinted,
+            Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base-amount $amount}))"))), layout)
+        listOf(2L to "Surplus", -2L to "Deficit", 0L to "Even").forEach { (amount, label) ->
+            val result = paper(amount)
+            assertEquals(label, result.headline?.label)
+            assertEquals(listOf("base-amount"), result.inputGroups.single { it.key == "facts" }.inputs)
+            assertEquals("Facts", result.inputGroups.single().title)
+            val table = result.tables.single { it.id == "result" }
+            val labelColumn = table.columns.indexOfFirst { it.content == ColumnContent.Label }
+            assertEquals(label, table.rows.single { it.nodeId == "balance" }.cells[labelColumn])
+        }
+    }
+
     private val schema = Mantra.loadSchema(
         SourceText(
             "t.mantra",

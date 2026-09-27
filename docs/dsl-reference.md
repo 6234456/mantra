@@ -63,6 +63,9 @@
 | `:format :amount|:percent|:number|:integer` `:precision n` | 全部 | 数字显示 |
 | `:hidden true` | 全部 | 计算但不显示 |
 | `:class :name` / `:class [:name :other]` | 计算项、节、说明 | 可复用的样式标签；只进入版式结果，不影响计算 |
+| `:sign-labels {:positive "…" :negative "…" :zero "…"}` | 计算项 | 按未取绝对值的结果选择标签；未给出的分支沿用原标签，不改变数值 |
+| `:group :key` | input / field | 录入分组；标题在方案元数据的 `:group-titles {:key "标题"}` 声明，缺省时显示键名 |
+| `:headline node-id` | schema 元数据 | 主要结果节点；未给出时采用主线最后一节的结果 |
 | 其他关键字 | 全部 | 作为应用自定义属性传给表现层，例如德国税务应用的 `:kz`、`:zeile` |
 
 ### 1.3 公式中的名字
