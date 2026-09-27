@@ -27,7 +27,8 @@ Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
   check    Read, compile and order the schema; print its structure and dependency statistics.
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
-  fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for a case.
+  fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra
+           and optional sibling layout.mantra. --workspace sets the case-id root.
 """
 
 fun main(args: Array<String>) {

@@ -52,6 +52,8 @@ internal fun CaseData.snapshot(): CaseData = copy(
     extensions = frozenMap(extensions.mapValues { (_, items) -> frozenList(items.map { it.snapshot() }) }),
     formulaBindings = frozenMap(formulaBindings),
     functions = frozenList(functions),
+    inputLocations = frozenMap(inputLocations),
+    paramLocations = frozenMap(paramLocations),
 )
 
 internal fun SchemaMeta.snapshot(): SchemaMeta = copy(attributes = frozenMap(attributes.mapValues { (_, value) -> value.snapshot() }))

@@ -58,7 +58,7 @@ object Fixtures {
             )
             files[name] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
-        val entry = Entry(id, schema.meta.title, files)
+        val entry = Entry(id, case.text("title") ?: schema.meta.title, files)
         val manifest = linkedMapOf("cases" to listOf(manifestEntry(entry)))
         Files.writeString(out.resolve("index.json"), WorkbenchJson.write(manifest) + "\n")
         return entry

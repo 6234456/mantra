@@ -32,6 +32,7 @@ class FixtureContractTest {
             val cases = examples.map { (directory, case) -> Path.of("examples", directory, case) }
             val entries = Fixtures.writeMany(cases, temp)
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
+            assertEquals("Eheleute Erika und Max Mustermann", entries.first().title)
             assertEquals(Files.readString(golden.resolve("index.json")), Files.readString(temp.resolve("index.json")))
             val schemas = Files.list(schemaDirectory).use { stream ->
                 stream.filter { it.fileName.toString().endsWith(".schema.json") }.toList()
