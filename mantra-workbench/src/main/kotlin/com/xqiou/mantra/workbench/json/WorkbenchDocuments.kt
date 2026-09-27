@@ -43,13 +43,20 @@ object WorkbenchDocuments {
         }
         val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
             val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
-            val targetCoord = if (ref.kind == TraceRef.Kind.ALL) emptyList() else aligned(target)
-            val targetId = if (ref.kind == TraceRef.Kind.ALL) ref.id else target.id
+            val memberMap = ref.kind == TraceRef.Kind.ALL || ref.kind == TraceRef.Kind.MEMBER_MAP
+            val targetCoord = when (ref.kind) {
+                TraceRef.Kind.ALL -> emptyList()
+                TraceRef.Kind.MEMBER_MAP -> target.dims.mapNotNull { dim ->
+                    node.dims.indexOf(dim).takeIf { it >= 0 }?.let { "$dim=${coord[it]}" }
+                }
+                else -> aligned(target)
+            }
+            val targetId = if (memberMap) "all.${target.id}" else target.id
             linkedMapOf<String, Any?>(
                 "address" to address(targetId, targetCoord), "label" to target.label,
                 "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
                 "kind" to ref.kind.name.lowercase().replace('_', '-'),
-                "origin" to when (val origin = target.trace(targetCoord)) {
+                "origin" to when (val origin = target.trace(if (memberMap) emptyList() else targetCoord)) {
                     is NodeTrace.Input -> origin.origin.name.lowercase()
                     is NodeTrace.Param -> origin.source
                     else -> null
@@ -107,20 +114,26 @@ object WorkbenchDocuments {
     }
 
     /** A navigable source-tree node for an `all.<id>` reference to a dimensioned member map. */
-    fun memberMap(view: CalculationView, layout: LayoutSpec, nodeId: String): Map<String, Any?> {
+    fun memberMap(view: CalculationView, layout: LayoutSpec, nodeId: String,
+                  fixed: Map<String, String> = emptyMap()): Map<String, Any?> {
         val node = view.node(nodeId)
         require(node.dims.isNotEmpty()) { "Member map requires a dimensioned node" }
         val formatter = NumberFormatter(layout.number)
-        fun build(dims: List<String>, coord: List<String>): Value {
-            if (dims.isEmpty()) return node.values[coord] ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
+        val variableDims = node.dims.filter { it !in fixed }
+        require(variableDims.isNotEmpty()) { "Member map requires at least one unfixed dimension" }
+        fun build(dims: List<String>, assignment: Map<String, String>): Value {
+            if (dims.isEmpty()) return node.values[node.dims.map(assignment::getValue)]
+                ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
             return Value.MapV(linkedMapOf<Value, Value>().apply {
                 view.members[dims.first()].orEmpty().forEach { member ->
-                    put(Value.Kw(member.key), build(dims.drop(1), coord + member.key))
+                    put(Value.Kw(member.key), build(dims.drop(1), assignment + (dims.first() to member.key)))
                 }
             })
         }
-        val value = build(node.dims, emptyList())
-        val members = node.values.keys.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
+        val value = build(variableDims, fixed)
+        val members = node.values.keys.filter { coord -> node.dims.indices.all { i ->
+            fixed[node.dims[i]] == null || fixed[node.dims[i]] == coord[i]
+        } }.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
         val references = members.take(63).map { coord ->
             val item = node.value(coord)
             linkedMapOf<String, Any?>("address" to address(nodeId, coord), "label" to node.label,
@@ -129,7 +142,8 @@ object WorkbenchDocuments {
                 "kind" to "member", "origin" to null)
         }
         return linkedMapOf(
-            "address" to address("all.$nodeId", emptyList()), "label" to node.label,
+            "address" to address("all.$nodeId", node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } }),
+            "label" to node.label,
             "kind" to "member-map", "formula" to null,
             "result" to linkedMapOf("value" to WorkbenchJson.value(value),
                 "display" to formatter.value(value, node.presentation.format, node.presentation.precision),

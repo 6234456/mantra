@@ -570,7 +570,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
 
     private fun projectTrace(formula: CompiledFormula, root: DslTraceNode, kernelTruncated: Boolean): ExplainTrace {
         val index = formula.expression.sourceIndex
-        val steps = linkedMapOf<Pair<Int, Int>, ExplainStep>()
+        val steps = mutableListOf<ExplainStep>()
         val branches = mutableListOf<ExplainBranch>()
         var truncated = kernelTruncated
         val visited = mutableListOf<DslTraceNode>()
@@ -616,11 +616,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
             if (!text.startsWith('(') || text == formula.formula.source) continue
             val number = node.resultSummary?.rendered?.toBigDecimalOrNull() ?: continue
-            if (steps.size < 64) steps.putIfAbsent(location.startOffset!! to location.endOffset!!,
-                ExplainStep(text, Value.Num(number), location))
+            if (steps.size < 64) steps += ExplainStep(text, Value.Num(number), location)
             else truncated = true
         }
-        return ExplainTrace(steps.values.toList(), branches.take(32), truncated || branches.size > 32)
+        return ExplainTrace(steps, branches.take(32), truncated || branches.size > 32)
     }
 
     private fun coordText(dims: List<String>, coord: Coord): String =

@@ -53,6 +53,10 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(await screen.findByRole('heading', { name: goldenExplain.label, level: 1 })).toBeTruthy()
     expect(goldenExplain.steps.length).toBeGreaterThan(0)
     expect((await screen.findAllByText(goldenExplain.steps[0].text)).length).toBeGreaterThan(0)
+    const missing = goldenExplain.references.find(ref => !entry.files.explains[addressToPath(ref.address)])
+    expect(missing).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(missing.address.node) }))
+    expect(await screen.findByText('Für diese Ansicht liegen noch keine Daten vor.')).toBeTruthy()
   })
 
   it.each(scenarios)('$id', async scenario => {

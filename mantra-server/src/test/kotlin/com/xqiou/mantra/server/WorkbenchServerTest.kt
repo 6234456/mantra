@@ -303,6 +303,41 @@ class WorkbenchServerTest {
                 "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
             assertEquals(200, directMap.status, directMap.body)
             validate("explain", directMap.body)
+            val mapper = ObjectMapper()
+            val allReference = mapper.readTree(mapReference.body).path("data").path("references")
+                .first { it.path("address").path("node").asText() == "all.weighted-amount" }
+            assertEquals(allReference.path("value"), mapper.readTree(directMap.body).path("data").path("result").path("value"))
+        }
+    }
+
+    @Test fun `ordinary member-map references retain fixed dimension members`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/schema.mantra"), """
+            (schema test/member-map {:mainline [summary]}
+              (dimension area {:members [:A :B]})
+              (dimension year {:members [:Y1 :Y2]})
+              (section detail "Detail" {:per [area year]}
+                (line detail-value "Amount" (if (= year.key :Y1) 10 20)))
+              (section summary "Summary" {:per area :panel true}
+                (line subtotal "Subtotal" (dim/sum detail-value))))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/case.mantra"), "(case one {:schema \"test/member-map\"})")
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/sample%2Fcase.mantra/explain?address=subtotal%40A&depth=2"
+            val response = request(server.localPort, path)
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            val references = ObjectMapper().readTree(response.body).path("data").path("references")
+            val memberMap = references.first { it.path("kind").asText() == "member-map" }
+            assertEquals("all.detail-value", memberMap.path("address").path("node").asText())
+            assertEquals("area=A", memberMap.path("address").path("coord")[0].asText())
+            assertEquals(memberMap.path("value"), memberMap.path("explanation").path("result").path("value"))
+            val direct = request(server.localPort,
+                "/api/v1/cases/sample%2Fcase.mantra/explain?address=all.detail-value%40area%3DA")
+            assertEquals(200, direct.status, direct.body)
+            validate("explain", direct.body)
+            assertEquals(memberMap.path("value"), ObjectMapper().readTree(direct.body).path("data").path("result").path("value"))
         }
     }
 

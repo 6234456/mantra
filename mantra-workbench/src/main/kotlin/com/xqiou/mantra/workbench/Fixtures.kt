@@ -86,7 +86,14 @@ object Fixtures {
                     else Mantra.calculateForExplain(schema, case, emptyList(), nodeId, address.coord)
                 val explainedView = CalculationView.of(explained)
                 val node = explainedView.nodes[nodeId]
-                require(node != null && (if (memberMap) node.dims.isNotEmpty() && address.coord.isEmpty()
+                val fixed = if (memberMap) address.coord.associate { part ->
+                    val split = part.split('=', limit = 2)
+                    require(split.size == 2 && split.none(String::isBlank)) { "Malformed member-map coordinate: $part" }
+                    split[0] to split[1]
+                } else emptyMap()
+                require(node != null && (if (memberMap) node.dims.isNotEmpty() && fixed.size < node.dims.size &&
+                    address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
+                    fixed.all { (dim, member) -> explainedView.members[dim].orEmpty().any { it.key == member } }
                     else node.dims.size == address.coord.size && address.coord in node.values)) {
                     "Explain address is not a calculated value: $address"
                 }
@@ -94,7 +101,7 @@ object Fixtures {
                 val key = addressPath(address)
                 val file = "explain-" + MessageDigest.getInstance("SHA-256")
                     .digest(key.toByteArray(Charsets.UTF_8)).take(8).joinToString("") { "%02x".format(it) } + ".json"
-                val data = if (memberMap) WorkbenchDocuments.memberMap(explainedView, layout, nodeId)
+                val data = if (memberMap) WorkbenchDocuments.memberMap(explainedView, layout, nodeId, fixed)
                     else WorkbenchDocuments.explain(explainedView, layout, nodeId, address.coord,
                         explained.explainTrace)
                 Files.writeString(target.resolve(file),

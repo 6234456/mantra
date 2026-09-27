@@ -177,8 +177,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         fun project(target: ExplainAddress, level: Int): Map<String, Any?> {
             if (--remaining < 0) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Explain exceeds 64 nodes")
             val memberMap = target.node.startsWith("all.")
-            if (memberMap && (target.coord.isNotEmpty() || target.cell != null))
-                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map address cannot have a coordinate or cell")
+            if (memberMap && target.cell != null)
+                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map address cannot have a cell")
             val nodeId = if (memberMap) target.node.removePrefix("all.") else target.node
             val resolved = resolve(caseId, snapshot, explain = target.takeUnless { memberMap })
             revision = resolved.revision
@@ -188,6 +188,21 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain coordinate was not found")
             if (memberMap && node.dims.isEmpty())
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member map was not found")
+            val fixed = if (memberMap) {
+                val bindings = linkedMapOf<String, String>()
+                target.coord.forEach { part ->
+                    val split = part.split('=', limit = 2)
+                    if (split.size != 2 || split.any(String::isBlank) || split[0] !in node.dims ||
+                        bindings.put(split[0], split[1]) != null)
+                        throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
+                    if (resolved.view.members[split[0]].orEmpty().none { it.key == split[1] })
+                        throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member was not found")
+                }
+                if (target.coord != node.dims.mapNotNull { dim -> bindings[dim]?.let { "$dim=$it" } } ||
+                    bindings.size == node.dims.size)
+                    throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
+                bindings
+            } else emptyMap()
             val cellValue = target.cell?.let { (row, column) ->
                 val rows = node.value(target.coord) as? Value.Vec
                 val item = row.toIntOrNull()?.let { rows?.items?.getOrNull(it) } as? Value.MapV
@@ -195,7 +210,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                     key == Value.Kw(column) || key == Value.Text(column)
                 }?.value ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain cell was not found")
             }
-            val data = if (memberMap) WorkbenchDocuments.memberMap(resolved.view, resolved.layout, nodeId).toMutableMap()
+            val data = if (memberMap) WorkbenchDocuments.memberMap(resolved.view, resolved.layout, nodeId, fixed).toMutableMap()
                 else WorkbenchDocuments.explain(resolved.view, resolved.layout, nodeId, target.coord,
                     resolved.explainTrace, target.cell, cellValue).toMutableMap()
             if (level > 1) {
