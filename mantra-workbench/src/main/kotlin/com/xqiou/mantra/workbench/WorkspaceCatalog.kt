@@ -35,6 +35,9 @@ import java.nio.channels.FileChannel
 import java.security.MessageDigest
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import java.util.concurrent.ConcurrentHashMap
 
 enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE, CONFLICT }
@@ -276,8 +279,18 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     fun redo(caseId: String, baseRevision: String): DocumentResult = restore(caseId, baseRevision, undo = false)
 
     /** Parses author text by the declared input/parameter type; numerals follow German layout syntax. */
-    fun parseEditText(caseId: String, id: String, parameter: Boolean, text: String, column: String? = null): Value {
+    fun parseEditText(caseId: String, id: String, parameter: Boolean, text: String, column: String? = null): Value =
+        parseEditText(resolve(caseId, scan()), id, parameter, text, column)
+
+    /** Resolves the case once for all columns of an imported row. */
+    fun parseEditRowText(caseId: String, table: String, columns: Map<String, String>): Value.MapV {
         val resolved = resolve(caseId, scan())
+        val input = resolved.view.nodes[table]?.input
+        if (input?.type != ValueType.TABLE) throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table input $table")
+        return Value.MapV(columns.map { (name, text) -> Value.Kw(name) to parseEditText(resolved, table, false, text, name) }.toMap())
+    }
+
+    private fun parseEditText(resolved: Resolved, id: String, parameter: Boolean, text: String, column: String?): Value {
         val view = resolved.view
         val type = if (parameter) {
             val declared = view.nodes[id]?.parameter?.value
@@ -312,11 +325,12 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                     else -> throw IllegalArgumentException("Expected a boolean")
                 }
                 ValueType.KEYWORD -> Value.Kw(text.trim().removePrefix(":"))
-                ValueType.TEXT, ValueType.DATE, ValueType.ANY -> Value.Text(text)
+                ValueType.DATE -> Value.Date(LocalDate.parse(text.trim(), DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT)))
+                ValueType.TEXT, ValueType.ANY -> Value.Text(text)
                 ValueType.TABLE -> throw IllegalArgumentException("Table input requires encoded rows")
             }
-        } catch (error: IllegalArgumentException) {
-            throw WorkspaceException(WorkspaceProblem.INVALID, "Input text was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
+        } catch (error: RuntimeException) {
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Input text was rejected: ${error.message}", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
         }
     }
 
