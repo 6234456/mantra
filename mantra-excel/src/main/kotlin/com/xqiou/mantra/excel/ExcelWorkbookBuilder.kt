@@ -5,6 +5,11 @@ import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.view.ViewCondition
 import com.xqiou.mantra.core.engine.Coord
 import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.displayLabel
+import com.xqiou.mantra.core.view.groupKey
+import com.xqiou.mantra.core.view.groupTitle
+import com.xqiou.mantra.core.view.headlineId
+import com.xqiou.mantra.core.view.signLabels
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
@@ -340,6 +345,14 @@ internal class ExcelWorkbookBuilder(
                     if (formulaColumn != null) text(sheet, r, formulaColumn, dslFormula(vertex), StyleKey(muted = true, italic = true))
                 }
             }
+            if (row.kind != RowKind.OPTION && row.kind != RowKind.REFERENCE) {
+                val signedNode = row.nodeId?.let(view.nodes::get)?.takeIf { it.signLabels != null }
+                if (signedNode != null) {
+                    val labelIndex = table.columns.indexOfFirst { it.content == ColumnContent.Label }
+                    val suffix = row.cells.getOrNull(labelIndex)?.removePrefix(signedNode.displayLabel()).orEmpty()
+                    presentation += Slot(sheet, r, labelCol) to { signLabelFormula(signedNode, suffix) }
+                }
+            }
             if (row.kind == RowKind.HEADING) headingStack.addLast(r to row.depth)
         }
         val lastRow = FIRST_ROW + table.rows.size - 1
@@ -387,7 +400,8 @@ internal class ExcelWorkbookBuilder(
         (2..14).forEach { sheet.setColumnWidth(it, 16 * 256) }
         var r = 2
         val unplaced = view.nodes.values.filter { it.kind == NodeKind.INPUT }.filter { it.id !in nodeSlots }
-        val groups = unplaced.groupBy { input -> map.panelOf(input.id)?.title ?: if (de) "Allgemeine Angaben" else "General" }
+        val groups = unplaced.groupBy { input -> input.groupKey?.let(view::groupTitle)
+            ?: map.panelOf(input.id)?.title ?: if (de) "Allgemeine Angaben" else "General" }
         groups.forEach { (title, inputs) ->
             text(sheet, r++, 0, title, StyleKey(bold = true, fill = Fill.HEADER))
             var headerDim: String? = null
@@ -741,6 +755,14 @@ internal class ExcelWorkbookBuilder(
         }
     }
 
+    private fun signLabelFormula(node: ViewNode, suffix: String = ""): X.Scalar? {
+        val labels = node.signLabels ?: return null
+        val value = aggregateRef(node.id) ?: return null
+        return Ex.iff(Ex.cmp(">", value, Ex.ZERO), Ex.text((labels.positive ?: node.label) + suffix),
+            Ex.iff(Ex.cmp("<", value, Ex.ZERO), Ex.text((labels.negative ?: node.label) + suffix),
+                Ex.text((labels.zero ?: node.label) + suffix)))
+    }
+
     private fun sectionConditions(vertex: ViewNode, coord: Coord): X.Scalar? {
         if (vertex.guards.isEmpty()) return null
         val guards = vertex.guards.map { view.conditions.getValue(it) }
@@ -962,6 +984,15 @@ internal class ExcelWorkbookBuilder(
         paper.header.forEach { (k, v) ->
             text(sheet, r, 0, k, StyleKey(muted = true))
             text(sheet, r++, 1, v)
+        }
+        view.headlineId?.let { id ->
+            val node = view.nodes[id] ?: return@let
+            text(sheet, r, 0, node.displayLabel(), StyleKey(bold = true))
+            if (node.signLabels != null) setFormula(Slot(sheet, r, 0), id) { signLabelFormula(node) }
+            val slot = Slot(sheet, r, 1)
+            valueStyles[slot] = StyleKey(format = styles.amountFormat(layout.number.precision), bold = true, fill = Fill.STEP)
+            setFormula(slot, id) { aggregateRef(id) }
+            r++
         }
         r++
         text(sheet, r++, 0, texts.structure, StyleKey(bold = true, size = 12))

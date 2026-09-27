@@ -17,6 +17,7 @@ object TextRenderer {
         paper.subtitle?.let { appendLine(it) }
         appendLine("=".repeat(paper.title.length.coerceAtLeast(20)))
         paper.header.forEach { (k, v) -> appendLine("$k: $v") }
+        paper.headline?.let { appendLine("${it.label}: ${it.value}") }
         if (paper.overview.isNotEmpty()) {
             appendLine()
             appendLine(paper.texts.structure)

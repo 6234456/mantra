@@ -25,7 +25,14 @@ class WorkingPaper(
     val findings: List<Diagnostic>,
     val texts: Texts,
     val theme: String,
+    /** Primary result selected by the schema (or its final mainline result). */
+    val headline: PaperHeadline? = null,
+    /** Input navigation groups, retained independently of where rows are placed in tables. */
+    val inputGroups: List<PaperInputGroup> = emptyList(),
 )
+
+data class PaperHeadline(val nodeId: String, val label: String, val value: String)
+data class PaperInputGroup(val key: String, val title: String, val inputs: List<String>)
 
 /** A panel as shown in the overview; [tableRef] links to the table presenting it, if any. */
 class OverviewPanel(
