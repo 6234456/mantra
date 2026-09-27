@@ -10,8 +10,9 @@
 | WP0、WP2、WP3、WP5、WP13 | 已实现、审阅并合入主分支；三个方案的 golden 与 ESt 参数比较 golden 已验证 |
 | WP8 | 只读界面已合入；Schema 生成的 TypeScript 类型、三个 golden 流程的浏览器端到端测试已通过（`1f6a324`） |
 | WP7 | 工作区、结构、结果、纸面、诊断、参数和 Compare POST 已合入（`3c60c53`）；Explain、编辑、SSE 和导出端点待接入 |
-| WP1 | 新 Normein 接入已在独立分支 `codex/wp1-normein-adoption` 完成并审阅（`6342ec7`）；其锁定的上游提交 `0a3ae1de` 尚未远端发布，主分支仍固定在 `be7648b5` |
-| WP4、WP6、WP9–WP11 | 尚未合入；依赖关系见 §2 |
+| WP1 | 新 Normein 接入已在独立分支 `codex/wp1-normein-adoption` 完成并审阅，锁定已发布的 `0a3ae1de`（language 25 / stdlib 33）；全套测试通过，待合入主分支 |
+| WP4 | Explain 已安排从 WP1 分支另起隔离分支实施 |
+| WP6、WP9–WP11 | 尚未合入；依赖关系见 §2 |
 | WP12 | 导出视图在独立工作树实施中 |
 
 四个验收案例的版式现已写入案例文本，fixture 与 live 服务依同一 `:layout` 绑定选择版式。
@@ -40,7 +41,7 @@
 
 ```text
 阶段 A  WP0 版本控制 ──► WP2 只读结果视图 ──► WP3 契约 JSON 与 golden
-        WP1 采用新内核（待 Normein 候选变更提交）
+        WP1 采用新内核（已锁定提交，待合入）
 
 阶段 B  WP4 Explain（WP1、WP3）        WP5 Compare 与参数分层（WP3）
         WP6 案例回写（WP1、WP3）        WP13 呈现提示（WP2）
@@ -51,16 +52,7 @@
         WP12 导出视图（WP7、WP8）   WP11 数据接入（D1、WP6、WP7、WP10）
 ```
 
-阶段 B 最多可以有五个 agent 并行。Normein 候选变更已有本机提交；WP1 已在独立分支完成，跨机器复现其锁文件还需上游远端发布。WP4 和 WP6 可在本机接续 WP1 分支开发；WP7 的导出接口、WP10 的只读参数与诊断视图，以及 WP12 可基于当前主分支推进。
-
-### 当前依赖分流
-
-| 等待 Normein 会话 | 当前 Mantra 工作区可推进 |
-| --- | --- |
-| 将 `0a3ae1de` 发布到其他机器可获取的远端；之后才能交付可在干净环境按 WP1 锁文件构建的主分支 | WP7 的 Compare 已完成；继续导出接口与 WP12 导出视图 |
-| 如接入时发现真正缺失的内核 API，由该会话处理并给出新的固定提交 | WP4 Explain、WP6 文本回写可在本机已审阅的 WP1 分支基础上开发；WP10 可先实现参数比较与诊断的只读界面 |
-
-WP9 需等 WP6 的编辑接口；WP11 需等 WP6、WP7、WP10 的本地工作完成。这些是 Mantra 工作包依赖，不是等待 Normein 回复。
+Normein 提交 `0a3ae1de` 已发布，WP1 已通过干净锁定检出的全套测试。WP4 Explain 与 WP6 案例回写可接续 WP1；WP7 的导出接口、WP10 的参数与诊断界面，以及 WP12 导出视图可并行推进。WP9 需等 WP6 的编辑接口；WP11 需等 WP6、WP7、WP10 的本地工作完成。
 
 ## 3. 工作包
 

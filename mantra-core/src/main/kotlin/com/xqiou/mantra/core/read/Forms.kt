@@ -6,6 +6,8 @@ import com.xqiou.mantra.core.model.Formula
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.normein.dsl.form.DslForm
 import com.xqiou.normein.dsl.form.DslFormAtomKind
+import com.xqiou.normein.dsl.form.DslFormLiteral
+import com.xqiou.normein.dsl.form.DslFormLiterals
 import com.xqiou.normein.dsl.form.DslFormReadResult
 import com.xqiou.normein.dsl.form.DslFormReader
 import com.xqiou.normein.dsl.form.DslFormSequenceKind
@@ -52,28 +54,28 @@ class Document(val source: SourceText, val root: DslForm) {
     }
 }
 
-private val NUMBER = Regex("""[+-]?\d+(\.\d+)?([eE][+-]?\d+)?M?""")
+private val DslForm.literalKind: DslFormLiteral?
+    get() = (this as? DslForm.Atom)
+        ?.takeIf { it.kind == DslFormAtomKind.SYMBOL }
+        ?.let(DslFormLiterals::classify)
 
 val DslForm.symbol: String?
-    get() = (this as? DslForm.Atom)
-        ?.takeIf { it.kind == DslFormAtomKind.SYMBOL && !it.sourceText.startsWith(":") && !NUMBER.matches(it.sourceText) }
-        ?.sourceText
+    get() = when (val literal = literalKind) {
+        is DslFormLiteral.Symbol -> literal.value
+        is DslFormLiteral.Boolean, DslFormLiteral.Nil -> (this as DslForm.Atom).sourceText
+        else -> null
+    }
 
 val DslForm.keyword: String?
-    get() = (this as? DslForm.Atom)
-        ?.takeIf { it.kind == DslFormAtomKind.SYMBOL && it.sourceText.startsWith(":") && it.sourceText.length > 1 }
-        ?.sourceText
-        ?.substring(1)
+    get() = (literalKind as? DslFormLiteral.Keyword)?.let { keyword ->
+        (keyword.namespace?.let { "$it/" } ?: "") + keyword.name
+    }
 
 val DslForm.string: String?
     get() = (this as? DslForm.Atom)?.takeIf { it.kind == DslFormAtomKind.STRING }?.value
 
 val DslForm.number: BigDecimal?
-    get() = (this as? DslForm.Atom)
-        ?.takeIf { it.kind == DslFormAtomKind.SYMBOL && NUMBER.matches(it.sourceText) }
-        ?.sourceText
-        ?.removeSuffix("M")
-        ?.let(::BigDecimal)
+    get() = (literalKind as? DslFormLiteral.Number)?.value
 
 fun DslForm.isSequence(kind: DslFormSequenceKind): Boolean =
     this is DslForm.Sequence && this.kind == kind
@@ -86,6 +88,10 @@ val DslForm.listHead: String?
  * Symbols and code forms are rejected: data positions never evaluate.
  */
 fun Document.literal(form: DslForm, sink: DiagnosticSink, what: String, symbolsAsText: Boolean = false): Value? {
+    (form.literalKind as? DslFormLiteral.Failure)?.let { failure ->
+        sink.error("MANTRA-READ-LITERAL", "${failure.diagnostic.code}: ${failure.diagnostic.message}", location(form))
+        return null
+    }
     form.number?.let { return Value.Num(it) }
     form.string?.let { return Value.Text(it) }
     form.keyword?.let { return Value.Kw(it) }

@@ -67,7 +67,7 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 
 ### 4.1 方案读取
 
-所有 Mantra 文档都用 Normein 的公开只读器 `DslFormReader` 读取（同一套 Clojure 形式语法）。宿主形式（`schema`、`section`、`line` …）由 Mantra 解释；嵌入的公式原文切片后交给 Normein 编译器。由于 Normein 读取器每次只读一个根形式且有 8,192 token 上限，大方案用 `(include "fragment.mantra")` 拆分（见 RFC 0001-A）。
+所有 Mantra 文档都用 Normein 的公开只读器 `DslFormReader` 读取（同一套 Clojure 形式语法）。宿主形式（`schema`、`section`、`line` …）由 Mantra 解释；嵌入的公式原文切片后交给 Normein 编译器。候选内核提供 `readForms` 读取多个顶层形式，Mantra 目前仍保留单根包装文档和 `(include "fragment.mantra")`，用于现有文档兼容与模块化。每个根形式的读取上限仍须遵守内核预算（见 RFC 0001-A）。
 
 ### 4.2 依赖图
 
@@ -175,6 +175,7 @@ SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产�
 * 以 composite build 引用固定 commit（`normein-build.lock`，与 invoice-parser 的做法一致），只替换 `com.xqiou:normein-dsl`。
 * Mantra 自己的函数库 `mantra.calc@1`（`alloc/*`、`calc/stepwise`、`dim/*`、`fin/*`）作为普通领域库通过 `DslLibraryDescriptor` 组合到标准环境中；Normein 内核不做任何修改。
 * 使用中发现的内核层需求记录在 [RFC 0001](rfc/0001-normein-dsl-kernel-extensions.md)。
+* WP1 接入分支锁定 `0a3ae1de`，用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。该提交目前仅在本机，供其他环境获取前须先由 Normein 仓库发布。
 
 ## 8. 覆盖情况与迭代路线
 
@@ -205,7 +206,7 @@ SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产�
 * 每个顶点、每个成员单独调用 Normein 求值（完整 receipt 路径）；对数百行的方案足够快，大批量场景应改用 Normein 的 execution plan / session（VALUE_ONLY）。
 * 渲染器目前只支持一个成员维度作为列；其他维度在合计列中横向合计。
 * 案例文本中显式提供的输入值，其类型、范围及表格引用诊断指向案例值并带起止偏移；表格行内的精确单元位置仍待补充。未提供的输入仍指向方案声明。
-* 审计轨迹只替换根引用的值，不展示子表达式的中间值（见 RFC 0001-F）。
+* 候选内核已提供 trace 的源码索引与非标量值渲染；Mantra 当前审计轨迹仍只替换根引用的值，逐步解释由 WP4 接入（见 RFC 0001-F）。
 * SAP CO 风格案例的工单→产品汇总使用 `dim/rollup`，XLSX 可随工单的产品归属变化重算。公式翻译器还支持当前案例使用的单参数 `map(fn [row] …)`；费用流水的金额变化会传导到工单、产品与对账行。更广泛的高阶函数及增删表格行的动态公式范围尚未定义。
 * `:aggregate false` 已成为引擎中的不可加总规则，结构化结果的 `crossTotal()` 返回 `null`，底稿和 XLSX 同步留空。跨成员单位成本由应用显式写成总成本除以总数量；通用的分子/分母比率聚合规则仍可进一步设计。
 * SAP 案例已用维度父键检查工单所属产品，并用表格 `:references` 检查非空费用工单编号是否存在。条件性必填和基数校验仍待细化，例如直接费用必须填工单、成本池非零时分配基数之和必须为正。具体 SAP 科目分类仍由领域应用定义。

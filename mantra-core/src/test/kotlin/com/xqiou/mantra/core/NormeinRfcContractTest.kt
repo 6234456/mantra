@@ -8,6 +8,7 @@ import com.xqiou.normein.dsl.compiler.DslCompileResult
 import com.xqiou.normein.dsl.compiler.DslCompiledExpression
 import com.xqiou.normein.dsl.compiler.DslNamedDefinition
 import com.xqiou.normein.dsl.compiler.DslSemanticCompiler
+import com.xqiou.normein.dsl.compiler.DslSourcePosition
 import com.xqiou.normein.dsl.environment.DslAnalysisScope
 import com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult
 import com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder
@@ -15,6 +16,7 @@ import com.xqiou.normein.dsl.environment.DslRootDeclaration
 import com.xqiou.normein.dsl.form.DslFormReadResult
 import com.xqiou.normein.dsl.form.DslFormReader
 import com.xqiou.normein.dsl.form.DslFormReaderLimits
+import com.xqiou.normein.dsl.form.DslFormsReadResult
 import com.xqiou.normein.dsl.language.DslLanguageVersions
 import com.xqiou.normein.dsl.language.DslNameCategory
 import com.xqiou.normein.dsl.language.DslNameResult
@@ -48,7 +50,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -132,18 +133,21 @@ class NormeinRfcContractTest {
     fun `pin - kernel versions and public reader grammar`() {
         assertEquals(
             DslLanguageVersions(
-                languageSemantics = "14", reader = "3", parser = "3", evaluator = "descriptor-kernel-4", standardLibrary = "21",
-                normalizedAstApi = "2", canonicalization = "2", typeSystem = "3", artifactSchema = "1",
+                languageSemantics = "25", reader = "3", parser = "7", evaluator = "descriptor-kernel-7", standardLibrary = "33",
+                normalizedAstApi = "3", canonicalization = "3", typeSystem = "7", artifactSchema = "1",
             ),
             NormeinStandardLibraries.language.versions,
             "Kernel versions changed: re-run every RFC 0001 contract and update the kernel baseline in the RFC header",
         )
         assertEquals("normein-clj-form-reader", DslFormReader.GRAMMAR_IDENTITY.id)
-        assertEquals("1", DslFormReader.GRAMMAR_IDENTITY.version)
+        assertEquals("2", DslFormReader.GRAMMAR_IDENTITY.version)
     }
 
     @Test
     fun `A - a document has exactly one root form and reader limits cannot be raised`() {
+        val forms = assertIs<DslFormsReadResult.Success>(DslFormReader().readForms("(schema s)\n(case c)", "doc"))
+        assertEquals(2, forms.document.forms.size)
+        assertEquals(2 to 1, forms.document.forms[1].span.line to forms.document.forms[1].span.column)
         val failure = assertIs<DslFormReadResult.Failure>(DslFormReader().readDocument("(schema s)\n(case c)", "doc"))
         val diagnostic = failure.diagnostics.single()
         assertEquals("DSL-PARSE-TRAILING-TOKEN", diagnostic.code, "RFC 0001 A: multi-form reading changed; see migration A")
@@ -172,6 +176,17 @@ class NormeinRfcContractTest {
         val unknown = failure.diagnostics.first { it.code == "DSL-REF-UNKNOWN-SYMBOL" }
         assertEquals(2 to 6, unknown.span!!.line to unknown.span!!.column, "RFC 0001 B: spans are no longer relative; remove Mantra's re-anchoring (migration B)")
         assertEquals("line.zve", unknown.logicalLocation)
+
+        val source = "(+ a\n     zzz)"
+        val position = DslSourcePosition(41, 22, 1830, 1830 + source.length)
+        val hosted = assertIs<DslCompileResult.Failure>(DslSemanticCompiler().compile(
+            DslCompileRequest(source, logicalLocation = "line.zve", hostPosition = position),
+            environment,
+            scope("a" to DslType.Decimal),
+        ))
+        val hostedUnknown = hosted.diagnostics.first { it.code == "DSL-REF-UNKNOWN-SYMBOL" }
+        assertEquals(42 to 6, hostedUnknown.span!!.line to hostedUnknown.span!!.column)
+        assertEquals(1830 + unknown.span!!.startOffset, hostedUnknown.span!!.startOffset)
     }
 
     @Test
@@ -206,7 +221,7 @@ class NormeinRfcContractTest {
         val integral = DslValues.importStructuredHost(mapOf("key" to kw("A"), "n" to dec("1")), DslTypes.ref(rowTypeId), typeSchema)
         val violation = assertIs<DslValueConstructionResult.Failure>(integral).violation
         assertEquals("DSL-VALUE-STRUCTURAL-TYPE", violation.code)
-        assertEquals("$", violation.path, "RFC 0001 C: structural failures now name the field; see migration C")
+        assertEquals("$.n", violation.path, "Structural failures name the field")
 
         val record = DslValues.importStructuredHost(mapOf("key" to kw("A"), "n" to DslValues.integer(BigInteger.ONE)), DslTypes.ref(rowTypeId), typeSchema)
         val imported = assertIs<DslValueConstructionResult.Success>(record).value
@@ -230,12 +245,12 @@ class NormeinRfcContractTest {
     @Test
     fun `D - apply is typed Any and decimal rounding results are nullable`() {
         val scope = scope("m" to DslTypes.map(DslType.Keyword, DslType.Decimal), "x" to DslType.Decimal)
-        assertEquals(DslType.Any, compiled(compile("(apply min (vals m))", scope)).inferredType, "RFC 0001 D1 accepted upstream; see migration D")
-        assertTrue("DSL-TYPE-CALL-ARGUMENT" in codes(compile("(decimal/divide 1 (apply min (vals m)) 4)", scope)))
+        assertEquals(DslType.Decimal, compiled(compile("(apply min (vals m))", scope)).inferredType)
+        compiled(compile("(decimal/divide 1 (apply min (vals m)) 4)", scope))
 
         val rounded = compiled(compile("(decimal/round x 2)", scope)).inferredType
-        assertEquals(DslTypes.nullable(DslTypes.union(DslType.Integer, DslType.Long, DslType.Decimal)), rounded, "RFC 0001 D2 accepted; see migration D")
-        assertEquals(listOf("DSL-TYPE-EXPECTED"), codes(compile("(decimal/round x 2)", scope, expected = DslType.Decimal)))
+        assertEquals(DslType.Decimal, rounded)
+        compiled(compile("(decimal/round x 2)", scope, expected = DslType.Decimal))
     }
 
     @Test
@@ -268,12 +283,13 @@ class NormeinRfcContractTest {
         val collection = compiled(compile("(if (> x 10) :high {:a 1 :b 2})", scope))
         val collectionTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(evaluate(collection, mapOf("x" to dec("1"), "handwerker" to dec("0")), DslTracePolicy.FULL)).trace!!
         val root = astNodes(collectionTrace).getValue("0").resultSummary!!
-        assertNull(root.rendered, "RFC 0001 F: collections are rendered now; see migration F")
+        assertEquals("{:a 1, :b 2}", root.rendered)
         assertEquals(2L, root.itemCount)
 
         val capped = compiled(compile("(cap (* 0.2 handwerker))", scope, listOf(DslNamedDefinition("cap", "(defn cap [^Decimal v] (min v 4000))", "defn.cap"))))
         val cappedTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(evaluate(capped, mapOf("x" to dec("1"), "handwerker" to dec("30000")), DslTracePolicy.FULL)).trace!!
         assertEquals("4000", astNodes(cappedTrace).getValue("0.0.0").resultSummary?.rendered, "definition bodies are traced below the callable node")
+        assertTrue(capped.sourceIndex.isNotEmpty(), "Trace node paths have a public source index")
     }
 
     @Test
@@ -305,9 +321,10 @@ class NormeinRfcContractTest {
     @Test
     fun `I - numeric literal rules of the kernel`() {
         val scope = scope()
-        listOf(".5", "1.", "1e3", "+7", "-0.0").forEach { source ->
+        listOf(".5", "1.", "1e3", "-0.0").forEach { source ->
             assertEquals(DslType.Decimal, compiled(compile(source, scope)).inferredType, source)
         }
+        assertEquals(DslType.Integer, compiled(compile("+7", scope)).inferredType)
         listOf("1.5M", "1N", "0x10", "1/2").forEach { source -> codes(compile(source, scope)) }
         assertEquals(listOf("DSL-VALUE-NUMERIC-SCALE-LIMIT"), codes(compile("0." + "0".repeat(1_000) + "1", scope)))
         val limit = assertFailsWith<DslValueConstructionException> { DslValues.decimal(BigDecimal("1E-1001")) }
