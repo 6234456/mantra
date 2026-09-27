@@ -4,6 +4,8 @@ import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Schema
+import com.xqiou.mantra.core.model.SectionItem
+import com.xqiou.mantra.core.model.FieldItem
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import java.math.BigDecimal
@@ -27,11 +29,27 @@ object DataSources {
     fun apply(case: CaseData, schema: Schema, sources: List<DataSource>, sink: DiagnosticSink): CaseData {
         if (sources.isEmpty()) return case
         val merged = linkedMapOf<String, Value>()
+        val origins = linkedMapOf<String, MutableMap<String, String>>()
         sources.forEach { source ->
-            source.read(schema, sink).forEach { (id, value) -> merged[id] = mergeValue(merged[id], value) }
+            source.read(schema, sink).forEach { (id, value) ->
+                merged[id] = mergeValue(merged[id], value)
+                mark(origins.getOrPut(id) { linkedMapOf() }, value, source.description)
+            }
         }
-        case.inputs.forEach { (id, value) -> merged[id] = mergeValue(merged[id], value) }
-        return case.copy(inputs = merged)
+        case.inputs.forEach { (id, value) ->
+            merged[id] = mergeValue(merged[id], value)
+            mark(origins.getOrPut(id) { linkedMapOf() }, value, null)
+        }
+        return case.copy(inputs = merged, inputOrigins = origins)
+    }
+
+    private fun mark(origins: MutableMap<String, String>, value: Value, source: String?, path: String = "") {
+        if (value is Value.MapV) {
+            value.entries.forEach { (key, nested) ->
+                val member = when (key) { is Value.Kw -> key.name; is Value.Text -> key.value; else -> return@forEach }
+                mark(origins, nested, source, if (path.isEmpty()) member else "$path/$member")
+            }
+        } else if (source == null) origins.remove(path) else origins[path] = source
     }
 
     /** Per-member maps merge member by member so different sources can supply different members. */
@@ -39,6 +57,20 @@ object DataSources {
         if (old is Value.MapV && new is Value.MapV) Value.MapV(LinkedHashMap(old.entries).apply { putAll(new.entries) }) else new
 
     fun inputs(schema: Schema): Map<String, InputDecl> = schema.inputs.associateBy { it.id }
+
+    fun inputDimensions(schema: Schema): Map<String, List<String>> {
+        val result = schema.inputs.associate { it.id to (it.per ?: emptyList()) }.toMutableMap()
+        fun walk(section: SectionItem, inherited: List<String>) {
+            val dims = section.per ?: inherited
+            section.children.forEach { item -> when (item) {
+                is SectionItem -> walk(item, dims)
+                is FieldItem -> result[item.id] = schema.inputs.firstOrNull { it.id == item.id }?.per ?: dims
+                else -> Unit
+            } }
+        }
+        walk(schema.root, emptyList())
+        return result
+    }
 }
 
 /**
@@ -115,14 +147,48 @@ class CsvSource(
     private val decimal: Char = ',',
     private val grouping: Char? = '.',
     private val columns: Map<String, String> = emptyMap(),
+    private val mode: String = "pairs",
+    private val memberColumn: String? = null,
 ) : DataSource {
     override val description: String = "csv:${path.fileName}"
 
     override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> {
-        val rows = parse(Files.readString(path).removePrefix("﻿"))
+        val rows = parseRows(Files.readString(path).removePrefix("﻿"), delimiter)
         if (rows.isEmpty()) return emptyMap()
         val header = rows.first().map { it.trim() }
         val inputs = DataSources.inputs(schema)
+        if (mode == "wide") {
+            val dimensions = DataSources.inputDimensions(schema)
+            val memberIndex = memberColumn?.let(header::indexOf)?.takeIf { it >= 0 }
+            if (memberColumn != null && memberIndex == null) sink.error("MANTRA-DATA-CSV", "${path.fileName}: member column '$memberColumn' not found")
+            val targets = header.mapIndexed { index, name ->
+                if (index == memberIndex) null else (columns[name] ?: if (columns.isEmpty()) normalize(name) else null)?.also { id ->
+                    if (id !in inputs) sink.warning("MANTRA-DATA-UNKNOWN-INPUT", "${path.fileName}: column '$name' targets unknown input $id")
+                }?.takeIf { it in inputs }
+            }
+            val result = linkedMapOf<String, Value>()
+            rows.drop(1).filter { row -> row.any(String::isNotBlank) }.forEach { row ->
+                val member = memberIndex?.let { row.getOrElse(it) { "" }.trim().removePrefix(":") }
+                targets.forEachIndexed { index, id ->
+                    if (id == null) return@forEachIndexed
+                    val raw = row.getOrElse(index) { "" }
+                    if (raw.isBlank()) return@forEachIndexed
+                    val dims = dimensions[id].orEmpty()
+                    if (dims.size > 1 || (dims.size == 1 && member.isNullOrBlank())) {
+                        sink.error("MANTRA-DATA-CSV", "${path.fileName}: input $id needs one member column")
+                        return@forEachIndexed
+                    }
+                    val value = convert(raw, inputs.getValue(id).type)
+                    result[id] = if (dims.isEmpty()) value else Value.MapV(
+                        LinkedHashMap((result[id] as? Value.MapV)?.entries ?: emptyMap()).apply { put(Value.Kw(member!!), value) })
+                }
+            }
+            return result
+        }
+        if (mode != "pairs") {
+            sink.error("MANTRA-DATA-CSV", "${path.fileName}: unknown CSV mode $mode")
+            return emptyMap()
+        }
         if (input != null) {
             val decl = inputs[input]
             if (decl == null || decl.type != ValueType.TABLE) {
@@ -198,7 +264,9 @@ class CsvSource(
         return t.toBigDecimalOrNull()?.let { if (negative) it.negate() else it }
     }
 
-    private fun parse(content: String): List<List<String>> {
+    companion object {
+    /** Same CSV quoting rules for import inspection and actual calculation. */
+    fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
         val rows = mutableListOf<List<String>>()
         var row = mutableListOf<String>()
         val cell = StringBuilder()
@@ -221,6 +289,7 @@ class CsvSource(
                     row += cell.toString()
                     cell.clear()
                     rows += row
+                    if (rows.size >= maxRows) return rows
                     row = mutableListOf()
                 }
                 else -> cell.append(ch)
@@ -232,5 +301,6 @@ class CsvSource(
             rows += row
         }
         return rows
+    }
     }
 }

@@ -57,7 +57,7 @@ object WorkbenchDocuments {
                 "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
                 "kind" to ref.kind.name.lowercase().replace('_', '-'),
                 "origin" to when (val origin = target.trace(if (memberMap) emptyList() else targetCoord)) {
-                    is NodeTrace.Input -> origin.origin.name.lowercase()
+                    is NodeTrace.Input -> origin.label()
                     is NodeTrace.Param -> origin.source
                     else -> null
                 },
@@ -287,7 +287,7 @@ object WorkbenchDocuments {
                         "active" to node.isActive(coord),
                     ).apply {
                         when (val trace = node.trace(coord)) {
-                            is NodeTrace.Input -> put("origin", trace.origin.name.lowercase())
+                            is NodeTrace.Input -> put("origin", trace.label())
                             is NodeTrace.Param -> put("source", trace.source)
                             else -> Unit
                         }

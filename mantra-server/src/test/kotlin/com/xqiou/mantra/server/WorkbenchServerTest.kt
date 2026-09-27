@@ -15,6 +15,7 @@ import java.net.Socket
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.Base64
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -480,7 +481,7 @@ class WorkbenchServerTest {
         assertEquals(before, Files.readString(root.resolve("sample/case.mantra")))
     }
 
-    @Test fun `unimplemented source binding reports a diagnostic without calculating`() {
+    @Test fun `missing source binding reports a diagnostic without calculating`() {
         val root = workspace()
         Files.writeString(root.resolve("sample/case.mantra"), """
             (case one {:schema "test/example"} (sources (csv {:path "imports/data.csv"})) (inputs {:amount 12.5}))
@@ -489,10 +490,48 @@ class WorkbenchServerTest {
             server.start()
             val workspace = request(server.localPort, "/api/v1/workspace")
             assertEquals(200, workspace.status, workspace.body)
-            assertContains(workspace.body, "MANTRA-CASE-FORM")
+            assertContains(workspace.body, "MANTRA-CASE-SOURCE")
             val run = request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/run")
             assertEquals(422, run.status)
-            assertContains(run.body, "MANTRA-WORKBENCH-DOCUMENT")
+            assertContains(run.body, "MANTRA-CASE-SOURCE")
+        }
+    }
+
+    @Test fun `browser import inspects then binds CSV without losing revision checks`() {
+        val root = workspace()
+        val caseFile = root.resolve("sample/case.mantra")
+        Files.writeString(caseFile, "(case one {:schema \"test/example\"})")
+        val ui = temp.resolve("import-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body></body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val index = request(port, "/")
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(index.body)!!.groupValues[1]
+            val headers = mapOf("X-Mantra-Token" to token)
+            val route = "/api/v1/cases/sample%2Fcase.mantra/imports/"
+            val revision = ObjectMapper().readTree(request(port,
+                "/api/v1/cases/sample%2Fcase.mantra/structure").body)["revision"].asText()
+            val csv = "input;value\namount;13,5\n"
+            val content = Base64.getEncoder().encodeToString(csv.toByteArray())
+            val inspect = """{"name":"data.csv","format":"csv","contentBase64":"$content"}"""
+            val preview = request(port, route + "inspect", "POST", headers = headers, body = inspect.toByteArray())
+            assertEquals(200, preview.status, preview.body)
+            assertContains(preview.body, "\"rowCount\":1")
+            assertEquals("(case one {:schema \"test/example\"})", Files.readString(caseFile))
+            val apply = """{"name":"data.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{}}"""
+            val saved = request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray())
+            assertEquals(200, saved.status, saved.body)
+            assertContains(Files.readString(caseFile), "(csv {:path \"imports/")
+            val run = request(port, "/api/v1/cases/sample%2Fcase.mantra/run")
+            assertEquals(200, run.status, run.body)
+            assertContains(run.body, "\"origin\":\"source:csv:")
+            assertContains(run.body, "\"n\":\"13.5\"")
+            assertEquals(409, request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray()).status)
+            assertEquals(400, request(port, route + "inspect", "POST", headers = headers,
+                body = inspect.replace(content, "not base64").toByteArray()).status)
         }
     }
 }

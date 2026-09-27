@@ -18,7 +18,7 @@ object Fixtures {
 
     fun write(casePath: Path, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
               explainAddresses: List<ExplainAddress> = emptyList()): Entry {
-        val absoluteCase = casePath.toAbsolutePath().normalize()
+        val absoluteCase = casePath.toRealPath()
         val directory = absoluteCase.parent
         val schemaPath = directory.resolve("schema.mantra")
         val layoutPath = directory.resolve("layout.mantra")
@@ -26,7 +26,10 @@ object Fixtures {
         require(Files.isRegularFile(schemaPath)) { "Expected schema.mantra next to case: $schemaPath" }
         val schema = Mantra.loadSchema(schemaPath)
         val case = Mantra.loadCase(absoluteCase)
-        val result = Mantra.calculate(schema, case)
+        val root = workspaceRoot?.toRealPath() ?: directory.parent
+        require(absoluteCase.startsWith(root)) { "Case must be inside workspace root: $root" }
+        val bound = BoundSources.load(case, schema, absoluteCase, root)
+        val result = Mantra.calculate(schema, bound.case)
         val view = CalculationView.of(result)
         val layoutBinding = case.meta["layout"]
         require(layoutBinding == null || layoutBinding is Value.Text) { "Case :layout must be text: $absoluteCase" }
@@ -46,10 +49,9 @@ object Fixtures {
                 val sourcePath = directory.resolve(name).normalize()
                 if (Files.isRegularFile(sourcePath)) add(sourcePath)
             }
+            addAll(bound.files)
             if (selectedLayout != null) add(layoutPath)
         }.distinct()
-        val root = workspaceRoot?.toAbsolutePath()?.normalize() ?: directory.parent
-        require(absoluteCase.startsWith(root)) { "Case must be inside workspace root: $root" }
         val revision = revision(documents, root)
         val normein = readNormeinCommit(directory)
         val id = root.relativize(absoluteCase).toString().replace('\\', '/')
@@ -83,7 +85,7 @@ object Fixtures {
                 val memberMap = address.node.startsWith("all.")
                 val nodeId = if (memberMap) address.node.removePrefix("all.") else address.node
                 val explained = if (memberMap) result
-                    else Mantra.calculateForExplain(schema, case, emptyList(), nodeId, address.coord)
+                    else Mantra.calculateForExplain(schema, bound.case, emptyList(), nodeId, address.coord)
                 val explainedView = CalculationView.of(explained)
                 val node = explainedView.nodes[nodeId]
                 val fixed = if (memberMap) address.coord.associate { part ->
@@ -125,8 +127,8 @@ object Fixtures {
     fun writeMany(cases: List<Path>, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
                   explainAddresses: Map<String, List<ExplainAddress>> = emptyMap()): List<Entry> {
         require(cases.isNotEmpty()) { "At least one case is required" }
-        val absolute = cases.map { it.toAbsolutePath().normalize() }
-        val root = workspaceRoot?.toAbsolutePath()?.normalize() ?: absolute.map { it.parent.parent }.reduce { common, next ->
+        val absolute = cases.map(Path::toRealPath)
+        val root = workspaceRoot?.toRealPath() ?: absolute.map { it.parent.parent }.reduce { common, next ->
             var candidate = common
             while (!next.startsWith(candidate)) candidate = candidate.parent
             candidate

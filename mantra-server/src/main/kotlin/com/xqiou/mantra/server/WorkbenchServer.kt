@@ -10,6 +10,7 @@ import com.xqiou.mantra.workbench.WorkspaceCatalog
 import com.xqiou.mantra.workbench.CaseTextEditor
 import com.xqiou.mantra.workbench.ExplainAddress
 import com.xqiou.mantra.workbench.ExportBudget
+import com.xqiou.mantra.workbench.ImportFiles
 import com.xqiou.mantra.workbench.WorkspaceException
 import com.xqiou.mantra.workbench.WorkspaceProblem
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
@@ -24,6 +25,7 @@ import java.nio.file.Path
 import java.nio.file.InvalidPathException
 import java.security.SecureRandom
 import java.util.UUID
+import java.util.Base64
 import java.util.concurrent.Executors
 import com.xqiou.mantra.core.model.Value
 import java.math.BigDecimal
@@ -75,7 +77,7 @@ class WorkbenchServer(
             if (method !in setOf("GET", "HEAD", "POST")) return error(exchange, 405, "MANTRA-WORKBENCH-REQUEST", "Method is not allowed")
             if (method == "POST" && exchange.requestHeaders.getFirst("X-Mantra-Token") != token)
                 return error(exchange, 403, "MANTRA-WORKBENCH-TOKEN", "Session token is required")
-            val limit = if ("/imports/" in path) 10 * 1024 * 1024 else 1024 * 1024
+            val limit = if ("/imports/" in path) 14 * 1024 * 1024 else 1024 * 1024
             if (exchange.requestHeaders.getFirst("Content-Length")?.toLongOrNull()?.let { it > limit } == true)
                 return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
             val body = readBody(exchange, limit)
@@ -114,11 +116,13 @@ class WorkbenchServer(
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
         val document = match.groupValues[2]
-        if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics", "parameters")) {
+        if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics", "parameters", "sources")) {
             val query = query(exchange.requestURI.rawQuery)
             if (query.keys.any { it !in setOf("panel", "layout") } || (document != "paper" && query.isNotEmpty()))
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
-            return json(exchange, 200, catalog.envelope(catalog.document(caseId, document, query["panel"], query["layout"])))
+            val result = if (document == "sources") catalog.sources(caseId)
+                else catalog.document(caseId, document, query["panel"], query["layout"])
+            return json(exchange, 200, catalog.envelope(result))
         }
         if (method == "GET" && document == "explain") {
             val query = query(exchange.requestURI.rawQuery)
@@ -155,6 +159,17 @@ class WorkbenchServer(
             val variant = parseCompare(body)
             return json(exchange, 200, catalog.envelope(catalog.compare(caseId, variant.first, variant.second)))
         }
+        if (method == "POST" && document in setOf("imports/inspect", "imports/apply")) {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val request = parseImport(body, document == "imports/apply")
+            val result = if (document == "imports/inspect")
+                WorkspaceCatalog.DocumentResult(catalog.document(caseId, "structure").revision,
+                    ImportFiles.inspect(request.name, request.format, request.content))
+            else catalog.importApply(caseId, request.revision!!, request.name, request.format,
+                request.content, request.options)
+            return json(exchange, 200, catalog.envelope(result))
+        }
         if (method == "POST" && document in setOf("preview", "edits", "undo", "redo")) {
             if (exchange.requestURI.rawQuery != null)
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
@@ -168,7 +183,7 @@ class WorkbenchServer(
             return json(exchange, 200, catalog.envelope(result))
         }
         if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo",
-                "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
+                "authoring/complete", "authoring/hover", "authoring/check"))
             return unavailable(exchange)
         error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
     }
@@ -287,6 +302,47 @@ class WorkbenchServer(
         return case to parameters
     }
 
+    private data class ImportRequest(val name: String, val format: String, val content: ByteArray,
+                                     val revision: String?, val options: Map<String, Value>)
+
+    private fun parseImport(body: ByteArray, apply: Boolean): ImportRequest {
+        fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
+        val root = try { requestJson.readTree(body) ?: bad("Import body is required") }
+            catch (error: WorkspaceException) { throw error }
+            catch (_: Exception) { bad("Malformed import JSON") }
+        val fields = if (apply) setOf("name", "format", "contentBase64", "baseRevision", "options")
+            else setOf("name", "format", "contentBase64")
+        if (!root.isObject || root.fieldNames().asSequence().toSet() != fields) bad("Unexpected import request fields")
+        fun string(key: String): String = root[key]?.takeIf(JsonNode::isTextual)?.textValue()
+            ?: bad("$key must be text")
+        val name = string("name")
+        val format = string("format")
+        if (format !in setOf("csv", "json", "xlsx")) bad("Unsupported import format")
+        val content = try { Base64.getDecoder().decode(string("contentBase64")) }
+            catch (_: IllegalArgumentException) { bad("Invalid base64 content") }
+        if (content.size > ImportFiles.MAX_BYTES) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import file exceeds 10 MiB")
+        val revision = if (apply) string("baseRevision").takeIf { Regex("[0-9a-f]{16}").matches(it) }
+            ?: bad("baseRevision must be 16 hexadecimal characters") else null
+        val options = if (apply) {
+            val encoded = root["options"]?.takeIf(JsonNode::isObject) ?: bad("options must be an object")
+            if (encoded.size() > 64) bad("Too many source options")
+            encoded.fields().asSequence().associate { (key, value) ->
+                if (!Regex("[A-Za-z][A-Za-z0-9_-]*").matches(key)) bad("Invalid source option")
+                key to when {
+                    value.isTextual -> Value.Text(value.textValue())
+                    value.isObject && value.size() <= 256 -> Value.MapV(LinkedHashMap<Value, Value>().apply {
+                        value.fields().forEach { (from, to) ->
+                            if (!to.isTextual) bad("Source mapping values must be text")
+                            put(Value.Text(from), Value.Text(to.textValue()))
+                        }
+                    })
+                    else -> bad("Source options must be text or text mappings")
+                }
+            }
+        } else emptyMap()
+        return ImportRequest(name, format, content, revision, options)
+    }
+
     private fun parseEdits(caseId: String, body: ByteArray, history: Boolean): Pair<String, List<CaseTextEditor.Operation>> {
         fun bad(message: String): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, message)
         val root = try { requestJson.readTree(body) ?: bad("Edit body is required") }
@@ -374,6 +430,15 @@ class WorkbenchServer(
                     val layout = layoutNode?.let { if (!it.isTextual && !it.isNull) bad("Invalid layout"); if (it.isNull) null else it.textValue() }
                     CaseTextEditor.Operation.SetBindings(parameters, layout, clearLayout = layoutNode?.isNull == true)
                 }
+                "addSource" -> {
+                    requireFields(op, "op", "kind", "options")
+                    val encoded = parseValue(op["options"]) as? Value.MapV ?: bad("options must be an encoded map")
+                    val options = encoded.entries.map { (key, value) ->
+                        (key as? Value.Kw)?.name?.let { it to value } ?: bad("option keys must be keywords")
+                    }.toMap()
+                    CaseTextEditor.Operation.AddSource(string(op, "kind"), options)
+                }
+                "removeSource" -> { requireFields(op, "op", "index"); CaseTextEditor.Operation.RemoveSource(integer(op, "index")) }
                 else -> bad("Unknown edit operation")
             }
         }

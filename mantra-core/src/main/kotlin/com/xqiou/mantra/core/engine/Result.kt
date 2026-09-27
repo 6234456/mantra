@@ -13,7 +13,7 @@ import java.math.BigDecimal
 /** An active member of a dimension. [record] is what formulas see through the dimension symbol. */
 data class Member(val key: String, val label: String, val index: Int, val record: Map<String, Value>)
 
-enum class InputOrigin { CASE, DEFAULT, IMPLICIT }
+enum class InputOrigin { CASE, SOURCE, DEFAULT, IMPLICIT }
 
 data class TraceRef(val id: String, val value: Value, val kind: Kind) {
     enum class Kind { ALIGNED, MEMBER_MAP, ALL, MEMBER }
@@ -30,7 +30,9 @@ data class ExplainTrace(val steps: List<ExplainStep>, val branches: List<Explain
 
 /** How a value came about; renderers turn this into the audit trail ("Rechenweg"). */
 sealed interface NodeTrace {
-    data class Input(val origin: InputOrigin) : NodeTrace
+    data class Input(val origin: InputOrigin, val source: String? = null) : NodeTrace {
+        fun label(): String = if (origin == InputOrigin.SOURCE && source != null) "source:$source" else origin.name.lowercase()
+    }
     data class Param(val source: String) : NodeTrace
     data class Computed(val references: List<TraceRef>, val raw: Value, val rounding: Rounding?, val spread: Boolean) : NodeTrace
     data class Sum(val parts: List<TracePart>) : NodeTrace

@@ -33,6 +33,8 @@ object CaseTextEditor {
         data class UnbindFormula(val id: String) : Operation
         data class SetMeta(val key: String, val text: String) : Operation
         data class SetBindings(val parameters: List<String>?, val layout: String?, val clearLayout: Boolean = false) : Operation
+        data class AddSource(val kind: String, val options: Map<String, Value>) : Operation
+        data class RemoveSource(val index: Int) : Operation
     }
 
     private val identifier = Regex("[A-Za-z][A-Za-z0-9_-]*[?!*]?")
@@ -114,6 +116,20 @@ object CaseTextEditor {
                     if (existing != null) current = patch(current, existing.first.span.startOffset, existing.second.span.endOffset, "")
                 }
                 current
+            }
+            is Operation.AddSource -> {
+                require(op.kind in setOf("csv", "json", "xlsx")) { "Unknown source kind" }
+                require(op.options.keys.all(identifier::matches)) { "Invalid source option" }
+                val value = Value.MapV(op.options.mapKeys { (key, _) -> Value.Kw(key) })
+                val declaration = "(${op.kind} ${literal(value)})"
+                val existing = form("sources")
+                if (existing == null) insertForm(doc, root, "(sources\n    $declaration)")
+                else insertBeforeClose(doc, existing, declaration)
+            }
+            is Operation.RemoveSource -> {
+                val existing = form("sources") ?: error("No sources are bound")
+                val target = existing.values.drop(1).getOrNull(op.index) ?: error("Source index does not exist")
+                delete(doc, target)
             }
         }.also(::read)
     }

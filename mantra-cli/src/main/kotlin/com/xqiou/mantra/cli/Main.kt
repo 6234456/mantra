@@ -22,7 +22,7 @@ private const val USAGE = """
 mantra – calculation-schema engine (Normein DSL)
 
 Usage:
-  mantra run <schema.mantra> [--case <case.mantra>] [--layout <layout.mantra>]
+  mantra run <schema.mantra> [--case <case.mantra>] [--workspace <dir>] [--layout <layout.mantra>]
              [--format text|html|xlsx] [--out <file>] [--audit]
   mantra check <schema.mantra> [--case <case.mantra>]
   mantra catalog
@@ -102,7 +102,12 @@ private fun fail(message: String): Nothing {
 private fun loadInputs(options: Options): Pair<com.xqiou.mantra.core.model.Schema, CaseData> {
     val schemaPath = options.positional.firstOrNull()?.let(Path::of) ?: fail("A schema file is required.\n${USAGE.trimIndent()}")
     val schema = Mantra.loadSchema(schemaPath)
-    val case = options.path("case")?.let(Mantra::loadCase) ?: CaseData.empty()
+    val casePath = options.path("case")?.toAbsolutePath()?.normalize()
+    val case = casePath?.let { path ->
+        val loaded = Mantra.loadCase(path)
+        com.xqiou.mantra.workbench.BoundSources.load(loaded, schema, path,
+            options.path("workspace")?.toAbsolutePath()?.normalize() ?: path.parent).case
+    } ?: CaseData.empty()
     return schema to case
 }
 

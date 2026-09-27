@@ -417,7 +417,8 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | `addExtension` / `updateExtension` / `removeExtension` | `slot`、`id`；新增/更新另有 `title`、`formula` |
 | `bindFormula` / `unbindFormula` | `id`；绑定时另有 `formula` |
 | `setMeta` | `key`、`text` |
-| `setBindings` | `parameters`（有序 id 数组）和/或 `layout`（id；`null` 清除绑定）。`sources` 待 WP11 的来源读取与校验接入后开放。 |
+| `setBindings` | `parameters`（有序 id 数组）和/或 `layout`（id；`null` 清除绑定） |
+| `addSource` / `removeSource` | 新增时提供 `kind`（`csv`/`json`/`xlsx`）和 `options`（精确值编码映射）；删除时提供零起始 `index`。只修改案例中的 `(sources …)`。 |
 
 ### 7.2 最小改动回写
 
@@ -454,6 +455,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   - 值的出处可以追溯（`origin: source:<描述>`）；
   - 手工值按现有规则优先于数据来源（`DataSources.apply` 让案例的 `(inputs …)` 最后生效），界面把这种情况标为“被手工值覆盖”。
 - **映射模板**（“Zuordnung als Vorlage speichern”）就是一份可复用的来源声明，由领域应用随方案提供，或由用户保存在工作区。它不是界面配置。
+- **浏览器导入请求**：`POST …/imports/inspect` 接收 `{name, format, contentBase64}`，仅返回 `{name, format, columns:[{name, sample:[]}], rowCount, delimiter?}`，不写文件。`POST …/imports/apply` 再接收同一文件、`baseRevision` 与 `options`（来源声明的普通 JSON 选项对象）；服务端将文件保存到案例目录下的 `imports/`，以内容摘要命名，然后追加 `(sources …)` 声明，响应格式同 §7.1。文件写入成功但案例提交失败时清理本次新建文件。
 - **宽表模式（缺口 G7）**：设计稿中的工资单 CSV 是宽表，一行对应一个成员，每列对应一个不同的输入。现有 `CsvSource` 只支持两种格式：表格输入的行，以及 `input;value` / `input;member;value` 成对格式。需要增加“宽表行 → 某一成员的输入”模式。
 
 ### 8.2 公式编辑
@@ -491,6 +493,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | --- | --- | --- |
 | GET | `/workspace` | 方案、案例、参数集、版式清单及工作区诊断 |
 | GET | `/cases/{case}/structure` | Structure（§6.2） |
+| GET | `/cases/{case}/sources` | 有序来源绑定 `{sources:[{index,kind,path,options}]}`；`options` 的每个值用 §6.1 编码 |
 | GET | `/cases/{case}/run` | Run（§6.3） |
 | GET | `/cases/{case}/paper?layout=&panel=` | Paper（§6.4） |
 | GET | `/cases/{case}/diagnostics` | Diagnostics（§6.6） |
@@ -545,6 +548,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | --- | --- |
 | 请求体 | 1 MiB |
 | 导入文件 | 10 MiB |
+| 导入 JSON 请求体 | 14 MiB（容纳 10 MiB 文件的 base64） |
 | 工作区扫描 | 最多 4,096 个 `.mantra` 文件（只读阶段） |
 | 单个文档 | 内核读取器上限：固定版本为 65,536 字符；候选内核的 `readForms` 为 1,048,576 字符 |
 | 求值 | 内核预算（每个计数器 100,000）与值上限（集合 10,000 项、嵌套深度 32） |

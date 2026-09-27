@@ -73,6 +73,52 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     data class DocumentResult(val revision: String, val data: Map<String, Any?>)
 
+    fun sources(caseId: String): DocumentResult {
+        val snapshot = scan()
+        val resolved = resolve(caseId, snapshot)
+        val case = loadCase(path(caseId))
+        return DocumentResult(resolved.revision, linkedMapOf("sources" to case.sources.mapIndexed { index, binding ->
+            linkedMapOf("index" to index, "kind" to binding.kind,
+                "path" to (binding.options["path"] as? Value.Text)?.value,
+                "options" to binding.options.mapValues { (_, value) -> WorkbenchJson.value(value) })
+        }))
+    }
+
+    fun importApply(caseId: String, baseRevision: String, name: String, format: String,
+                    bytes: ByteArray, options: Map<String, Value>): DocumentResult {
+        ImportFiles.inspect(name, format, bytes)
+        if ("path" in options) throw WorkspaceException(WorkspaceProblem.REQUEST, "Import path is assigned by the server")
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val current = resolve(caseId, scan())
+            checkRevision(baseRevision, current.revision)
+            val caseFile = path(caseId)
+            val directory = caseFile.parent.resolve("imports")
+            Files.createDirectories(directory)
+            if (!directory.toRealPath().startsWith(root))
+                throw WorkspaceException(WorkspaceProblem.REQUEST, "Import directory is outside the workspace")
+            val digest = MessageDigest.getInstance("SHA-256").digest(bytes).take(12).joinToString("") { "%02x".format(it) }
+            val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80)
+            val file = directory.resolve("$digest-$safeName")
+            var created = false
+            try {
+                try {
+                    Files.write(file, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                    created = true
+                } catch (_: java.nio.file.FileAlreadyExistsException) {
+                    if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) ||
+                        !Files.readAllBytes(file).contentEquals(bytes))
+                        throw WorkspaceException(WorkspaceProblem.CONFLICT, "Import file already exists with different content")
+                }
+                val binding = options + ("path" to Value.Text("imports/${file.fileName}"))
+                commitEdits(caseId, baseRevision, listOf(CaseTextEditor.Operation.AddSource(format, binding)))
+            } catch (error: Exception) {
+                if (created) Files.deleteIfExists(file)
+                throw error
+            }
+        }
+    }
+
     fun workspace(): DocumentResult {
         val snapshot = scan()
         val all = snapshot.files.map { it.path }
@@ -497,9 +543,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val parameters = try { parameterFiles.map(Mantra::loadParameters) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter document is invalid", error.diagnostics)
         }
+        val bound = BoundSources.load(case, schema, casePath, root)
         val result = try {
-            if (explain == null) Mantra.calculate(schema, case, parameters)
-            else Mantra.calculateForExplain(schema, case, parameters, explain.node, explain.coord)
+            if (explain == null) Mantra.calculate(schema, bound.case, parameters)
+            else Mantra.calculateForExplain(schema, bound.case, parameters, explain.node, explain.coord)
         } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be calculated", error.diagnostics)
         }
@@ -515,8 +562,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val layout = layoutFile?.let { try { LayoutReader.read(source(it)) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Layout document is invalid", error.diagnostics)
         } } ?: Render.defaultLayout(view)
-        val sourceFiles = schema.sources.map { path(it) }
-        val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile),
+        val revision = revision(listOf(casePath) + schema.sources.map { path(it) } + bound.files + parameterFiles + listOfNotNull(layoutFile),
             if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)))
         return Resolved(view, layout, revision, parameterIds, result.explainTrace)
     }

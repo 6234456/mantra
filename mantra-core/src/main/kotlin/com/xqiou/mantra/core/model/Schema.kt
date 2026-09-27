@@ -242,6 +242,8 @@ data class Schema(
 }
 
 /** User data for one calculation run ("Fall", engagement file). */
+data class SourceBinding(val kind: String, val options: Map<String, Value>, val location: SourceLocation)
+
 data class CaseData(
     val id: String,
     val schemaId: String?,
@@ -257,6 +259,10 @@ data class CaseData(
     /** Exact locations of supplied values, separate from schema input declarations. */
     val inputLocations: Map<String, SourceLocation> = emptyMap(),
     val paramLocations: Map<String, SourceLocation> = emptyMap(),
+    /** Ordered, replayable data source declarations from `(sources ...)`. */
+    val sources: List<SourceBinding> = emptyList(),
+    /** Provenance for values supplied by sources, keyed by input id and coordinate path. */
+    val inputOrigins: Map<String, Map<String, String>> = emptyMap(),
 ) {
     fun text(key: String): String? = (meta[key] as? Value.Text)?.value
 
