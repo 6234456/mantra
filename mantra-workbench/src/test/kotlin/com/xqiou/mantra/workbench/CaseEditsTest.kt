@@ -143,6 +143,44 @@ class CaseEditsTest {
     }
 
     @Test
+    fun `member coordinate validation can ignore transient missing parameter set`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val operations = listOf(
+            CaseTextEditor.Operation.SetBindings(listOf("missing/parameters"), null),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
+        )
+        val preview = catalog.previewEdits(case, revision, operations)
+        assertTrue(preview.data["preview"] == true)
+        val committed = catalog.commitEdits(case, revision, operations)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":parameters [\"de.est/params-2026\"]")
+        assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `member coordinate validation can ignore transient invalid parameter document`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(dir.resolve("temp-invalid.mantra"), "(parameters temp/invalid (bad))")
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val preview = catalog.previewEdits(case, revision, listOf(
+            CaseTextEditor.Operation.SetBindings(listOf("temp/invalid"), null),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
+        ))
+        assertTrue(preview.data["preview"] == true)
+    }
+
+    @Test
     fun `external case edit before final replace returns conflict without overwriting it`() {
         val (dir, case) = copyExample("de-est-2025")
         val file = dir.resolve(case)

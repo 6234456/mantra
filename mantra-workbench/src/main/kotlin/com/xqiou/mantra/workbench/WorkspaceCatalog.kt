@@ -308,7 +308,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 is CaseTextEditor.Operation.ClearInput -> operation.coord.isNotEmpty()
                 else -> false
             }
-            val current = if (needsMembers) resolve(caseId, snapshot, includeLayout = false, caseText = candidate) else base
+            val current = if (needsMembers) resolveEditMembers(caseId, snapshot, base, candidate) else base
             validateEditTargets(current, listOf(operation))
             candidate = CaseTextEditor.apply(candidate, listOf(operation))
             require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
@@ -320,6 +320,30 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
     } catch (error: IllegalStateException) {
         throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())))
+    }
+
+    private fun resolveEditMembers(caseId: String, snapshot: Snapshot, base: Resolved, candidate: String): Resolved {
+        val casePath = path(caseId)
+        val parsed = try { Mantra.loadCase(SourceText(caseId, candidate, casePath.parent.toString())) }
+        catch (error: MantraException) {
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Intermediate case is invalid", error.diagnostics)
+        }
+        val bound = (parsed.meta["parameters"] as? Value.Vec)?.items
+        val unfinishedBinding = bound?.any { item ->
+            val id = (item as? Value.Text)?.value
+            id == null || snapshot.kind("parameters").count { it.name == id } != 1
+        } == true
+        // An incomplete parameter binding has no calculable meaning yet. Preserve input edits in
+        // the candidate but use the last committed parameter layer for this coordinate check.
+        // Final validation always resolves the candidate's actual bindings.
+        if (unfinishedBinding) return resolve(caseId, snapshot, parameterOverride = base.parameterIds,
+            includeLayout = false, caseText = candidate)
+        return try { resolve(caseId, snapshot, includeLayout = false, caseText = candidate) }
+        catch (error: WorkspaceException) {
+            if (error.problem != WorkspaceProblem.INVALID || parsed.meta["parameters"] == base.view.case.meta["parameters"])
+                throw error
+            resolve(caseId, snapshot, parameterOverride = base.parameterIds, includeLayout = false, caseText = candidate)
+        }
     }
 
     private fun editData(base: Resolved, variant: Resolved, caseId: String, preview: Boolean): Map<String, Any?> = linkedMapOf(
