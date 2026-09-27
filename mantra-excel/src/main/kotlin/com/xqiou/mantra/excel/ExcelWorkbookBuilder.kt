@@ -43,9 +43,27 @@ class ExcelOptions(
     val formulaColumn: Boolean = true,
     /** Evaluate all formulas once with POI so that the file carries cached values. */
     val evaluate: Boolean = true,
-)
+    val maxSheets: Int = Int.MAX_VALUE,
+    val maxCells: Int = Int.MAX_VALUE,
+) {
+    init { require(maxSheets > 0 && maxCells > 0) }
+}
+
+class ExcelExportLimitException(message: String) : RuntimeException(message)
 
 data class ExcelFallback(val sheet: String, val cell: String, val nodeId: String, val reason: String)
+
+data class ExcelCellDescription(val address: String, val kind: String, val value: String?, val formula: String?)
+data class ExcelSheetDescription(val name: String, val rows: Int, val columns: Int)
+data class ExcelNameDescription(val name: String, val refersTo: String)
+data class ExcelPreview(val rows: Int, val columns: Int, val truncated: Boolean, val cells: List<ExcelCellDescription>)
+data class ExcelDescription(
+    val sheets: List<ExcelSheetDescription>,
+    val selectedSheet: String,
+    val preview: ExcelPreview,
+    val names: List<ExcelNameDescription>,
+    val report: ExcelReport,
+)
 
 class ExcelReport(
     val sheets: List<String>,
@@ -64,7 +82,56 @@ class ExcelWorkbook internal constructor(
     private val nodeAddresses: Map<String, Map<Coord, String>>,
     private val recordAddresses: Map<Triple<String, String, String>, String>,
     private val tableAddresses: Map<Triple<String, Int, String>, String>,
-) {
+) : AutoCloseable {
+    override fun close() = workbook.close()
+
+    fun bytes(maxBytes: Int = Int.MAX_VALUE): ByteArray = java.io.ByteArrayOutputStream().use { output ->
+        require(maxBytes > 0)
+        try {
+            workbook.write(BoundedWorkbookOutput(output, maxBytes))
+        } catch (error: RuntimeException) {
+            var cause: Throwable? = error
+            while (cause != null) {
+                if (cause is ExcelExportLimitException) throw cause
+                cause = cause.cause
+            }
+            throw error
+        }
+        output.toByteArray()
+    }
+    /** Bounded, read-only description of the workbook actually written by this exporter. */
+    fun describe(selectedSheet: String? = null): ExcelDescription? {
+        val sheets = (0 until workbook.numberOfSheets).map { index ->
+            val sheet = workbook.getSheetAt(index)
+            ExcelSheetDescription(sheet.sheetName, if (sheet.physicalNumberOfRows == 0) 0 else sheet.lastRowNum + 1,
+                sheet.maxOfOrNull { row -> row.lastCellNum.toInt().coerceAtLeast(0) } ?: 0)
+        }
+        val chosen = selectedSheet ?: sheets.firstOrNull()?.name ?: return null
+        val selected = sheets.firstOrNull { it.name == chosen } ?: return null
+        val sheet = workbook.getSheet(chosen)
+        val cells = buildList {
+            for (rowIndex in 0 until minOf(selected.rows, 50)) {
+                val row = sheet.getRow(rowIndex) ?: continue
+                for (columnIndex in 0 until minOf(selected.columns, 20)) {
+                    val cell = row.getCell(columnIndex) ?: continue
+                    if (cell.cellType == CellType.BLANK) continue
+                    val valueType = if (cell.cellType == CellType.FORMULA) cell.cachedFormulaResultType else cell.cellType
+                    val value = when (valueType) {
+                        CellType.NUMERIC -> java.math.BigDecimal.valueOf(cell.numericCellValue).toPlainString()
+                        CellType.STRING -> cell.stringCellValue
+                        CellType.BOOLEAN -> cell.booleanCellValue.toString()
+                        else -> null
+                    }
+                    add(ExcelCellDescription(CellReference(rowIndex, columnIndex).formatAsString(), cell.cellType.name.lowercase(), value,
+                        if (cell.cellType == CellType.FORMULA) cell.cellFormula else null))
+                }
+            }
+        }
+        return ExcelDescription(sheets, chosen,
+            ExcelPreview(selected.rows, selected.columns, selected.rows > 50 || selected.columns > 20, cells),
+            workbook.allNames.map { ExcelNameDescription(it.nameName, it.refersToFormula) }, report)
+    }
+
     /** A1 address (`'Sheet'!$C$5`) of a node's cell for a member coordinate. */
     fun address(nodeId: String, coord: Coord = emptyList()): String? = nodeAddresses[nodeId]?.get(coord)
 
@@ -77,6 +144,25 @@ class ExcelWorkbook internal constructor(
     fun write(path: java.nio.file.Path) {
         path.toAbsolutePath().parent?.let { java.nio.file.Files.createDirectories(it) }
         java.nio.file.Files.newOutputStream(path).use { workbook.write(it) }
+    }
+}
+
+private class BoundedWorkbookOutput(
+    private val target: java.io.OutputStream,
+    private val limit: Int,
+) : java.io.OutputStream() {
+    private var written = 0L
+    override fun write(value: Int) {
+        checkCapacity(1)
+        target.write(value)
+    }
+    override fun write(bytes: ByteArray, offset: Int, length: Int) {
+        checkCapacity(length)
+        target.write(bytes, offset, length)
+    }
+    private fun checkCapacity(length: Int) {
+        if (written + length > limit) throw ExcelExportLimitException("Workbook exceeds $limit bytes")
+        written += length
     }
 }
 
@@ -127,10 +213,12 @@ internal class ExcelWorkbookBuilder(
     private val fallbacks = mutableListOf<ExcelFallback>()
     private var formulaCells = 0
     private var inputCells = 0
+    private var createdCells = 0
 
     fun build(): ExcelWorkbook {
+        try {
         val paper = Render.completePaper(result, layout)
-        val overview = wb.createSheet(sheetName(if (de) "Übersicht" else "Overview"))
+        val overview = sheet(if (de) "Übersicht" else "Overview")
         paper.tables.forEach(::layoutTable)
         layoutInputs()
         layoutParams()
@@ -150,6 +238,10 @@ internal class ExcelWorkbookBuilder(
         )
         val addresses = nodeSlots.mapValues { (_, slots) -> slots.mapValues { (_, slot) -> slot.address } }
         return ExcelWorkbook(wb, report, addresses, recordSlots.mapValues { (_, slot) -> slot.address }, tableSlots.mapValues { (_, slot) -> slot.address })
+        } catch (error: Exception) {
+            runCatching { wb.close() }
+            throw error
+        }
     }
 
     // ── Sheets ─────────────────────────────────────────────────────────────────────────────────
@@ -169,8 +261,20 @@ internal class ExcelWorkbookBuilder(
         return candidate
     }
 
-    private fun cell(sheet: XSSFSheet, row: Int, col: Int): XSSFCell =
-        (sheet.getRow(row) ?: sheet.createRow(row)).let { it.getCell(col) ?: it.createCell(col) }
+    private fun sheet(name: String): XSSFSheet {
+        if (wb.numberOfSheets >= options.maxSheets)
+            throw ExcelExportLimitException("Workbook exceeds ${options.maxSheets} sheets")
+        return wb.createSheet(sheetName(name))
+    }
+
+    private fun cell(sheet: XSSFSheet, row: Int, col: Int): XSSFCell {
+        val existing = sheet.getRow(row)?.getCell(col)
+        if (existing != null) return existing
+        if (createdCells >= options.maxCells)
+            throw ExcelExportLimitException("Workbook exceeds ${options.maxCells} cells")
+        createdCells++
+        return (sheet.getRow(row) ?: sheet.createRow(row)).createCell(col)
+    }
 
     private fun text(sheet: XSSFSheet, row: Int, col: Int, value: String, style: StyleKey = StyleKey()) {
         if (value.isEmpty() && style == StyleKey()) return
@@ -191,7 +295,7 @@ internal class ExcelWorkbookBuilder(
     private class XColumn(val content: ColumnContent, val header: String, val width: Int, val grouped: Boolean = false)
 
     private fun layoutTable(table: PaperTable) {
-        val sheet = wb.createSheet(sheetName("${table.ref} ${table.title}"))
+        val sheet = sheet("${table.ref} ${table.title}")
         tableSheets[table.ref] = sheet
         sectionSheets[table.id] = sheet
         val rowDims = linkedSetOf<String>()
@@ -393,7 +497,7 @@ internal class ExcelWorkbookBuilder(
     // ── Inputs, parameters and helpers ─────────────────────────────────────────────────────────
 
     private fun layoutInputs() {
-        val sheet = wb.createSheet(sheetName(if (de) "Eingaben" else "Inputs"))
+        val sheet = sheet(if (de) "Eingaben" else "Inputs")
         text(sheet, 0, 0, if (de) "Eingaben (gelb: änderbar)" else "Inputs (yellow: editable)", StyleKey(bold = true, size = 13))
         sheet.setColumnWidth(0, 58 * 256)
         sheet.setColumnWidth(1, 30 * 256)
@@ -474,7 +578,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     private fun layoutParams() {
-        val sheet = wb.createSheet(sheetName(if (de) "Parameter" else "Parameters"))
+        val sheet = sheet(if (de) "Parameter" else "Parameters")
         text(sheet, 0, 0, if (de) "Parameter (blau: änderbar)" else "Parameters (blue: editable)", StyleKey(bold = true, size = 13))
         listOf(texts.label, "Name", if (de) "Wert" else "Value", texts.reference).forEachIndexed { i, h -> text(sheet, 2, i, h, StyleKey(bold = true, fill = Fill.HEADER, headerRule = true)) }
         sheet.setColumnWidth(0, 50 * 256)
@@ -499,7 +603,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     private fun layoutHelpers() {
-        val sheet = wb.createSheet(sheetName(if (de) "Hilfsrechnungen" else "Helper calculations"))
+        val sheet = sheet(if (de) "Hilfsrechnungen" else "Helper calculations")
         text(sheet, 0, 0, if (de) "Hilfsrechnungen (Bedingungen und nicht dargestellte Zeilen)" else "Helper calculations (conditions and lines not presented)", StyleKey(bold = true, size = 13))
         sheet.setColumnWidth(0, 58 * 256)
         sheet.setColumnWidth(1, 30 * 256)

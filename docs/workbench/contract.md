@@ -303,7 +303,7 @@ HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`nod
 ### 6.6.1 只读测试数据清单
 
 `mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]` 在输出目录下写出 `index.json` 和每个案例的
-`structure.json`、`run.json`、`paper.json`、`diagnostics.json`。四份文档都使用 §6 的
+`structure.json`、`run.json`、`paper.json`、`diagnostics.json`、`parameters.json`。五份文档都使用 §6 的
 `contract`/`revision`/`engine`/`data` 外层。清单本身只用于静态文件分发，不是 HTTP API 响应：
 
 ```json
@@ -380,8 +380,9 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 ### 6.9 Export（导出）
 
-- **XLSX**：调用 `ExcelExport.workbook(result, layout, options)`，响应附带导出报告：公式单元格数、输入单元格数、命名区域数、只写值的回退清单和求值错误。界面上的 “Formeltreue” 显示的就是这份报告。
-- **工作表预览**：需要工作簿的结构描述（工作表、单元格的公式与值、命名区域），目前只有写文件的接口（缺口 G6）。
+- **XLSX**：调用 `ExcelExport.workbook(result, layout, options)` 下载实际工作簿；预览响应附带同次构建所得的导出报告：公式单元格数、输入单元格数、命名区域数、只写值的回退清单和求值错误。界面上的 “Formeltreue” 显示的就是这份报告。
+- **工作表预览**：`GET /cases/{case}/export-preview?sheet=<工作表名>&layout=<版式 id>` 返回标准 envelope。`data.sheets[]` 按实际工作簿顺序包含 `name`、`rows`、`columns`；`data.selectedSheet` 是实际选择的工作表名，省略 `sheet` 时选第一张；`data.preview` 包含 `rows`、`columns`、`truncated` 和前 50 行、前 20 列的非空单元格（`address`、`kind`、`value`、`formula`）。`formula` 不带前导 `=`；数值 `value` 是十进制字符串，公式单元格的值来自工作簿求值缓存，求值失败可为空。`data.names[]` 包含工作簿命名区域的 `name`、`refersTo`。`data.report` 直接映射 `ExcelReport`：`formulaCells`、`inputCells`、`names`、`fallbacks[]`（`sheet`、`cell`、`nodeId`、`reason`）、`evaluationErrors[]`。未知工作表返回 404。预览和下载均从当前案例、参数和版式重新构建，不能使用静态示例统计。
+- **资源预算**：服务端为预览与 XLSX 下载最多构建 64 张工作表和 50,000 个已创建单元格；XLSX 序列化最多写 8 MiB。超限返回 413 `MANTRA-WORKBENCH-TOO-LARGE`，不发送部分工作簿。四个服务工作线程各自受同一预算约束。
 - **HTML 和文本**：调用 `Render.html` 与 `Render.text`。
 
 ## 7. 编辑语义
@@ -488,6 +489,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |
 | POST | `/cases/{case}/imports/inspect`、`/imports/apply` | 导入（§8.1） |
 | GET | `/cases/{case}/export.xlsx`、`/export.html`、`/export.txt`（可带 `?layout=`） | 导出（§6.9） |
+| GET | `/cases/{case}/export-preview`（可带 `?sheet=`、`?layout=`） | 工作簿预览与保真度报告（§6.9） |
 | GET | `/events` | SSE：`documentChanged`、`revision` |
 
 ### 9.2 前端路由
@@ -535,6 +537,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | Explain | 内核 trace 渲染预算；深度 ≤ 5 |
 | Compare | 每次一个变体 |
 | Compare 参数集列表 | 最多 128 项 |
+| 工作簿导出 | 最多 64 张工作表、50,000 个单元格；XLSX 响应最多 8 MiB（§6.9） |
 | 撤销历史 | 每个案例 50 个版本 |
 
 ### 9.5 安全
@@ -585,7 +588,7 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 ## 12. 验收
 
 - **契约测试**（mantra-workbench）：
-  - 三个验收方案各有 Structure、Run、Paper 和 Diagnostics 的 golden 文件；
+  - 三个验收方案各有 Structure、Run、Paper、Diagnostics 和 Parameters 的 golden 文件；
   - 另有选定地址的 Explain，以及 ESt 2025 对 `params-2026` 的 Compare；
   - golden 文件和服务端测试中的每个响应都通过 JSON Schema 校验。
 - **数值来源**：golden 记录的是引擎输出，验收断言仍须来自独立来源（CLAUDE.md）。例如 ESt 用 `verify_expected.py` 独立复算（需扩展到 2026 参数），IAS 36 用 IE8 公布的数字。

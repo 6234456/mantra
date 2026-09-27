@@ -11,8 +11,11 @@ const golden = resolve(process.cwd(), '../mantra-workbench/src/test/resources/go
 const manifest = JSON.parse(readFileSync(resolve(golden, 'index.json'), 'utf8'))
 const files = { '/fixtures/index.json': manifest }
 for (const item of manifest.cases) {
-  for (const path of Object.values(item.files)) {
-    files[path] = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+  for (const value of Object.values(item.files)) {
+    const paths = typeof value === 'string' ? [value] : Object.values(value)
+    for (const path of paths) {
+      files[path] = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+    }
   }
 }
 
@@ -22,9 +25,10 @@ const scenarios = [
   { id: 'sap-co-product-cost/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: { node: 'direct-primary-total' } },
 ]
 
-function serveGolden() {
+function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
+  const available = { ...files, '/fixtures/index.json': fixtureManifest, ...extraFiles }
   vi.stubGlobal('fetch', vi.fn(async input => {
-    const document = files[input]
+    const document = available[input]
     if (!document) return { ok: false, status: 404, statusText: 'Not Found' }
     return { ok: true, json: async () => document }
   }))
@@ -38,6 +42,19 @@ afterEach(() => {
 })
 
 describe('the three tracked golden cases, from overview to a selected Paper cell', () => {
+  it('shows real Explain steps from the ESt golden on the provenance route', async () => {
+    const id = 'de-est-2025/case-mustermann.mantra'
+    const address = { node: 'ermaessigung-35a' }
+    const entry = manifest.cases.find(item => item.id === id)
+    const goldenExplain = files[entry.files.explains[addressToPath(address)]].data
+    serveGolden()
+    history.replaceState(null, '', `${casePath(id)}/provenance/${encodeURIComponent(addressToPath(address))}`)
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: goldenExplain.label, level: 1 })).toBeTruthy()
+    expect(goldenExplain.steps.length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(goldenExplain.steps[0].text)).length).toBeGreaterThan(0)
+  })
+
   it.each(scenarios)('$id', async scenario => {
     serveGolden()
     history.replaceState(null, '', `${casePath(scenario.id)}/overview`)
@@ -57,5 +74,47 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(location.pathname).toBe(panelUrl)
     expect(new URLSearchParams(location.search).get('cell')).toBe(addressToPath(scenario.address))
     expect(cell?.classList.contains('selected')).toBe(true)
+  })
+
+  it.each(scenarios)('$id export uses workbook sheets and fidelity reported by Excel', async scenario => {
+    serveGolden()
+    history.replaceState(null, '', `${casePath(scenario.id)}/export`)
+    render(<App />)
+    const entry = manifest.cases.find(item => item.id === scenario.id)
+    const first = files[entry.files['export-preview']].data
+    expect(await screen.findByRole('heading', { name: `${first.sheets.length} Blätter` })).toBeTruthy()
+    expect(screen.getByText(first.report.formulaCells.toString(), { selector: '.export-metrics strong' })).toBeTruthy()
+    expect(screen.getByText(first.report.names.toString(), { selector: '.export-metrics strong' })).toBeTruthy()
+    const second = first.sheets[1]
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(second.name) }))
+    expect(await screen.findByRole('heading', { name: second.name, level: 2 })).toBeTruthy()
+    const selected = files[entry.files[`export-preview:${second.name}`]].data
+    expect(document.querySelector('.export-formula .mono')?.textContent).toBe(selected.preview.cells.find(cell => cell.formula)?.address ?? selected.preview.cells[0]?.address ?? '—')
+    expect(screen.getByRole('button', { name: 'Herunterladen' }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('renders every panel and node change from the tracked 2026 Compare golden on a deep link', async () => {
+    const id = 'de-est-2025/case-mustermann.mantra'
+    const path = '/fixtures/de-est-2025-case-mustermann-b598e71c/compare-2026.json'
+    const compare = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+    expect(compare.data.changes.length).toBeGreaterThan(0)
+    const indexed = JSON.parse(JSON.stringify(manifest))
+    indexed.parameters = [{ id: 'de.est/params-2026', path: '' }]
+    indexed.cases.find(item => item.id === id).files.compares = { '["de.est/params-2026"]': path }
+    serveGolden({ [path]: compare }, indexed)
+    history.replaceState(null, '', `${casePath(id)}/parameters?compare=de.est%2Fparams-2026`)
+    render(<App />)
+
+    expect((await screen.findAllByText('83.217,90 → 83.061,90')).length).toBeGreaterThan(0)
+    expect(screen.getByLabelText('Vergleichen mit').value).toBe('de.est/params-2026')
+    expect(document.querySelectorAll('.comparison-group').length).toBe(compare.data.changes.length)
+    expect(document.querySelectorAll('.comparison-group .comparison-row').length)
+      .toBe(compare.data.changes.reduce((count, group) => count + group.items.length, 0))
+    for (const group of compare.data.changes) {
+      for (const change of group.items) {
+        expect([...document.querySelectorAll('.comparison-group .comparison-row small')]
+          .some(label => label.textContent?.startsWith(change.node))).toBe(true)
+      }
+    }
   })
 })

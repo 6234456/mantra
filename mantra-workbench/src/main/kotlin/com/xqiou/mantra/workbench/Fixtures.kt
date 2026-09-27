@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
+import com.xqiou.mantra.excel.ExcelExport
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
@@ -58,11 +59,16 @@ object Fixtures {
         val target = out.resolve(slug)
         Files.createDirectories(target)
         val files = linkedMapOf<String, Any?>()
+        val exportPreviews = ExcelExport.workbook(view, layout).use { export ->
+            export.report.sheets.map { name -> name to ExportDocuments.preview(requireNotNull(export.describe(name))) }
+        }
         listOf(
             "structure" to WorkbenchDocuments.structure(view),
             "run" to WorkbenchDocuments.run(view, layout),
             "paper" to WorkbenchDocuments.paper(paper, view),
             "diagnostics" to WorkbenchDocuments.diagnostics(view.diagnostics),
+            "export-preview" to exportPreviews.first().second,
+            "parameters" to WorkbenchDocuments.parameters(view),
         ).forEach { (name, data) ->
             val file = "$name.json"
             Files.writeString(
@@ -91,6 +97,12 @@ object Fixtures {
                 explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"
             }
             files["explains"] = explains
+        }
+        exportPreviews.forEachIndexed { index, (name, data) ->
+            val file = "export-preview-$index.json"
+            Files.writeString(target.resolve(file),
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n")
+            files["export-preview:$name"] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
         val entry = Entry(id, case.text("title") ?: schema.meta.title, files)
         val manifest = linkedMapOf("cases" to listOf(manifestEntry(entry)))

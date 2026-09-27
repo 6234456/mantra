@@ -9,6 +9,10 @@ const copy = {
     inspect: 'Zelle auswählen, um den Rechenweg zu sehen.', sourceTree: 'Herkunftsbaum', intermediate: 'Zwischenwerte',
     chooseCase: 'Fall wählen', result: 'Ergebnis', noResult: 'Kein Ergebnis', noPaper: 'Für diesen Bereich liegt noch kein Arbeitspapier vor.',
     comparison: 'Vergleich', effect: 'Auswirkungen auf die Hauptlinie', bases: 'Grundlagen', continueTree: 'Weitere Quellen laden', traceTruncated: 'Der Rechenweg wurde begrenzt.',
+    workbook: 'Arbeitsmappe', worksheets: 'Blätter', preview: 'Vorschau', fidelity: 'Formeltreue',
+    formulaCells: 'Formelzellen', inputCells: 'Eingabezellen', fallbackCells: 'Nur Werte', namedRanges: 'Benannte Bereiche',
+    download: 'Herunterladen', downloadLive: 'Download im Live-Modus verfügbar', layout: 'Darstellung', currentLayout: 'Fallvorgabe',
+    truncatedPreview: 'Vorschau zeigt die ersten 50 Zeilen und 20 Spalten.', evaluationErrors: 'Auswertungsfehler',
   },
   en: {
     overview: 'Overview', mainline: 'Mainline', auxiliary: 'Additional information', workspace: 'Work areas',
@@ -20,6 +24,10 @@ const copy = {
     inspect: 'Select a cell to inspect its calculation.', sourceTree: 'Provenance tree', intermediate: 'Intermediate values',
     chooseCase: 'Choose case', result: 'Result', noResult: 'No result', noPaper: 'No working paper is available for this panel yet.',
     comparison: 'Comparison', effect: 'Effect on the mainline', bases: 'Basis', continueTree: 'Load more sources', traceTruncated: 'This calculation trail was truncated.',
+    workbook: 'Workbook', worksheets: 'sheets', preview: 'Preview', fidelity: 'Formula fidelity',
+    formulaCells: 'Formula cells', inputCells: 'Input cells', fallbackCells: 'Values only', namedRanges: 'Named ranges',
+    download: 'Download', downloadLive: 'Download available in live mode', layout: 'Layout', currentLayout: 'Case default',
+    truncatedPreview: 'Preview shows the first 50 rows and 20 columns.', evaluationErrors: 'Evaluation errors',
   },
 }
 export type Language = keyof typeof copy

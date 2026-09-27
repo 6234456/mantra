@@ -4,9 +4,15 @@ import com.networknt.schema.InputFormat
 import com.networknt.schema.SchemaLocation
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.xqiou.mantra.workbench.ExportBudget
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.util.CellReference
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.net.Socket
+import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.assertContains
@@ -32,7 +38,9 @@ class WorkbenchServerTest {
         return root
     }
 
-    private data class Response(val status: Int, val headers: String, val body: String)
+    private data class Response(val status: Int, val headers: String, val bytes: ByteArray) {
+        val body: String get() = bytes.toString(Charsets.UTF_8)
+    }
 
     private fun validate(name: String, body: String) {
         val files = Files.list(Path.of("docs/workbench/schema")).use { stream ->
@@ -64,10 +72,13 @@ class WorkbenchServerTest {
             output.write(body)
             output.flush()
             socket.shutdownOutput()
-            val response = socket.getInputStream().readAllBytes().toString(Charsets.UTF_8)
+            val bytes = socket.getInputStream().readAllBytes()
+            // ISO-8859-1 maps each byte to one character, so the header offset stays exact for binary XLSX bodies.
+            val response = bytes.toString(Charsets.ISO_8859_1)
             val split = response.indexOf("\r\n\r\n")
             val header = response.substring(0, split)
-            return Response(header.lineSequence().first().split(' ')[1].toInt(), header, response.substring(split + 4))
+            return Response(header.lineSequence().first().split(' ')[1].toInt(), header,
+                bytes.copyOfRange(split + 4, bytes.size))
         }
     }
 
@@ -128,6 +139,88 @@ class WorkbenchServerTest {
             assertEquals(413, request(port, preview, "POST", headers = mapOf(
                 "X-Mantra-Token" to token, "Content-Length" to "${1024 * 1024 + 1}"),
             ).status)
+        }
+    }
+
+    @Test fun `export preview and downloads come from the selected layout and generated workbook`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/layout.mantra"),
+            "(layout test/export {:preset :de-staffel-4 :title \"Custom export\"} (table main))")
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/sample%2Fcase.mantra"
+            val preview = request(server.localPort, "$path/export-preview")
+            assertEquals(200, preview.status, preview.body)
+            validate("export-preview", preview.body)
+            assertContains(preview.body, "\"selectedSheet\"")
+            assertContains(preview.body, "\"formulaCells\"")
+            assertContains(preview.body, "\"fallbacks\"")
+            val sheet = Regex("\"selectedSheet\":\"([^\"]+)\"").find(preview.body)!!.groupValues[1]
+            val selected = request(server.localPort, "$path/export-preview?sheet=${java.net.URLEncoder.encode(sheet, Charsets.UTF_8)}")
+            assertEquals(200, selected.status, selected.body)
+            assertEquals(404, request(server.localPort, "$path/export-preview?sheet=missing").status)
+            assertEquals(400, request(server.localPort, "$path/export-preview?other=x").status)
+            val changedLayout = request(server.localPort, "$path/export-preview?layout=test%2Fexport")
+            assertEquals(200, changedLayout.status, changedLayout.body)
+            assertFalse(changedLayout.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"")
+                .find(preview.body)!!.value))
+            assertEquals(422, request(server.localPort, "$path/export-preview?layout=missing").status)
+            val xlsx = request(server.localPort, "$path/export.xlsx")
+            assertEquals(200, xlsx.status)
+            assertContains(xlsx.headers, "spreadsheetml.sheet")
+            assertContains(xlsx.headers, "content-disposition: attachment", ignoreCase = true)
+            val previewData = ObjectMapper().readTree(preview.body)["data"]
+            XSSFWorkbook(ByteArrayInputStream(xlsx.bytes)).use { workbook ->
+                val sheetNames = (0 until workbook.numberOfSheets).map(workbook::getSheetName)
+                assertEquals(previewData["sheets"].map { it["name"].asText() }, sheetNames)
+                assertEquals(previewData["report"]["names"].asInt(), workbook.allNames.size)
+                val formulaCells = workbook.sumOf { sheet -> sheet.sumOf { row -> row.count { it.cellType == CellType.FORMULA } } }
+                assertEquals(previewData["report"]["formulaCells"].asInt(), formulaCells)
+                val formula = workbook.asSequence().flatMap { sheet -> sheet.asSequence() }
+                    .flatMap { row -> row.asSequence() }.first { it.cellType == CellType.FORMULA }
+                val formulaSheet = formula.sheet.sheetName
+                val formulaAddress = CellReference(formula.rowIndex, formula.columnIndex).formatAsString()
+                val formulaPreview = request(server.localPort,
+                    "$path/export-preview?sheet=${java.net.URLEncoder.encode(formulaSheet, Charsets.UTF_8)}")
+                val previewCell = ObjectMapper().readTree(formulaPreview.body)["data"]["preview"]["cells"]
+                    .first { it["address"].asText() == formulaAddress }
+                assertEquals(formula.cellFormula, previewCell["formula"].asText())
+            }
+            val changedXlsx = request(server.localPort, "$path/export.xlsx?layout=test%2Fexport")
+            assertEquals(200, changedXlsx.status)
+            XSSFWorkbook(ByteArrayInputStream(changedXlsx.bytes)).use { workbook ->
+                val cell = workbook.getSheetAt(0).getRow(0).getCell(0).stringCellValue
+                val firstPreviewCell = ObjectMapper().readTree(changedLayout.body)["data"]["preview"]["cells"][0]
+                assertEquals(firstPreviewCell["value"].asText(), cell)
+                assertEquals("Custom export", cell)
+            }
+            val html = request(server.localPort, "$path/export.html")
+            assertEquals(200, html.status)
+            assertContains(html.body, "<html")
+            val text = request(server.localPort, "$path/export.txt")
+            assertEquals(200, text.status)
+            assertContains(text.body, "Amount")
+        }
+    }
+
+    @Test fun `export workbook and response budgets return 413 without partial files`() {
+        val root = workspace()
+        val path = "/api/v1/cases/sample%2Fcase.mantra"
+        WorkbenchServer(root, 0, exportBudget = ExportBudget(maxCells = 1)).use { server ->
+            server.start()
+            for (route in listOf("export-preview", "export.xlsx")) {
+                val response = request(server.localPort, "$path/$route")
+                assertEquals(413, response.status, response.body)
+                assertContains(response.body, "MANTRA-WORKBENCH-TOO-LARGE")
+            }
+        }
+        WorkbenchServer(root, 0, exportBudget = ExportBudget(maxBytes = 64)).use { server ->
+            server.start()
+            assertEquals(200, request(server.localPort, "$path/export-preview").status)
+            val response = request(server.localPort, "$path/export.xlsx")
+            assertEquals(413, response.status, response.body)
+            assertContains(response.body, "MANTRA-WORKBENCH-TOO-LARGE")
+            assertFalse(response.bytes.take(2).toByteArray().contentEquals(byteArrayOf('P'.code.toByte(), 'K'.code.toByte())))
         }
     }
 
@@ -198,6 +291,9 @@ class WorkbenchServerTest {
             assertContains(response.body, "\"coord\":[\"B\"]")
             assertContains(response.body, "\"options\":[")
             assertContains(response.body, "\"difference\":")
+            val nested = request(server.localPort, "$path&depth=2")
+            assertEquals(200, nested.status, nested.body)
+            validate("explain", nested.body)
         }
     }
 

@@ -114,14 +114,15 @@ class FixtureContractTest {
                 it.schemas(schemas)
             }
             entries.forEach { entry ->
-                listOf("structure", "run", "paper", "diagnostics").forEach { name ->
-                    val file = "$name.json"
-                    val relative = (entry.files.getValue(name) as String).removePrefix("/fixtures/")
+                entry.files.filterKeys { it in setOf("structure", "run", "paper", "diagnostics", "parameters", "export-preview") ||
+                    it.startsWith("export-preview:") }.forEach { (key, url) ->
+                    val name = key.substringBefore(':')
+                    val relative = (url as String).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
-                    assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$file changed")
+                    assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$key changed")
                     val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json"))
                     val errors = schema.validate(generated, InputFormat.JSON)
-                    assertTrue(errors.isEmpty(), "${entry.id}/$file: $errors")
+                    assertTrue(errors.isEmpty(), "${entry.id}/$key: $errors")
                 }
                 @Suppress("UNCHECKED_CAST")
                 val explains = entry.files["explains"] as Map<String, String>

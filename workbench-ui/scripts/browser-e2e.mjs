@@ -137,7 +137,15 @@ try {
     assert.equal(clicked, true, `${scenario.id} selectable Paper cell`)
     await until(async () => await evaluate("!!document.querySelector('.paper-table .cell-button.selected')"), `${scenario.id} selected cell`)
     assert.equal(await evaluate("new URLSearchParams(location.search).get('cell')"), scenario.address)
-    console.log(`PASS ${scenario.id}: overview → panel → addressed cell`)
+    const exportUrl = `${base}/export`
+    assert.equal(await evaluate(`document.querySelector('.app-bar a[href=${JSON.stringify(exportUrl)}]')?.click() || location.pathname`), exportUrl)
+    await until(async () => await evaluate("!!document.querySelector('.export-sheets button') && !!document.querySelector('.export-metrics')"), `${scenario.id} export`)
+    const secondSheet = await evaluate("document.querySelectorAll('.export-sheets button')[1]?.querySelector('b')?.textContent")
+    assert.ok(secondSheet, `${scenario.id} has a second worksheet`)
+    await evaluate("document.querySelectorAll('.export-sheets button')[1].click()")
+    await until(async () => await evaluate(`document.querySelector('.export-preview h2')?.textContent === ${JSON.stringify(secondSheet)}`), `${scenario.id} worksheet preview`)
+    assert.equal(await evaluate("document.querySelectorAll('.export-metrics strong').length"), 4)
+    console.log(`PASS ${scenario.id}: overview → panel → addressed cell → export → worksheet`)
   }
 } finally {
   try { session?.close() } catch { /* Process cleanup still takes precedence. */ }
