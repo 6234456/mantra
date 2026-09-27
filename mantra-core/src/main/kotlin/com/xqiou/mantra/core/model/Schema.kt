@@ -25,7 +25,7 @@ enum class ValueType(val keyword: String) {
 
 /**
  * An embedded Normein expression. [source] is the exact author text of [form]; [location] is the
- * position of its first character in the Mantra document, used to re-anchor kernel diagnostics.
+ * position of its first character in the Mantra document, passed to the kernel as hostPosition.
  */
 data class Formula(
     val source: String,

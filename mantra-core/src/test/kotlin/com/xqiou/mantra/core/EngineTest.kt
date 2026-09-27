@@ -380,4 +380,29 @@ class EngineTest {
         assertDecimal("5", result.decimal("b"))
         assertEquals(Value.num(0), result.value("a"))
     }
+
+    @Test
+    fun `data literals follow the kernel numeric grammar and limits`() {
+        val application = schema("(schema t/literals {} (input principal :decimal) (line result \"Result\" principal))")
+        val result = Mantra.calculate(application, case("(case c (inputs {:principal .5}))"))
+        assertTrue(result.succeeded, result.diagnostics.toString())
+        assertDecimal("0.5", result.decimal("result"))
+
+        val oversized = "0." + "0".repeat(1_000) + "1"
+        val failure = assertFailsWith<MantraException> { case("(case c (inputs {:principal $oversized}))") }
+        assertTrue(failure.diagnostics.any {
+            it.code == "MANTRA-READ-LITERAL" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
+        })
+    }
+
+    @Test
+    fun `controlled value failures become diagnostics during evaluation`() {
+        val application = schema("(schema t/limit {} (input principal :decimal) (line result \"Result\" principal))")
+        val supplied = case("(case c)").copy(inputs = mapOf("principal" to Value.Num(BigDecimal("1E-1001"))))
+        val result = Mantra.calculate(application, supplied)
+        assertFalse(result.succeeded)
+        assertTrue(result.diagnostics.any {
+            it.code == "MANTRA-VALUE-LIMIT" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
+        }, result.diagnostics.toString())
+    }
 }

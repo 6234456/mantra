@@ -5,20 +5,20 @@
 | Status | Draft for review, revised with per-item acceptance contracts |
 | Date | 2026-09-26 |
 | Consumer | Mantra calculation-schema engine (`mantra-core`, `mantra-render`, `mantra-excel`) |
-| Kernel baseline | `normein-dsl` 0.3.0 at `be7648b57c019a8d0efe6ae8b2a8a5695078c475`: language semantics 14, stdlib 21, reader 3, parser 3, type system 3, canonicalization 2 |
-| Candidate assessed | Unreleased Normein working tree after `be7648b5` (language semantics 24, stdlib 32, parser 6, type system 6, canonicalization 3), assessed on 2026-09-26 with `-PnormeinCandidate=true` |
+| Kernel baseline | `normein-dsl` 0.3.0 at `0a3ae1de844c92635fbbc03406a13cb0e8920c03`: language semantics 25, stdlib 33, reader 3, parser 7, type system 7, canonicalization 3 |
+| Previous baseline | `be7648b57c019a8d0efe6ae8b2a8a5695078c475`: language semantics 14, stdlib 21, parser 3, type system 3, canonicalization 2 |
 | Executable contract | [`NormeinRfcContractTest`](../../mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinRfcContractTest.kt) pins the current behaviour of every item |
 | Scope | Requests only. Mantra does not modify Normein; every item has a working Mantra-side workaround today. |
 
 ## 摘要（中文）
 
-Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。契约里“现状”一栏由 `NormeinRfcContractTest` 针对锁定的内核逐条验证。2026-09-26 还用 `-PnormeinCandidate=true` 对未发布的候选内核（language 24 / stdlib 32）跑了同一套契约，据此把各项分为三类：
+Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定发布的提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。
 
-- **真正的内核缺口**：B（嵌入表达式的宿主绝对位置）、D2（`decimal/round` 等函数返回可空类型）、I（新增：公开的字面量分类 API）。另有三项只剩部分缺口：A（多根文档；实测最大示例只用了 18% 的 token 上限，降为低优先级）、C（结构错误缺少字段路径，整数取值策略未写明）、F（缺少从节点路径到源码位置的公开索引，非标量值也不渲染）。
-- **已修复事项**：D1（`apply` 的结果类型）在候选内核中已修复，Mantra 下次锁定内核时采纳。其余各项在候选内核中行为不变。Mantra 既有测试在候选内核上无需任何修改即全部通过，只有契约中的版本锁定和 D1 两条按预期提示变化。
+- **新内核已实现**：A 的多形式读取、B 的宿主绝对位置、C 的结构错误字段路径、D 的静态结果类型、F 的源码索引和非标量 trace、I 的公开字面量分类。Mantra 已使用 B 与 I，并通过锁定内核的完整测试。
+- **仍需在 Mantra 完成**：Explain 渲染、案例编辑回写、数据接入与导入导出工作包。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
 - **应由领域层实现**：E（OPTIONAL 根缺省时不按 nil 处理；Mantra 显式传 nil 本就是正确契约，内核只需补文档）、G（有界迭代可以用 `reduce` + `range`，或写一个通过 `invokeCallable` 调用回调的领域库函数，都受内核预算约束）、H（`DslAuthoringService` 已经接受宿主提供的分析作用域）、J（`mantra/` 限定名继续由 Mantra 做等长改写），以及资源上限带来的领域层义务。
 
-核对中还发现 Mantra 自身有三个待修缺陷，都属于领域层：数据字面量的规则与内核不一致（I）；超出内核值上限时抛出未捕获异常，没有转成诊断（见资源上限）；限定名改写会误改字符串和关键字里的 `mantra/`（J）。
+WP1 接入分支同时修复了三个 Mantra 侧缺陷：数据字面量委托内核分类（I）；超出内核值上限时返回诊断；限定名只改写符号，不改写字符串或关键字（J）。这些修复尚未合入主分支。
 
 ## Context
 
@@ -62,7 +62,7 @@ Identities must not depend on the position. Today this already holds for `logica
 
 **D1.** `(apply min (vals m))` is typed `Any`, so `(decimal/divide x (apply min (vals m)) 4)` fails with `DSL-TYPE-CALL-ARGUMENT`. *Workaround:* Mantra added `dim/min` and `dim/max`. **Fixed in the assessed candidate:** the expression is typed `Decimal` there.
 
-**D2.** `decimal/round`, `decimal/floor`, `decimal/ceil` and `decimal/truncate` are typed `number?` for all inputs, so a host cannot compile a rounded formula against a non-null expected type (`DSL-TYPE-EXPECTED`). *Workaround:* Mantra compiles numeric lines against nullable expected types and maps `nil` to 0. *Proposal:* follow the Clojure-parity rule already applied to `-`, `/`, `min` and `max`: a non-null result for non-null numeric inputs, and typed diagnostics for invalid scales. `decimal/divide` stays nullable, because division by zero returns a documented `nil`. Still open in the candidate.
+**D2.** The previous pin typed `decimal/round`, `decimal/floor`, `decimal/ceil` and `decimal/truncate` as `number?` for every input, preventing a rounded formula from compiling against a non-null expected type (`DSL-TYPE-EXPECTED`). The new pin returns non-null `Decimal` for non-null numeric inputs and reports invalid scales as diagnostics. `decimal/divide` remains nullable because division by zero returns a documented `nil`.
 
 ## E. Semantics of OPTIONAL roots that are absent (documentation only)
 
@@ -111,23 +111,23 @@ Each contract states:
 
 | Item | Kernel gap | Fixed upstream | Domain layer | Documentation |
 | --- | --- | --- | --- | --- |
-| A multi-form reader | `readForms`, projection v2 | | wrappers, `include`, data sources for bulk data | |
-| B host positions | `hostPosition` | | remove re-anchoring on adoption | |
-| C records | field paths, numeric policy | | record-type registry (`PlanTypes`) | constructor contract |
+| A multi-form reader | | ✓ (candidate) | wrappers, `include`, data sources for bulk data | |
+| B host positions | | ✓ (candidate) | pass `hostPosition`; remove re-anchoring | |
+| C records | numeric coercion policy | field paths (candidate) | record-type registry (`PlanTypes`) | constructor contract |
 | D1 `apply` typing | | ✓ (candidate) | keep `dim/min`, `dim/max` | |
-| D2 `decimal/*` typing | non-null signatures | | nullable expectations until then | |
+| D2 `decimal/*` typing | | ✓ (candidate) | update expected types | |
 | E absent OPTIONAL roots | | | explicit `nil` (kept) | ✓ |
-| F value trace | source index, non-scalar rendering | | Rechenweg renderer | |
-| G bounded iteration | | | `reduce` pattern or callback function | |
-| H authoring | (via B) | | editor integration, host-form docs | |
-| I literal classification | `DslFormLiterals` | | align reader now (open defect) | |
-| J qualified node references | | | form-aware rewrite (open defect) | |
+| F value trace | | source index, non-scalar rendering (candidate) | Rechenweg renderer | |
+| G bounded iteration | | ✓ (candidate) | `reduce` pattern or callback function | |
+| H authoring | | B prerequisite (candidate) | editor integration, host-form docs | |
+| I literal classification | | `DslFormLiterals` (candidate) | delegate from Mantra reader | |
+| J qualified node references | | | form-aware rewrite (implemented by WP1) | |
 
 ### Identity model used below
 
 Observed at the pin (contract B):
 
-- **Reader grammar:** `DslFormReader.GRAMMAR_IDENTITY` = `normein-clj-form-reader@1`. Its `surfaceFingerprintSha256` hashes a canonical declaration that includes `document=exactly-one-root` and the limit kinds. The language reader version (3) is a separate axis.
+- **Reader grammar:** candidate `DslFormReader.GRAMMAR_IDENTITY` = `normein-clj-form-reader@2`. `readDocument` retains its one-root contract; `readForms` accepts multiple roots. The language reader version (3) is a separate axis.
 - **Language versions:** `DslLanguageVersions` (language semantics, reader, parser, evaluator, standard library, normalized AST API, canonicalization, type system, artifact schema).
 - **Per compiled expression:**
   - `sourceFingerprint`: source format version, the exact author text, and the named definitions the expression references. An unreferenced definition changes nothing; a changed referenced definition changes all three fingerprints.
@@ -139,8 +139,9 @@ Observed at the pin (contract B):
 
 ### A. Multi-form host documents
 
-- **Classification:** kernel gap, low priority.
-- **Current (pin = candidate)**, `A - a document has exactly one root form…` and `A - the token limit admits 511…`:
+- **Classification:** fixed in the candidate; Mantra keeps wrapped documents for compatibility.
+- **Current (candidate)**, `A - a document has exactly one root form…` and `A - the token limit admits 511…`:
+  - `readForms("(schema s)\n(case c)")` returns two roots with document spans; `readDocument` remains one-root.
   - `readDocument("(schema s)\n(case c)")` → failure `DSL-PARSE-TRAILING-TOKEN` at 2:1.
   - `DslFormReaderLimits(maxTokens = 8_193)`, `maxSourceLength = 65_537` and `maxNesting = 129` each throw `IllegalArgumentException`.
   - 511 typical line forms read successfully; 512 fail with `DSL-PARSE-TOKEN-LIMIT`.
@@ -159,14 +160,14 @@ Observed at the pin (contract B):
   - An inline two-column case table costs 6 tokens per row, so a case document holds about 1,360 rows.
 - **Mantra migration:**
   - Wrapped documents stay valid forever: `readForms` of a wrapped document yields one form.
-  - Mantra accepts both layouts once the projection v2 identity is present, and keeps writing wrapped documents until older Mantra versions (which reject a second root with `MANTRA-READ-SYNTAX`) are retired.
-  - `include` remains for modularity.
+  - WP1 keeps `Document.read` on `readDocument` and retains wrapped roots: this preserves existing schema/case/layout formats. Accepting several top-level forms would need a separate document-format change with tests and a migration path.
+  - `include` remains useful for modularity and for keeping large author documents below the per-form limit, even when the kernel supports `readForms`.
   - Independently of A, bulk data never goes into documents; it goes through data sources (`JsonSource`, `CsvSource`, `XlsxSource`), which bypass the reader.
 
 ### B. Absolute positions for embedded expressions
 
-- **Classification:** kernel gap, high priority.
-- **Current (pin = candidate)**, `B - diagnostics of an embedded expression…` and `B - identities ignore…`:
+- **Classification:** fixed in the new pin; adopted by Mantra WP1.
+- **Current (candidate)**, `B - diagnostics of an embedded expression…` and `B - identities ignore…`:
   - `compile("(+ a\n     zzz)", logicalLocation = "line.zve")` → `DSL-REF-UNKNOWN-SYMBOL` at 2:6, relative to the expression, with `logicalLocation = "line.zve"` echoed.
   - Changing `logicalLocation` changes no fingerprint. Changing only whitespace changes `sourceFingerprint` but not `canonicalAstHash` or `executionFingerprint`.
 - **Acceptance:**
@@ -184,10 +185,10 @@ Observed at the pin (contract B):
 
 ### C. Record values
 
-- **Classification:** partly present at the pin. Kernel gap for field paths and the numeric policy; the record-type registry is domain layer.
-- **Current (pin = candidate)**, `C - records need a declared type…` and `C - value limits count every nested item`:
+- **Classification:** field paths fixed in the candidate; explicit integer values remain required.
+- **Current (candidate)**, `C - records need a declared type…` and `C - value limits count every nested item`:
   - A keyword-keyed map for a `TypeRef` root → `DSL-INPUT-ROOT-TYPE`.
-  - `importStructuredHost({key :A, n 1 (DecimalValue)}, ref(row))` → `DSL-VALUE-STRUCTURAL-TYPE` at path `$`.
+  - `importStructuredHost({key :A, n 1 (DecimalValue)}, ref(row))` → `DSL-VALUE-STRUCTURAL-TYPE` at path `$.n`.
   - The same input with an `IntegerValue` succeeds, and `row.n` evaluates.
   - Limits: 1,428 rows of 3 fields import, 1,429 fail with `DSL-VALUE-ITEM-LIMIT`. A 5,001-element vector throws `DslValueConstructionException` (`DSL-VALUE-ITEM-LIMIT`).
 - **Acceptance:**
@@ -213,10 +214,10 @@ Observed at the pin (contract B):
 
 ### D. Static result types
 
-- **Classification:** D1 fixed upstream; D2 kernel gap.
+- **Classification:** D1 and D2 fixed in the candidate.
 - **Current**, `D - apply is typed Any…`:
   - **D1:** `(apply min (vals m))` with `m: Map<Keyword, Decimal>` → `Any` at the pin, and `(decimal/divide 1 (apply min (vals m)) 4)` → `DSL-TYPE-CALL-ARGUMENT`. The candidate infers `Decimal` and compiles the division.
-  - **D2 (pin = candidate):** `(decimal/round x 2)` → `Null | Integer | Long | Decimal`. With expected type `Decimal` → `DSL-TYPE-EXPECTED`. `(+ (decimal/round x 2) 1)` compiles; arithmetic accepts the nullable input.
+  - **D2 (candidate):** `(decimal/round x 2)` with non-null `x: Decimal` → `Decimal` and compiles with expected type `Decimal`; `decimal/divide` remains nullable.
 - **Acceptance:**
   - **D1:** as in the candidate. `(apply min (vals {}))` remains a runtime failure, never a silent `nil`.
   - **D2:**
@@ -248,10 +249,10 @@ Observed at the pin (contract B):
 
 ### F. Value trace
 
-- **Classification:** partly present at the pin. Kernel gap for the source index and non-scalar rendering; the Rechenweg renderer is domain layer.
-- **Current (pin = candidate)**, `F - a full trace renders scalar node results…`, for `(if (> x 10) (min (* 0.2 handwerker) 4000) 0)` with x = 1200 and handwerker = 1200:
+- **Classification:** source index and bounded non-scalar rendering fixed in the candidate; the Rechenweg renderer remains Mantra work.
+- **Current (candidate)**, `F - a full trace renders scalar node results…`, for `(if (> x 10) (min (* 0.2 handwerker) 4000) 0)` with x = 1200 and handwerker = 1200:
   - Node `0` renders `240.0`, `0.0` renders `true`, `0.1.1` renders `240.0` and `0.1.1.2` renders `1200`. Node `0.2`, the branch not taken, is absent.
-  - `(if … :high {:a 1 :b 2})` renders `null` with `itemCount = 2`.
+  - `(if … :high {:a 1 :b 2})` renders `{:a 1, :b 2}` with `itemCount = 2`; compiled expressions expose `sourceIndex`.
   - In `(cap (* 0.2 handwerker))` the body of `defn cap` is traced as `0.0.0` (renders `4000`).
 - **Acceptance:**
   1. A source index on `DslCompiledExpression` maps every canonical node path of the expression and of each referenced named definition to `(origin, span)`, where origin is `EXPRESSION` or `DEFINITION(name)`. Example: `0` → offsets 0–45; `0.1.1` → the span of `(* 0.2 handwerker)`; `0.0.0` in the `cap` example → the body of `cap` in its own source.
@@ -299,25 +300,20 @@ Observed at the pin (contract B):
 
 ### I. Literal classification
 
-- **Classification:** kernel gap (small, additive), plus an open domain-layer defect.
-- **Current (pin = candidate)**, `I - numeric literal rules of the kernel`:
-  - The kernel reads `.5`, `1.`, `1e3`, `+7` and `-0.0` as `Decimal`, and rejects `1.5M`, `1N`, `0x10` and `1/2`.
+- **Classification:** fixed in the new pin; Mantra WP1 delegates literal parsing and reports value-limit failures.
+- **Current (candidate)**, `I - numeric literal rules of the kernel`:
+  - The kernel reads `.5`, `1.`, `1e3` and `-0.0` as `Decimal`, `+7` as `Integer`, and rejects `1.5M`, `1N`, `0x10` and `1/2`.
   - A literal of scale 1,001 → `DSL-VALUE-NUMERIC-SCALE-LIMIT`, and `DslValues.decimal(1E-1001)` throws with the same code.
-  - Mantra (probe of 2026-09-26, not pinned) accepts `1.5M` as 1.5 and rejects `.5` and `1.` with `MANTRA-READ-LITERAL`. A parameter literal of scale 1,001 crashes the run with `DslValueConstructionException`.
+  - Mantra WP1 accepts `.5` and `1.`, reports scale-limit literals as `MANTRA-READ-LITERAL`, and converts kernel value construction failures to diagnostics.
 - **Acceptance:**
   - `DslFormLiterals.classify` returns:
     - `1.5M` → `Symbol`, and `.5` → `Number(0.5)`.
     - `:de.est/zve` → `Keyword("de.est", "zve")`.
     - A scale-1,001 literal → failure `DSL-VALUE-NUMERIC-SCALE-LIMIT`.
   - A differential test shows that the classifier and `DslSemanticCompiler` agree on every atom in the reader corpus.
-- **Versions and fingerprints:** tied to the parser version (literal rules live in the parser: 3 at the pin, 6 in the candidate). Additive; no fingerprint change.
+- **Versions and fingerprints:** tied to the parser version (3 at the previous pin, 7 in the new pin). Additive API; Mantra 数据字面量行为随接入更新。
 - **Limits:** numeric precision and scale 1,000 (`DslValueLimits`).
-- **Mantra migration:**
-  - Now, as domain-layer work:
-    - Align `Forms.number` with the kernel rule, and validate data literals against `DslValueLimits` at read time.
-    - Convert `DslValueConstructionException` into diagnostics at the kernel boundary.
-    - Accept `M` and `N` suffixes for one release with a deprecation warning, then report `MANTRA-READ-LITERAL`. No example uses them.
-  - After the kernel change, `Forms.number` and `Forms.keyword` delegate to `DslFormLiterals`.
+- **Mantra migration:** WP1 delegates `Forms.number` and `Forms.keyword` to `DslFormLiterals`, validates numeric data at read time, and converts `DslValueConstructionException` into a diagnostic at the evaluation boundary. `M` and `N` suffixes are rejected as data numbers; no example uses them.
 
 ### J. Qualified node references `mantra/<id>` (not requested)
 
@@ -327,18 +323,18 @@ Observed at the pin (contract B):
   - Root names cannot contain `/`. `(+ mantra/amount 1)` fails with `DSL-NAME-INVALID` at the pin. In the candidate it fails with `DSL-REF-UNKNOWN-SYMBOL`, because a `/` symbol in value position resolves as a namespaced callable.
 - **Consequence:**
   - Mantra keeps its equal-length rewrite `mantra/<id>` → root `mantra_<id>` before compilation, and never registers functions under `mantra/`.
-  - Open defect: `Qualified.rewrite` is textual and also rewrites strings and keywords (`"mantra/x"` → `"mantra_x"`, `:mantra/y` → `:mantra_y`). It must rewrite symbol atoms only, using the public form spans.
+  - Mantra WP1 rewrites symbol atoms only, using public form spans; strings, keywords, regular expressions and comments remain unchanged.
 - **Versions and fingerprints:** `sourceFingerprint` covers the rewritten text. A form-aware rewrite changes fingerprints only of formulas that contain `mantra/` inside strings or keywords.
 
 ### Cross-cutting resource limits
 
-| Kernel limit (pin = candidate) | Value | Consequence for Mantra | Owner and status |
+| Kernel limit (candidate) | Value | Consequence for Mantra | Owner and status |
 | --- | --- | --- | --- |
 | Reader | 65,536 chars, 8,192 tokens, nesting 128; lower only | about 511 line forms per document; about 1,360 inline two-column case rows | Domain: `include`, data sources for bulk data |
 | Items per value | 10,000; a record costs `1 + 2 × fields` | a table referenced by a formula holds ≤ 1,428 rows of 3 columns (≤ 2,000 of 2); Mantra reports `MANTRA-RECORD` | Domain: pre-aggregate large tables |
-| Entries per collection | 5,000 | member maps (`all.<id>`, member-map roots) hold ≤ 5,000 members; at 5,001 members Mantra currently throws `DslValueConstructionException` | Domain, **open defect**: report a diagnostic |
+| Entries per collection | 5,000 | member maps (`all.<id>`, member-map roots) hold ≤ 5,000 members; WP1 converts over-limit construction failures to `MANTRA-VALUE-LIMIT` | Domain: diagnostic implemented by WP1 |
 | Depth | 32 | one level per extra dimension of a member map | none |
-| Numeric precision / scale | 1,000 / 1,000 | data literals must be validated (I) | Domain, **open defect** |
+| Numeric precision / scale | 1,000 / 1,000 | WP1 validates data literals and reports kernel limit diagnostics | Domain: implemented by WP1 |
 | Evaluation budget | 100,000 per counter per evaluation (numeric operations, function calls, evaluated nodes, …), 16 MiB byte counters, 128 open cursors | applies per formula and member tuple; the kernel has no run-level budget | Domain: Mantra needs a run-level cap (member tuples × lines) |
 | Library charging | handlers charge what they declare | Mantra's handlers charge `arguments.size` numeric operations per call, regardless of map size or iterations (`alloc/capped`) | Domain: charge in proportion to entries × iterations |
 | Trace | 10,000 events, 64 collection entries, 1,000,000 text characters | `FULL` trace for audit output only | Domain |
@@ -355,7 +351,7 @@ Observed at the pin (contract B):
 3. **Pin the commit:** update `normein-build.lock`, run `scripts/bootstrap-normein.sh` and the full suite, and update the kernel baseline in this header.
 4. **Fingerprints:** every language or stdlib bump changes `environmentFingerprint`, `executionFingerprint` and the receipts' execution artifacts; canonicalization bumps may change `canonicalAstHash`. Mantra stores none of them, so no data migrates. Mantra versions pinned to an older commit keep their behaviour exactly.
 
-Assessment of 2026-09-26 (candidate: language 24 / stdlib 32): Mantra compiles unchanged, and every Mantra test outside the contract passes, including the ESt 2025/2026, IAS 36 IE8 and SAP CO figures and the Excel formula verification. The contract reports exactly two changes: the version pin and D1.
+Assessment of 2026-09-27 (locked commit `0a3ae1de`, language 25 / stdlib 33): the old Mantra contract reported five expected differences (version, C, D, F and I). After adaptation, the clean pinned checkout passes `./gradlew test --rerun-tasks`, including all three acceptance examples.
 
 ---
 
@@ -363,16 +359,16 @@ Assessment of 2026-09-26 (candidate: language 24 / stdlib 32): Mantra compiles u
 
 | Item | Area | Classification | Priority | Mantra today |
 | --- | --- | --- | --- | --- |
-| A | Reader: multiple root forms, per-form limits | Kernel gap | Low (18 % headroom) | Wrapper roots, `include`, data sources |
-| B | Compiler: host positions for embedded expressions | Kernel gap | High | Span re-anchoring |
-| C | Values: record constructor | Partly present; gap: field paths, numeric policy | Medium | Type registry + `importStructuredHost` |
-| D1 | Types: `apply` | Fixed upstream (unreleased) | – | `dim/min`, `dim/max` |
-| D2 | Types: `decimal/*` nullability | Kernel gap | Medium | Nullable expected types |
+| A | Reader: multiple root forms, per-form limits | Candidate implemented | Low | Wrapper roots, `include`, data sources |
+| B | Compiler: host positions for embedded expressions | Candidate implemented and Mantra adapted | High | `hostPosition` |
+| C | Values: record constructor | Candidate field paths; explicit integer values | Medium | Type registry + `importStructuredHost` |
+| D1 | Types: `apply` | Candidate implemented | – | `dim/min`, `dim/max` |
+| D2 | Types: `decimal/*` nullability | Candidate implemented | Medium | Precise expected types |
 | E | Runtime: absent OPTIONAL roots | Documentation only | Low | Explicit `nil` |
-| F | Trace: source index, non-scalar rendering | Partly present; gap: index + rendering | High (audit) | Root-value substitution |
-| G | Bounded iteration | Domain layer (withdrawn) | – | Kotlin library functions |
+| F | Trace: source index, non-scalar rendering | Candidate implemented | High (audit) | Root-value substitution until WP4 |
+| G | Bounded iteration | Kernel already supports; domain layer for helpers | – | Kotlin library functions |
 | H | Authoring for embedded expressions | Domain layer (withdrawn; needs B) | – | None yet |
-| I | Reader: literal classification | Kernel gap + open Mantra defect | Medium | Own number regex (diverges) |
-| J | Qualified node references | Domain layer (not requested) | – | Equal-length rewrite (open defect) |
+| I | Reader: literal classification | Candidate implemented and Mantra adapted | Medium | `DslFormLiterals` |
+| J | Qualified node references | Domain layer (not requested) | – | Form-aware equal-length rewrite |
 
 Mantra keeps consuming the kernel at a pinned commit and adopts accepted items behind `NormeinRfcContractTest`. `NormeinContractTest` covers the basic kernel APIs Mantra relies on.

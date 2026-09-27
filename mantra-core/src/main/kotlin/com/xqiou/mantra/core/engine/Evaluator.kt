@@ -17,6 +17,7 @@ import com.xqiou.normein.dsl.runtime.DslInputRootCandidate
 import com.xqiou.normein.dsl.type.DslType
 import com.xqiou.normein.dsl.type.DslTypes
 import com.xqiou.normein.dsl.value.DslValue
+import com.xqiou.normein.dsl.value.DslValueConstructionException
 import com.xqiou.normein.dsl.value.DslValueConstructionResult
 import com.xqiou.normein.dsl.value.DslValues
 import java.math.BigDecimal
@@ -469,7 +470,20 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
         }
 
-    private fun evaluate(formula: CompiledFormula, coord: Coord, nodeId: String): Outcome? {
+    private fun evaluate(formula: CompiledFormula, coord: Coord, nodeId: String): Outcome? = try {
+        evaluateUnchecked(formula, coord, nodeId)
+    } catch (failure: DslValueConstructionException) {
+        sink.error(
+            if (failure.violation.code.contains("LIMIT")) "MANTRA-VALUE-LIMIT" else "MANTRA-VALUE",
+            "${failure.violation.code}: ${failure.violation}${coordText(formula.dims, coord)}",
+            formula.formula.location,
+            nodeId,
+            coord,
+        )
+        null
+    }
+
+    private fun evaluateUnchecked(formula: CompiledFormula, coord: Coord, nodeId: String): Outcome? {
         val roots = mutableListOf<DslInputRootCandidate>()
         val references = mutableListOf<TraceRef>()
         for ((root, ref) in formula.rootNames) {
@@ -523,11 +537,9 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 outcome.diagnostics.forEach { diagnostic ->
                     val span = diagnostic.span
                     val base = formula.formula.location
-                    val location = when {
-                        span == null -> base
-                        span.line == 1 -> base.copy(column = base.column + span.column - 1)
-                        else -> base.copy(line = base.line + span.line - 1, column = span.column)
-                    }
+                    val location = span?.let {
+                        SourceLocation(base.source, it.line, it.column, it.startOffset, it.endOffset)
+                    } ?: base
                     sink.error(
                         "MANTRA-EVALUATION",
                         "${diagnostic.code}: ${diagnostic.message}${coordText(formula.dims, coord)}",
