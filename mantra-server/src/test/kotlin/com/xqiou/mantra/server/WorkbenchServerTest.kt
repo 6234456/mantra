@@ -131,6 +131,43 @@ class WorkbenchServerTest {
         }
     }
 
+    @Test fun `export preview and downloads come from the selected layout and generated workbook`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/layout.mantra"),
+            "(layout test/export {:preset :de-staffel-4 :title \"Custom export\"} (table main))")
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/sample%2Fcase.mantra"
+            val preview = request(server.localPort, "$path/export-preview")
+            assertEquals(200, preview.status, preview.body)
+            validate("export-preview", preview.body)
+            assertContains(preview.body, "\"selectedSheet\"")
+            assertContains(preview.body, "\"formulaCells\"")
+            assertContains(preview.body, "\"fallbacks\"")
+            val sheet = Regex("\"selectedSheet\":\"([^\"]+)\"").find(preview.body)!!.groupValues[1]
+            val selected = request(server.localPort, "$path/export-preview?sheet=${java.net.URLEncoder.encode(sheet, Charsets.UTF_8)}")
+            assertEquals(200, selected.status, selected.body)
+            assertEquals(404, request(server.localPort, "$path/export-preview?sheet=missing").status)
+            assertEquals(400, request(server.localPort, "$path/export-preview?other=x").status)
+            val changedLayout = request(server.localPort, "$path/export-preview?layout=test%2Fexport")
+            assertEquals(200, changedLayout.status, changedLayout.body)
+            assertFalse(changedLayout.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"")
+                .find(preview.body)!!.value))
+            assertEquals(422, request(server.localPort, "$path/export-preview?layout=missing").status)
+            val xlsx = request(server.localPort, "$path/export.xlsx")
+            assertEquals(200, xlsx.status)
+            assertContains(xlsx.headers, "spreadsheetml.sheet")
+            assertContains(xlsx.headers, "content-disposition: attachment", ignoreCase = true)
+            assertTrue(xlsx.body.startsWith("PK"))
+            val html = request(server.localPort, "$path/export.html")
+            assertEquals(200, html.status)
+            assertContains(html.body, "<html")
+            val text = request(server.localPort, "$path/export.txt")
+            assertEquals(200, text.status)
+            assertContains(text.body, "Amount")
+        }
+    }
+
     @Test fun `symlink escapes and oversized documents cannot be read`() {
         val root = workspace()
         val outside = temp.resolve("outside.mantra")

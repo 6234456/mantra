@@ -1,4 +1,4 @@
-import type { CaseSummary, Envelope, Explain, Paper, Run, Structure, Workspace, Address } from './types'
+import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address } from './types'
 import { addressToPath } from './address'
 
 export interface WorkbenchData {
@@ -7,6 +7,8 @@ export interface WorkbenchData {
   run(caseId: string, signal?: AbortSignal): Promise<Envelope<Run>>
   paper(caseId: string, panelId?: string, signal?: AbortSignal): Promise<Envelope<Paper>>
   explain(caseId: string, address: Address, signal?: AbortSignal): Promise<Envelope<Explain>>
+  exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
+  exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt', layout?: string): string | undefined
 }
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
@@ -33,11 +35,20 @@ export class LiveData implements WorkbenchData {
   explain(id: string, address: Address, signal?: AbortSignal) {
     return json<Envelope<Explain>>(`${apiCase(id)}/explain?address=${encodeURIComponent(addressToPath(address))}`, signal).then(contract)
   }
+  exportPreview(id: string, sheet?: string, layout?: string, signal?: AbortSignal) {
+    const query = new URLSearchParams()
+    if (sheet) query.set('sheet', sheet)
+    if (layout) query.set('layout', layout)
+    return json<Envelope<ExportPreview>>(`${apiCase(id)}/export-preview${query.size ? `?${query}` : ''}`, signal).then(contract)
+  }
+  exportUrl(id: string, format: 'xlsx' | 'html' | 'txt', layout?: string) {
+    return `${apiCase(id)}/export.${format}${layout ? `?layout=${encodeURIComponent(layout)}` : ''}`
+  }
 }
 
 /** WP3 writes public/fixtures/index.json and one directory per case. No sample values live in UI source. */
 export class FixtureData implements WorkbenchData {
-  private manifest?: Promise<{ cases: Array<CaseSummary & { files: { structure: string; run: string; paper: string; explains?: Record<string, string> } }> }>
+  private manifest?: Promise<{ cases: Array<CaseSummary & { files: { structure: string; run: string; paper: string; 'export-preview'?: string; explains?: Record<string, string>; [key: string]: string | Record<string, string> | undefined } }> }>
   private index() {
     // Cache the manifest independently of view cancellation. React may abort an initial
     // effect before rerunning it (including StrictMode's development remount).
@@ -59,6 +70,13 @@ export class FixtureData implements WorkbenchData {
     if (!path) throw new Error('Explain fixture unavailable')
     return contract(await json<Envelope<Explain>>(path, signal))
   }
+  async exportPreview(id: string, _sheet?: string, _layout?: string, signal?: AbortSignal) {
+    const entry = (await this.index()).cases.find(item => item.id === id)
+    const path = entry?.files[_sheet ? `export-preview:${_sheet}` : 'export-preview']
+    if (!path) throw new Error('Export preview fixture unavailable')
+    return contract(await json<Envelope<ExportPreview>>(path as string, signal))
+  }
+  exportUrl(_id: string, _format: 'xlsx' | 'html' | 'txt', _layout?: string) { return undefined }
 }
 
 export function configuredData(): WorkbenchData {

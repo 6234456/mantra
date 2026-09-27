@@ -57,6 +57,18 @@ class ExcelTranslationTest {
     )
 
     @Test
+    fun `workbook description exposes actual sheets formulas names and bounded cells`() {
+        ExcelExport.workbook(result, Presets.DE_STAFFEL_4).use { export ->
+            val descriptions = export.report.sheets.map { name -> requireNotNull(export.describe(name)) }
+            assertEquals(export.report.sheets, descriptions.first().sheets.map { it.name })
+            assertTrue(descriptions.any { it.preview.cells.any { cell -> cell.kind == "formula" && cell.formula != null } })
+            assertEquals(export.report.names, descriptions.first().names.size)
+            assertTrue(descriptions.all { it.preview.cells.all { cell -> cell.address.matches(Regex("[A-Z]+[1-9][0-9]*")) } })
+            assertEquals(null, export.describe("missing"))
+        }
+    }
+
+    @Test
     fun `excel formulas reproduce every engine value`() {
         assertTrue(result.succeeded, result.diagnostics.toString())
         // `amount` is also a Normein function: allowed with a warning, referenced as mantra/amount.

@@ -16,6 +16,7 @@ import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.render.layout.LayoutSpec
+import com.xqiou.mantra.excel.ExcelExport
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import com.xqiou.normein.dsl.form.DslForm
@@ -103,6 +104,29 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             else -> throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Document was not found")
         }
         return DocumentResult(resolved.revision, data)
+    }
+
+    fun exportPreview(caseId: String, sheet: String? = null, layoutId: String? = null): DocumentResult {
+        val resolved = resolve(caseId, scan(), layoutId)
+        val export = ExcelExport.workbook(resolved.view, resolved.layout)
+        export.use {
+            val description = export.describe(sheet)
+                ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Worksheet was not found")
+            return DocumentResult(resolved.revision, ExportDocuments.preview(description))
+        }
+    }
+
+    fun export(caseId: String, format: String, layoutId: String? = null): ByteArray {
+        val resolved = resolve(caseId, scan(), layoutId)
+        return when (format) {
+            "xlsx" -> {
+                val export = ExcelExport.workbook(resolved.view, resolved.layout)
+                export.use { it.bytes() }
+            }
+            "html" -> Render.html(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
+            "txt" -> Render.text(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
+            else -> throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Export format was not found")
+        }
     }
 
     fun compare(caseId: String, variantCaseId: String?, variantParameters: List<String>?): DocumentResult {

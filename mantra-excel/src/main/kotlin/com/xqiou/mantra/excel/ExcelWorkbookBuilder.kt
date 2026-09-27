@@ -47,6 +47,18 @@ class ExcelOptions(
 
 data class ExcelFallback(val sheet: String, val cell: String, val nodeId: String, val reason: String)
 
+data class ExcelCellDescription(val address: String, val kind: String, val value: String?, val formula: String?)
+data class ExcelSheetDescription(val name: String, val rows: Int, val columns: Int)
+data class ExcelNameDescription(val name: String, val refersTo: String)
+data class ExcelPreview(val rows: Int, val columns: Int, val truncated: Boolean, val cells: List<ExcelCellDescription>)
+data class ExcelDescription(
+    val sheets: List<ExcelSheetDescription>,
+    val selectedSheet: String,
+    val preview: ExcelPreview,
+    val names: List<ExcelNameDescription>,
+    val report: ExcelReport,
+)
+
 class ExcelReport(
     val sheets: List<String>,
     val formulaCells: Int,
@@ -64,7 +76,46 @@ class ExcelWorkbook internal constructor(
     private val nodeAddresses: Map<String, Map<Coord, String>>,
     private val recordAddresses: Map<Triple<String, String, String>, String>,
     private val tableAddresses: Map<Triple<String, Int, String>, String>,
-) {
+) : AutoCloseable {
+    override fun close() = workbook.close()
+
+    fun bytes(): ByteArray = java.io.ByteArrayOutputStream().use { output ->
+        workbook.write(output)
+        output.toByteArray()
+    }
+    /** Bounded, read-only description of the workbook actually written by this exporter. */
+    fun describe(selectedSheet: String? = null): ExcelDescription? {
+        val sheets = (0 until workbook.numberOfSheets).map { index ->
+            val sheet = workbook.getSheetAt(index)
+            ExcelSheetDescription(sheet.sheetName, if (sheet.physicalNumberOfRows == 0) 0 else sheet.lastRowNum + 1,
+                sheet.maxOfOrNull { row -> row.lastCellNum.toInt().coerceAtLeast(0) } ?: 0)
+        }
+        val chosen = selectedSheet ?: sheets.firstOrNull()?.name ?: return null
+        val selected = sheets.firstOrNull { it.name == chosen } ?: return null
+        val sheet = workbook.getSheet(chosen)
+        val cells = buildList {
+            for (rowIndex in 0 until minOf(selected.rows, 50)) {
+                val row = sheet.getRow(rowIndex) ?: continue
+                for (columnIndex in 0 until minOf(selected.columns, 20)) {
+                    val cell = row.getCell(columnIndex) ?: continue
+                    if (cell.cellType == CellType.BLANK) continue
+                    val valueType = if (cell.cellType == CellType.FORMULA) cell.cachedFormulaResultType else cell.cellType
+                    val value = when (valueType) {
+                        CellType.NUMERIC -> java.math.BigDecimal.valueOf(cell.numericCellValue).toPlainString()
+                        CellType.STRING -> cell.stringCellValue
+                        CellType.BOOLEAN -> cell.booleanCellValue.toString()
+                        else -> null
+                    }
+                    add(ExcelCellDescription(CellReference(rowIndex, columnIndex).formatAsString(), cell.cellType.name.lowercase(), value,
+                        if (cell.cellType == CellType.FORMULA) cell.cellFormula else null))
+                }
+            }
+        }
+        return ExcelDescription(sheets, chosen,
+            ExcelPreview(selected.rows, selected.columns, selected.rows > 50 || selected.columns > 20, cells),
+            workbook.allNames.map { ExcelNameDescription(it.nameName, it.refersToFormula) }, report)
+    }
+
     /** A1 address (`'Sheet'!$C$5`) of a node's cell for a member coordinate. */
     fun address(nodeId: String, coord: Coord = emptyList()): String? = nodeAddresses[nodeId]?.get(coord)
 

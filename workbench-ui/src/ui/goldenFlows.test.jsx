@@ -58,4 +58,21 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(new URLSearchParams(location.search).get('cell')).toBe(addressToPath(scenario.address))
     expect(cell?.classList.contains('selected')).toBe(true)
   })
+
+  it.each(scenarios)('$id export uses workbook sheets and fidelity reported by Excel', async scenario => {
+    serveGolden()
+    history.replaceState(null, '', `${casePath(scenario.id)}/export`)
+    render(<App />)
+    const entry = manifest.cases.find(item => item.id === scenario.id)
+    const first = files[entry.files['export-preview']].data
+    expect(await screen.findByRole('heading', { name: `${first.sheets.length} Blätter` })).toBeTruthy()
+    expect(screen.getByText(first.report.formulaCells.toString(), { selector: '.export-metrics strong' })).toBeTruthy()
+    expect(screen.getByText(first.report.names.toString(), { selector: '.export-metrics strong' })).toBeTruthy()
+    const second = first.sheets[1]
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(second.name) }))
+    expect(await screen.findByRole('heading', { name: second.name, level: 2 })).toBeTruthy()
+    const selected = files[entry.files[`export-preview:${second.name}`]].data
+    expect(document.querySelector('.export-formula .mono')?.textContent).toBe(selected.preview.cells.find(cell => cell.formula)?.address ?? selected.preview.cells[0]?.address ?? '—')
+    expect(screen.getByRole('button', { name: 'Herunterladen' }).hasAttribute('disabled')).toBe(true)
+  })
 })

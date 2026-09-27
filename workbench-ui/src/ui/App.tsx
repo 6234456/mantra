@@ -5,8 +5,9 @@ import { configuredData } from '../data'
 import { addressFromPath, addressKey, addressToPath, casePath } from '../address'
 import { chooseLanguage, language, t } from '../i18n'
 import { auditForCell, nodeValue } from '../viewModel'
+import { ExportPage } from './ExportPage'
 
-type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'other'; panelId?: string; address?: Address }
+type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'export' | 'other'; panelId?: string; address?: Address }
 const lang = language()
 
 function route(): Route {
@@ -17,6 +18,7 @@ function route(): Route {
   if (parts[2] === 'panels' && parts[3]) return { caseId, page: 'panel', panelId: decodeURIComponent(parts[3]), address: addressFromPath(new URLSearchParams(location.search).get('cell') ?? '') ?? undefined }
   if (parts[2] === 'provenance' && parts[3]) return { caseId, page: 'provenance', address: addressFromPath(decodeURIComponent(parts.slice(3).join('/'))) ?? undefined }
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
+  if (parts[2] === 'export') return { caseId, page: 'export' }
   return { caseId, page: 'other' }
 }
 
@@ -69,7 +71,8 @@ export function App() {
         {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
           <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} data={data} navigate={navigate} /> : current.page === 'provenance' && current.address ?
-          <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
+          <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> : current.page === 'export' ?
+          <ExportPage caseId={caseId!} data={data} layouts={workspace.data?.layouts} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}
       </main>
     </div>

@@ -109,13 +109,33 @@ class WorkbenchServer(
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             return json(exchange, 200, catalog.envelope(catalog.document(caseId, document, query["panel"], query["layout"])))
         }
+        if (method == "GET" && document == "export-preview") {
+            val query = query(exchange.requestURI.rawQuery)
+            if (query.keys.any { it !in setOf("sheet", "layout") })
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            return json(exchange, 200, catalog.envelope(catalog.exportPreview(caseId, query["sheet"], query["layout"])))
+        }
+        if (method == "GET" && document in setOf("export.xlsx", "export.html", "export.txt")) {
+            val query = query(exchange.requestURI.rawQuery)
+            if (query.keys.any { it != "layout" })
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            val format = document.substringAfter('.')
+            val contentType = when (format) {
+                "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                "html" -> "text/html; charset=utf-8"
+                else -> "text/plain; charset=utf-8"
+            }
+            val payload = catalog.export(caseId, format, query["layout"])
+            exchange.responseHeaders.set("Content-Disposition", "attachment; filename=\"mantra-export.$format\"")
+            return send(exchange, 200, contentType, payload)
+        }
         if (method == "POST" && document == "compare") {
             if (exchange.requestURI.rawQuery != null)
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             val variant = parseCompare(body)
             return json(exchange, 200, catalog.envelope(catalog.compare(caseId, variant.first, variant.second)))
         }
-        if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo", "export.xlsx", "export.html", "export.txt",
+        if (document in setOf("explain", "compare", "preview", "edits", "undo", "redo",
                 "authoring/complete", "authoring/hover", "authoring/check", "imports/inspect", "imports/apply"))
             return unavailable(exchange)
         error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")

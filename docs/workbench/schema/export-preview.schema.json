@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/export-preview.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["sheets", "selectedSheet", "preview", "names", "report"],
+      "properties": {
+        "sheets": { "type": "array", "items": { "type": "object", "required": ["name", "rows", "columns"],
+          "properties": { "name": { "type": "string" }, "rows": { "type": "integer", "minimum": 0 }, "columns": { "type": "integer", "minimum": 0 } }, "additionalProperties": false } },
+        "selectedSheet": { "type": "string" },
+        "preview": { "type": "object", "required": ["rows", "columns", "truncated", "cells"],
+          "properties": {
+            "rows": { "type": "integer", "minimum": 0 }, "columns": { "type": "integer", "minimum": 0 }, "truncated": { "type": "boolean" },
+            "cells": { "type": "array", "items": { "type": "object", "required": ["address", "kind", "value", "formula"],
+              "properties": { "address": { "type": "string" }, "kind": { "enum": ["formula", "numeric", "string", "boolean", "error"] },
+                "value": { "type": ["string", "null"] }, "formula": { "type": ["string", "null"] } }, "additionalProperties": false } }
+          }, "additionalProperties": false },
+        "names": { "type": "array", "items": { "type": "object", "required": ["name", "refersTo"],
+          "properties": { "name": { "type": "string" }, "refersTo": { "type": "string" } }, "additionalProperties": false } },
+        "report": { "type": "object", "required": ["formulaCells", "inputCells", "names", "fallbacks", "evaluationErrors"],
+          "properties": {
+            "formulaCells": { "type": "integer", "minimum": 0 }, "inputCells": { "type": "integer", "minimum": 0 },
+            "names": { "type": "integer", "minimum": 0 },
+            "fallbacks": { "type": "array", "items": { "type": "object", "required": ["sheet", "cell", "nodeId", "reason"],
+              "properties": { "sheet": { "type": "string" }, "cell": { "type": "string" }, "nodeId": { "type": "string" }, "reason": { "type": "string" } }, "additionalProperties": false } },
+            "evaluationErrors": { "type": "array", "items": { "type": "string" } }
+          }, "additionalProperties": false }
+      }, "additionalProperties": false
+    }
+  }
+}
