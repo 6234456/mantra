@@ -361,6 +361,18 @@ class EngineTest {
     }
 
     @Test
+    fun `input findings point to the supplied case value with exact offsets`() {
+        val application = schema("(schema t/locations {} (input amount :integer {:min 0}) (section result \"Result\" (field amount \"Amount\")))")
+        val source = "(case c\n  (inputs {:amount -1}))"
+        val result = Mantra.calculate(application, case(source))
+        val finding = result.diagnostics.single { it.code == "MANTRA-INPUT-RANGE" }
+        assertEquals("amount", finding.nodeId)
+        assertEquals("case.mantra", finding.location?.source)
+        assertEquals(2, finding.location?.line)
+        assertEquals("-1", source.substring(finding.location!!.startOffset!!, finding.location!!.endOffset!!))
+    }
+
+    @Test
     fun `evaluation failures keep the rest of the calculation`() {
         val result = Mantra.calculate(schema("(schema t/f {} (line a \"A\" (/ 1 0)) (line b \"B\" 5))"))
         assertFalse(result.succeeded)

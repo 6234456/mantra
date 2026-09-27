@@ -254,6 +254,9 @@ data class CaseData(
     val formulaBindings: Map<String, Formula>,
     val functions: List<FunctionDecl>,
     val source: String,
+    /** Exact locations of supplied values, separate from schema input declarations. */
+    val inputLocations: Map<String, SourceLocation> = emptyMap(),
+    val paramLocations: Map<String, SourceLocation> = emptyMap(),
 ) {
     fun text(key: String): String? = (meta[key] as? Value.Text)?.value
 

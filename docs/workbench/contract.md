@@ -293,6 +293,25 @@ Paper 是 `WorkingPaper` 的 JSON 投影。请求参数为版式 id 和可选的
 - **`location`**：有文档位置时，带行、列和 `startOffset` / `endOffset`。输入错误应指向案例文件中的值，而不是方案中的声明。这是[架构 §9](../architecture.md)记录的已知限制（缺口 G4）。
 - **代码与消息**：代码稳定，Mantra 为 `MANTRA-<AREA>-<DETAIL>`，内核为 `DSL-*`。`message` 目前是英文；界面按代码显示本地化说明，消息原文作为细节（D2）。
 
+### 6.6.1 只读测试数据清单
+
+`mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]` 在输出目录下写出 `index.json` 和每个案例的
+`structure.json`、`run.json`、`paper.json`、`diagnostics.json`。四份文档都使用 §6 的
+`contract`/`revision`/`engine`/`data` 外层。清单本身只用于静态文件分发，不是 HTTP API 响应：
+
+```json
+{"cases":[{"id":"example/case.mantra","title":"Example","files":{"structure":"/fixtures/example-case-1234abcd/structure.json","run":"/fixtures/example-case-1234abcd/run.json","paper":"/fixtures/example-case-1234abcd/paper.json","diagnostics":"/fixtures/example-case-1234abcd/diagnostics.json"}}]}
+```
+
+`id` 与 §4.2 的案例标识相同，是工作区相对路径；`--workspace` 指定该路径的根目录，
+省略时使用所给案例目录的共同父目录。输出子目录使用可安全分发的独立名称。
+`files` 的值是可由浏览器直接请求的路径。后续 Explain 工作包可增加
+`files.explains`（地址字符串到 Explain 文件路径的映射）。
+
+WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁须有 `schema.mantra`，
+可选 `layout.mantra`；它不按案例绑定解析工作区中任意路径的方案、参数集、版式或数据文件。
+完整的案例绑定与所有参与文件的修订计算由后续工作区服务实现（WP7、WP11）。
+
 ### 6.7 Compare（两次计算的差异）
 
 请求包含基准（当前案例）和一个变体。变体可以是另一组参数集、另一份案例，或一组尚未写入的编辑（§7.1 的预演）。
@@ -539,3 +558,4 @@ Paper 是 `WorkingPaper` 的 JSON 投影。请求参数为版式 id 和可选的
 | --- | --- | --- |
 | 2026-09-27 | v1 草案 | 初稿 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
+| 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |

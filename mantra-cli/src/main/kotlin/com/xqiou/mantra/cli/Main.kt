@@ -8,6 +8,7 @@ import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.Presets
+import com.xqiou.mantra.workbench.Fixtures
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.system.exitProcess
@@ -20,11 +21,14 @@ Usage:
              [--format text|html|xlsx] [--out <file>] [--audit]
   mantra check <schema.mantra> [--case <case.mantra>]
   mantra catalog
+  mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
   check    Read, compile and order the schema; print its structure and dependency statistics.
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
+  fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra
+           and optional sibling layout.mantra. --workspace sets the case-id root.
 """
 
 fun main(args: Array<String>) {
@@ -38,6 +42,7 @@ fun main(args: Array<String>) {
             "run" -> run(options)
             "check" -> check(options)
             "catalog" -> catalog()
+            "fixtures" -> fixtures(options)
             null, "help", "--help", "-h" -> println(USAGE.trimIndent())
             else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
         }
@@ -114,6 +119,14 @@ private fun run(options: Options) {
     }
     result.diagnostics.forEach { System.err.println(it) }
     if (!result.succeeded) exitProcess(3)
+}
+
+private fun fixtures(options: Options) {
+    val cases = options.positional.map(Path::of)
+    if (cases.isEmpty()) fail("fixtures requires a case file.\n${USAGE.trimIndent()}")
+    val out = options.path("out") ?: fail("fixtures requires --out <dir>")
+    val entries = Fixtures.writeMany(cases, out, workspaceRoot = options.path("workspace"))
+    println("mantra: wrote ${entries.joinToString { it.id }} fixtures to ${out.toAbsolutePath()}")
 }
 
 private fun check(options: Options) {

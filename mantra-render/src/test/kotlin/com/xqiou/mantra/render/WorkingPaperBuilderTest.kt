@@ -227,7 +227,7 @@ class WorkingPaperBuilderTest {
         val paper = Render.paper(result, Presets.DE_STAFFEL_4)
         val haupt = table(paper.tables, "haupt")
         assertFalse(haupt.rows.any { r -> r.cells.any { it.startsWith("Nie relevant") } })
-        assertTrue(haupt.rows.any { r -> r.cells.any { it.startsWith("Freigrenze") } })
+        assertTrue(haupt.rows.any { r -> r.cells.any { it.startsWith("Freigrenze") } && RowFlag.EXPLAINS_ZERO in r.flags })
     }
 
     @Test

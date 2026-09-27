@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/paper.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["title", "subtitle", "header", "overview", "auxiliary", "tables", "audit", "legend", "diagnostics", "theme"],
+      "properties": {
+        "title": { "type": "string" },
+        "subtitle": { "type": ["string", "null"] },
+        "header": { "type": "array", "items": { "$ref": "#/$defs/textPair" } },
+        "overview": { "type": "array", "items": { "type": "object" } },
+        "auxiliary": { "type": "array", "items": { "type": "object" } },
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "ref", "title", "breadcrumb", "style", "columns", "rows"],
+            "properties": {
+              "id": { "type": "string" },
+              "ref": { "type": "string" },
+              "title": { "type": "string" },
+              "breadcrumb": { "type": ["string", "null"] },
+              "style": { "enum": ["tiered", "matrix"] },
+              "columns": { "type": "array", "items": { "type": "object" } },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["kind", "depth", "node", "flags", "anchor", "lead", "optionKey", "section", "classes", "cells"],
+                  "properties": {
+                    "kind": { "type": "string" },
+                    "depth": { "type": "integer", "minimum": 0 },
+                    "node": { "type": ["string", "null"] },
+                    "flags": { "type": "array", "items": { "type": "string" } },
+                    "anchor": { "type": ["string", "null"] },
+                    "lead": { "type": "boolean" },
+                    "optionKey": { "type": ["string", "null"] },
+                    "section": { "type": ["string", "null"] },
+                    "classes": { "type": "array", "items": { "type": "string" } },
+                    "cells": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["text", "address", "editable", "style"],
+                        "properties": {
+                          "text": { "type": "string" },
+                          "address": {
+                            "oneOf": [{ "$ref": "envelope.schema.json#/$defs/address" }, { "type": "null" }]
+                          },
+                          "editable": { "type": "boolean" },
+                          "style": { "$ref": "envelope.schema.json#/$defs/style" }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "audit": { "type": "array", "items": { "type": "object" } },
+        "legend": { "type": "array", "items": { "$ref": "#/$defs/textPair" } },
+        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } },
+        "theme": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "textPair": {
+      "type": "array",
+      "prefixItems": [{ "type": "string" }, { "type": "string" }],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    }
+  }
+}

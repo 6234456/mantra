@@ -1,6 +1,7 @@
 package com.xqiou.mantra.core.engine
 
 import com.xqiou.mantra.core.DiagnosticSink
+import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Rounding
@@ -122,8 +123,9 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                             sink.error(
                                 "MANTRA-INPUT-REFERENCE",
                                 "Row ${index + 1} of ${input.id}${coordText(input.dims, coord)} :$column refers to `$key`, which is not a member of $target",
-                                input.location,
+                                inputLocation(input.id, input.location),
                                 input.id,
+                                coord,
                             )
                         }
                     }
@@ -208,14 +210,14 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         val attributes = vertex.decl.presentation.attributes
         val where = "${vertex.id}${coordText(vertex.dims, coord)}"
         if (attributes["required"] == Value.Bool(true) && origin != InputOrigin.CASE) {
-            sink.error("MANTRA-INPUT-REQUIRED", "Input $where is required but was not supplied", vertex.location, vertex.id)
+            sink.error("MANTRA-INPUT-REQUIRED", "Input $where is required but was not supplied", vertex.location, vertex.id, coord)
         }
         val number = (value as? Value.Num)?.value ?: return
         (attributes["min"] as? Value.Num)?.value?.let { min ->
-            if (number < min) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is below the minimum ${min.toPlainString()}", vertex.location, vertex.id)
+            if (number < min) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is below the minimum ${min.toPlainString()}", inputLocation(vertex.id, vertex.location), vertex.id, coord)
         }
         (attributes["max"] as? Value.Num)?.value?.let { max ->
-            if (number > max) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is above the maximum ${max.toPlainString()}", vertex.location, vertex.id)
+            if (number > max) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is above the maximum ${max.toPlainString()}", inputLocation(vertex.id, vertex.location), vertex.id, coord)
         }
     }
 
@@ -228,9 +230,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         return current
     }
 
+    private fun inputLocation(id: String, declaration: SourceLocation): SourceLocation =
+        plan.case.inputLocations[id.substringBefore('[')] ?: declaration
+
     private fun convertInput(raw: Value, decl: InputDecl, coord: Coord): Value {
         fun fail(message: String): Value {
-            sink.error("MANTRA-INPUT-TYPE", "Input ${decl.id}${coordText(emptyList(), coord)}: $message", decl.location, decl.id)
+            sink.error("MANTRA-INPUT-TYPE", "Input ${decl.id}${coordText(emptyList(), coord)}: $message", inputLocation(decl.id, decl.location), decl.id, coord)
             return Value.Nil
         }
         return when (decl.type) {
@@ -263,12 +268,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     private fun convertRow(row: Value, decl: InputDecl, index: Int): Value {
         val map = row as? Value.MapV
         if (map == null) {
-            sink.error("MANTRA-INPUT-TYPE", "Row ${index + 1} of ${decl.id} must be a map", decl.location, decl.id)
+            sink.error("MANTRA-INPUT-TYPE", "Row ${index + 1} of ${decl.id} must be a map", inputLocation(decl.id, decl.location), decl.id)
             return Value.MapV(emptyMap())
         }
         val byName = map.entries.entries.associate { (k, v) -> ((k as? Value.Kw)?.name ?: k.toString()) to v }
         byName.keys.filter { key -> decl.columns.none { it.name == key } }.forEach {
-            sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} has unknown column :$it", decl.location, decl.id)
+            sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} has unknown column :$it", inputLocation(decl.id, decl.location), decl.id)
         }
         val converted = linkedMapOf<Value, Value>()
         decl.columns.forEach { column ->
@@ -279,7 +284,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 column.optional -> Value.Nil
                 column.type.isNumeric -> Value.ZERO
                 else -> {
-                    sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} is missing column :${column.name}", decl.location, decl.id)
+                    sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} is missing column :${column.name}", inputLocation(decl.id, decl.location), decl.id)
                     Value.Nil
                 }
             }

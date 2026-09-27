@@ -1,22 +1,16 @@
 package com.xqiou.mantra.excel
 
-import com.xqiou.mantra.core.engine.CalculationResult
-import com.xqiou.mantra.core.engine.ChoiceVertex
-import com.xqiou.mantra.core.engine.ConditionVertex
+import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.ViewNode
+import com.xqiou.mantra.core.view.ViewCondition
 import com.xqiou.mantra.core.engine.Coord
-import com.xqiou.mantra.core.engine.InputVertex
-import com.xqiou.mantra.core.engine.LineVertex
-import com.xqiou.mantra.core.engine.ParamVertex
-import com.xqiou.mantra.core.engine.SectionGuards
-import com.xqiou.mantra.core.engine.TotalVertex
-import com.xqiou.mantra.core.engine.ValueVertex
+import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.mantra.core.structure.PanelRole
 import com.xqiou.mantra.core.structure.SchemaMap
-import com.xqiou.mantra.core.structure.SchemaMaps
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.LayoutSpec
@@ -82,17 +76,17 @@ class ExcelWorkbook internal constructor(
 }
 
 internal class ExcelWorkbookBuilder(
-    private val result: CalculationResult,
+    private val result: CalculationView,
     private val layout: LayoutSpec,
     private val options: ExcelOptions,
 ) : ExcelResolver {
-    private val plan = result.plan
+    private val view = result
     private val texts = layout.texts
     private val de = texts.language == "de"
     private val wb = XSSFWorkbook()
     private val styles = ExcelStyles(wb, layout.number)
-    private val map: SchemaMap = SchemaMaps.of(plan)
-    private val translator = FormulaTranslator(this, plan.schema.functions + plan.case.functions)
+    private val map: SchemaMap = view.structure
+    private val translator = FormulaTranslator(this, view.functions)
 
     private data class Slot(val sheet: XSSFSheet, val row: Int, val col: Int) {
         val address: String get() = "'${sheet.sheetName.replace("'", "''")}'!\$${CellReference.convertNumToColString(col)}\$${row + 1}"
@@ -102,11 +96,11 @@ internal class ExcelWorkbookBuilder(
     private class XMember(val key: String, val label: String, val index: Int)
 
     /** All declared members (static dimensions keep members that are inactive in this case). */
-    private val members: Map<String, List<XMember>> = plan.dimensions.mapValues { (id, decl) ->
+    private val members: Map<String, List<XMember>> = view.dimensions.mapValues { (id, decl) ->
         if (decl.fromTable == null) {
             decl.members.mapIndexed { i, m -> XMember(m.key, m.label, i) }
         } else {
-            result.members[id].orEmpty().map { XMember(it.key, it.label, it.index) }
+            view.members[id].orEmpty().map { XMember(it.key, it.label, it.index) }
         }
     }
 
@@ -197,7 +191,7 @@ internal class ExcelWorkbookBuilder(
         sectionSheets[table.id] = sheet
         val rowDims = linkedSetOf<String>()
         table.rows.forEach { row ->
-            row.nodeId?.let { id -> plan.valueVertices[id]?.dims?.singleOrNull()?.let(rowDims::add) }
+            row.nodeId?.let { id -> view.nodes[id]?.dims?.singleOrNull()?.let(rowDims::add) }
         }
         val columns = mutableListOf<XColumn>()
         val paperToX = hashMapOf<Int, Int>()
@@ -285,7 +279,7 @@ internal class ExcelWorkbookBuilder(
                 else -> valueCol ?: mainCol ?: preCol
             }
             val nodeId = row.nodeId
-            val vertex = nodeId?.let { plan.valueVertices[it] }
+            val vertex = nodeId?.let { view.nodes[it] }
             when {
                 row.kind == RowKind.REFERENCE && vertex != null -> {
                     val presentationKey = numberKey(presentationOf(vertex), deduction)
@@ -304,7 +298,7 @@ internal class ExcelWorkbookBuilder(
                         }
                     }
                 }
-                row.kind == RowKind.OPTION && vertex is ChoiceVertex && row.optionKey != null -> {
+                row.kind == RowKind.OPTION && vertex?.choice != null && row.optionKey != null -> {
                     val key = vertex.id to row.optionKey!!
                     val slots = optionSlots.getOrPut(key) { linkedMapOf() }
                     val style = numberKey(presentationOf(vertex), false)
@@ -336,7 +330,7 @@ internal class ExcelWorkbookBuilder(
                             1 -> {
                                 val dim = vertex.dims.single()
                                 members[dim].orEmpty().forEach { m -> memberCol(dim, m.key)?.let { c -> Slot(sheet, r, c).also { target[listOf(m.key)] = it; valueStyles[it] = style } } }
-                                val aggregate = vertex.type.isNumeric && result.nodes[vertex.id]?.crossTotal() != null
+                                val aggregate = vertex.type.isNumeric && view.nodes[vertex.id]?.crossTotal() != null
                                 valueSlotFor(row.lead)?.takeIf { aggregate }?.let { c -> Slot(sheet, r, c).also { valueStyles[it] = style; presentation += it to { aggregateRef(vertex.id) } } }
                             }
                             else -> fallbackPlacement += Triple(vertex, Slot(sheet, r, valueSlotFor(row.lead) ?: labelCol), "more than one dimension")
@@ -368,7 +362,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     private val pendingLinks = mutableListOf<Triple<XSSFSheet, Pair<Int, Int>, String>>()
-    private val fallbackPlacement = mutableListOf<Triple<ValueVertex, Slot, String>>()
+    private val fallbackPlacement = mutableListOf<Triple<ViewNode, Slot, String>>()
 
     private fun isNumeric(content: ColumnContent) = content.numeric
 
@@ -392,7 +386,7 @@ internal class ExcelWorkbookBuilder(
         sheet.setColumnWidth(1, 30 * 256)
         (2..14).forEach { sheet.setColumnWidth(it, 16 * 256) }
         var r = 2
-        val unplaced = plan.valueVertices.values.filterIsInstance<InputVertex>().filter { it.id !in nodeSlots }
+        val unplaced = view.nodes.values.filter { it.kind == NodeKind.INPUT }.filter { it.id !in nodeSlots }
         val groups = unplaced.groupBy { input -> map.panelOf(input.id)?.title ?: if (de) "Allgemeine Angaben" else "General" }
         groups.forEach { (title, inputs) ->
             text(sheet, r++, 0, title, StyleKey(bold = true, fill = Fill.HEADER))
@@ -406,7 +400,7 @@ internal class ExcelWorkbookBuilder(
                     input.dims.isEmpty() -> {
                         text(sheet, r, 0, input.label)
                         text(sheet, r, 1, input.id, StyleKey(muted = true))
-                        nodeSlots[input.id] = linkedMapOf(emptyList<String>() to Slot(sheet, r, 2).also { valueStyles[it] = StyleKey(format = numberFormat(input.decl.presentation, false), fill = Fill.INPUT) })
+                        nodeSlots[input.id] = linkedMapOf(emptyList<String>() to Slot(sheet, r, 2).also { valueStyles[it] = StyleKey(format = numberFormat(input.input!!.presentation, false), fill = Fill.INPUT) })
                         r++
                     }
                     input.dims.size == 1 -> {
@@ -420,7 +414,7 @@ internal class ExcelWorkbookBuilder(
                         text(sheet, r, 1, input.id, StyleKey(muted = true))
                         val slots = linkedMapOf<Coord, Slot>()
                         members[dim].orEmpty().forEachIndexed { i, m ->
-                            slots[listOf(m.key)] = Slot(sheet, r, 2 + i).also { valueStyles[it] = StyleKey(format = numberFormat(input.decl.presentation, false), fill = Fill.INPUT) }
+                            slots[listOf(m.key)] = Slot(sheet, r, 2 + i).also { valueStyles[it] = StyleKey(format = numberFormat(input.input!!.presentation, false), fill = Fill.INPUT) }
                         }
                         nodeSlots[input.id] = slots
                         r++
@@ -432,14 +426,14 @@ internal class ExcelWorkbookBuilder(
         }
     }
 
-    private fun layoutTableInput(sheet: XSSFSheet, start: Int, input: InputVertex): Int {
+    private fun layoutTableInput(sheet: XSSFSheet, start: Int, input: ViewNode): Int {
         var r = start
         text(sheet, r++, 0, input.label, StyleKey(bold = true))
-        val columns = input.decl.columns
+        val columns = input.input!!.columns
         columns.forEachIndexed { i, column -> text(sheet, r, 1 + i, column.name, StyleKey(bold = true, fill = Fill.HEADER, headerRule = true)) }
         r++
-        val rows = (plan.case.inputs[input.id] as? Value.Vec)?.items.orEmpty()
-        val dims = plan.dimensions.values.filter { it.fromTable == input.id }
+        val rows = (view.case.inputs[input.id] as? Value.Vec)?.items.orEmpty()
+        val dims = view.dimensions.values.filter { it.fromTable == input.id }
         rows.forEachIndexed { index, row ->
             val fields = (row as? Value.MapV)?.entries?.entries?.associate { (k, v) -> ((k as? Value.Kw)?.name ?: k.toString()) to v }.orEmpty()
             text(sheet, r, 0, "#${index + 1}", StyleKey(muted = true))
@@ -474,17 +468,17 @@ internal class ExcelWorkbookBuilder(
         sheet.setColumnWidth(2, 16 * 256)
         sheet.setColumnWidth(3, 40 * 256)
         var r = 3
-        plan.valueVertices.values.filterIsInstance<ParamVertex>().forEach { param ->
+        view.nodes.values.filter { it.kind == NodeKind.PARAM }.forEach { param ->
             text(sheet, r, 0, param.label)
             text(sheet, r, 1, param.id, StyleKey(muted = true))
-            text(sheet, r, 3, param.decl.presentation.reference.orEmpty(), StyleKey(muted = true))
-            when (param.value) {
+            text(sheet, r, 3, param.parameter!!.presentation.reference.orEmpty(), StyleKey(muted = true))
+            when (param.parameterValue) {
                 is Value.Num, is Value.Bool, is Value.Kw, is Value.Text -> {
                     val slot = Slot(sheet, r, 2)
                     nodeSlots[param.id] = linkedMapOf(emptyList<String>() to slot)
-                    valueStyles[slot] = StyleKey(format = if (param.value is Value.Num) "General" else null, fill = Fill.PARAM)
+                    valueStyles[slot] = StyleKey(format = if (param.parameterValue is Value.Num) "General" else null, fill = Fill.PARAM)
                 }
-                else -> text(sheet, r, 2, param.value.toString(), StyleKey(muted = true))
+                else -> text(sheet, r, 2, param.parameterValue.toString(), StyleKey(muted = true))
             }
             r++
         }
@@ -508,7 +502,7 @@ internal class ExcelWorkbookBuilder(
         }
 
         // Member activity of static dimensions (e.g. Person B only in joint assessment).
-        plan.dimensions.values.filter { it.fromTable == null }.forEach { dim ->
+        view.dimensions.values.filter { it.fromTable == null }.forEach { dim ->
             dim.members.filter { it.condition != null }.forEach { member ->
                 text(sheet, r, 0, "${dim.label}: ${member.label} " + if (de) "aktiv" else "active")
                 text(sheet, r, 1, "${dim.id}.${member.key}", StyleKey(muted = true))
@@ -517,7 +511,7 @@ internal class ExcelWorkbookBuilder(
             }
         }
         // Section guards.
-        plan.vertices.values.filterIsInstance<ConditionVertex>().forEach { guard ->
+        view.conditions.values.forEach { guard ->
             val section = findSectionLabel(guard.sectionId) ?: guard.sectionId
             val slots = linkedMapOf<Coord, Slot>()
             if (guard.dims.isEmpty()) {
@@ -532,7 +526,7 @@ internal class ExcelWorkbookBuilder(
             r++
         }
         // Lines, totals and choices that no table presents.
-        plan.valueVertices.values.filter { it !is InputVertex && it !is ParamVertex && it.id !in nodeSlots }.forEach { vertex ->
+        view.nodes.values.filter { it.kind != NodeKind.INPUT && it.kind != NodeKind.PARAM && it.id !in nodeSlots }.forEach { vertex ->
             if (vertex.dims.size > 1) {
                 fallbackPlacement += Triple(vertex, Slot(sheet, r++, 2), "more than one dimension")
                 return@forEach
@@ -552,8 +546,8 @@ internal class ExcelWorkbookBuilder(
             r++
         }
         // Choice options without a presented row.
-        plan.valueVertices.values.filterIsInstance<ChoiceVertex>().forEach { choice ->
-            choice.item.options.forEach { option ->
+        view.nodes.values.filter { it.choice != null }.forEach { choice ->
+            choice.choice!!.options.forEach { option ->
                 if ((choice.id to option.key) in optionSlots) return@forEach
                 if (choice.dims.size > 1) return@forEach
                 choice.dims.singleOrNull()?.let(::memberHeader)
@@ -572,11 +566,11 @@ internal class ExcelWorkbookBuilder(
     }
 
     private fun findSectionLabel(id: String): String? {
-        fun visit(section: com.xqiou.mantra.core.engine.ResolvedSection): String? {
+        fun visit(section: com.xqiou.mantra.core.view.ViewSection): String? {
             if (section.id == id) return section.label
-            return section.children.filterIsInstance<com.xqiou.mantra.core.engine.ResolvedSection>().firstNotNullOfOrNull(::visit)
+            return section.children.filterIsInstance<com.xqiou.mantra.core.view.ViewSection>().firstNotNullOfOrNull(::visit)
         }
-        return visit(plan.tree)
+        return visit(view.tree)
     }
 
     // ── Names ──────────────────────────────────────────────────────────────────────────────────
@@ -623,7 +617,7 @@ internal class ExcelWorkbookBuilder(
         }
         activeSlots.forEach { (key, slot) -> define("active__${key.first}__${key.second}", slot.address)?.let { slotNames[slot] = it } }
         recordSlots.forEach { (key, slot) ->
-            val table = plan.dimensions[key.first]?.fromTable ?: key.first
+            val table = view.dimensions[key.first]?.fromTable ?: key.first
             define("${table}__${key.second}__${key.third}", slot.address)?.let { slotNames[slot] = it }
         }
     }
@@ -632,8 +626,8 @@ internal class ExcelWorkbookBuilder(
 
     // ── ExcelResolver ──────────────────────────────────────────────────────────────────────────
 
-    private fun kindOf(vertex: ValueVertex): XKind = when {
-        vertex is ParamVertex -> when (vertex.value) {
+    private fun kindOf(vertex: ViewNode): XKind = when {
+        vertex.kind == NodeKind.PARAM -> when (vertex.parameterValue) {
             is Value.Bool -> XKind.BOOL
             is Value.Kw, is Value.Text -> XKind.TEXT
             else -> XKind.NUM
@@ -656,7 +650,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     override fun reference(nodeId: String, contextDims: List<String>, contextCoord: Coord): X? {
-        val relation = plan.dimensions.values.firstOrNull { it.parentDimension != null && "relation_${it.id}" == nodeId }
+        val relation = view.dimensions.values.firstOrNull { it.parentDimension != null && "relation_${it.id}" == nodeId }
         if (relation != null) {
             val keys = members[relation.id].orEmpty().map { it.key }
             return X.MapX(keys, keys.map { key ->
@@ -664,18 +658,19 @@ internal class ExcelWorkbookBuilder(
                     ?: throw Untranslatable("$nodeId has no parent cell for $key")
             })
         }
-        val vertex = plan.valueVertices[nodeId] ?: return null
-        if (vertex is InputVertex && vertex.type == ValueType.TABLE) {
-            val count = (plan.case.inputs[nodeId] as? Value.Vec)?.items?.size ?: 0
+        val vertex = view.nodes[nodeId] ?: return null
+        if (vertex.kind == NodeKind.INPUT && vertex.type == ValueType.TABLE) {
+            val count = (view.case.inputs[nodeId] as? Value.Vec)?.items?.size ?: 0
             return X.Vec((0 until count).map { row ->
-                X.MapX(vertex.decl.columns.map { it.name }, vertex.decl.columns.map { column ->
+                X.MapX(vertex.input!!.columns.map { it.name }, vertex.input!!.columns.map { column ->
                     val slot = tableSlots[Triple(nodeId, row, column.name)]
                         ?: throw Untranslatable("$nodeId row $row has no ${column.name} cell")
                     ref(slot, if (column.type.isNumeric) XKind.NUM else XKind.ANY)
                 })
             })
         }
-        if (vertex is ParamVertex && (vertex.value is Value.Vec || vertex.value is Value.MapV)) return literal(vertex.value)
+        val parameterValue = vertex.parameterValue
+        if (vertex.kind == NodeKind.PARAM && (parameterValue is Value.Vec || parameterValue is Value.MapV)) return literal(parameterValue)
         val slots = nodeSlots[nodeId] ?: throw Untranslatable("$nodeId has no cell")
         val extra = vertex.dims.filter { it !in contextDims }
         if (extra.isEmpty()) {
@@ -695,7 +690,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     override fun record(dim: String, key: String, field: String): X? {
-        val decl = plan.dimensions[dim] ?: return null
+        val decl = view.dimensions[dim] ?: return null
         if (decl.fromTable == null) {
             val member = members[dim].orEmpty().firstOrNull { it.key == key } ?: return null
             return when (field) {
@@ -710,24 +705,18 @@ internal class ExcelWorkbookBuilder(
             "label" -> members[dim]?.firstOrNull { it.key == key }?.label?.let(Ex::text)
             else -> null
         }
-        val column = (plan.valueVertices[decl.fromTable] as? InputVertex)?.decl?.columns?.firstOrNull { it.name == field }
+        val column = view.nodes[decl.fromTable]?.input?.columns?.firstOrNull { it.name == field }
         return ref(slot, if (column?.type?.isNumeric == true) XKind.NUM else XKind.ANY)
     }
 
-    override fun isNode(nodeId: String): Boolean = nodeId in plan.valueVertices ||
-        plan.dimensions.values.any { it.parentDimension != null && "relation_${it.id}" == nodeId }
+    override fun isNode(nodeId: String): Boolean = nodeId in view.nodes ||
+        view.dimensions.values.any { it.parentDimension != null && "relation_${it.id}" == nodeId }
 
-    override fun isDimension(name: String): Boolean = name in plan.dimensions
+    override fun isDimension(name: String): Boolean = name in view.dimensions
 
     // ── Values and formulas ───────────────────────────────────────────────────────────────────
 
-    private fun presentationOf(vertex: ValueVertex): Presentation? = when (vertex) {
-        is LineVertex -> vertex.item.presentation
-        is ChoiceVertex -> vertex.item.presentation
-        is TotalVertex -> vertex.item.presentation
-        is InputVertex -> vertex.decl.presentation
-        is ParamVertex -> vertex.decl.presentation
-    }
+    private fun presentationOf(vertex: ViewNode): Presentation = vertex.presentation
 
     private fun numberFormat(presentation: Presentation?, deduction: Boolean): String = when (presentation?.format) {
         "percent" -> styles.percentFormat(presentation.precision ?: layout.number.percentPrecision)
@@ -736,15 +725,15 @@ internal class ExcelWorkbookBuilder(
         else -> styles.amountFormat(presentation?.precision ?: layout.number.precision, deduction)
     }
 
-    private fun neutral(vertex: ValueVertex): X.Scalar = when {
+    private fun neutral(vertex: ViewNode): X.Scalar = when {
         vertex.type.isNumeric -> Ex.ZERO
         vertex.type == ValueType.BOOLEAN -> Ex.FALSE
         else -> Ex.EMPTY
     }
 
     private fun aggregateRef(nodeId: String): X.Scalar? {
-        val vertex = plan.valueVertices[nodeId] ?: return null
-        if (result.nodes[nodeId]?.crossTotal() == null) return null
+        val vertex = view.nodes[nodeId] ?: return null
+        if (view.nodes[nodeId]?.crossTotal() == null) return null
         return when (val x = reference(nodeId, emptyList(), emptyList())) {
             is X.Scalar -> x
             is X.Range -> if (vertex.type.isNumeric) Ex.fn("SUM", Ex.atom(x.text)) else null
@@ -752,10 +741,10 @@ internal class ExcelWorkbookBuilder(
         }
     }
 
-    private fun sectionConditions(vertex: ValueVertex, coord: Coord): X.Scalar? {
+    private fun sectionConditions(vertex: ViewNode, coord: Coord): X.Scalar? {
         if (vertex.guards.isEmpty()) return null
-        val guards = vertex.guards.map { plan.vertices.getValue(it) as ConditionVertex }
-        val aligned = SectionGuards.align(plan, vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
+        val guards = vertex.guards.map { view.conditions.getValue(it) }
+        val aligned = view.alignGuards(vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
         val alternatives = aligned.assignments.map { assignment ->
             val tests = guards.map { guard ->
                 val guardCoord = guard.dims.map(assignment::getValue)
@@ -772,23 +761,23 @@ internal class ExcelWorkbookBuilder(
         }
     }
 
-    private fun conditions(vertex: ValueVertex, coord: Coord): List<X.Scalar> = buildList {
+    private fun conditions(vertex: ViewNode, coord: Coord): List<X.Scalar> = buildList {
         sectionConditions(vertex, coord)?.let(::add)
         vertex.dims.forEachIndexed { i, dim -> activeSlots[dim to coord[i]]?.let { add(ref(it, XKind.BOOL)) } }
         vertex.ownCondition?.let { condition ->
-            add(translator.truthy(translator.scalar(condition.formula.form, FormulaTranslator.Ctx(vertex.dims, coord))))
+            add(translator.truthy(translator.scalar(condition.form, FormulaTranslator.Ctx(vertex.dims, coord))))
         }
     }
 
-    private fun guarded(vertex: ValueVertex, coord: Coord, core: X.Scalar): X.Scalar {
+    private fun guarded(vertex: ViewNode, coord: Coord, core: X.Scalar): X.Scalar {
         val conditions = conditions(vertex, coord)
         if (conditions.isEmpty()) return core
         val test = conditions.singleOrNull() ?: Ex.fn("AND", conditions, kind = XKind.BOOL)
         return Ex.iff(test, core, neutral(vertex))
     }
 
-    private fun lineFormula(vertex: LineVertex, coord: Coord): X.Scalar {
-        val item = vertex.item
+    private fun lineFormula(vertex: ViewNode, coord: Coord): X.Scalar {
+        val item = vertex.line!!
         val core = if (item.spread) {
             val context = FormulaTranslator.Ctx(vertex.dims.dropLast(1), coord.dropLast(1))
             val key = coord.last()
@@ -804,7 +793,7 @@ internal class ExcelWorkbookBuilder(
         return guarded(vertex, coord, rounded)
     }
 
-    private fun totalFormula(vertex: TotalVertex, coord: Coord): X.Scalar {
+    private fun totalFormula(vertex: ViewNode, coord: Coord): X.Scalar {
         val terms = vertex.components.map { component ->
             val value = when (val x = reference(component.vertexId, vertex.dims, coord)) {
                 is X.Scalar -> x
@@ -823,29 +812,29 @@ internal class ExcelWorkbookBuilder(
         return guarded(vertex, coord, core)
     }
 
-    private fun optionFormula(vertex: ChoiceVertex, optionKey: String, coord: Coord): X.Scalar {
-        val option = vertex.item.options.first { it.key == optionKey }
+    private fun optionFormula(vertex: ViewNode, optionKey: String, coord: Coord): X.Scalar {
+        val option = vertex.choice!!.options.first { it.key == optionKey }
         val ctx = FormulaTranslator.Ctx(vertex.dims, coord)
         val value = translator.scalar(option.formula.form, ctx)
         val available = option.condition?.let { translator.truthy(translator.scalar(it.form, ctx)) }
         return if (available == null) value else Ex.iff(available, value, Ex.EMPTY)
     }
 
-    private fun choiceFormula(vertex: ChoiceVertex, coord: Coord): X.Scalar {
-        val options = vertex.item.options.map { option ->
+    private fun choiceFormula(vertex: ViewNode, coord: Coord): X.Scalar {
+        val options = vertex.choice!!.options.map { option ->
             optionSlots[vertex.id to option.key]?.get(coord)?.let(::ref) ?: throw Untranslatable("option ${option.key} has no cell")
         }
-        val core = Ex.fn(if (vertex.item.rule == ChoiceRule.MIN) "MIN" else "MAX", options)
-        val rounded = vertex.item.rounding?.let { Ex.round(core, Ex.num(it.scale.toLong()), it.mode) } ?: core
+        val core = Ex.fn(if (vertex.choice!!.rule == ChoiceRule.MIN) "MIN" else "MAX", options)
+        val rounded = vertex.choice!!.rounding?.let { Ex.round(core, Ex.num(it.scale.toLong()), it.mode) } ?: core
         return guarded(vertex, coord, rounded)
     }
 
     /** Carries the schema's variable metadata into Excel data validation (dropdowns, ranges). */
-    private fun validate(slot: Slot, input: InputVertex) {
+    private fun validate(slot: Slot, input: ViewNode) {
         val helper = slot.sheet.dataValidationHelper
-        val attributes = input.decl.presentation.attributes
+        val attributes = input.input!!.presentation.attributes
         val constraint = when {
-            input.decl.options.isNotEmpty() -> helper.createExplicitListConstraint(input.decl.options.keys.toTypedArray())
+            input.input!!.options.isNotEmpty() -> helper.createExplicitListConstraint(input.input!!.options.keys.toTypedArray())
             input.type == ValueType.BOOLEAN -> helper.createExplicitListConstraint(arrayOf("TRUE", "FALSE"))
             input.type.isNumeric && (attributes["min"] is Value.Num || attributes["max"] is Value.Num) -> {
                 val min = (attributes["min"] as? Value.Num)?.value?.toPlainString()
@@ -898,15 +887,15 @@ internal class ExcelWorkbookBuilder(
     private fun fallback(slot: Slot, nodeId: String, reason: String) {
         val c = cell(slot.sheet, slot.row, slot.col)
         val coord = nodeSlots[nodeId]?.entries?.firstOrNull { it.value == slot }?.key ?: emptyList()
-        writeValue(slot, result.nodes[nodeId]?.values?.get(coord) ?: Value.Nil)
+        writeValue(slot, view.nodes[nodeId]?.values?.get(coord) ?: Value.Nil)
         c.cellStyle = styles.get((valueStyles[slot] ?: StyleKey()).applyRule(paperCellStyles[slot] ?: StyleSpec()).copy(fill = Fill.FALLBACK))
         fallbacks += ExcelFallback(slot.sheet.sheetName, slot.local, nodeId, reason)
     }
 
-    private fun inputValue(input: InputVertex, coord: Coord): Value {
-        var supplied: Value? = plan.case.inputs[input.id]
+    private fun inputValue(input: ViewNode, coord: Coord): Value {
+        var supplied: Value? = view.case.inputs[input.id]
         coord.forEach { key -> supplied = (supplied as? Value.MapV)?.entries?.let { it[Value.Kw(key)] ?: it[Value.Text(key)] } }
-        return supplied?.takeIf { it != Value.Nil } ?: input.decl.default ?: result.nodes[input.id]?.values?.get(coord) ?: when {
+        return supplied?.takeIf { it != Value.Nil } ?: input.input!!.default ?: view.nodes[input.id]?.values?.get(coord) ?: when {
             input.type.isNumeric -> Value.ZERO
             input.type == ValueType.BOOLEAN -> Value.Bool(false)
             else -> Value.Nil
@@ -915,37 +904,37 @@ internal class ExcelWorkbookBuilder(
 
     private fun writeValuesAndFormulas() {
         nodeSlots.forEach { (id, slots) ->
-            val vertex = plan.valueVertices.getValue(id)
+            val vertex = view.nodes.getValue(id)
             slots.forEach { (coord, slot) ->
-                when (vertex) {
-                    is InputVertex -> {
+                when {
+                    vertex.kind == NodeKind.INPUT -> {
                         writeValue(slot, inputValue(vertex, coord))
                         cell(slot.sheet, slot.row, slot.col).cellStyle = styles.get((valueStyles[slot] ?: StyleKey()).applyRule(paperCellStyles[slot] ?: StyleSpec()).copy(fill = Fill.INPUT))
                         validate(slot, vertex)
                         inputCells++
                     }
-                    is ParamVertex -> {
-                        writeValue(slot, vertex.value)
+                    vertex.kind == NodeKind.PARAM -> {
+                        writeValue(slot, vertex.parameterValue ?: Value.Nil)
                         cell(slot.sheet, slot.row, slot.col).cellStyle = styles.get((valueStyles[slot] ?: StyleKey()).applyRule(paperCellStyles[slot] ?: StyleSpec()).copy(fill = Fill.PARAM))
                     }
-                    is LineVertex -> setFormula(slot, id) { lineFormula(vertex, coord) }
-                    is TotalVertex -> setFormula(slot, id) { totalFormula(vertex, coord) }
-                    is ChoiceVertex -> setFormula(slot, id) { choiceFormula(vertex, coord) }
+                    vertex.line != null -> setFormula(slot, id) { lineFormula(vertex, coord) }
+                    vertex.total != null -> setFormula(slot, id) { totalFormula(vertex, coord) }
+                    vertex.choice != null -> setFormula(slot, id) { choiceFormula(vertex, coord) }
                 }
             }
         }
         optionSlots.forEach { (key, slots) ->
-            val vertex = plan.valueVertices.getValue(key.first) as ChoiceVertex
+            val vertex = view.nodes.getValue(key.first)
             slots.forEach { (coord, slot) -> setFormula(slot, vertex.id) { optionFormula(vertex, key.second, coord) } }
         }
         guardSlots.forEach { (id, slots) ->
-            val guard = plan.vertices.getValue(id) as ConditionVertex
+            val guard = view.conditions.getValue(id)
             slots.forEach { (coord, slot) ->
                 setFormula(slot, id) { translator.truthy(translator.scalar(guard.formula.form, FormulaTranslator.Ctx(guard.dims, coord))) }
             }
         }
         activeSlots.forEach { (key, slot) ->
-            val member = plan.dimensions.getValue(key.first).members.first { it.key == key.second }
+            val member = view.dimensions.getValue(key.first).members.first { it.key == key.second }
             setFormula(slot, "${key.first}.${key.second}") { translator.truthy(translator.scalar(member.condition!!.form, FormulaTranslator.Ctx(emptyList(), emptyList()))) }
         }
         presentation.forEach { (slot, build) -> setFormula(slot, "presentation") { build() } }
@@ -1049,11 +1038,11 @@ internal class ExcelWorkbookBuilder(
         return errors
     }
 
-    private fun dslFormula(vertex: ValueVertex): String = when (vertex) {
-        is LineVertex -> vertex.item.formula.source.replace(Regex("\\s+"), " ")
-        is TotalVertex -> vertex.components.joinToString(" ") { (if (it.sign < 0) "− " else "+ ") + it.vertexId }.removePrefix("+ ")
-        is ChoiceVertex -> (if (vertex.item.rule == ChoiceRule.MIN) "min" else "max") + "(" + vertex.item.options.joinToString("; ") { it.formula.source } + ")"
-        else -> ""
+    private fun dslFormula(vertex: ViewNode): String {
+        vertex.line?.let { return it.formula.source.replace(Regex("\\s+"), " ") }
+        if (vertex.total != null) return vertex.components.joinToString(" ") { (if (it.sign < 0) "− " else "+ ") + it.vertexId }.removePrefix("+ ")
+        vertex.choice?.let { return (if (it.rule == ChoiceRule.MIN) "min" else "max") + "(" + it.options.joinToString("; ") { option -> option.formula.source } + ")" }
+        return ""
     }
 
     companion object {

@@ -2,9 +2,9 @@ package com.xqiou.mantra.core.structure
 
 import com.xqiou.mantra.core.engine.CalculationPlan
 import com.xqiou.mantra.core.engine.CalculationResult
-import com.xqiou.mantra.core.engine.InputVertex
-import com.xqiou.mantra.core.engine.ParamVertex
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.NodeKind
 
 /**
  * JSON projection of a [SchemaMap] (and optionally the values of one calculation) for UI clients:
@@ -12,13 +12,18 @@ import com.xqiou.mantra.core.model.Value
  * on the mainline from `breadcrumb` and `entries`.
  */
 object StructureJson {
-    fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String {
+    fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String =
+        write(map, if (result == null) CalculationView.of(plan) else CalculationView.of(result), result != null)
+
+    fun write(view: CalculationView): String = write(view.structure, view, true)
+
+    private fun write(map: SchemaMap, view: CalculationView, includeValues: Boolean): String {
         val root = linkedMapOf<String, Any?>(
             "schema" to map.schemaId,
             "title" to map.title,
             "mainline" to map.mainline.map { id ->
                 val panel = map.panel(id)
-                linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId, "value" to result?.let { r -> panel.resultId?.let { value(r, it) } })
+                linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId, "value" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) })
             },
             "panels" to map.panels.map { panel ->
                 linkedMapOf(
@@ -29,21 +34,21 @@ object StructureJson {
                     "parent" to panel.parentId,
                     "dims" to panel.dims,
                     "result" to panel.resultId,
-                    "resultValue" to result?.let { r -> panel.resultId?.let { value(r, it) } },
+                    "resultValue" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) },
                     "breadcrumb" to panel.breadcrumb.map { linkedMapOf("panel" to it.panelId, "label" to it.label, "node" to it.nodeId) },
                     "entries" to panel.entries.map { linkedMapOf("step" to it.step, "panel" to it.stepPanel, "via" to it.viaNode, "viaLabel" to it.viaLabel, "path" to it.path) },
-                    "fields" to panel.fields.map { field(plan, it, result) },
+                    "fields" to panel.fields.map { field(view, it, includeValues) },
                     "nodes" to panel.nodes,
                     "imports" to panel.imports.map(::flow),
                     "exports" to panel.exports.map(::flow),
                 )
             },
-            "generalInputs" to map.generalInputs.map { field(plan, it, result) },
+            "generalInputs" to map.generalInputs.map { field(view, it, includeValues) },
             "params" to map.params.map { id ->
-                val vertex = plan.valueVertices[id] as ParamVertex
-                linkedMapOf("id" to id, "label" to vertex.label, "value" to plain(vertex.value), "source" to vertex.source,
-                    "reference" to vertex.decl.presentation.reference,
-                    "attributes" to vertex.decl.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() })
+                val node = view.node(id)
+                linkedMapOf("id" to id, "label" to node.label, "value" to node.parameterValue?.let(::plain), "source" to node.parameterSource,
+                    "reference" to node.presentation.reference,
+                    "attributes" to node.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() })
             },
         )
         return buildString { emit(root, 0) }
@@ -51,9 +56,9 @@ object StructureJson {
 
     private fun flow(flow: Flow) = linkedMapOf("fromPanel" to flow.fromPanel, "fromNode" to flow.fromNode, "toPanel" to flow.toPanel, "toNode" to flow.toNode)
 
-    private fun field(plan: CalculationPlan, id: String, result: CalculationResult?): Map<String, Any?> {
-        val input = plan.valueVertices[id] as? InputVertex ?: return linkedMapOf("id" to id)
-        val decl = input.decl
+    private fun field(view: CalculationView, id: String, includeValues: Boolean): Map<String, Any?> {
+        val input = view.nodes[id]?.takeIf { it.kind == NodeKind.INPUT } ?: return linkedMapOf("id" to id)
+        val decl = input.input ?: return linkedMapOf("id" to id)
         return linkedMapOf(
             "id" to id,
             "label" to input.label,
@@ -69,14 +74,14 @@ object StructureJson {
             "unit" to (decl.presentation.attributes["unit"] as? Value.Kw)?.name,
             "reference" to decl.presentation.reference,
             "attributes" to decl.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() },
-            "value" to result?.let { value(it, id) },
+            "value" to if (includeValues) value(view, id) else null,
         )
     }
 
     private val CONSTRAINT_KEYS = setOf("min", "max", "required", "pattern", "max-length")
 
-    private fun value(result: CalculationResult, id: String): Any? {
-        val node = result.nodes[id] ?: return null
+    private fun value(view: CalculationView, id: String): Any? {
+        val node = view.nodes[id] ?: return null
         if (node.dims.isEmpty()) return plain(node.value())
         return node.values.entries.associate { (coord, v) -> coord.joinToString("/") to plain(v) }
     }
