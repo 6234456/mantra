@@ -12,7 +12,9 @@ export interface Flow { fromPanel: string; fromNode: string; toPanel: string; to
 export interface InputField { id: string; label?: string; type?: string; dims?: string[]; options?: Record<string, string>; columns?: Array<{ name: string; type: string; optional?: boolean }>; keyColumn?: string | null; help?: string | null; unit?: string | null; reference?: string | null; group?: string | null; groupTitle?: string | null; attributes?: Record<string, unknown> }
 export interface Panel { id: string; title: string; role: 'mainline' | 'branch' | 'auxiliary'; step?: number; parent?: string | null; dims: string[]; result?: string | null; breadcrumb: Crumb[]; entries: Entry[]; fields: Array<string | InputField>; nodes: string[]; imports: Flow[]; exports: Flow[] }
 export interface NodeMeta { id?: string; label: string; kind: string; type?: string; dims?: string[]; reference?: string; note?: string; formula?: string | { text: string }; [key: string]: unknown }
-export type Structure = Pick<WireStructure['data'], 'schema' | 'title'> & { schemaVersion?: string | null; period?: string; mainline: MainlineStep[]; panels: Panel[]; generalInputs: Array<string | InputField>; params: unknown[]; nodes?: Record<string, NodeMeta>; headline?: string | null; groupTitles?: Record<string, string> }
+export interface ExtensionSlot { id: string; title: string; panel?: string | null; extensions: string[] }
+export interface FormulaSlot { id: string; title: string; panel?: string | null; uses?: string[] | null; defaultFormula?: string | null; binding?: string | null }
+export type Structure = Pick<WireStructure['data'], 'schema' | 'title'> & { schemaVersion?: string | null; period?: string; mainline: MainlineStep[]; panels: Panel[]; generalInputs: Array<string | InputField>; params: unknown[]; nodes?: Record<string, NodeMeta>; headline?: string | null; groupTitles?: Record<string, string>; slots?: ExtensionSlot[]; formulaSlots?: FormulaSlot[] }
 export type RunValue = WireRun['data']['values'][string][string]
 export type Run = WireRun['data']
 export interface Cell { text: string; address?: Address | null; editable?: boolean; style?: { weight?: string; tone?: string; fill?: string } }
@@ -38,5 +40,13 @@ export type EditOperation =
   | { op: 'deleteRow'; table: string; index: number }
   | { op: 'moveRow'; table: string; from: number; to: number }
 export interface EditResult { document: string; preview: boolean; proposedRevision: string; diagnostics: Diagnostic[]; run: Run; difference: Compare }
+export type AuthoringTarget = { kind: 'extension'; slot: string; id: string; title: string } | { kind: 'formulaSlot'; id: string }
+export interface AuthoringRange { startOffset: number; endOffset: number }
+export interface AuthoringFinding { severity: 'error' | 'warning' | 'info'; code: string; message: string; range?: AuthoringRange | null }
+export interface AuthoringCheck { valid: boolean; diagnostics: AuthoringFinding[] }
+export interface AuthoringCompletion { query: string; replacementRange: AuthoringRange; items: Array<{ label: string; insertText: string; kind: string; detail: string; documentation?: string | null; deprecated: boolean }> }
+export interface AuthoringHover { hover: null | { range: AuthoringRange; symbol: string; kind: string; detail: string; documentation?: string | null; current?: RunValue | null } }
+export type FormulaOperation = { op: 'addExtension' | 'updateExtension'; slot: string; id: string; title: string; formula: string } | { op: 'removeExtension'; slot: string; id: string } | { op: 'bindFormula'; id: string; formula: string } | { op: 'unbindFormula'; id: string }
+export interface FormulaEditResult { document: string; preview: boolean; proposedRevision: string; diagnostics: Diagnostic[]; run: Run; difference: Compare }
 export interface Diagnostics { diagnostics: Diagnostic[] }
 export interface Workspace { cases: CaseSummary[]; parameters?: Array<{ id: string; path: string }>; layouts?: Array<{ id: string; path: string }> }

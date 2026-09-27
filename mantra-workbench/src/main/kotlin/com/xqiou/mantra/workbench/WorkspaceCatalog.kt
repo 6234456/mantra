@@ -6,15 +6,19 @@ import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.Schema
+import com.xqiou.mantra.core.model.NodeItem
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.mantra.core.engine.ExplainTrace
 import com.xqiou.mantra.core.read.Document
 import com.xqiou.mantra.core.read.SourceResolver
+import com.xqiou.mantra.core.read.ParameterSet
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.read.listHead
 import com.xqiou.mantra.core.read.symbol
 import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.engine.FormulaAuthoring
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.render.layout.LayoutSpec
@@ -41,6 +45,11 @@ import java.time.format.ResolverStyle
 import java.util.concurrent.ConcurrentHashMap
 
 enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE, CONFLICT }
+
+sealed interface AuthoringTarget {
+    data class Extension(val slot: String, val id: String, val title: String) : AuthoringTarget
+    data class FormulaSlot(val id: String) : AuthoringTarget
+}
 
 data class ExportBudget(val maxSheets: Int = 64, val maxCells: Int = 50_000, val maxBytes: Int = 8 * 1024 * 1024) {
     init { require(maxSheets > 0 && maxCells > 0 && maxBytes > 0) }
@@ -252,6 +261,76 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             validateFinalCoordinates(variant, operations)
             DocumentResult(base.revision, editData(base, variant, caseId, true))
         }
+
+    /** Editor assistance uses the same typed scope as the planner, with final semantic checks via edit preview. */
+    fun authoring(caseId: String, target: AuthoringTarget, source: String, cursorOffset: Int?, action: String): DocumentResult {
+        if (source.length > 65_536 || source.toByteArray(Charsets.UTF_8).size > 1_048_576)
+            throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Formula source exceeds reader limit")
+        val base = resolve(caseId, scan())
+        val editor = try {
+            when (target) {
+                is AuthoringTarget.Extension -> FormulaAuthoring.forExtension(base.schema, base.view.case, base.parameters, target.slot, target.id)
+                is AuthoringTarget.FormulaSlot -> FormulaAuthoring.forFormulaSlot(base.schema, base.view.case, base.parameters, target.id)
+            }
+        } catch (error: IllegalArgumentException) {
+            throw WorkspaceException(WorkspaceProblem.REQUEST, error.message ?: "Unknown authoring target")
+        }
+        fun range(start: Int, end: Int) = mapOf("startOffset" to start, "endOffset" to end)
+        val data: Map<String, Any?> = when (action) {
+            "complete" -> {
+                val cursor = cursorOffset ?: throw WorkspaceException(WorkspaceProblem.REQUEST, "cursorOffset is required")
+                val result = editor.complete(source, cursor)
+                linkedMapOf("query" to result.query,
+                    "replacementRange" to range(result.replacementRange.startOffset, result.replacementRange.endOffset),
+                    "items" to result.items.map { item -> linkedMapOf<String, Any?>(
+                        "label" to item.label, "insertText" to item.insertText,
+                        "kind" to item.kind.name.lowercase(), "detail" to item.detail,
+                        "documentation" to item.documentation, "deprecated" to item.deprecated) })
+            }
+            "hover" -> {
+                val cursor = cursorOffset ?: throw WorkspaceException(WorkspaceProblem.REQUEST, "cursorOffset is required")
+                val hover = editor.hover(source, cursor)
+                @Suppress("UNCHECKED_CAST")
+                val runValues = WorkbenchDocuments.run(base.view, base.layout)["values"] as Map<String, Map<String, Map<String, Any?>>>
+                val current = hover?.symbol?.removePrefix("mantra/")?.let { runValues[it]?.get("") }
+                mapOf("hover" to hover?.let { linkedMapOf<String, Any?>(
+                    "range" to range(it.range.startOffset, it.range.endOffset), "symbol" to it.symbol,
+                    "kind" to it.kind.name.lowercase(), "detail" to it.detail,
+                    "documentation" to it.documentation, "current" to current) })
+            }
+            "check" -> {
+                val diagnostics = editor.check(source).map { item ->
+                    linkedMapOf<String, Any?>("severity" to item.severity.name.lowercase(), "code" to item.code,
+                        "message" to item.message, "range" to item.span?.let { range(it.startOffset, it.endOffset) })
+                }.toMutableList()
+                if (diagnostics.isEmpty()) {
+                    val operation = when (target) {
+                        is AuthoringTarget.FormulaSlot -> CaseTextEditor.Operation.BindFormula(target.id, source)
+                        is AuthoringTarget.Extension -> {
+                            val exists = base.view.case.extensions[target.slot].orEmpty().filterIsInstance<NodeItem>()
+                                .any { it.id == target.id }
+                            if (exists) CaseTextEditor.Operation.UpdateExtension(target.slot, target.id, target.title, source)
+                            else CaseTextEditor.Operation.AddExtension(target.slot, target.id, target.title, source)
+                        }
+                    }
+                    try { previewEdits(caseId, base.revision, listOf(operation)) }
+                    catch (error: WorkspaceException) {
+                        if (error.problem != WorkspaceProblem.INVALID) throw error
+                        error.diagnostics.forEach { item -> diagnostics += linkedMapOf<String, Any?>(
+                            "severity" to item.severity.name.lowercase(), "code" to item.code,
+                            "message" to item.message, "range" to null)
+                        }
+                        if (error.diagnostics.isEmpty()) diagnostics += linkedMapOf<String, Any?>(
+                            "severity" to "error", "code" to "MANTRA-WORKBENCH-EDIT",
+                            "message" to (error.message ?: "Formula was rejected"), "range" to null)
+                    }
+                }
+                mapOf("valid" to diagnostics.none { it["severity"] == "error" }, "diagnostics" to diagnostics)
+            }
+            else -> throw WorkspaceException(WorkspaceProblem.REQUEST, "Unknown authoring action")
+        }
+        return DocumentResult(base.revision, data)
+    }
 
     /** Serializes writes for each case and records the previous exact source for bounded undo. */
     fun commitEdits(caseId: String, baseRevision: String, operations: List<CaseTextEditor.Operation>): DocumentResult {
@@ -543,7 +622,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     )
 
     private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String,
-                                val parameterIds: List<String>, val explainTrace: ExplainTrace? = null)
+                                val parameterIds: List<String>, val explainTrace: ExplainTrace? = null,
+                                val schema: Schema, val parameters: List<ParameterSet>)
 
     private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
                         parameterOverride: List<String>? = null, includeLayout: Boolean = true,
@@ -601,7 +681,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val sourceFiles = schema.sources.map { path(it) }
         val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile),
             if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)))
-        return Resolved(view, layout, revision, parameterIds, result.explainTrace)
+        return Resolved(view, layout, revision, parameterIds, result.explainTrace, schema, parameters)
     }
 
     private fun scan(): Snapshot {

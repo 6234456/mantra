@@ -100,6 +100,22 @@ class CaseTextEditorTest {
     }
 
     @Test
+    fun `updating extension title and formula preserves every option and comment`() {
+        val original = """(case sample {:schema "demo"}
+  (extend custom
+    ;; Keep this description.
+    (line detailed "Original" (+ 1 2) ; formula note
+      {:per person :when true :type :decimal :round [2 :floor] :op :minus :spread false})))"""
+        val edited = CaseTextEditor.apply(original, listOf(
+            CaseTextEditor.Operation.UpdateExtension("custom", "detailed", "Changed", "(+ 3 4)"),
+        ))
+        assertEquals(original.replace("\"Original\"", "\"Changed\"").replace("(+ 1 2)", "(+ 3 4)"), edited)
+        val line = read(edited).extensions.getValue("custom").single() as com.xqiou.mantra.core.model.LineItem
+        assertEquals("Changed", line.label)
+        assertEquals("(+ 3 4)", line.formula.source)
+    }
+
+    @Test
     fun `seeded edit sequences preserve existing comments and read back exact inputs`() {
         val random = Random(71)
         val initial = source("de-est-2025/case-mustermann.mantra")

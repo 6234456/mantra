@@ -77,9 +77,17 @@ object CaseTextEditor {
             is Operation.UpdateExtension -> {
                 requireId(op.slot); requireId(op.id)
                 val existing = form("extend", op.slot) ?: error("Extension slot has no case form")
-                val old = existing.values.drop(2).firstOrNull { (it as? DslForm.Sequence)?.values?.getOrNull(1)?.symbol == op.id }
+                val old = existing.values.drop(2).filterIsInstance<DslForm.Sequence>()
+                    .firstOrNull { it.values.getOrNull(1)?.symbol == op.id }
                     ?: error("Extension line was not found")
-                replace(doc, old, line(op.id, op.title, op.formula))
+                require(old.listHead == "line" && old.values.size in 4..5 && old.values[2].string != null) {
+                    "Only extension lines can be edited"
+                }
+                validFormula(op.formula)
+                val formula = old.values[3]
+                val title = old.values[2]
+                val withFormula = patch(doc.source.text, formula.span.startOffset, formula.span.endOffset, op.formula)
+                patch(withFormula, title.span.startOffset, title.span.endOffset, literal(Value.Text(op.title)))
             }
             is Operation.RemoveExtension -> {
                 requireId(op.slot); requireId(op.id)

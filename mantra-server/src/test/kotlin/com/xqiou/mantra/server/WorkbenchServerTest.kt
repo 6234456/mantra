@@ -306,6 +306,62 @@ class WorkbenchServerTest {
         }
     }
 
+    @Test fun `formula authoring provides scoped completion hover and semantic checks without writing`() {
+        val root = temp.resolve("authoring-workspace")
+        val sample = root.resolve("sample")
+        Files.createDirectories(sample)
+        Files.list(Path.of("examples/ifrs-ias36-corporate-assets")).use { stream ->
+            stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, sample.resolve(it.fileName)) }
+        }
+        val ui = temp.resolve("authoring-ui")
+        Files.createDirectories(ui)
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body>workbench</body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val path = "/api/v1/cases/sample%2Fcase-ie8.mantra/authoring"
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val headers = mapOf("X-Mantra-Token" to token)
+            val caseFile = sample.resolve("case-ie8.mantra")
+            val original = Files.readString(caseFile)
+            fun post(action: String, source: String, cursor: Int? = null): Response {
+                val target = """{"kind":"formulaSlot","id":"weighting"}"""
+                val encoded = ObjectMapper().writeValueAsString(source)
+                val body = """{"target":$target,"source":$encoded${cursor?.let { ",\"cursorOffset\":$it" } ?: ""}}"""
+                return request(port, "$path/$action", "POST", headers = headers, body = body.toByteArray())
+            }
+            val completion = post("complete", "remaining-", 10)
+            assertEquals(200, completion.status, completion.body)
+            val items = ObjectMapper().readTree(completion.body)["data"]["items"]
+            assertTrue(items.any { it["label"].asText() == "remaining-life" })
+            assertFalse(items.any { it["label"].asText() == "allocable-corporate" })
+            val emptyItems = ObjectMapper().readTree(post("complete", "", 0).body)["data"]["items"]
+            assertTrue(emptyItems.any { it["label"].asText() == "remaining-life" })
+            assertFalse(emptyItems.any { it["label"].asText() == "allocable-corporate" })
+            val qualified = ObjectMapper().readTree(post("complete", "mantra/remaining-", 17).body)["data"]
+            assertEquals("mantra/remaining-", qualified["query"].asText())
+            assertTrue(qualified["items"].any { it["label"].asText() == "mantra/remaining-life" &&
+                it["insertText"].asText() == "mantra/remaining-life" })
+            val hover = post("hover", "(* carrying-amount 2)", 8)
+            assertEquals(200, hover.status, hover.body)
+            assertEquals("carrying-amount", ObjectMapper().readTree(hover.body)["data"]["hover"]["symbol"].asText())
+            val qualifiedHover = post("hover", "mantra/carrying-amount", 10)
+            assertEquals("mantra/carrying-amount", ObjectMapper().readTree(qualifiedHover.body)["data"]["hover"]["symbol"].asText())
+            val valid = post("check", "(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)")
+            assertEquals(200, valid.status, valid.body)
+            assertTrue(ObjectMapper().readTree(valid.body)["data"]["valid"].asBoolean(), valid.body)
+            val qualifiedCheck = post("check", "(if weight-by-life (decimal/divide mantra/remaining-life (dim/min all.remaining-life) 4) 1)")
+            assertTrue(ObjectMapper().readTree(qualifiedCheck.body)["data"]["valid"].asBoolean(), qualifiedCheck.body)
+            val disallowed = post("check", "allocable-corporate")
+            assertEquals(200, disallowed.status, disallowed.body)
+            assertFalse(ObjectMapper().readTree(disallowed.body)["data"]["valid"].asBoolean(), disallowed.body)
+            val malformed = post("check", "(if weight-by-life")
+            assertFalse(ObjectMapper().readTree(malformed.body)["data"]["valid"].asBoolean(), malformed.body)
+            assertEquals(original, Files.readString(caseFile))
+        }
+    }
+
     @Test fun `export preview and downloads come from the selected layout and generated workbook`() {
         val root = workspace()
         Files.writeString(root.resolve("sample/layout.mantra"),
