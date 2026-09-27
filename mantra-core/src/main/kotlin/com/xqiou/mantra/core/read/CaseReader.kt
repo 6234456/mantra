@@ -1,6 +1,7 @@
 package com.xqiou.mantra.core.read
 
 import com.xqiou.mantra.core.DiagnosticSink
+import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Formula
 import com.xqiou.mantra.core.model.FunctionDecl
@@ -45,14 +46,16 @@ object CaseReader {
         }
         val inputs = linkedMapOf<String, Value>()
         val params = linkedMapOf<String, Value>()
+        val inputLocations = linkedMapOf<String, SourceLocation>()
+        val paramLocations = linkedMapOf<String, SourceLocation>()
         val extensions = linkedMapOf<String, MutableList<Item>>()
         val formulaBindings = linkedMapOf<String, Formula>()
         val functions = mutableListOf<FunctionDecl>()
         root.values.drop(index).forEach { form ->
             val list = form as? DslForm.Sequence
             when (list?.listHead) {
-                "inputs" -> readValues(document, list, sink, "inputs", inputs)
-                "params" -> readValues(document, list, sink, "params", params)
+                "inputs" -> readValues(document, list, sink, "inputs", inputs, inputLocations)
+                "params" -> readValues(document, list, sink, "params", params, paramLocations)
                 "extend" -> {
                     val slot = list.values.getOrNull(1)?.symbol
                     if (slot == null) {
@@ -87,13 +90,16 @@ object CaseReader {
             }
         }
         val schemaId = (meta["schema"] as? Value.Text)?.value
-        return CaseData(id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name)
+        return CaseData(id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
+            inputLocations, paramLocations)
     }
 
-    private fun readValues(document: Document, list: DslForm.Sequence, sink: DiagnosticSink, what: String, target: MutableMap<String, Value>) {
+    private fun readValues(document: Document, list: DslForm.Sequence, sink: DiagnosticSink, what: String,
+                           target: MutableMap<String, Value>, locations: MutableMap<String, SourceLocation>) {
         list.values.drop(1).forEach { mapForm ->
             document.options(mapForm, sink, what).forEach { (key, form) ->
                 document.literal(form, sink, "$what :$key")?.let { value ->
+                    locations[key] = document.location(form)
                     if (target.put(key, value) != null) {
                         sink.error("MANTRA-CASE-DUPLICATE", "Duplicate $what entry :$key", document.location(form))
                     }

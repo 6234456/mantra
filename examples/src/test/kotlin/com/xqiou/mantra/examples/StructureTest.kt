@@ -3,7 +3,10 @@ package com.xqiou.mantra.examples
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.structure.PanelRole
 import com.xqiou.mantra.core.structure.SchemaMaps
-import com.xqiou.mantra.core.structure.StructureJson
+import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.render.Render
+import com.xqiou.mantra.workbench.json.WorkbenchDocuments
+import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
@@ -50,10 +53,18 @@ class StructureTest {
     @Test
     fun `structure is exported as JSON for UI clients`() {
         val result = Mantra.calculate(plan)
-        val json = StructureJson.write(map, plan, result)
+        val view = CalculationView.of(result)
+        val structure = WorkbenchDocuments.structure(view)
+        val json = WorkbenchJson.write(structure)
         Files.createDirectories(Path.of("examples/build/out"))
         Files.writeString(Path.of("examples/build/out/est-2025-structure.json"), json)
         assertTrue("\"mainline\"" in json && "\"breadcrumb\"" in json)
-        assertTrue("\"resultValue\": 83217.90" in json, json.take(2000))
+        assertTrue("\"schemaVersion\":\"2025.1\"" in json, json.take(2000))
+        assertTrue(!json.contains("resultValue"), "Structure must not include calculation values")
+        val run = WorkbenchDocuments.run(view, Render.loadLayout(dir.resolve("layout.mantra")))
+        val values = run["values"] as Map<*, *>
+        val taxable = values["zu-versteuerndes-einkommen"] as Map<*, *>
+        val scalar = taxable[""] as Map<*, *>
+        assertEquals(mapOf("n" to "83217.90"), scalar["value"])
     }
 }

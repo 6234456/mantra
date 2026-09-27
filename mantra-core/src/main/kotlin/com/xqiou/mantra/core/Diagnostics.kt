@@ -5,6 +5,8 @@ data class SourceLocation(
     val source: String,
     val line: Int,
     val column: Int,
+    val startOffset: Int? = null,
+    val endOffset: Int? = null,
 ) {
     override fun toString(): String = "$source:$line:$column"
 }
@@ -18,6 +20,7 @@ data class Diagnostic(
     val message: String,
     val location: SourceLocation? = null,
     val nodeId: String? = null,
+    val coord: List<String> = emptyList(),
 ) {
     override fun toString(): String = buildString {
         append(severity.name.lowercase())
@@ -40,12 +43,12 @@ class DiagnosticSink {
     val all: List<Diagnostic> get() = items.toList()
     val hasErrors: Boolean get() = items.any { it.severity == Severity.ERROR }
 
-    fun error(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null) {
-        items += Diagnostic(Severity.ERROR, code, message, location, nodeId)
+    fun error(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null, coord: List<String> = emptyList()) {
+        items += Diagnostic(Severity.ERROR, code, message, location, nodeId, coord)
     }
 
-    fun warning(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null) {
-        items += Diagnostic(Severity.WARNING, code, message, location, nodeId)
+    fun warning(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null, coord: List<String> = emptyList()) {
+        items += Diagnostic(Severity.WARNING, code, message, location, nodeId, coord)
     }
 
     fun addAll(diagnostics: Collection<Diagnostic>) {

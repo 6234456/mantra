@@ -116,6 +116,8 @@ class CalculationView private constructor(
     val nodes: Map<String, ViewNode>,
     val conditions: Map<String, ViewCondition>,
     val functions: List<FunctionDecl>,
+    /** Original formulas of application-declared hooks, before case bindings are applied. */
+    val formulaSlotDefaults: Map<String, Formula>,
     val diagnostics: List<Diagnostic>,
 ) {
     val succeeded: Boolean get() = diagnostics.none { it.severity == com.xqiou.mantra.core.Severity.ERROR }
@@ -145,6 +147,15 @@ class CalculationView private constructor(
 
         fun of(result: CalculationResult): CalculationView {
             val plan = result.plan
+            val formulaSlotDefaults = linkedMapOf<String, Formula>()
+            fun collectFormulaSlots(item: com.xqiou.mantra.core.model.Item) {
+                when (item) {
+                    is SectionItem -> item.children.forEach(::collectFormulaSlots)
+                    is LineItem -> if (item.formulaSlot) formulaSlotDefaults[item.id] = item.formula
+                    else -> Unit
+                }
+            }
+            collectFormulaSlots(plan.schema.root)
             val opByNode = linkedMapOf<String, Int>()
             fun collectOps(item: ResolvedItem) {
                 when (item) {
@@ -209,7 +220,9 @@ class CalculationView private constructor(
                 members = frozenMap(result.members.mapValues { (_, members) -> frozenList(members.map { it.snapshot() }) }),
                 nodes = frozenMap(nodes),
                 conditions = frozenMap(plan.vertices.values.filterIsInstance<ConditionVertex>().associate { it.id to ViewCondition(it.id, it.sectionId, frozenList(it.dims), it.formula) }),
-                functions = frozenList(plan.schema.functions + plan.case.functions), diagnostics = frozenList(result.diagnostics),
+                functions = frozenList(plan.schema.functions + plan.case.functions),
+                formulaSlotDefaults = frozenMap(formulaSlotDefaults),
+                diagnostics = frozenList(result.diagnostics),
             )
         }
     }

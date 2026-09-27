@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/envelope.schema.json",
+  "title": "Mantra workbench response v1",
+  "type": "object",
+  "required": ["contract", "revision", "engine", "data"],
+  "properties": {
+    "contract": { "const": "mantra.workbench/1" },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "engine": {
+      "type": "object",
+      "required": ["mantra", "normein"],
+      "properties": {
+        "mantra": { "type": "string" },
+        "normein": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "data": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "address": {
+      "type": "object",
+      "required": ["node"],
+      "properties": {
+        "node": { "type": "string" },
+        "coord": { "type": "array", "items": { "type": "string" } },
+        "cell": {
+          "type": "object",
+          "required": ["row", "column"],
+          "properties": {
+            "row": { "type": "string" },
+            "column": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "location": {
+      "type": "object",
+      "required": ["document", "line", "column"],
+      "properties": {
+        "document": { "type": "string" },
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "startOffset": { "type": "integer", "minimum": 0 },
+        "endOffset": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["severity", "code", "message", "location", "address", "related"],
+      "properties": {
+        "severity": { "enum": ["error", "warning", "info"] },
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "location": { "oneOf": [{ "$ref": "#/$defs/location" }, { "type": "null" }] },
+        "address": { "oneOf": [{ "$ref": "#/$defs/address" }, { "type": "null" }] },
+        "related": { "type": "array", "items": { "$ref": "#/$defs/location" } }
+      },
+      "additionalProperties": false
+    },
+    "style": {
+      "type": "object",
+      "required": ["weight", "tone", "fill"],
+      "properties": {
+        "weight": { "enum": ["normal", "bold"] },
+        "tone": { "enum": ["default", "muted", "accent"] },
+        "fill": { "enum": ["none", "subtle", "accent"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

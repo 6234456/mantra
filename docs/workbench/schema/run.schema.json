@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/run.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["succeeded", "members", "values", "diagnostics"],
+      "properties": {
+        "succeeded": { "type": "boolean" },
+        "members": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key", "label"],
+              "properties": {
+                "key": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          }
+        },
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["value", "display", "active"],
+              "properties": {
+                "value": { "$ref": "value.schema.json" },
+                "display": { "type": "string" },
+                "active": { "type": "boolean" },
+                "origin": { "type": "string" },
+                "source": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

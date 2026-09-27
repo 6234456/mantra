@@ -80,6 +80,8 @@ enum class RowFlag {
     GRAND,
     /** Displayed as a deduction (signed layouts show the positive value negatively). */
     NEGATED,
+    /** A non-zero input was reduced to zero by a rule, so the row remains visible. */
+    EXPLAINS_ZERO,
 }
 
 class PaperRow(
