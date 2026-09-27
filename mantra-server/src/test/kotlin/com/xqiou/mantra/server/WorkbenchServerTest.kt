@@ -6,9 +6,6 @@ import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.xqiou.mantra.workbench.ExportBudget
-import com.xqiou.mantra.workbench.WorkspaceCatalog
-import com.xqiou.mantra.workbench.WorkspaceException
-import com.xqiou.mantra.workbench.WorkspaceProblem
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -24,7 +21,6 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.test.assertFailsWith
 
 class WorkbenchServerTest {
     @TempDir lateinit var temp: Path
@@ -119,8 +115,6 @@ class WorkbenchServerTest {
 
     @Test fun `events report content changes with workspace revision and release stream slots`() {
         val root = workspace()
-        assertEquals(WorkspaceProblem.TOO_LARGE,
-            assertFailsWith<WorkspaceException> { WorkspaceCatalog(root).workspaceStamp(maxBytes = 1) }.problem)
         WorkbenchServer(root, 0).use { server ->
             server.start()
             EventStream(server.localPort).use { first ->
@@ -138,6 +132,10 @@ class WorkbenchServerTest {
                     assertEquals(listOf("sample/case.mantra"), changed["paths"])
                     assertFalse(initial == changed["revision"])
                     assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), changed["revision"])
+                    val modified = Files.getLastModifiedTime(case)
+                    Files.writeString(case, Files.readString(case).replace("14.5", "15.5"))
+                    Files.setLastModifiedTime(case, modified)
+                    assertEquals(listOf("sample/case.mantra"), first.event("documentChanged")["paths"])
                     val added = root.resolve("sample/new.mantra")
                     Files.writeString(added, "(parameters new {})")
                     assertEquals(listOf("sample/new.mantra"), first.event("documentChanged")["paths"])
@@ -158,6 +156,26 @@ class WorkbenchServerTest {
             }
             assertEquals(403, request(server.localPort, "/api/v1/events", host = "evil.example:${server.localPort}").status)
             assertEquals(400, request(server.localPort, "/api/v1/events?unexpected=1").status)
+        }
+    }
+
+    @Test fun `events continue to update for a valid workspace above 64 MiB`() {
+        val root = temp.resolve("large-workspace")
+        Files.createDirectories(root)
+        val padding = " ".repeat(62 * 1024)
+        repeat(1_100) { index -> Files.writeString(root.resolve("p$index.mantra"), "(parameters p$index {})\n$padding") }
+        val size = Files.list(root).use { paths -> paths.mapToLong(Files::size).sum() }
+        assertTrue(size > 64L * 1024 * 1024)
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            EventStream(server.localPort).use { stream ->
+                assertEquals(200, stream.status)
+                val initial = stream.event("revision")["revision"] as String
+                Files.writeString(root.resolve("p999.mantra"), "(parameters p999 {})\n${padding}x")
+                val changed = stream.event("documentChanged")
+                assertEquals(listOf("p999.mantra"), changed["paths"])
+                assertFalse(initial == changed["revision"])
+            }
         }
     }
 

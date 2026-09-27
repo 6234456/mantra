@@ -40,6 +40,10 @@ class WorkbenchServer(
     private val token = ByteArray(32).also(SecureRandom()::nextBytes).joinToString("") { "%02x".format(it) }
     private val executor = Executors.newFixedThreadPool(4)
     private val eventSlots = Semaphore(2)
+    private val stampLock = Any()
+    private var sharedStamp: WorkspaceCatalog.WorkspaceStamp? = null
+    private var stampError: WorkspaceException? = null
+    private var stampCheckedAt = 0L
     @Volatile private var running = false
     private val servers: List<HttpServer> = run {
         val ipv4 = HttpServer.create(InetSocketAddress("127.0.0.1", port), 16)
@@ -279,6 +283,22 @@ class WorkbenchServer(
     private fun unavailable(exchange: HttpExchange) =
         error(exchange, 501, "MANTRA-WORKBENCH-UNAVAILABLE", "Endpoint is not implemented in the read-only phase")
 
+    private fun eventStamp(): WorkspaceCatalog.WorkspaceStamp = synchronized(stampLock) {
+        val now = System.nanoTime()
+        val delay = if (stampError == null) 1_000_000_000L else 5_000_000_000L
+        if (stampCheckedAt != 0L && now - stampCheckedAt < delay) {
+            stampError?.let { throw it }
+            sharedStamp?.let { return@synchronized it }
+        }
+        stampCheckedAt = now
+        try {
+            catalog.workspaceStamp(sharedStamp).also { sharedStamp = it; stampError = null }
+        } catch (problem: WorkspaceException) {
+            stampError = problem
+            throw problem
+        }
+    }
+
     private fun events(exchange: HttpExchange) {
         if (!eventSlots.tryAcquire())
             return error(exchange, 503, "MANTRA-WORKBENCH-BUSY", "Too many event streams")
@@ -296,7 +316,7 @@ class WorkbenchServer(
             var scanError: String? = null
             while (running && !Thread.currentThread().isInterrupted) {
                 val current = try {
-                    catalog.workspaceStamp()
+                    eventStamp()
                 } catch (problem: WorkspaceException) {
                     val code = when (problem.problem) {
                         WorkspaceProblem.TOO_LARGE -> "MANTRA-WORKBENCH-TOO-LARGE"
