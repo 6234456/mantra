@@ -629,7 +629,8 @@ internal object Qualified {
     private val reader = DslFormReader()
 
     fun rewrite(source: String): String {
-        val document = (reader.readDocument(source) as? DslFormReadResult.Success)?.document ?: return source
+        val document = (reader.readDocument(source) as? DslFormReadResult.Success)?.document
+            ?: return rewriteIncomplete(source)
         val slashes = mutableListOf<Int>()
         fun visit(form: DslForm) {
             when (form) {
@@ -648,5 +649,30 @@ internal object Qualified {
         visit(document.root)
         if (slashes.isEmpty()) return source
         return source.toCharArray().also { chars -> slashes.forEach { chars[it] = '_' } }.concatToString()
+    }
+
+    /** Completion often sees an unfinished form. Keep the same lexical spelling rule while typing. */
+    private fun rewriteIncomplete(source: String): String {
+        val chars = source.toCharArray()
+        var quoted = false
+        var comment = false
+        var escaped = false
+        for (index in source.indices) {
+            val c = source[index]
+            if (comment) { if (c == '\n') comment = false; continue }
+            if (quoted) {
+                if (escaped) escaped = false
+                else if (c == '\\') escaped = true
+                else if (c == '"') quoted = false
+                continue
+            }
+            if (c == ';') { comment = true; continue }
+            if (c == '"') { quoted = true; continue }
+            if (source.startsWith("mantra/", index) &&
+                (index == 0 || source[index - 1].isWhitespace() || source[index - 1] in "([{'") &&
+                source.getOrNull(index + 7)?.isLetter() == true
+            ) chars[index + 6] = '_'
+        }
+        return chars.concatToString()
     }
 }

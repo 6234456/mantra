@@ -16,4 +16,15 @@ class QualifiedTest {
         )
         assertEquals(source.length, rewritten.length)
     }
+
+    @Test
+    fun `rewrites qualified names in unfinished editor text without touching literals`() {
+        val source = """(+ mantra/amount "mantra/text" ; mantra/comment
+            mantra/other"""
+        assertEquals(
+            """(+ mantra_amount "mantra/text" ; mantra/comment
+            mantra_other""",
+            Qualified.rewrite(source),
+        )
+    }
 }

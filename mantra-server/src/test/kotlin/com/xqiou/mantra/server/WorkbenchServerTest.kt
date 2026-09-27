@@ -219,12 +219,20 @@ class WorkbenchServerTest {
             val emptyItems = ObjectMapper().readTree(post("complete", "", 0).body)["data"]["items"]
             assertTrue(emptyItems.any { it["label"].asText() == "remaining-life" })
             assertFalse(emptyItems.any { it["label"].asText() == "allocable-corporate" })
+            val qualified = ObjectMapper().readTree(post("complete", "mantra/remaining-", 17).body)["data"]
+            assertEquals("mantra/remaining-", qualified["query"].asText())
+            assertTrue(qualified["items"].any { it["label"].asText() == "mantra/remaining-life" &&
+                it["insertText"].asText() == "mantra/remaining-life" })
             val hover = post("hover", "(* carrying-amount 2)", 8)
             assertEquals(200, hover.status, hover.body)
             assertEquals("carrying-amount", ObjectMapper().readTree(hover.body)["data"]["hover"]["symbol"].asText())
+            val qualifiedHover = post("hover", "mantra/carrying-amount", 10)
+            assertEquals("mantra/carrying-amount", ObjectMapper().readTree(qualifiedHover.body)["data"]["hover"]["symbol"].asText())
             val valid = post("check", "(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)")
             assertEquals(200, valid.status, valid.body)
             assertTrue(ObjectMapper().readTree(valid.body)["data"]["valid"].asBoolean(), valid.body)
+            val qualifiedCheck = post("check", "(if weight-by-life (decimal/divide mantra/remaining-life (dim/min all.remaining-life) 4) 1)")
+            assertTrue(ObjectMapper().readTree(qualifiedCheck.body)["data"]["valid"].asBoolean(), qualifiedCheck.body)
             val disallowed = post("check", "allocable-corporate")
             assertEquals(200, disallowed.status, disallowed.body)
             assertFalse(ObjectMapper().readTree(disallowed.body)["data"]["valid"].asBoolean(), disallowed.body)

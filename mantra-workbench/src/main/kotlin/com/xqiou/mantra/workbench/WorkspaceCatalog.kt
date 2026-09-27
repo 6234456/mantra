@@ -213,7 +213,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val base = resolve(caseId, scan())
         val editor = try {
             when (target) {
-                is AuthoringTarget.Extension -> FormulaAuthoring.forExtension(base.schema, base.view.case, base.parameters, target.slot)
+                is AuthoringTarget.Extension -> FormulaAuthoring.forExtension(base.schema, base.view.case, base.parameters, target.slot, target.id)
                 is AuthoringTarget.FormulaSlot -> FormulaAuthoring.forFormulaSlot(base.schema, base.view.case, base.parameters, target.id)
             }
         } catch (error: IllegalArgumentException) {
