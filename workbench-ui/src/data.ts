@@ -1,4 +1,4 @@
-import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare } from './types'
+import type { CaseSummary, Envelope, Explain, ExportPreview, Paper, Run, Structure, Workspace, Address, Parameters, Diagnostics, Compare, EditOperation, EditResult } from './types'
 import { addressToPath } from './address'
 
 export interface WorkbenchData {
@@ -12,6 +12,7 @@ export interface WorkbenchData {
   compare(caseId: string, parameterSets: string[], signal?: AbortSignal): Promise<Envelope<Compare>>
   exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
   exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt', layout?: string): string | undefined
+  edit(caseId: string, baseRevision: string, operations: EditOperation[], preview?: boolean): Promise<Envelope<EditResult>>
 }
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
@@ -28,6 +29,21 @@ function contract<T>(raw: Envelope<T>): Envelope<T> {
 const apiCase = (id: string) => `/api/v1/cases/${encodeURIComponent(id)}`
 
 export class LiveData implements WorkbenchData {
+  async edit(id: string, baseRevision: string, operations: EditOperation[], preview = false) {
+    const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
+    if (!token) throw new Error('Editing requires a workbench server session')
+    const response = await fetch(`${apiCase(id)}/${preview ? 'preview' : 'edits'}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Mantra-Token': token },
+      body: JSON.stringify({ baseRevision, operations }),
+    })
+    const payload = await response.json()
+    if (!response.ok) {
+      const detail = payload?.error
+      const diagnostic = detail?.diagnostics?.[0]?.message
+      throw new Error(diagnostic ?? detail?.message ?? `${response.status} ${response.statusText}`)
+    }
+    return contract(payload as Envelope<EditResult>)
+  }
   workspace(signal?: AbortSignal) { return json<Envelope<Workspace>>('/api/v1/workspace', signal).then(response => contract(response).data) }
   structure(id: string, signal?: AbortSignal) { return json<Envelope<Structure>>(`${apiCase(id)}/structure`, signal).then(contract) }
   run(id: string, signal?: AbortSignal) { return json<Envelope<Run>>(`${apiCase(id)}/run`, signal).then(contract) }
@@ -63,6 +79,9 @@ export class LiveData implements WorkbenchData {
 
 /** WP3 writes public/fixtures/index.json and one directory per case. No sample values live in UI source. */
 export class FixtureData implements WorkbenchData {
+  edit(_id: string, _baseRevision: string, _operations: EditOperation[], _preview = false): Promise<Envelope<EditResult>> {
+    return Promise.reject(new Error('Editing requires a workbench server session'))
+  }
   private manifest?: Promise<{ cases: Array<CaseSummary & { files: { structure: string; run: string; paper: string; parameters?: string; diagnostics?: string; compares?: Record<string, string>; explains?: Record<string, string>; 'export-preview'?: string; [key: string]: string | Record<string, string> | undefined } }>; parameters?: Array<{ id: string; path: string }> }>
   private index() {
     // Cache the manifest independently of view cancellation. React may abort an initial

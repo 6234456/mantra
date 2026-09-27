@@ -9,9 +9,10 @@ export interface MainlineStep { step: number; panel: string; title: string; resu
 export interface Entry { step: number; panel: string; via: string; viaLabel: string; path: string[] }
 export interface Crumb { kind?: 'mainline'; panel?: string; label?: string; node?: string }
 export interface Flow { fromPanel: string; fromNode: string; toPanel: string; toNode: string }
-export interface Panel { id: string; title: string; role: 'mainline' | 'branch' | 'auxiliary'; step?: number; parent?: string | null; dims: string[]; result?: string | null; breadcrumb: Crumb[]; entries: Entry[]; fields: Array<string | { id: string }>; nodes: string[]; imports: Flow[]; exports: Flow[] }
+export interface InputField { id: string; label?: string; type?: string; dims?: string[]; options?: Record<string, string>; columns?: Array<{ name: string; type: string; optional?: boolean }>; keyColumn?: string | null; help?: string | null; unit?: string | null; reference?: string | null; group?: string | null; groupTitle?: string | null; attributes?: Record<string, unknown> }
+export interface Panel { id: string; title: string; role: 'mainline' | 'branch' | 'auxiliary'; step?: number; parent?: string | null; dims: string[]; result?: string | null; breadcrumb: Crumb[]; entries: Entry[]; fields: Array<string | InputField>; nodes: string[]; imports: Flow[]; exports: Flow[] }
 export interface NodeMeta { id?: string; label: string; kind: string; type?: string; dims?: string[]; reference?: string; note?: string; formula?: string | { text: string }; [key: string]: unknown }
-export type Structure = Pick<WireStructure['data'], 'schema' | 'title'> & { schemaVersion?: string | null; period?: string; mainline: MainlineStep[]; panels: Panel[]; generalInputs: Array<string | { id: string }>; params: unknown[]; nodes?: Record<string, NodeMeta>; headline?: string | null; groupTitles?: Record<string, string> }
+export type Structure = Pick<WireStructure['data'], 'schema' | 'title'> & { schemaVersion?: string | null; period?: string; mainline: MainlineStep[]; panels: Panel[]; generalInputs: Array<string | InputField>; params: unknown[]; nodes?: Record<string, NodeMeta>; headline?: string | null; groupTitles?: Record<string, string> }
 export type RunValue = WireRun['data']['values'][string][string]
 export type Run = WireRun['data']
 export interface Cell { text: string; address?: Address | null; editable?: boolean; style?: { weight?: string; tone?: string; fill?: string } }
@@ -27,5 +28,15 @@ export type CaseSummary = Pick<WireWorkspace['data']['cases'][number], 'id' | 't
 export type Parameters = WireParameters['data']
 export type Compare = WireCompare['data']
 export type ExportPreview = WireExportPreview['data']
+export type EditOperation =
+  | { op: 'setInput'; address: Address; text: string }
+  | { op: 'clearInput'; address: Address }
+  | { op: 'setParam'; id: string; text: string }
+  | { op: 'resetParam'; id: string }
+  | { op: 'insertRow'; table: string; rowText: Record<string, string>; index?: number }
+  | { op: 'updateRow'; table: string; row: Value; index: number }
+  | { op: 'deleteRow'; table: string; index: number }
+  | { op: 'moveRow'; table: string; from: number; to: number }
+export interface EditResult { document: string; preview: boolean; proposedRevision: string; diagnostics: Diagnostic[]; run: Run; difference: Compare }
 export interface Diagnostics { diagnostics: Diagnostic[] }
 export interface Workspace { cases: CaseSummary[]; parameters?: Array<{ id: string; path: string }>; layouts?: Array<{ id: string; path: string }> }

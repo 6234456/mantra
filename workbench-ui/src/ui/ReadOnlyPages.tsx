@@ -43,8 +43,8 @@ function stateMessage(error?: Error, loading?: boolean) {
   return null
 }
 
-export function ParametersPage({ caseId, structure, workspace, data, compareSet, navigate }: { caseId: string; structure: Structure; workspace: Workspace; data: WorkbenchData; compareSet?: string; navigate: (path: string) => void }) {
-  const parameters = useDocument(signal => data.parameters(caseId, signal), [data, caseId])
+export function ParametersPage({ caseId, structure, workspace, data, compareSet, refresh = 0, revision = '', onSaved = () => {}, navigate }: { caseId: string; structure: Structure; workspace: Workspace; data: WorkbenchData; compareSet?: string; refresh?: number; revision?: string; onSaved?: () => void; navigate: (path: string) => void }) {
+  const parameters = useDocument(signal => data.parameters(caseId, signal), [data, caseId, refresh])
   const options = workspace.parameters ?? []
   const selectedSet = compareSet ?? ''
   const comparison = useDocument(signal => selectedSet ? data.compare(caseId, [selectedSet], signal) : Promise.reject(new Error('No selection')), [data, caseId, selectedSet])
@@ -59,7 +59,7 @@ export function ParametersPage({ caseId, structure, workspace, data, compareSet,
         <div className="parameter-layers">{parameter.layers.map((layer, index) => {
           const effective = layer.declared && layer.layer === parameter.effective.layer && layer.set === parameter.effective.set && !parameter.layers.slice(index + 1).some(next => next.declared && next.layer === layer.layer && next.set === layer.set)
           return <div className={`parameter-layer ${effective ? 'is-effective' : ''}`} key={`${layer.layer}-${layer.set ?? ''}-${index}`}><span className="eyebrow">{layerTitle(layer)}</span><strong>{layer.declared ? valueText(layer.value) : '—'}</strong><small>{layer.declared ? layer.reference ?? (effective ? (lang === 'de' ? 'Wirksamer Wert' : 'Effective value') : '') : (lang === 'de' ? 'Keine Überschreibung' : 'No override')}</small></div>
-        })}</div>
+        })}</div><ParameterOverride key={`${parameter.id}-${revision}`} caseId={caseId} id={parameter.id} declared={parameter.layers.some(layer => layer.layer === 'case' && layer.declared)} value={parameter.layers.find(layer => layer.layer === 'case')?.value ?? null} revision={revision} data={data} onSaved={onSaved} />
       </article>)}</div>
     </section>}
     <section className="sheet comparison-sheet"><div className="section-heading"><div><span className="eyebrow">{t('comparison', lang)}</span><h2>{lang === 'de' ? 'Wirkung eines Parametersatzes' : 'Effect of a parameter set'}</h2></div><label className="compare-picker">{lang === 'de' ? 'Vergleichen mit' : 'Compare with'} <select value={selectedSet} onChange={event => { const set = event.target.value; navigate(`${casePath(caseId)}/parameters${set ? `?compare=${encodeURIComponent(set)}` : ''}`) }}><option value="">{lang === 'de' ? 'Parametersatz wählen' : 'Choose parameter set'}</option>{options.map(option => <option key={option.id} value={option.id}>{option.id}</option>)}</select></label></div>
@@ -68,6 +68,19 @@ export function ParametersPage({ caseId, structure, workspace, data, compareSet,
       {selectedSet && comparison.data && <ComparisonResult compare={comparison.data} structure={structure} names={names} />}
     </section>
   </>
+}
+
+function ParameterOverride({ caseId, id, declared, value, revision, data, onSaved }: { caseId: string; id: string; declared: boolean; value: Value; revision: string; data: WorkbenchData; onSaved: () => void }) {
+  const [draft, setDraft] = useState(valueText(value) === 'nil' ? '' : valueText(value))
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  async function commit(reset: boolean) {
+    setBusy(true); setError('')
+    try { await data.edit(caseId, revision, [reset ? { op: 'resetParam', id } : { op: 'setParam', id, text: draft }]); onSaved() }
+    catch (failure) { setError(failure instanceof Error ? failure.message : String(failure)) }
+    finally { setBusy(false) }
+  }
+  return <div className="parameter-override"><label htmlFor={`param-${id}`}>{lang === 'de' ? 'Fallüberschreibung bearbeiten' : 'Edit case override'}</label><input id={`param-${id}`} value={draft} disabled={busy} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && draft) void commit(false) }} /><button type="button" disabled={busy || !draft} onClick={() => void commit(false)}>{lang === 'de' ? 'Speichern' : 'Save'}</button><button type="button" disabled={busy || !declared} onClick={() => void commit(true)}>{lang === 'de' ? 'Zurücksetzen' : 'Reset'}</button>{error && <p role="alert" className="input-error">{error}</p>}</div>
 }
 
 function ComparisonResult({ compare, structure, names }: { compare: Compare; structure: Structure; names: Map<string, string> }) {

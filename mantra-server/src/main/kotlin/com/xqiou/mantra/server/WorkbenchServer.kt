@@ -351,9 +351,18 @@ class WorkbenchServer(
                 }
                 "resetParam" -> { requireFields(op, "op", "id"); CaseTextEditor.Operation.ResetParam(string(op, "id")) }
                 "insertRow" -> {
-                    if (op.fieldNames().asSequence().any { it !in setOf("op", "table", "row", "index") }) bad("Unexpected insertRow fields")
-                    val row = parseValue(op["row"] ?: bad("row is required")) as? Value.MapV ?: bad("row must be a map value")
-                    CaseTextEditor.Operation.InsertRow(string(op, "table"), row, op["index"]?.let { integer(op, "index") })
+                    if (op.fieldNames().asSequence().any { it !in setOf("op", "table", "row", "rowText", "index") } || op.has("row") == op.has("rowText")) bad("Provide exactly one of row and rowText")
+                    val table = string(op, "table")
+                    val row = if (op.has("row")) parseValue(op["row"]) as? Value.MapV ?: bad("row must be a map value")
+                    else {
+                        val source = op["rowText"]?.takeIf(JsonNode::isObject) ?: bad("rowText must be an object")
+                        if (source.size() !in 1..64) bad("rowText must contain 1–64 columns")
+                        Value.MapV(source.fields().asSequence().associate { (column, value) ->
+                            if (!value.isTextual || value.textValue().length > 10_000) bad("rowText values must be text")
+                            Value.Kw(column) to catalog.parseEditText(caseId, table, false, value.textValue(), column)
+                        })
+                    }
+                    CaseTextEditor.Operation.InsertRow(table, row, op["index"]?.let { integer(op, "index") })
                 }
                 "updateRow" -> { requireFields(op, "op", "table", "index", "row"); CaseTextEditor.Operation.UpdateRow(string(op, "table"), integer(op, "index"), parseValue(op["row"]) as? Value.MapV ?: bad("row must be a map value")) }
                 "deleteRow" -> { requireFields(op, "op", "table", "index"); CaseTextEditor.Operation.DeleteRow(string(op, "table"), integer(op, "index")) }
