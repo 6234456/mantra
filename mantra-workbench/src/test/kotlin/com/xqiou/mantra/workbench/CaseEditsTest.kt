@@ -103,7 +103,7 @@ class CaseEditsTest {
     }
 
     @Test
-    fun `batch validates each coordinate against preceding operation view`() {
+    fun `batch validates a retained member against the final view`() {
         val (dir, case) = copyExample("de-est-2025")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
@@ -118,6 +118,87 @@ class CaseEditsTest {
         val committed = catalog.commitEdits(case, revision, change)
         assertEquals(preview.data["proposedRevision"], committed.revision)
         assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `temporary unknown formula input and parameter edits do not block a valid batch`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val operations = listOf(
+            CaseTextEditor.Operation.BindFormula("missing-slot", "(+ 1 2)"),
+            CaseTextEditor.Operation.SetInput("missing-input", Value.num("1")),
+            CaseTextEditor.Operation.SetParam("missing-param", Value.num("1")),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.UnbindFormula("missing-slot"),
+            CaseTextEditor.Operation.ClearInput("missing-input"),
+            CaseTextEditor.Operation.ResetParam("missing-param"),
+        )
+        val preview = catalog.previewEdits(case, revision, operations)
+        assertTrue(preview.data["preview"] == true)
+        val committed = catalog.commitEdits(case, revision, operations)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `retained inactive member is rejected but a later clear can remove it`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val setB = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B"))
+        val problem = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(setB)) }
+        assertEquals(WorkspaceProblem.INVALID, problem.problem)
+        val cleared = catalog.previewEdits(case, revision, listOf(setB,
+            CaseTextEditor.Operation.ClearInput("bruttoarbeitslohn", listOf("B"))))
+        assertTrue(cleared.data["preview"] == true)
+    }
+
+    @Test
+    fun `dimensioned input cannot be replaced by scalar without a member coordinate`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        val original = Files.readString(file)
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val scalar = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("40000"))
+        val rejected = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(scalar)) }
+        assertEquals(WorkspaceProblem.INVALID, rejected.problem)
+        assertContains(rejected.diagnostics.single().message, "member maps")
+        assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(scalar)) }
+        assertEquals(original, Files.readString(file))
+        val repaired = catalog.previewEdits(case, revision, listOf(scalar,
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        assertTrue(repaired.data["preview"] == true)
+    }
+
+    @Test
+    fun `whole dimensioned input replacement rejects unknown member keys`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        val original = Files.readString(file)
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val unknownMember = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+            Value.Kw("Z") to Value.num("40000"))))
+        val rejected = assertFailsWith<WorkspaceException> {
+            catalog.previewEdits(case, revision, listOf(unknownMember))
+        }
+        assertEquals(WorkspaceProblem.INVALID, rejected.problem)
+        assertContains(rejected.diagnostics.single().message, "invalid member key")
+        assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(unknownMember)) }
+        assertEquals(original, Files.readString(file))
+
+        val repaired = catalog.previewEdits(case, revision, listOf(unknownMember,
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
+                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        assertTrue(repaired.data["preview"] == true)
     }
 
     @Test
@@ -154,6 +235,44 @@ class CaseEditsTest {
             CaseTextEditor.Operation.SetBindings(null, "de.est/steuerberechnung"),
         ))
         assertTrue(result.data["preview"] == true)
+    }
+
+    @Test
+    fun `member coordinate validation can ignore transient missing parameter set`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val operations = listOf(
+            CaseTextEditor.Operation.SetBindings(listOf("missing/parameters"), null),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
+        )
+        val preview = catalog.previewEdits(case, revision, operations)
+        assertTrue(preview.data["preview"] == true)
+        val committed = catalog.commitEdits(case, revision, operations)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":parameters [\"de.est/params-2026\"]")
+        assertContains(Files.readString(file), ":bruttoarbeitslohn {:A 68500 :B 32000}")
+    }
+
+    @Test
+    fun `member coordinate validation can ignore transient invalid parameter document`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(dir.resolve("temp-invalid.mantra"), "(parameters temp/invalid (bad))")
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val preview = catalog.previewEdits(case, revision, listOf(
+            CaseTextEditor.Operation.SetBindings(listOf("temp/invalid"), null),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
+        ))
+        assertTrue(preview.data["preview"] == true)
     }
 
     @Test
