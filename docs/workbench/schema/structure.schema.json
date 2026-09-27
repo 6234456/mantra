@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/structure.schema.json",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["schema", "schemaVersion", "title", "headline", "mainline", "panels", "generalInputs", "params", "nodes", "slots", "formulaSlots"],
+      "properties": {
+        "schema": { "type": "string" },
+        "schemaVersion": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "headline": {},
+        "mainline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step", "panel", "title", "result"],
+            "properties": {
+              "step": { "type": "integer", "minimum": 1 },
+              "panel": { "type": "string" },
+              "title": { "type": "string" },
+              "result": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "panels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "role", "step", "parent", "dims", "result", "breadcrumb", "entries", "fields", "nodes", "imports", "exports"],
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "role": { "enum": ["mainline", "branch", "auxiliary"] },
+              "step": { "type": ["integer", "null"] },
+              "parent": { "type": ["string", "null"] },
+              "dims": { "type": "array", "items": { "type": "string" } },
+              "result": { "type": ["string", "null"] },
+              "breadcrumb": { "type": "array", "items": { "type": "object" } },
+              "entries": { "type": "array", "items": { "type": "object" } },
+              "fields": { "type": "array", "items": { "type": "object" } },
+              "nodes": { "type": "array", "items": { "type": "string" } },
+              "imports": { "type": "array", "items": { "type": "object" } },
+              "exports": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        },
+        "generalInputs": { "type": "array", "items": { "type": "object" } },
+        "params": { "type": "array", "items": { "type": "object" } },
+        "nodes": { "type": "object", "additionalProperties": { "type": "object" } },
+        "slots": { "type": "array", "items": { "type": "object" } },
+        "formulaSlots": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

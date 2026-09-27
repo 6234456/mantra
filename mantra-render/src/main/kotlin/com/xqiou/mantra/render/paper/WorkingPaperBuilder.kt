@@ -484,6 +484,7 @@ class WorkingPaperBuilder(
                 if (!nodeResult.anyActive) add(RowFlag.INACTIVE)
                 if (node.op == 0 && !isTotal) add(RowFlag.INFO)
                 if (node.id == lastRootTotal) add(RowFlag.GRAND)
+                if (isZero(nodeResult) && explainsZero(nodeResult)) add(RowFlag.EXPLAINS_ZERO)
             }
             val number = nextNumber()
             val anchor = "t${context.ref}-r$number"

@@ -114,13 +114,20 @@ class CalculationViewTest {
               (section root "Root" (line result "Result" base)))
         """.trimIndent()), noIncludes)
         val inputs = linkedMapOf<String, Value>("base" to Value.Num(BigDecimal("2")))
-        val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base 2}))")).copy(inputs = inputs)
+        val inputLocations = linkedMapOf("base" to SourceLocation("case.mantra", 1, 24, 23, 24))
+        val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base 2}))"))
+            .copy(inputs = inputs, inputLocations = inputLocations)
         val view = CalculationView.of(Mantra.calculate(schema, case))
         inputs["base"] = Value.Num(BigDecimal("99"))
+        inputLocations["base"] = SourceLocation("other.mantra", 2, 1)
         assertEquals(Value.Num(BigDecimal("2")), view.case.inputs["base"])
+        assertEquals("case.mantra", view.case.inputLocations["base"]?.source)
         assertEquals(Value.Num(BigDecimal("2")), view.node("base").value())
         assertFailsWith<UnsupportedOperationException> {
             (view.case.inputs as MutableMap)["base"] = Value.Num(BigDecimal("5"))
+        }
+        assertFailsWith<UnsupportedOperationException> {
+            (view.case.inputLocations as MutableMap)["base"] = SourceLocation("other.mantra", 2, 1)
         }
     }
 }

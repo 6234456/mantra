@@ -25,7 +25,8 @@ fun interface SourceResolver {
 }
 
 class Document(val source: SourceText, val root: DslForm) {
-    fun location(form: DslForm): SourceLocation = SourceLocation(source.name, form.span.line, form.span.column)
+    fun location(form: DslForm): SourceLocation =
+        SourceLocation(source.name, form.span.line, form.span.column, form.span.startOffset, form.span.endOffset)
 
     fun slice(form: DslForm): String = source.text.substring(form.span.startOffset, form.span.endOffset)
 
@@ -42,7 +43,7 @@ class Document(val source: SourceText, val root: DslForm) {
                         sink.error(
                             "MANTRA-READ-SYNTAX",
                             "${diagnostic.code}: ${diagnostic.message}",
-                            diagnostic.span?.let { SourceLocation(source.name, it.line, it.column) },
+                            diagnostic.span?.let { SourceLocation(source.name, it.line, it.column, it.startOffset, it.endOffset) },
                         )
                     }
                     null
