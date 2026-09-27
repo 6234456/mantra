@@ -8,10 +8,11 @@ import { auditForCell, nodeValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
+import { SourcesPage } from './SourcesPage'
 const ExtensionsPage = lazy(() => import('./AuthoringPages').then(module => ({ default: module.ExtensionsPage })))
 const FormulaSlotCard = lazy(() => import('./AuthoringPages').then(module => ({ default: module.FormulaSlotCard })))
 
-type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'inputs' | 'parameters' | 'diagnostics' | 'extensions' | 'export' | 'other'; panelId?: string; groupId?: string; address?: Address; compare?: string }
+type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'inputs' | 'parameters' | 'sources' | 'diagnostics' | 'extensions' | 'export' | 'other'; panelId?: string; groupId?: string; address?: Address; compare?: string }
 const lang = language()
 
 function route(): Route {
@@ -24,6 +25,7 @@ function route(): Route {
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
   if (parts[2] === 'inputs') return { caseId, page: 'inputs', groupId: parts[3] ? decodeURIComponent(parts[3]) : undefined }
   if (parts[2] === 'parameters') return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
+  if (parts[2] === 'sources') return { caseId, page: 'sources' }
   if (parts[2] === 'diagnostics') return { caseId, page: 'diagnostics' }
   if (parts[2] === 'extensions') return { caseId, page: 'extensions' }
   if (parts[2] === 'export') return { caseId, page: 'export' }
@@ -108,8 +110,9 @@ export function App() {
     <div className="body-shell">
       {ready && <Sidebar structure={structure.data!.data} run={run.data!.data} caseId={caseId!} activePanel={current.panelId} activePage={current.page} navigate={navigate} />}
       <main className="content" key={refresh}>
-        {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
-        {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
+        {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><Link href={`${casePath(caseId!)}/sources`} navigate={navigate}>{t('sources', lang)}</Link><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
+        {current.page === 'sources' ? <SourcesPage caseId={caseId!} structure={structure.data?.data} revision={run.data?.revision} data={data} onSaved={() => setRefresh(value => value + 1)} /> :
+          !ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
           <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} revision={run.data!.revision} data={data} onSaved={() => setRefresh(value => value + 1)} navigate={navigate} /> : current.page === 'provenance' && current.address ?
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :

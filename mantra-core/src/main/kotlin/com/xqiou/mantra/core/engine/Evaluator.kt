@@ -194,8 +194,9 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 continue
             }
             val raw = if (vertex.dims.isEmpty()) supplied else lookup(supplied, coord)
+            val source = plan.case.inputOrigins[vertex.id]?.get(coord.joinToString("/"))
             val (value, origin) = when {
-                raw != null && raw != Value.Nil -> convertInput(raw, decl, coord) to InputOrigin.CASE
+                raw != null && raw != Value.Nil -> convertInput(raw, decl, coord) to if (source == null) InputOrigin.CASE else InputOrigin.SOURCE
                 decl.default != null && decl.default != Value.Nil -> convertInput(decl.default, decl, coord) to InputOrigin.DEFAULT
                 decl.optional -> Value.Nil to InputOrigin.DEFAULT
                 decl.type.isNumeric -> Value.ZERO to InputOrigin.IMPLICIT
@@ -210,7 +211,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 }
             }
             validateInput(vertex, coord, value, origin)
-            store(vertex, coord, value, NodeTrace.Input(origin))
+            store(vertex, coord, value, NodeTrace.Input(origin, source))
         }
     }
 
@@ -218,7 +219,7 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     private fun validateInput(vertex: InputVertex, coord: Coord, value: Value, origin: InputOrigin) {
         val attributes = vertex.decl.presentation.attributes
         val where = "${vertex.id}${coordText(vertex.dims, coord)}"
-        if (attributes["required"] == Value.Bool(true) && origin != InputOrigin.CASE) {
+        if (attributes["required"] == Value.Bool(true) && origin !in setOf(InputOrigin.CASE, InputOrigin.SOURCE)) {
             sink.error("MANTRA-INPUT-REQUIRED", "Input $where is required but was not supplied", vertex.location, vertex.id, coord)
         }
         val number = (value as? Value.Num)?.value ?: return

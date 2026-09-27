@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
+import com.xqiou.mantra.core.data.Json
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Schema
@@ -32,10 +33,10 @@ import com.xqiou.normein.dsl.form.DslForm
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.StandardCopyOption
 import java.nio.file.StandardOpenOption
 import java.nio.channels.FileChannel
+import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
@@ -86,16 +87,153 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     data class DocumentResult(val revision: String, val data: Map<String, Any?>)
 
+    fun sources(caseId: String): DocumentResult {
+        val file = path(caseId)
+        val case = loadCase(file)
+        val overridden = runCatching { resolve(caseId, scan()).sourceOverrides }.getOrNull().orEmpty()
+        return DocumentResult(sourceRevision(file, case), linkedMapOf("sources" to case.sources.mapIndexed { index, binding ->
+            linkedMapOf("index" to index, "kind" to binding.kind,
+                "path" to (binding.options["path"] as? Value.Text)?.value,
+                "overridden" to overridden.getOrNull(index).orEmpty(),
+                "options" to binding.options.mapValues { (_, value) -> WorkbenchJson.value(value) })
+        }))
+    }
+
+    /** A broken source must remain removable without evaluating that same broken source first. */
+    fun removeSource(caseId: String, baseRevision: String, index: Int): DocumentResult {
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val file = path(caseId)
+            val original = source(file).text
+            val case = loadCase(file)
+            val current = sourceRevision(file, case)
+            checkRevision(baseRevision, current)
+            val candidate = try { CaseTextEditor.apply(original, listOf(CaseTextEditor.Operation.RemoveSource(index))) }
+                catch (error: IllegalArgumentException) { throw WorkspaceException(WorkspaceProblem.REQUEST, error.message ?: "Invalid source index") }
+                catch (error: IllegalStateException) { throw WorkspaceException(WorkspaceProblem.REQUEST, error.message ?: "Invalid source index") }
+            if (candidate != original) {
+                try { Mantra.loadCase(SourceText(caseId, candidate, file.parent.toString())) }
+                catch (error: MantraException) { throw WorkspaceException(WorkspaceProblem.INVALID, "Case document is invalid", error.diagnostics) }
+                writeCase(caseId, file, candidate, original, current) {
+                    runCatching { sourceRevision(file, loadCase(file)) }.getOrNull()
+                }
+                history.undo.addLast(original)
+                while (history.undo.size > 50) history.undo.removeFirst()
+                history.redo.clear()
+            }
+            sources(caseId)
+        }
+    }
+
+    private fun sourceRevision(file: Path, case: CaseData): String {
+        val bound = case.sources.mapNotNull { binding ->
+            val name = (binding.options["path"] as? Value.Text)?.value ?: return@mapNotNull null
+            val candidate = file.parent.resolve(name).toAbsolutePath().normalize()
+            candidate.takeIf { it.startsWith(root) && Files.isRegularFile(it) && Files.size(it) <= ImportFiles.MAX_BYTES &&
+                it.toRealPath().startsWith(root) }
+        }
+        return revision(listOf(file) + bound)
+    }
+
+    fun importApply(caseId: String, baseRevision: String, name: String, format: String,
+                    bytes: ByteArray, options: Map<String, Value>): DocumentResult {
+        ImportFiles.inspect(name, format, bytes)
+        if ("path" in options) throw WorkspaceException(WorkspaceProblem.REQUEST, "Import path is assigned by the server")
+        val history = histories.computeIfAbsent(caseId) { EditHistory() }
+        return synchronized(history) {
+            val current = resolve(caseId, scan())
+            checkRevision(baseRevision, current.revision)
+            val caseFile = path(caseId)
+            val directory = caseFile.parent.resolve("imports")
+            Files.createDirectories(directory)
+            if (!directory.toRealPath().startsWith(root))
+                throw WorkspaceException(WorkspaceProblem.REQUEST, "Import directory is outside the workspace")
+            val digest = MessageDigest.getInstance("SHA-256").digest(bytes).take(12).joinToString("") { "%02x".format(it) }
+            val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80)
+            val file = directory.resolve("$digest-$safeName")
+            var created = false
+            try {
+                try {
+                    Files.write(file, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)
+                    created = true
+                } catch (_: java.nio.file.FileAlreadyExistsException) {
+                    if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) ||
+                        !Files.readAllBytes(file).contentEquals(bytes))
+                        throw WorkspaceException(WorkspaceProblem.CONFLICT, "Import file already exists with different content")
+                }
+                val binding = options + ("path" to Value.Text("imports/${file.fileName}"))
+                commitEdits(caseId, baseRevision, listOf(CaseTextEditor.Operation.AddSource(format, binding)))
+            } catch (error: Exception) {
+                if (created) Files.deleteIfExists(file)
+                throw error
+            }
+        }
+    }
+
+    fun importTemplates(): DocumentResult {
+        val directory = root.resolve("import-templates")
+        if (!Files.exists(directory)) return DocumentResult(workspaceStamp().revision, mapOf("templates" to emptyList<Any>()))
+        if (!Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS))
+            throw WorkspaceException(WorkspaceProblem.INVALID, "Import template directory is invalid")
+        val files = Files.list(directory).use { stream -> stream.filter { it.fileName.toString().endsWith(".json") }
+            .sorted().limit(129).toList() }
+        if (files.size > 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+        val templates = files.map { file ->
+            if (!Files.isRegularFile(file, LinkOption.NOFOLLOW_LINKS) || Files.size(file) > 65_536)
+                throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            val entry = try { Json.parse(Files.readString(file)) as? Value.MapV } catch (_: Exception) { null }
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            val fields = entry.entries
+            val name = (fields[Value.Kw("name")] as? Value.Text)?.value
+            val format = (fields[Value.Kw("format")] as? Value.Text)?.value
+            val options = fields[Value.Kw("options")] as? Value.MapV
+            if (name == null || format !in setOf("csv", "json", "xlsx") || options == null)
+                throw WorkspaceException(WorkspaceProblem.INVALID, "Import template is invalid")
+            mapOf("name" to name, "format" to format, "options" to plain(options))
+        }
+        return DocumentResult(workspaceStamp().revision, mapOf("templates" to templates))
+    }
+
+    fun saveImportTemplate(name: String, format: String, options: Map<String, Value>): DocumentResult {
+        if (!Regex("[A-Za-z0-9][A-Za-z0-9_-]{0,79}").matches(name) || format !in setOf("csv", "json", "xlsx") || "path" in options)
+            throw WorkspaceException(WorkspaceProblem.REQUEST, "Invalid import template")
+        val directory = root.resolve("import-templates")
+        Files.createDirectories(directory)
+        if (!directory.toRealPath().startsWith(root)) throw WorkspaceException(WorkspaceProblem.REQUEST, "Template directory is outside the workspace")
+        return synchronized(writeLocks.computeIfAbsent(directory) { Any() }) {
+            val existing = importTemplates().data["templates"] as List<*>
+            if (existing.size >= 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+            val body = WorkbenchJson.write(mapOf("name" to name, "format" to format,
+                "options" to options.mapValues { plain(it.value) }))
+            if (body.toByteArray(Charsets.UTF_8).size > 65_536) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import template is too large")
+            val file = directory.resolve("$name.json")
+            try { Files.writeString(file, body, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE) }
+            catch (_: java.nio.file.FileAlreadyExistsException) { throw WorkspaceException(WorkspaceProblem.CONFLICT, "Import template already exists") }
+            try { importTemplates() } catch (error: Exception) { Files.deleteIfExists(file); throw error }
+        }
+    }
+
+    private fun plain(value: Value): Any? = when (value) {
+        is Value.Text -> value.value
+        is Value.Kw -> value.name
+        is Value.MapV -> value.entries.entries.associate { (key, entry) ->
+            ((key as? Value.Text)?.value ?: (key as? Value.Kw)?.name
+                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Invalid import mapping key")) to plain(entry)
+        }
+        else -> throw WorkspaceException(WorkspaceProblem.INVALID, "Import template options must be text or mappings")
+    }
+
     /** The event scanner retains digests, not document contents. Its revision equals /workspace's revision. */
     data class FileMarker(val size: Long, val modified: java.nio.file.attribute.FileTime, val key: String?)
     data class WorkspaceStamp(val revision: String, val files: Map<String, String>,
                               val metadata: Map<String, FileMarker>, val nextVerifyIndex: Int = 0)
 
     fun workspaceStamp(previous: WorkspaceStamp? = null): WorkspaceStamp {
-        val paths = mantraFiles()
+        val documents = mantraFiles()
+        val paths = workspaceFiles(documents)
         val metadata = paths.associate { file ->
             val attributes = Files.readAttributes(file, BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS)
-            if (attributes.size() > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            if (attributes.size() > fileLimit(file, documents)) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace file is too large")
             relative(file) to FileMarker(attributes.size(), attributes.lastModifiedTime(), attributes.fileKey()?.toString())
         }
         if (previous != null && previous.metadata == metadata) {
@@ -109,24 +247,24 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             while (verifiedFiles < paths.size && (verifiedBytes < 8L * 1024 * 1024 || verifiedFiles == 0)) {
                 val path = paths[index]
                 val bytes = Files.readAllBytes(checked(path))
-                if (bytes.size > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+                if (bytes.size > fileLimit(path, documents)) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace file is too large")
                 val contentHash = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
-                if (contentHash != previous.files[relative(path)]) return fullWorkspaceStamp(paths, metadata)
+                if (contentHash != previous.files[relative(path)]) return fullWorkspaceStamp(paths, documents, metadata)
                 verifiedBytes += bytes.size
                 verifiedFiles++
                 index = (index + 1) % paths.size
             }
             return previous.copy(nextVerifyIndex = index)
         }
-        return fullWorkspaceStamp(paths, metadata)
+        return fullWorkspaceStamp(paths, documents, metadata)
     }
 
-    private fun fullWorkspaceStamp(paths: List<Path>, metadata: Map<String, FileMarker>): WorkspaceStamp {
+    private fun fullWorkspaceStamp(paths: List<Path>, documents: List<Path>, metadata: Map<String, FileMarker>): WorkspaceStamp {
         val digest = MessageDigest.getInstance("SHA-256")
         val files = linkedMapOf<String, String>()
         paths.forEach { file ->
             val bytes = Files.readAllBytes(checked(file))
-            if (bytes.size > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            if (bytes.size > fileLimit(file, documents)) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace file is too large")
             val name = relative(file)
             val nameBytes = name.toByteArray(Charsets.UTF_8)
             digest.update(nameBytes.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(nameBytes)
@@ -139,7 +277,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     fun workspace(): DocumentResult {
         val snapshot = scan()
-        val all = snapshot.files.map { it.path }
+        val all = workspaceFiles()
         val schemas = snapshot.kind("schema")
         val params = snapshot.kind("parameters")
         val layouts = snapshot.kind("layout")
@@ -533,7 +671,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         }
     }
 
-    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String) {
+    private fun writeCase(caseId: String, target: Path, text: String, expected: String, baseRevision: String,
+                          revisionCheck: () -> String? = { runCatching { resolve(caseId, scan()).revision }.getOrNull() }) {
         val temp = Files.createTempFile(target.parent, ".mantra-edit-", ".tmp")
         try {
             Files.writeString(temp, text)
@@ -543,7 +682,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                 // Re-read the complete dependency revision while holding it, immediately before replace.
                 FileChannel.open(checked(target), StandardOpenOption.READ, StandardOpenOption.WRITE).use { channel ->
                     channel.lock().use {
-                        val current = runCatching { resolve(caseId, scan()).revision }.getOrNull()
+                        val current = revisionCheck()
                         if (current != baseRevision || Files.readString(target) != expected)
                             throw WorkspaceException(WorkspaceProblem.CONFLICT, "Workspace changed during edit",
                                 currentRevision = current)
@@ -623,7 +762,8 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
 
     private data class Resolved(val view: CalculationView, val layout: LayoutSpec, val revision: String,
                                 val parameterIds: List<String>, val explainTrace: ExplainTrace? = null,
-                                val schema: Schema, val parameters: List<ParameterSet>)
+                                val schema: Schema, val parameters: List<ParameterSet>,
+                                val sourceOverrides: List<List<String>> = emptyList())
 
     private fun resolve(caseId: String, snapshot: Snapshot, layoutOverride: String? = null,
                         parameterOverride: List<String>? = null, includeLayout: Boolean = true,
@@ -660,9 +800,10 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val parameters = try { parameterFiles.map(Mantra::loadParameters) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter document is invalid", error.diagnostics)
         }
+        val bound = BoundSources.load(case, schema, casePath, root)
         val result = try {
-            if (explain == null) Mantra.calculate(schema, case, parameters)
-            else Mantra.calculateForExplain(schema, case, parameters, explain.node, explain.coord)
+            if (explain == null) Mantra.calculate(schema, bound.case, parameters)
+            else Mantra.calculateForExplain(schema, bound.case, parameters, explain.node, explain.coord)
         } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be calculated", error.diagnostics)
         }
@@ -678,10 +819,9 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         val layout = layoutFile?.let { try { LayoutReader.read(source(it)) } catch (error: MantraException) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Layout document is invalid", error.diagnostics)
         } } ?: Render.defaultLayout(view)
-        val sourceFiles = schema.sources.map { path(it) }
-        val revision = revision(listOf(casePath) + sourceFiles + parameterFiles + listOfNotNull(layoutFile),
+        val revision = revision(listOf(casePath) + schema.sources.map { path(it) } + bound.files + parameterFiles + listOfNotNull(layoutFile),
             if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)))
-        return Resolved(view, layout, revision, parameterIds, result.explainTrace, schema, parameters)
+        return Resolved(view, layout, revision, parameterIds, result.explainTrace, schema, parameters, bound.overridden)
     }
 
     private fun scan(): Snapshot {
@@ -707,6 +847,28 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
         if (files.size > 4096) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace exceeds 4096 Mantra files")
         return files
     }
+
+    private fun workspaceFiles(documents: List<Path> = mantraFiles()): List<Path> {
+        val sources = documents.mapNotNull { file ->
+            runCatching { loadCase(file) }.getOrNull()?.let { case -> file to case.sources }
+        }.flatMap { (caseFile, bindings) ->
+            bindings.mapNotNull { binding ->
+                val name = (binding.options["path"] as? Value.Text)?.value ?: return@mapNotNull null
+                val candidate = caseFile.parent.resolve(name).toAbsolutePath().normalize()
+                candidate.takeIf { it.startsWith(root) && Files.isRegularFile(it) && Files.size(it) <= ImportFiles.MAX_BYTES &&
+                    it.toRealPath().startsWith(root) }
+            }
+        }
+        if (sources.size > 4096) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace exceeds 4096 bound sources")
+        val templates = root.resolve("import-templates").takeIf { Files.isDirectory(it, LinkOption.NOFOLLOW_LINKS) }
+            ?.let { directory -> Files.list(directory).use { stream -> stream.filter { it.fileName.toString().endsWith(".json") &&
+                Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) && Files.size(it) <= 65_536 }.limit(129).toList() } }
+            .orEmpty()
+        if (templates.size > 128) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Too many import templates")
+        return (documents + sources + templates).distinct().sortedBy(::relative)
+    }
+
+    private fun fileLimit(file: Path, documents: List<Path>): Int = if (file in documents) 1_048_576 else ImportFiles.MAX_BYTES
 
     private fun loadCase(file: Path): CaseData = Mantra.loadCase(source(file))
 

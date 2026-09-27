@@ -7,6 +7,7 @@ import com.xqiou.mantra.core.model.Formula
 import com.xqiou.mantra.core.model.FunctionDecl
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Item
+import com.xqiou.mantra.core.model.SourceBinding
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.normein.dsl.form.DslForm
 import com.xqiou.normein.dsl.form.DslFormSequenceKind
@@ -51,11 +52,26 @@ object CaseReader {
         val extensions = linkedMapOf<String, MutableList<Item>>()
         val formulaBindings = linkedMapOf<String, Formula>()
         val functions = mutableListOf<FunctionDecl>()
+        val sources = mutableListOf<SourceBinding>()
         root.values.drop(index).forEach { form ->
             val list = form as? DslForm.Sequence
             when (list?.listHead) {
                 "inputs" -> readValues(document, list, sink, "inputs", inputs, inputLocations)
                 "params" -> readValues(document, list, sink, "params", params, paramLocations)
+                "sources" -> list.values.drop(1).forEach { declaration ->
+                    val source = declaration as? DslForm.Sequence
+                    val kind = source?.listHead
+                    val options = source?.values?.getOrNull(1)
+                    if (source == null || kind == null || kind !in setOf("csv", "json", "xlsx") || source.values.size != 2 || options == null ||
+                        !options.isSequence(DslFormSequenceKind.MAP)) {
+                        sink.error("MANTRA-CASE-SOURCE", "Expected (csv|json|xlsx {options})", document.location(declaration))
+                    } else {
+                        val values = document.options(options, sink, "$kind source").mapNotNull { (key, value) ->
+                            document.literal(value, sink, "$kind source :$key")?.let { key to it }
+                        }.toMap()
+                        sources += SourceBinding(kind, values, document.location(source))
+                    }
+                }
                 "extend" -> {
                     val slot = list.values.getOrNull(1)?.symbol
                     if (slot == null) {
@@ -91,7 +107,7 @@ object CaseReader {
         }
         val schemaId = (meta["schema"] as? Value.Text)?.value
         return CaseData(id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
-            inputLocations, paramLocations)
+            inputLocations, paramLocations, sources = sources)
     }
 
     private fun readValues(document: Document, list: DslForm.Sequence, sink: DiagnosticSink, what: String,

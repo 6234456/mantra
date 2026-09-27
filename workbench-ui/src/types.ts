@@ -39,6 +39,11 @@ export type EditOperation =
   | { op: 'updateRow'; table: string; row: Value; index: number }
   | { op: 'deleteRow'; table: string; index: number }
   | { op: 'moveRow'; table: string; from: number; to: number }
+  | { op: 'removeSource'; index: number }
+export interface SourceBinding { index: number; kind: 'csv' | 'json' | 'xlsx'; path: string; options: Record<string, unknown>; overridden?: string[] }
+export interface Sources { sources: SourceBinding[] }
+export interface ImportInspection { name: string; format: 'csv' | 'json' | 'xlsx'; columns: Array<{ name: string; sample: string[] }>; rowCount: number; delimiter?: string; decimal?: string; grouping?: string; numericAmbiguous?: boolean }
+export interface ImportTemplate { name: string; format: 'csv' | 'json' | 'xlsx'; options: Record<string, unknown> }
 export interface EditResult { document: string; preview: boolean; proposedRevision: string; diagnostics: Diagnostic[]; run: Run; difference: Compare }
 export type AuthoringTarget = { kind: 'extension'; slot: string; id: string; title: string } | { kind: 'formulaSlot'; id: string }
 export interface AuthoringRange { startOffset: number; endOffset: number }
