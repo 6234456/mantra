@@ -6,6 +6,7 @@ import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.structure.StructureJson
+import com.xqiou.mantra.core.structure.SchemaMap
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.NodeKind
 import java.math.BigDecimal
@@ -14,6 +15,7 @@ import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CalculationViewTest {
@@ -50,6 +52,10 @@ class CalculationViewTest {
         assertEquals(0, BigDecimal("7").compareTo(view.node("doubled").crossTotal()))
         assertTrue(view.structure.panels.any { it.id == "panel" })
         assertEquals(StructureJson.write(view), StructureJson.write(view.structure, result.plan, result))
+        val filtered = SchemaMap("filtered", "Filtered", emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        val filteredJson = StructureJson.write(filtered, result.plan, result)
+        assertTrue("\"schema\": \"filtered\"" in filteredJson)
+        assertTrue("\"panels\": []" in filteredJson)
     }
 
     @Test
@@ -91,5 +97,30 @@ class CalculationViewTest {
         assertEquals("additions", view.node("extra").slotId)
         assertEquals(NodeKind.TOTAL, view.node("total").kind)
         assertEquals(0, BigDecimal("5").compareTo(view.node("total").crossTotal()))
+
+        val bound = Mantra.loadCase(SourceText("bound.mantra", """
+            (case c (inputs {:base 2}) (bind adjustable (+ base 1)))
+        """.trimIndent()))
+        val boundView = CalculationView.of(Mantra.calculate(schema, bound))
+        assertEquals(NodeKind.FORMULA_SLOT, boundView.node("adjustable").kind)
+        assertTrue(boundView.node("adjustable").userDefined)
+    }
+
+    @Test
+    fun `view does not change when source collections are mutated`() {
+        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+            (schema app/snapshot {:title "Snapshot"}
+              (input base :decimal)
+              (section root "Root" (line result "Result" base)))
+        """.trimIndent()), noIncludes)
+        val inputs = linkedMapOf<String, Value>("base" to Value.Num(BigDecimal("2")))
+        val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base 2}))")).copy(inputs = inputs)
+        val view = CalculationView.of(Mantra.calculate(schema, case))
+        inputs["base"] = Value.Num(BigDecimal("99"))
+        assertEquals(Value.Num(BigDecimal("2")), view.case.inputs["base"])
+        assertEquals(Value.Num(BigDecimal("2")), view.node("base").value())
+        assertFailsWith<UnsupportedOperationException> {
+            (view.case.inputs as MutableMap)["base"] = Value.Num(BigDecimal("5"))
+        }
     }
 }

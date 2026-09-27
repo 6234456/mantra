@@ -105,7 +105,7 @@ class ViewNode(
     }
 }
 
-/** Detached read-only projection of one calculation; planners and compiled expressions stay internal. */
+/** Read-only snapshot of one calculation; planners and compiled expressions stay internal. */
 class CalculationView private constructor(
     val schema: SchemaMeta,
     val case: CaseData,
@@ -164,9 +164,9 @@ class CalculationView private constructor(
             }
             plan.case.extensions.forEach { (slotId, items) -> items.forEach { collectExtensions(it, slotId) } }
             fun tree(item: ResolvedItem): ViewItem = when (item) {
-                is ResolvedSection -> ViewSection(item.item, item.dims.toList(), item.children.map(::tree), item.resultId)
-                is ResolvedNode -> ViewTreeNode(item.item, item.dims.toList(), item.op)
-                is ResolvedNote -> ViewNote(item.item)
+                is ResolvedSection -> ViewSection(item.item.snapshot() as SectionItem, frozenList(item.dims), frozenList(item.children.map(::tree)), item.resultId)
+                is ResolvedNode -> ViewTreeNode(item.item.snapshot() as NodeItem, frozenList(item.dims), item.op)
+                is ResolvedNote -> ViewNote(item.item.snapshot() as NoteItem)
             }
             val nodes = result.nodes.mapValues { (_, calculated) ->
                 val vertex: ValueVertex = calculated.vertex
@@ -179,8 +179,8 @@ class CalculationView private constructor(
                 val kind = when {
                     input != null -> NodeKind.INPUT
                     param != null -> NodeKind.PARAM
-                    line?.item?.userDefined == true || choice?.item?.userDefined == true || total?.item?.userDefined == true -> NodeKind.EXTENSION
                     line?.item?.formulaSlot == true -> NodeKind.FORMULA_SLOT
+                    line?.item?.userDefined == true || choice?.item?.userDefined == true || total?.item?.userDefined == true -> NodeKind.EXTENSION
                     line != null -> NodeKind.LINE
                     total != null -> NodeKind.TOTAL
                     choice != null -> NodeKind.CHOICE
@@ -188,23 +188,28 @@ class CalculationView private constructor(
                 }
                 ViewNode(
                     id = vertex.id, kind = kind, label = vertex.label, type = vertex.type,
-                    dims = vertex.dims.toList(), op = opByNode[vertex.id] ?: 0,
+                    dims = frozenList(vertex.dims), op = opByNode[vertex.id] ?: 0,
                     userDefined = item?.userDefined == true, slotId = slotByNode[vertex.id],
                     location = vertex.location,
-                    presentation = item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation,
-                    input = input?.decl, parameter = param?.decl, parameterValue = param?.value,
-                    parameterSource = param?.source, line = line?.item, total = total?.item,
-                    choice = choice?.item, components = total?.components?.map { ViewComponent(it.vertexId, it.sign) }.orEmpty(),
-                    guards = vertex.guards.toList(), ownCondition = vertex.ownCondition?.formula,
-                    values = calculated.values.toMap(), active = calculated.active.toMap(), traces = calculated.traces.toMap(),
+                    presentation = (item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation).snapshot(),
+                    input = input?.decl?.snapshot(), parameter = param?.decl?.snapshot(), parameterValue = param?.value?.snapshot(),
+                    parameterSource = param?.source, line = line?.item?.snapshot() as? LineItem,
+                    total = total?.item?.snapshot() as? TotalItem, choice = choice?.item?.snapshot() as? ChoiceItem,
+                    components = frozenList(total?.components?.map { ViewComponent(it.vertexId, it.sign) }.orEmpty()),
+                    guards = frozenList(vertex.guards), ownCondition = vertex.ownCondition?.formula,
+                    values = calculated.values.snapshotCoords { it.snapshot() },
+                    active = calculated.active.snapshotCoords { it },
+                    traces = calculated.traces.snapshotCoords { it.snapshot() },
                 )
             }
             return CalculationView(
-                schema = plan.schema.meta, case = plan.case, structure = SchemaMaps.of(plan),
-                tree = tree(plan.tree) as ViewSection, dimensions = plan.dimensions.toMap(),
-                members = result.members.mapValues { it.value.toList() }, nodes = nodes,
-                conditions = plan.vertices.values.filterIsInstance<ConditionVertex>().associate { it.id to ViewCondition(it.id, it.sectionId, it.dims.toList(), it.formula) },
-                functions = (plan.schema.functions + plan.case.functions).toList(), diagnostics = result.diagnostics.toList(),
+                schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(), structure = SchemaMaps.of(plan).snapshot(),
+                tree = tree(plan.tree) as ViewSection,
+                dimensions = frozenMap(plan.dimensions.mapValues { (_, decl) -> decl.snapshot() }),
+                members = frozenMap(result.members.mapValues { (_, members) -> frozenList(members.map { it.snapshot() }) }),
+                nodes = frozenMap(nodes),
+                conditions = frozenMap(plan.vertices.values.filterIsInstance<ConditionVertex>().associate { it.id to ViewCondition(it.id, it.sectionId, frozenList(it.dims), it.formula) }),
+                functions = frozenList(plan.schema.functions + plan.case.functions), diagnostics = frozenList(result.diagnostics),
             )
         }
     }

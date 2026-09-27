@@ -13,12 +13,11 @@ import com.xqiou.mantra.core.view.NodeKind
  */
 object StructureJson {
     fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String =
-        write(if (result == null) CalculationView.of(plan) else CalculationView.of(result), result != null)
+        write(map, if (result == null) CalculationView.of(plan) else CalculationView.of(result), result != null)
 
-    fun write(view: CalculationView): String = write(view, true)
+    fun write(view: CalculationView): String = write(view.structure, view, true)
 
-    private fun write(view: CalculationView, includeValues: Boolean): String {
-        val map = view.structure
+    private fun write(map: SchemaMap, view: CalculationView, includeValues: Boolean): String {
         val root = linkedMapOf<String, Any?>(
             "schema" to map.schemaId,
             "title" to map.title,
