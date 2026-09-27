@@ -299,14 +299,21 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
                               operations: List<CaseTextEditor.Operation>): String = try {
         require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
         var candidate = source(path(caseId)).text
-        var preceding = base
-        operations.forEachIndexed { index, operation ->
-            validateEditTargets(preceding, listOf(operation))
+        operations.forEach { operation ->
+            // Member availability can depend on earlier edits. Other targets are declared by the
+            // unchanged schema, so validating them against the base avoids rejecting a batch whose
+            // intermediate bindings are incomplete but whose final document is valid.
+            val needsMembers = when (operation) {
+                is CaseTextEditor.Operation.SetInput -> operation.coord.isNotEmpty()
+                is CaseTextEditor.Operation.ClearInput -> operation.coord.isNotEmpty()
+                else -> false
+            }
+            val current = if (needsMembers) resolve(caseId, snapshot, includeLayout = false, caseText = candidate) else base
+            validateEditTargets(current, listOf(operation))
             candidate = CaseTextEditor.apply(candidate, listOf(operation))
             require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
                 "Edited document exceeds reader limit"
             }
-            if (index < operations.lastIndex) preceding = resolve(caseId, snapshot, caseText = candidate)
         }
         candidate
     } catch (error: IllegalArgumentException) {

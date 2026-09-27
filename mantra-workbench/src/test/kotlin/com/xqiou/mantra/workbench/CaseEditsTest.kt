@@ -107,6 +107,42 @@ class CaseEditsTest {
     }
 
     @Test
+    fun `batch may repair an intermediate invalid layout before final validation`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val catalog = WorkspaceCatalog(dir)
+        val file = dir.resolve(case)
+        val original = Files.readString(file)
+        val revision = catalog.document(case, "run").revision
+        val operations = listOf(
+            CaseTextEditor.Operation.SetBindings(null, "missing/layout"),
+            CaseTextEditor.Operation.SetInput("spenden", Value.num("451")),
+            CaseTextEditor.Operation.SetBindings(null, "de.est/steuerberechnung"),
+        )
+        val preview = catalog.previewEdits(case, revision, operations)
+        assertEquals(original, Files.readString(file))
+        val committed = catalog.commitEdits(case, revision, operations)
+        assertEquals(preview.data["proposedRevision"], committed.revision)
+        assertContains(Files.readString(file), ":spenden 451")
+        assertContains(Files.readString(file), ":layout \"de.est/steuerberechnung\"")
+    }
+
+    @Test
+    fun `member coordinate validation can ignore transient invalid layout`() {
+        val (dir, case) = copyExample("de-est-2025")
+        val file = dir.resolve(case)
+        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        val catalog = WorkspaceCatalog(dir)
+        val revision = catalog.document(case, "run").revision
+        val result = catalog.previewEdits(case, revision, listOf(
+            CaseTextEditor.Operation.SetBindings(null, "missing/layout"),
+            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+            CaseTextEditor.Operation.SetBindings(null, "de.est/steuerberechnung"),
+        ))
+        assertTrue(result.data["preview"] == true)
+    }
+
+    @Test
     fun `external case edit before final replace returns conflict without overwriting it`() {
         val (dir, case) = copyExample("de-est-2025")
         val file = dir.resolve(case)
