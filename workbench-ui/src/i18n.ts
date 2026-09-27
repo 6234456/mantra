@@ -7,7 +7,7 @@ const copy = {
     unavailable: 'Für diese Ansicht liegen noch keine Daten vor.', noFixtures: 'Keine Fixture gefunden. WP3 muss die Vertragsdateien bereitstellen.',
     retry: 'Erneut laden', statusReady: 'Berechnung aktuell', statusError: 'Fehler', paper: 'Arbeitspapier',
     inspect: 'Zelle auswählen, um den Rechenweg zu sehen.', sourceTree: 'Herkunftsbaum', intermediate: 'Zwischenwerte',
-    chooseCase: 'Fall wählen', noResult: 'Kein Ergebnis', noPaper: 'Für diesen Bereich liegt noch kein Arbeitspapier vor.',
+    chooseCase: 'Fall wählen', result: 'Ergebnis', noResult: 'Kein Ergebnis', noPaper: 'Für diesen Bereich liegt noch kein Arbeitspapier vor.',
     comparison: 'Vergleich', effect: 'Auswirkungen auf die Hauptlinie', bases: 'Grundlagen', continueTree: 'Weitere Quellen laden', traceTruncated: 'Der Rechenweg wurde begrenzt.',
   },
   en: {
@@ -18,7 +18,7 @@ const copy = {
     unavailable: 'No data is available for this view yet.', noFixtures: 'No fixtures found. WP3 must provide the contract files.',
     retry: 'Reload', statusReady: 'Calculation current', statusError: 'errors', paper: 'Working paper',
     inspect: 'Select a cell to inspect its calculation.', sourceTree: 'Provenance tree', intermediate: 'Intermediate values',
-    chooseCase: 'Choose case', noResult: 'No result', noPaper: 'No working paper is available for this panel yet.',
+    chooseCase: 'Choose case', result: 'Result', noResult: 'No result', noPaper: 'No working paper is available for this panel yet.',
     comparison: 'Comparison', effect: 'Effect on the mainline', bases: 'Basis', continueTree: 'Load more sources', traceTruncated: 'This calculation trail was truncated.',
   },
 }

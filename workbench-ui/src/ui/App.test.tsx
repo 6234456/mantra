@@ -19,7 +19,7 @@ const run: Run = { succeeded: true, diagnostics: [], members: { member: [{ key: 
   total: { '': { value: { n: '30.00' }, display: '30.00', active: true } },
   value: { A: { value: { n: '10.00' }, display: '10.00', active: true }, B: { value: { n: '20.00' }, display: '20.00', active: true } },
 } }
-const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], legend: [], findings: [], audit: [
+const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], legend: [], diagnostics: [], audit: [
   { anchor: 't1-r1-A', citation: '1', label: 'Member value A', formula: 'Formula A', working: 'Calculation A', result: '10.00' },
   { anchor: 't1-r1-B', citation: '1', label: 'Member value B', formula: 'Formula B', working: 'Calculation B', result: '20.00' },
 ], tables: [{ id: 'detail', ref: '1', title: 'Member detail', columns: [{ id: 'label', header: 'Label' }, { id: 'A', header: 'A' }, { id: 'B', header: 'B' }], rows: [

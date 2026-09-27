@@ -12,7 +12,9 @@ npm run build
 npm test
 ```
 
-Fixture mode is the default. It expects `public/fixtures/index.json`:
+Fixture mode is the default. `npm run dev` and `npm run build` copy the tracked
+WP3 golden documents into `public/fixtures/` automatically. The copied directory
+is generated and ignored by Git. Its `index.json` has this shape:
 
 ```json
 {
@@ -31,9 +33,9 @@ Fixture mode is the default. It expects `public/fixtures/index.json`:
 }
 ```
 
-Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. WP3's golden output should be copied or linked into this manifest. The manifest is intentionally absent until those golden documents exist, so the app shows a clear empty state instead of invented example numbers.
+Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. WP3 supplies the manifest and three golden case sets; Explain fixtures are added with WP4.
 
-For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` to `http://127.0.0.1:8080`; set the server to that port or adjust the proxy. A production build for server hosting must also set `VITE_WORKBENCH_MODE=live`.
+For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` to `http://127.0.0.1:8080`; set the server to that port or adjust the proxy. A production build for server hosting must also set `VITE_WORKBENCH_MODE=live`. Live mode removes generated fixtures before starting or building, so they are not served with the live UI.
 
 ## Current scope and WP3/WP4 handoff
 

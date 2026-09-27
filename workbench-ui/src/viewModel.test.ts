@@ -3,7 +3,7 @@ import type { Paper, Run } from './types'
 import { auditForCell, nodeValue } from './viewModel'
 
 const run: Run = { succeeded: true, members: { member: [{ key: 'A', label: 'A' }] }, diagnostics: [], values: { value: { A: { value: { n: '10.00' }, display: '10.00', active: true } } } }
-const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], legend: [], findings: [], audit: [
+const paper: Paper = { title: 'Paper', header: [], overview: [], auxiliary: [], legend: [], diagnostics: [], audit: [
   { anchor: 't1-r1-A', citation: '1', label: 'Value A', formula: 'A', working: 'from A', result: '10.00' },
   { anchor: 't1-r1-B', citation: '1', label: 'Value B', formula: 'B', working: 'from B', result: '20.00' },
 ], tables: [{ id: 'panel', ref: '1', title: 'Panel', columns: [], rows: [{ kind: 'VALUE', depth: 0, anchor: 't1-r1', cells: [

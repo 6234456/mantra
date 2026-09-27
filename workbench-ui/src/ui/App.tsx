@@ -40,7 +40,7 @@ function useLoad<T>(load: (signal: AbortSignal) => Promise<T>, keys: unknown[]):
   return state
 }
 
-function headlineNode(structure: Structure) { return typeof structure.headline === 'string' ? structure.headline : structure.headline?.node ?? structure.mainline.at(-1)?.result }
+function headlineNode(structure: Structure) { return structure.headline ?? structure.mainline.at(-1)?.result }
 function panelLink(caseId: string, id: string) { return `${casePath(caseId)}/panels/${encodeURIComponent(id)}` }
 
 function Link({ href, navigate, children, className, current }: { href: string; navigate: (path: string) => void; children: React.ReactNode; className?: string; current?: boolean }) {
@@ -61,13 +61,13 @@ export function App() {
   if (!workspace.data && workspace.loading) return <div className="loading-shell" role="status">Mantra · {t('paper', lang)}…</div>
   if (!workspace.data?.cases.length) return <div className="empty-start"><Brand /><h1>{t('noFixtures', lang)}</h1><p>{workspace.error?.message}</p><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>
   return <div className="app-shell">
-    <AppBar cases={workspace.data.cases} selectedCase={selectedCase} structure={structure.data?.data} run={run.data?.data} revision={run.data?.revision} navigate={navigate} caseId={caseId!} />
+    <AppBar cases={workspace.data.cases} selectedCase={selectedCase} structure={structure.data?.data} run={run.data?.data} paper={paper.data?.data} revision={run.data?.revision} navigate={navigate} caseId={caseId!} />
     <div className="body-shell">
       {ready && <Sidebar structure={structure.data!.data} run={run.data!.data} caseId={caseId!} activePanel={current.panelId} activePage={current.page} navigate={navigate} />}
       <main className="content">
         {failure && <div className="error-banner" role="alert"><strong>{failure.message}</strong><button onClick={() => location.reload()}>{t('retry', lang)}</button></div>}
         {!ready ? <div className="skeleton" role="status" aria-label="Loading" /> : current.page === 'overview' ?
-          <Overview structure={structure.data!.data} run={run.data!.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
+          <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
           <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} data={data} navigate={navigate} /> : current.page === 'provenance' && current.address ?
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}
@@ -78,13 +78,13 @@ export function App() {
 
 function Brand() { return <span className="brand"><svg width="30" height="18" viewBox="0 0 30 18" aria-hidden="true"><path d="M1 11h28" stroke="currentColor" strokeWidth="2.4"/><path d="M15 2.5v5" stroke="var(--siena)" strokeWidth="2"/><circle cx="6" cy="11" r="3.4" fill="currentColor"/><circle cx="15" cy="11" r="3.4" fill="var(--bar)" stroke="currentColor" strokeWidth="2"/><circle cx="24" cy="11" r="3.4" fill="currentColor"/></svg><span>Mantra</span></span> }
 
-function AppBar({ cases, selectedCase, structure, run, revision, navigate, caseId }: { cases: CaseSummary[]; selectedCase?: CaseSummary; structure?: Structure; run?: Run; revision?: string; navigate: (path: string) => void; caseId: string }) {
+function AppBar({ cases, selectedCase, structure, run, paper, revision, navigate, caseId }: { cases: CaseSummary[]; selectedCase?: CaseSummary; structure?: Structure; run?: Run; paper?: Paper; revision?: string; navigate: (path: string) => void; caseId: string }) {
   const errors = run?.diagnostics.filter(item => item.severity === 'error').length ?? 0
   return <header className="app-bar"><Link href={`${casePath(caseId)}/overview`} navigate={navigate} className="brand-link"><Brand /></Link><span className="bar-divider" />
     <label className="case-switch"><span className="sr-only">{t('chooseCase', lang)}</span><select value={caseId} onChange={event => navigate(`${casePath(event.target.value)}/overview`)}>{cases.map(item => <option key={item.id} value={item.id}>{item.title || item.id}</option>)}</select><small>{selectedCase?.period ?? structure?.period ?? selectedCase?.id}</small></label>
     <div className="bar-tags"><span className="tag blue-tag">{structure?.title ?? structure?.schema} {structure?.schemaVersion ? `· v${structure.schemaVersion}` : ''}</span></div>
     <div className="bar-spacer" /><label className="language-switch"><span className="sr-only">Language</span><select value={lang} onChange={event => chooseLanguage(event.target.value as 'de' | 'en')}><option value="de">DE</option><option value="en">EN</option></select></label><span className="bar-status" title={revision}>{run ? `${t('statusReady', lang)} · ${errors} ${t('statusError', lang)}` : '…'}</span>
-    <span className="bar-result">{run && structure ? nodeValue(run, headlineNode(structure)) : ''}</span>
+    <span className="bar-result">{paper?.headline?.value ?? (run && structure ? nodeValue(run, headlineNode(structure)) : '')}</span>
     <Link href={`${casePath(caseId)}/export`} navigate={navigate} className="primary-button">{t('export', lang)}</Link>
   </header>
 }
@@ -117,11 +117,13 @@ function MainlineMap({ structure, run, caseId, navigate, highlighted = [] }: { s
   </div>
 }
 
-function Overview({ structure, run, caseId, navigate }: { structure: Structure; run: Run; caseId: string; navigate: (path: string) => void }) {
+function Overview({ structure, run, paper, caseId, navigate }: { structure: Structure; run: Run; paper?: Paper; caseId: string; navigate: (path: string) => void }) {
   const headline = headlineNode(structure)
+  const candidate = paper?.headline
+  const paperHeadline = candidate?.node === headline ? candidate : null
   return <><div className="page-heading"><span className="eyebrow">{t('overview', lang)}</span><h1>{structure.title}</h1><p>{structure.period ?? structure.schema}</p></div>
     <section className="sheet map-sheet"><div className="section-heading"><div><span className="eyebrow">{t('mainline', lang)}</span><h2>{t('overview', lang)}</h2></div><span className="muted">{structure.mainline.length} {t('step', lang).toLowerCase()}</span></div><MainlineMap structure={structure} run={run} caseId={caseId} navigate={navigate} /></section>
-    <div className="overview-cards"><section className="sheet result-card"><span className="eyebrow">{t('noResult', lang)}</span><h2>{typeof structure.headline === 'object' ? structure.headline?.label ?? structure.nodes?.[headline ?? '']?.label ?? structure.mainline.at(-1)?.title : structure.mainline.at(-1)?.title}</h2><strong>{nodeValue(run, headline) ?? '—'}</strong></section><section className="sheet info-card"><span className="eyebrow">{t('diagnostics', lang)}</span><h2>{t('statusReady', lang)}</h2><p>{run.diagnostics.length} {t('statusError', lang)}</p></section><section className="sheet info-card"><span className="eyebrow">{t('paper', lang)}</span><h2>{structure.schema}</h2><p>{structure.schemaVersion ? `v${structure.schemaVersion}` : ''}</p></section></div>
+    <div className="overview-cards"><section className="sheet result-card"><span className="eyebrow">{t('result', lang)}</span><h2>{paperHeadline?.label ?? structure.nodes?.[headline ?? '']?.label ?? structure.mainline.at(-1)?.title}</h2><strong>{paperHeadline?.value ?? nodeValue(run, headline) ?? '—'}</strong></section><section className="sheet info-card"><span className="eyebrow">{t('diagnostics', lang)}</span><h2>{t('statusReady', lang)}</h2><p>{run.diagnostics.filter(item => item.severity === 'error').length} {t('statusError', lang)}</p></section><section className="sheet info-card"><span className="eyebrow">{t('paper', lang)}</span><h2>{structure.schema}</h2><p>{structure.schemaVersion ? `v${structure.schemaVersion}` : ''}</p></section></div>
   </>
 }
 
