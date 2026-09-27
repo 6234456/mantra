@@ -5,12 +5,13 @@
   "properties": {
     "data": {
       "type": "object",
-      "required": ["schema", "schemaVersion", "title", "headline", "mainline", "panels", "generalInputs", "params", "nodes", "slots", "formulaSlots"],
+      "required": ["schema", "schemaVersion", "title", "headline", "groupTitles", "mainline", "panels", "generalInputs", "params", "nodes", "slots", "formulaSlots"],
       "properties": {
         "schema": { "type": "string" },
         "schemaVersion": { "type": ["string", "null"] },
         "title": { "type": "string" },
-        "headline": {},
+        "headline": { "type": ["string", "null"] },
+        "groupTitles": { "type": "object", "additionalProperties": { "type": "string" } },
         "mainline": {
           "type": "array",
           "items": {

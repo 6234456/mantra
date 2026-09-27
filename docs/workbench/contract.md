@@ -183,6 +183,8 @@ v1 的变化：
 | 新增 `slots`、`formulaSlots`：id、标题、所在板块、`:uses`、默认公式、当前扩展或绑定 | 用于扩展页和公式槽卡片 |
 | 新增 `schemaVersion`、`headline`（§10） | 用于顶栏和案例列表 |
 
+`headline` 是节点 id 字符串（无法解析时为 `null`），包括未声明时的主线末步默认值。`groupTitles` 是已使用的显式输入组键到显示标题的映射；`fields[]`/`generalInputs[]` 含 `group` 和 `groupTitle`，`nodes` 中还包含 `signLabels` 与 `group`。这些字段只传递展示提示，不参与计算。
+
 ### 6.3 Run（一次计算的结果）
 
 ```json
@@ -212,6 +214,8 @@ v1 的变化：
 ### 6.4 Paper（版式结果）
 
 Paper 是 `WorkingPaper` 的 JSON 投影。请求参数为版式 id 和可选的板块 id。
+
+Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[]` 为 `{key, title, inputs}`。`label` 与表行标签已经按 `:sign-labels` 和当前结果解析，`value` 仍使用版式格式化的带符号结果。输入组仅供导航，不改变表行的顺序与数值。
 
 - **板块视图**：`PaperTable.id` 等于节 id，所以板块视图就是 id 相同的那张表，外加它引用的附表行。
 - **版式未给板块建表时**：服务端按该节的默认表风格（节的 `:layout` 选项或预设）生成（缺口 G2）。
@@ -520,6 +524,8 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 | 按符号取标签 `:sign-labels {:positive "…" :negative "…" :zero "…"}` | 计算项属性 | 显示项标签和带符号的值 | ESt 的 `abrechnungsergebnis`（Nachzahlung / Erstattung）；SAP CO 的标准成本差异（ungünstig / günstig） |
 | 标题结果 `:headline <节点>` | 方案元数据 | 主线最后一步的结果 | 顶栏、总览结果框、案例列表 |
 | 输入分组 `:group <键>` 与分组标题 | 输入属性 | 按板块归属；通用输入按声明顺序 | 录入页的分组导航 |
+
+WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符号>` 指向一个已声明的计算节点；省略时取主线最后一节的结果节点。方案元数据用 `:group-titles {:键 "标题"}` 声明输入组标题，输入属性用 `:group :键` 引用；未声明标题时显示键名。未指定组的输入继续按板块归属，通用输入保持声明顺序。`:sign-labels` 的三个键均需是字符串；按未取绝对值的计算结果的正、负、零选择标签。维度节点的整行标签按横向合计选择，成员值仍保持原数值和符号；缺少对应符号的标签时回退原标签。Excel 的标签公式引用结果单元格，使重新计算后标签同步更新。
 
 ## 11. 决策与待决问题
 

@@ -5,12 +5,14 @@
    :subtitle "Primary cost elements, secondary allocations, order costs and product weighted averages"
    :version "0.1"
    :preset :ifrs-schedule
+   :headline total-variance
+   :group-titles {:source-data "Source data"}
    :mainline [cost-sources order-costs product-costs reconciliation]}
 
   ;; Primary postings include direct order debits and pooled expense accounts. Secondary postings
   ;; represent internal activity allocation and overhead assessment to be assigned by a cost driver.
   (input primary-postings :table
-    {:label "Primary cost element postings"
+    {:label "Primary cost element postings" :group :source-data
      :columns {:cost-element :text :expense-account :text :mode :keyword
                :order-id :keyword? :amount :decimal}
      :references {:order-id order}})
@@ -96,4 +98,5 @@
     (line all-standard-cost "Standard cost for completed output" (dim/sum all.product-standard-cost)
       {:op :info})
     (line total-variance "Actual less standard cost"
-      (- all-product-cost all-standard-cost) {:op :info})))
+      (- all-product-cost all-standard-cost)
+      {:op :info :sign-labels {:positive "Unfavourable variance" :negative "Favourable variance" :zero "No variance"}})))

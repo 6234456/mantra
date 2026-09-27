@@ -73,6 +73,51 @@ class SchemaReader(private val resolver: SourceResolver) {
         state.sources += source.name
         val rootChildren = mutableListOf<Item>()
         root.values.drop(index).forEach { form -> state.readDeclaration(document, form, rootChildren, topLevel = true) }
+        val headline = meta["headline"]
+        if (headline != null) {
+            val name = (headline as? Value.Text)?.value ?: (headline as? Value.Kw)?.name
+            fun hasNode(items: List<Item>): Boolean = items.any { item ->
+                when (item) {
+                    is SectionItem -> hasNode(item.children)
+                    is com.xqiou.mantra.core.model.NodeItem -> item.id == name
+                    else -> false
+                }
+            }
+            if (name == null || !hasNode(rootChildren)) {
+                sink.error("MANTRA-SCHEMA-HEADLINE", ":headline must name a declared calculation node", document.location(metaForm ?: root))
+            }
+        }
+        val groupTitles = meta["group-titles"]
+        if (groupTitles != null && (groupTitles !is Value.MapV || groupTitles.entries.any { (key, value) ->
+                key !is Value.Kw && key !is Value.Text || value !is Value.Text
+            })) {
+            sink.error("MANTRA-SCHEMA-GROUP-TITLES", ":group-titles must map group keys to title strings", document.location(metaForm ?: root))
+        }
+        fun checkPresentation(presentation: Presentation, location: SourceLocation) {
+            val labels = presentation.attributes["sign-labels"] ?: return
+            if (labels !is Value.MapV || labels.entries.any { (key, value) ->
+                    key !is Value.Kw || key.name !in setOf("positive", "negative", "zero") || value !is Value.Text
+                }) {
+                sink.error("MANTRA-SCHEMA-SIGN-LABELS", ":sign-labels must map :positive, :negative and :zero to strings", location)
+            }
+        }
+        fun checkItems(items: List<Item>) {
+            items.forEach { item ->
+                when (item) {
+                    is SectionItem -> checkItems(item.children)
+                    is com.xqiou.mantra.core.model.NodeItem -> checkPresentation(item.presentation, item.location)
+                    else -> Unit
+                }
+            }
+        }
+        checkItems(rootChildren)
+        state.inputs.forEach { input ->
+            checkPresentation(input.presentation, input.location)
+            val group = input.presentation.attributes["group"]
+            if (group != null && group !is Value.Kw) {
+                sink.error("MANTRA-SCHEMA-GROUP", ":group of input ${input.id} must be a keyword", input.location)
+            }
+        }
         val title = (meta["title"] as? Value.Text)?.value ?: id
         return Schema(
             meta = SchemaMeta(id, title, meta),

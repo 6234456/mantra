@@ -41,6 +41,7 @@ object HtmlRenderer {
             appendLine("</dl>")
         }
         appendLine("</header>")
+        paper.headline?.let { appendLine("<p class=\"headline\"><strong>${esc(it.label)}</strong> ${esc(it.value)}</p>") }
         if (paper.overview.isNotEmpty()) append(structure(paper))
         if (paper.tables.size > 1) {
             appendLine("<nav class=\"toc\"><ol>")

@@ -9,6 +9,10 @@ import com.xqiou.mantra.core.view.ViewTreeNode
 import com.xqiou.mantra.core.view.ViewNote
 import com.xqiou.mantra.core.view.ViewSection
 import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.displayLabel
+import com.xqiou.mantra.core.view.groupKey
+import com.xqiou.mantra.core.view.groupTitle
+import com.xqiou.mantra.core.view.headlineId
 import com.xqiou.mantra.core.engine.TraceRef
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceRule
@@ -104,6 +108,15 @@ class WorkingPaperBuilder(
         }
         val tables = specs.mapNotNull(::buildTable)
         val schema = result.schema
+        val headline = result.headlineId?.let(result.nodes::get)?.let { node ->
+            PaperHeadline(node.id, node.displayLabel(), node.crossTotal()?.let { format(node, Value.Num(it)) }.orEmpty())
+        }
+        val inputGroups = result.nodes.values.filter { it.kind == NodeKind.INPUT }.groupBy { node ->
+            node.groupKey ?: map.panelOf(node.id)?.id ?: SchemaMaps.GENERAL
+        }.map { (key, nodes) ->
+            PaperInputGroup(key, if (nodes.first().groupKey != null) result.groupTitle(key) else map.panels.firstOrNull { it.id == key }?.title ?: key,
+                nodes.map { it.id })
+        }
         return WorkingPaper(
             title = layout.title ?: schema.title,
             subtitle = layout.subtitle ?: schema.text("subtitle"),
@@ -116,6 +129,8 @@ class WorkingPaperBuilder(
             findings = result.diagnostics,
             texts = texts,
             theme = layout.theme,
+            headline = headline,
+            inputGroups = inputGroups,
         )
     }
 
@@ -488,7 +503,7 @@ class WorkingPaperBuilder(
             addRow(RowData(
                 kind = kind,
                 depth = depth,
-                label = item.label + (carried?.let { " (→ ${texts.table} $it)" } ?: ""),
+                label = nodeResult.displayLabel() + (carried?.let { " (→ ${texts.table} $it)" } ?: ""),
                 op = op,
                 nodeId = node.id,
                 placement = if (level == 0) Placement.MAIN else Placement.PRE,
