@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import com.xqiou.mantra.workbench.WorkspaceCatalog
 import com.xqiou.mantra.workbench.CaseTextEditor
+import com.xqiou.mantra.workbench.ExplainAddress
 import com.xqiou.mantra.workbench.ExportBudget
 import com.xqiou.mantra.workbench.WorkspaceException
 import com.xqiou.mantra.workbench.WorkspaceProblem
@@ -119,6 +120,15 @@ class WorkbenchServer(
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
             return json(exchange, 200, catalog.envelope(catalog.document(caseId, document, query["panel"], query["layout"])))
         }
+        if (method == "GET" && document == "explain") {
+            val query = query(exchange.requestURI.rawQuery)
+            if (query.keys.any { it !in setOf("address", "depth") } || "address" !in query)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Explain address is required")
+            val depth = query["depth"]?.toIntOrNull() ?: if ("depth" in query) -1 else 1
+            if (depth !in 1..5) return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Explain depth must be between 1 and 5")
+            val address = parseExplainAddress(query.getValue("address"))
+            return json(exchange, 200, catalog.envelope(catalog.explain(caseId, address, depth)))
+        }
         if (method == "GET" && document == "export-preview") {
             val query = query(exchange.requestURI.rawQuery)
             if (query.keys.any { it !in setOf("sheet", "layout") })
@@ -214,6 +224,26 @@ class WorkbenchServer(
         URLDecoder.decode(value.replace("+", "%2B"), Charsets.UTF_8)
     } catch (_: IllegalArgumentException) {
         throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed URL encoding")
+    }
+
+    private fun parseExplainAddress(value: String): ExplainAddress {
+        fun invalid(): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed Explain address")
+        val cellSplit = value.split('#', limit = 2)
+        val nodeSplit = cellSplit[0].split('@', limit = 2)
+        if (nodeSplit[0].isBlank()) invalid()
+        val node = decode(nodeSplit[0]).takeIf(String::isNotBlank) ?: invalid()
+        val coord = if (nodeSplit.size == 1) emptyList() else nodeSplit[1].split('/').map {
+            if (it.isBlank()) invalid()
+            decode(it).takeIf(String::isNotBlank) ?: invalid()
+        }
+        val cell = if (cellSplit.size == 1) null else {
+            val parts = cellSplit[1].split('.', limit = 2)
+            if (parts.size != 2 || parts.any(String::isBlank)) invalid()
+            val row = decode(parts[0]).takeIf(String::isNotBlank) ?: invalid()
+            val column = decode(parts[1]).takeIf(String::isNotBlank) ?: invalid()
+            row to column
+        }
+        return ExplainAddress(node, coord, cell)
     }
 
     private fun readBody(exchange: HttpExchange, limit: Int): ByteArray? {

@@ -511,6 +511,7 @@ class Planner(private val sink: DiagnosticSink) {
                 CompiledFormula(
                     formula = formula,
                     expression = expression,
+                    namedSources = (schema.functions + case.functions).associate { it.name to NamedSource(it.source, it.location) },
                     dims = dims,
                     nodeRefs = rootNames.values.toSet(),
                     rootNames = rootNames,

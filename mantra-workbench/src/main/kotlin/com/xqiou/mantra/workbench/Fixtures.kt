@@ -9,13 +9,15 @@ import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
+import java.net.URLEncoder
 import java.security.MessageDigest
 
 /** Produces browser-ready, versioned read-only fixtures for a self-contained example directory. */
 object Fixtures {
-    data class Entry(val id: String, val title: String, val files: Map<String, String>)
+    data class Entry(val id: String, val title: String, val files: Map<String, Any?>)
 
-    fun write(casePath: Path, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null): Entry {
+    fun write(casePath: Path, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
+              explainAddresses: List<ExplainAddress> = emptyList()): Entry {
         val absoluteCase = casePath.toAbsolutePath().normalize()
         val directory = absoluteCase.parent
         val schemaPath = directory.resolve("schema.mantra")
@@ -56,7 +58,7 @@ object Fixtures {
                 .take(4).joinToString("") { "%02x".format(it) }
         val target = out.resolve(slug)
         Files.createDirectories(target)
-        val files = linkedMapOf<String, String>()
+        val files = linkedMapOf<String, Any?>()
         val exportPreviews = ExcelExport.workbook(view, layout).use { export ->
             export.report.sheets.map { name -> name to ExportDocuments.preview(requireNotNull(export.describe(name))) }
         }
@@ -75,6 +77,39 @@ object Fixtures {
             )
             files[name] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
+        if (explainAddresses.isNotEmpty()) {
+            val explains = linkedMapOf<String, String>()
+            explainAddresses.distinct().forEach { address ->
+                val memberMap = address.node.startsWith("all.")
+                val nodeId = if (memberMap) address.node.removePrefix("all.") else address.node
+                val explained = if (memberMap) result
+                    else Mantra.calculateForExplain(schema, case, emptyList(), nodeId, address.coord)
+                val explainedView = CalculationView.of(explained)
+                val node = explainedView.nodes[nodeId]
+                val fixed = if (memberMap) address.coord.associate { part ->
+                    val split = part.split('=', limit = 2)
+                    require(split.size == 2 && split.none(String::isBlank)) { "Malformed member-map coordinate: $part" }
+                    split[0] to split[1]
+                } else emptyMap()
+                require(node != null && (if (memberMap) node.dims.isNotEmpty() && fixed.size < node.dims.size &&
+                    address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
+                    fixed.all { (dim, member) -> explainedView.members[dim].orEmpty().any { it.key == member } }
+                    else node.dims.size == address.coord.size && address.coord in node.values)) {
+                    "Explain address is not a calculated value: $address"
+                }
+                require(address.cell == null) { "Fixture Explain cell addresses are not supported" }
+                val key = addressPath(address)
+                val file = "explain-" + MessageDigest.getInstance("SHA-256")
+                    .digest(key.toByteArray(Charsets.UTF_8)).take(8).joinToString("") { "%02x".format(it) } + ".json"
+                val data = if (memberMap) WorkbenchDocuments.memberMap(explainedView, layout, nodeId, fixed)
+                    else WorkbenchDocuments.explain(explainedView, layout, nodeId, address.coord,
+                        explained.explainTrace)
+                Files.writeString(target.resolve(file),
+                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n")
+                explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"
+            }
+            files["explains"] = explains
+        }
         exportPreviews.forEachIndexed { index, (name, data) ->
             val file = "export-preview-$index.json"
             Files.writeString(target.resolve(file),
@@ -87,7 +122,8 @@ object Fixtures {
         return entry
     }
 
-    fun writeMany(cases: List<Path>, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null): List<Entry> {
+    fun writeMany(cases: List<Path>, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
+                  explainAddresses: Map<String, List<ExplainAddress>> = emptyMap()): List<Entry> {
         require(cases.isNotEmpty()) { "At least one case is required" }
         val absolute = cases.map { it.toAbsolutePath().normalize() }
         val root = workspaceRoot?.toAbsolutePath()?.normalize() ?: absolute.map { it.parent.parent }.reduce { common, next ->
@@ -95,7 +131,10 @@ object Fixtures {
             while (!next.startsWith(candidate)) candidate = candidate.parent
             candidate
         }
-        val entries = absolute.map { write(it, out, publicPrefix, root) }
+        val entries = absolute.map { path ->
+            val id = root.relativize(path).toString().replace('\\', '/')
+            write(path, out, publicPrefix, root, explainAddresses[id].orEmpty())
+        }
         val manifest = linkedMapOf("cases" to entries.map(::manifestEntry))
         Files.writeString(out.resolve("index.json"), WorkbenchJson.write(manifest) + "\n")
         return entries
@@ -103,6 +142,13 @@ object Fixtures {
 
     private fun manifestEntry(entry: Entry): Map<String, Any?> =
         linkedMapOf("id" to entry.id, "title" to entry.title, "files" to entry.files)
+
+    private fun addressPath(address: ExplainAddress): String {
+        fun part(value: String): String = URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")
+            .replace(".", "%2E").replace("*", "%2A")
+        val members = if (address.coord.isEmpty()) "" else "@" + address.coord.joinToString("/") { part(it) }
+        return part(address.node) + members
+    }
 
     private fun revision(paths: List<Path>, workspaceRoot: Path): String {
         val digest = MessageDigest.getInstance("SHA-256")

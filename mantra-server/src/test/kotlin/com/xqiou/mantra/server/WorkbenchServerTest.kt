@@ -133,7 +133,7 @@ class WorkbenchServerTest {
             assertEquals(400, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
             assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
                 headers = mapOf("X-Mantra-Token" to token)).status)
-            assertEquals(501, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain?address=sum").status)
+            assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain").status)
             assertEquals(404, request(port, "/api/v1/cases/..%2F..%2Fsecret.mantra/structure").status)
             assertEquals(404, request(port, "/%2e%2e/secret.txt").status)
             assertEquals(413, request(port, preview, "POST", headers = mapOf(
@@ -298,6 +298,87 @@ class WorkbenchServerTest {
                 assertEquals(200, paper.status, "$id: ${paper.body}")
                 assertContains(run.body, "\"succeeded\":true")
             }
+        }
+    }
+
+    @Test fun `explain returns a bounded source trace through the address route`() {
+        WorkbenchServer(Path.of("examples"), 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/de-est-2025%2Fcase-mustermann.mantra/explain"
+            val response = request(server.localPort, "$path?address=ermaessigung-35a")
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            assertContains(response.body, "\"node\":\"ermaessigung-35a\"")
+            assertContains(response.body, "\"n\":\"740.0\"")
+            assertContains(response.body, "\"n\":\"240.0\"")
+            assertContains(response.body, "\"n\":\"500.0\"")
+            val nested = request(server.localPort, "$path?address=ermaessigung-35a&depth=2")
+            assertEquals(200, nested.status, nested.body)
+            validate("explain", nested.body)
+            assertContains(nested.body, "\"explanation\":")
+            assertEquals(400, request(server.localPort, "$path?address=ermaessigung-35a&depth=6").status)
+            assertEquals(404, request(server.localPort, "$path?address=missing").status)
+            assertEquals(400, request(server.localPort, "$path?address=ermaessigung-35a&extra=x").status)
+        }
+    }
+
+    @Test fun `explain resolves a dimensioned choice and its option difference`() {
+        WorkbenchServer(Path.of("examples"), 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=recoverable-amount%40B"
+            val response = request(server.localPort, path)
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            assertContains(response.body, "\"coord\":[\"B\"]")
+            assertContains(response.body, "\"options\":[")
+            assertContains(response.body, "\"difference\":")
+            val nested = request(server.localPort, "$path&depth=2")
+            assertEquals(200, nested.status, nested.body)
+            validate("explain", nested.body)
+            val mapPath = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=allocation-key%40B&depth=2"
+            val mapReference = request(server.localPort, mapPath)
+            assertEquals(200, mapReference.status, mapReference.body)
+            validate("explain", mapReference.body)
+            assertContains(mapReference.body, "\"node\":\"all.weighted-amount\"")
+            val directMap = request(server.localPort,
+                "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
+            assertEquals(200, directMap.status, directMap.body)
+            validate("explain", directMap.body)
+            val mapper = ObjectMapper()
+            val allReference = mapper.readTree(mapReference.body).path("data").path("references")
+                .first { it.path("address").path("node").asText() == "all.weighted-amount" }
+            assertEquals(allReference.path("value"), mapper.readTree(directMap.body).path("data").path("result").path("value"))
+        }
+    }
+
+    @Test fun `ordinary member-map references retain fixed dimension members`() {
+        val root = workspace()
+        Files.writeString(root.resolve("sample/schema.mantra"), """
+            (schema test/member-map {:mainline [summary]}
+              (dimension area {:members [:A :B]})
+              (dimension year {:members [:Y1 :Y2]})
+              (section detail "Detail" {:per [area year]}
+                (line detail-value "Amount" (if (= year.key :Y1) 10 20)))
+              (section summary "Summary" {:per area :panel true}
+                (line subtotal "Subtotal" (dim/sum detail-value))))
+        """.trimIndent())
+        Files.writeString(root.resolve("sample/case.mantra"), "(case one {:schema \"test/member-map\"})")
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            val path = "/api/v1/cases/sample%2Fcase.mantra/explain?address=subtotal%40A&depth=2"
+            val response = request(server.localPort, path)
+            assertEquals(200, response.status, response.body)
+            validate("explain", response.body)
+            val references = ObjectMapper().readTree(response.body).path("data").path("references")
+            val memberMap = references.first { it.path("kind").asText() == "member-map" }
+            assertEquals("all.detail-value", memberMap.path("address").path("node").asText())
+            assertEquals("area=A", memberMap.path("address").path("coord")[0].asText())
+            assertEquals(memberMap.path("value"), memberMap.path("explanation").path("result").path("value"))
+            val direct = request(server.localPort,
+                "/api/v1/cases/sample%2Fcase.mantra/explain?address=all.detail-value%40area%3DA")
+            assertEquals(200, direct.status, direct.body)
+            validate("explain", direct.body)
+            assertEquals(memberMap.path("value"), ObjectMapper().readTree(direct.body).path("data").path("result").path("value"))
         }
     }
 

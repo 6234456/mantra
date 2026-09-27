@@ -3,6 +3,7 @@ package com.xqiou.mantra.core
 import com.xqiou.mantra.core.engine.CalculationPlan
 import com.xqiou.mantra.core.engine.CalculationResult
 import com.xqiou.mantra.core.engine.Evaluator
+import com.xqiou.mantra.core.engine.Coord
 import com.xqiou.mantra.core.engine.Planner
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Schema
@@ -71,6 +72,15 @@ object Mantra {
     }
 
     fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).run()
+
+    /** Recalculates one case while collecting a bounded FULL trace only for the requested value. */
+    fun calculateForExplain(schema: Schema, case: CaseData, parameters: List<ParameterSet>, node: String,
+                            coord: Coord = emptyList()): CalculationResult {
+        val sink = DiagnosticSink()
+        val plan = Planner(sink).plan(schema, case, parameters)
+        sink.throwIfErrors()
+        return Evaluator(checkNotNull(plan), sink, node to coord).run()
+    }
 }
 
 /** Resolves includes relative to the including file on the local file system. */

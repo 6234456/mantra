@@ -11,8 +11,11 @@ const golden = resolve(process.cwd(), '../mantra-workbench/src/test/resources/go
 const manifest = JSON.parse(readFileSync(resolve(golden, 'index.json'), 'utf8'))
 const files = { '/fixtures/index.json': manifest }
 for (const item of manifest.cases) {
-  for (const path of Object.values(item.files)) {
-    files[path] = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+  for (const value of Object.values(item.files)) {
+    const paths = typeof value === 'string' ? [value] : Object.values(value)
+    for (const path of paths) {
+      files[path] = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+    }
   }
 }
 
@@ -39,6 +42,23 @@ afterEach(() => {
 })
 
 describe('the three tracked golden cases, from overview to a selected Paper cell', () => {
+  it('shows real Explain steps from the ESt golden on the provenance route', async () => {
+    const id = 'de-est-2025/case-mustermann.mantra'
+    const address = { node: 'ermaessigung-35a' }
+    const entry = manifest.cases.find(item => item.id === id)
+    const goldenExplain = files[entry.files.explains[addressToPath(address)]].data
+    serveGolden()
+    history.replaceState(null, '', `${casePath(id)}/provenance/${encodeURIComponent(addressToPath(address))}`)
+    render(<App />)
+    expect(await screen.findByRole('heading', { name: goldenExplain.label, level: 1 })).toBeTruthy()
+    expect(goldenExplain.steps.length).toBeGreaterThan(0)
+    expect((await screen.findAllByText(goldenExplain.steps[0].text)).length).toBeGreaterThan(0)
+    const missing = goldenExplain.references.find(ref => !entry.files.explains[addressToPath(ref.address)])
+    expect(missing).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(missing.address.node) }))
+    expect(await screen.findByText('Für diese Ansicht liegen noch keine Daten vor.')).toBeTruthy()
+  })
+
   it.each(scenarios)('$id', async scenario => {
     serveGolden()
     history.replaceState(null, '', `${casePath(scenario.id)}/overview`)

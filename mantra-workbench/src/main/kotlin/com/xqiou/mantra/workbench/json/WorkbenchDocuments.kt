@@ -3,6 +3,8 @@ package com.xqiou.mantra.workbench.json
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.engine.NodeTrace
+import com.xqiou.mantra.core.engine.ExplainTrace
+import com.xqiou.mantra.core.engine.TraceRef
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationView
@@ -28,6 +30,131 @@ import com.xqiou.mantra.render.paper.WorkingPaper
 
 /** Pure projections of the public read-only calculation and presentation views. */
 object WorkbenchDocuments {
+    /** One calculated value and its bounded source trace; no evaluator state reaches the UI. */
+    fun explain(view: CalculationView, layout: LayoutSpec, nodeId: String, coord: List<String>,
+                full: ExplainTrace?, cell: Pair<String, String>? = null, cellValue: Value? = null): Map<String, Any?> {
+        val node = view.node(nodeId)
+        val formatter = NumberFormatter(layout.number)
+        val trace = node.trace(coord)
+        fun display(value: Value, source: ViewNode = node) =
+            formatter.value(value, source.presentation.format, source.presentation.precision)
+        fun aligned(other: ViewNode): List<String> = other.dims.mapNotNull { dim ->
+            node.dims.indexOf(dim).takeIf { it >= 0 }?.let(coord::get)
+        }
+        val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
+            val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
+            val memberMap = ref.kind == TraceRef.Kind.ALL || ref.kind == TraceRef.Kind.MEMBER_MAP
+            val targetCoord = when (ref.kind) {
+                TraceRef.Kind.ALL -> emptyList()
+                TraceRef.Kind.MEMBER_MAP -> target.dims.mapNotNull { dim ->
+                    node.dims.indexOf(dim).takeIf { it >= 0 }?.let { "$dim=${coord[it]}" }
+                }
+                else -> aligned(target)
+            }
+            val targetId = if (memberMap) "all.${target.id}" else target.id
+            linkedMapOf<String, Any?>(
+                "address" to address(targetId, targetCoord), "label" to target.label,
+                "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
+                "kind" to ref.kind.name.lowercase().replace('_', '-'),
+                "origin" to when (val origin = target.trace(if (memberMap) emptyList() else targetCoord)) {
+                    is NodeTrace.Input -> origin.origin.name.lowercase()
+                    is NodeTrace.Param -> origin.source
+                    else -> null
+                },
+            )
+        }
+        val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
+            val target = view.nodes[part.id] ?: return@mapNotNull null
+            linkedMapOf<String, Any?>("address" to address(part.id, aligned(target)), "label" to target.label,
+                "sign" to part.sign, "value" to WorkbenchJson.value(Value.Num(part.value)),
+                "display" to display(Value.Num(part.value), target), "crossFooted" to part.crossFooted)
+        }
+        val choice = trace as? NodeTrace.Choice
+        val selectedValue = choice?.options?.firstOrNull { it.key == choice.selected }?.value
+        val options = choice?.options.orEmpty().map { option ->
+            val optionValue = option.value
+            val difference = if (selectedValue is Value.Num && optionValue is Value.Num)
+                Value.Num(selectedValue.value - optionValue.value) else null
+            linkedMapOf<String, Any?>("key" to option.key, "label" to option.label,
+                "value" to WorkbenchJson.value(optionValue), "display" to display(optionValue),
+                "available" to option.available, "selected" to (option.key == choice?.selected),
+                "difference" to difference?.let(WorkbenchJson::value),
+                "differenceDisplay" to difference?.let { display(it) })
+        }
+        val rounding = when (trace) {
+            is NodeTrace.Computed -> trace.rounding
+            is NodeTrace.Choice -> trace.rounding
+            else -> null
+        }
+        val formula = node.line?.formula
+        val value = cellValue ?: node.value(coord)
+        val requestedAddress = address(nodeId, coord).toMutableMap().apply {
+            if (cell != null) put("cell", linkedMapOf("row" to cell.first, "column" to cell.second))
+        }
+        return linkedMapOf(
+            "address" to requestedAddress, "label" to node.label,
+            "kind" to node.kind.name.lowercase().replace('_', '-'),
+            "formula" to formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
+            "result" to linkedMapOf("value" to WorkbenchJson.value(value), "display" to display(value),
+                "rounding" to rounding?.let { linkedMapOf("scale" to it.scale, "mode" to it.mode.name.lowercase()) }),
+            "status" to when (trace) {
+                is NodeTrace.Inactive -> "inactive"
+                is NodeTrace.Failed -> "failed"
+                else -> if (node.isActive(coord)) "active" else "inactive"
+            },
+            "reason" to when (trace) { is NodeTrace.Inactive -> trace.reason; is NodeTrace.Failed -> trace.message; else -> null },
+            "steps" to full?.steps.orEmpty().map { step -> linkedMapOf("text" to step.text,
+                "value" to WorkbenchJson.value(step.value), "display" to display(step.value),
+                "location" to location(step.location)) },
+            "branches" to full?.branches.orEmpty().map { branch -> linkedMapOf("text" to branch.text,
+                "selected" to branch.selected, "location" to location(branch.location)) },
+            "references" to references, "parts" to parts, "options" to options,
+            "reference" to node.presentation.reference, "truncated" to (full?.truncated ?: false),
+        )
+    }
+
+    /** A navigable source-tree node for an `all.<id>` reference to a dimensioned member map. */
+    fun memberMap(view: CalculationView, layout: LayoutSpec, nodeId: String,
+                  fixed: Map<String, String> = emptyMap()): Map<String, Any?> {
+        val node = view.node(nodeId)
+        require(node.dims.isNotEmpty()) { "Member map requires a dimensioned node" }
+        val formatter = NumberFormatter(layout.number)
+        val variableDims = node.dims.filter { it !in fixed }
+        require(variableDims.isNotEmpty()) { "Member map requires at least one unfixed dimension" }
+        fun build(dims: List<String>, assignment: Map<String, String>): Value {
+            if (dims.isEmpty()) return node.values[node.dims.map(assignment::getValue)]
+                ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
+            return Value.MapV(linkedMapOf<Value, Value>().apply {
+                view.members[dims.first()].orEmpty().forEach { member ->
+                    put(Value.Kw(member.key), build(dims.drop(1), assignment + (dims.first() to member.key)))
+                }
+            })
+        }
+        val value = build(variableDims, fixed)
+        val members = node.values.keys.filter { coord -> node.dims.indices.all { i ->
+            fixed[node.dims[i]] == null || fixed[node.dims[i]] == coord[i]
+        } }.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
+        val references = members.take(63).map { coord ->
+            val item = node.value(coord)
+            linkedMapOf<String, Any?>("address" to address(nodeId, coord), "label" to node.label,
+                "value" to WorkbenchJson.value(item),
+                "display" to formatter.value(item, node.presentation.format, node.presentation.precision),
+                "kind" to "member", "origin" to null)
+        }
+        return linkedMapOf(
+            "address" to address("all.$nodeId", node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } }),
+            "label" to node.label,
+            "kind" to "member-map", "formula" to null,
+            "result" to linkedMapOf("value" to WorkbenchJson.value(value),
+                "display" to formatter.value(value, node.presentation.format, node.presentation.precision),
+                "rounding" to null),
+            "status" to "active", "reason" to null,
+            "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
+            "references" to references, "parts" to emptyList<Any>(), "options" to emptyList<Any>(),
+            "reference" to node.presentation.reference, "truncated" to (members.size > 63),
+        )
+    }
+
     /** Parameter defaults, every supplied set value, case override, and the effective layer. */
     fun parameters(view: CalculationView): Map<String, Any?> = linkedMapOf(
         "parameters" to view.structure.params.map { id ->

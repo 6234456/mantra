@@ -24,10 +24,13 @@ import com.xqiou.normein.dsl.type.DslTypeSchema
 /** Member coordinates of one value of a dimensioned node, in the node's canonical dimension order. */
 typealias Coord = List<String>
 
+data class NamedSource(val source: String, val location: SourceLocation)
+
 /** A formula compiled by the Normein kernel for one evaluation context. */
 class CompiledFormula(
     val formula: Formula,
     val expression: DslCompiledExpression,
+    val namedSources: Map<String, NamedSource>,
     /** Context dimensions the formula is evaluated in. */
     val dims: List<String>,
     /** Value vertices referenced directly as roots. */

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const schemaDir = resolve(here, '../../docs/workbench/schema')
 const output = resolve(here, '../src/generated/contract.ts')
-const names = ['envelope', 'value', 'structure', 'run', 'paper', 'diagnostics', 'workspace', 'compare', 'parameters', 'export-preview']
+const names = ['envelope', 'value', 'structure', 'run', 'paper', 'diagnostics', 'workspace', 'compare', 'parameters', 'export-preview', 'explain']
 const schemas = Object.fromEntries(await Promise.all(names.map(async name => [name, JSON.parse(await readFile(resolve(schemaDir, `${name}.schema.json`), 'utf8'))])))
 const pascal = value => value.replace(/(^|[-_])([a-z])/g, (_, __, letter) => letter.toUpperCase())
 const typeName = (file, def) => `${pascal(file)}${def ? pascal(def) : ''}`
