@@ -1,6 +1,6 @@
-# Mantra 工作台契约 v1（草案）
+# Mantra 工作台契约 v1
 
-> 状态：草案，尚未实现 · 2026-09-27
+> 状态：v1 已实现；后续变更仍以本契约为准 · 2026-09-27
 > 相关文档：[架构](../architecture.md) · [引擎与应用职责契约](../engine-application-boundary.md) · [RFC 0001](../rfc/0001-normein-dsl-kernel-extensions.md) · [界面规格](ui-spec.md) · [工作包](work-packages.md) · [设计稿源文件](design/)
 
 ## 1. 定位
@@ -209,7 +209,7 @@ v1 的变化：
 - **坐标键**：成员键用 `/` 连接，标量为 `""`（与现有 `StructureJson` 一致）。
 - **`origin`**：只出现在输入上。
   - 已有取值：`case`、`default`、`implicit`，来自 `InputOrigin`。
-  - 待补取值：值来自数据来源时为 `source:<描述>`（缺口 G3，§10）。
+  - 来源取值：值来自数据来源时为 `source:<描述>`（G3，§10）。
 - **参数**：值带 `source`，即现有的 `ParamVertex.source`。
 - **不适用的值**：`active: false`，`display` 按版式处理（例如 “entfällt” 或留空）。
 
@@ -462,7 +462,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **工作区模板接口**：`GET /api/v1/import-templates` 返回 `{templates:[{name,format,options}]}`；`POST /api/v1/import-templates` 接收 `{name,format,options}`，在工作区 `import-templates/<name>.json` 创建普通来源选项模板（不含 `path`）。名称限 1–80 个 ASCII 字母、数字、`_`、`-`，已有名称返回 409；文件上限 64 KiB。模板文件进入工作区修订与 SSE 扫描。应用模板时前端仍须选择实际文件，路径由导入接口分配。
 - **浏览器导入请求**：`POST …/imports/inspect` 接收 `{name, format, contentBase64}`，仅返回 `{name, format, columns:[{name, sample:[]}], rowCount, delimiter?, decimal?, grouping?, numericAmbiguous?}`，不写文件；CSV 数字分隔符是样本推断，用户可在应用前修改。仅有 `1.234` 一类无法区分小数和千位的样本时返回 `numericAmbiguous: true`，界面要求用户明确选择小数分隔符。`POST …/imports/apply` 再接收同一文件、完整计算的 `baseRevision` 与 `options`（来源声明的普通 JSON 选项对象）；服务端将文件保存到案例目录下的 `imports/`，以内容摘要命名，然后追加 `(sources …)` 声明，响应格式同 §7.1。文件写入成功但案例提交失败时清理本次新建文件。
 - **失效来源修复**：`GET …/sources` 只解析案例文本并列出绑定，不要求来源可计算；其 envelope 修订只覆盖案例和仍存在的绑定文件。`POST …/sources/remove` 接收 `{baseRevision,index}`，按该修订原子移除零起始的来源声明，返回更新后的来源 envelope。即使某个来源文件丢失或格式不合法，也能继续移除其绑定。其他编辑和导入仍使用完整计算修订。
-- **宽表模式（缺口 G7）**：设计稿中的工资单 CSV 是宽表，一行对应一个成员，每列对应一个不同的输入。现有 `CsvSource` 只支持两种格式：表格输入的行，以及 `input;value` / `input;member;value` 成对格式。需要增加“宽表行 → 某一成员的输入”模式。
+- **宽表模式（G7）**：工资单 CSV 可用 `:mode :wide` 和 `:member-column` 将每行映射到一个成员、每列映射到不同输入；原有表格行与 `input;value` / `input;member;value` 成对格式仍可用。
 
 ### 8.2 公式编辑
 
@@ -492,25 +492,24 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 
 基址为 `http://127.0.0.1:<port>/api/v1`，使用 UTF-8 JSON，外层见 §6。
 
-只读服务阶段的 `/workspace` 数据为 `{cases, schemas, parameters, layouts, diagnostics}`。
+`/workspace` 数据为 `{cases, schemas, parameters, layouts, diagnostics}`。
 `cases[]` 至少含工作区相对路径 `id`、`title`、`schema`、`period`、`revision` 和该案例的 `diagnostics`；
 其余三个清单的元素含 `id`、工作区相对 `path`，并可带 `title`。工作区外层 `revision`
 是扫描到的全部 `.mantra` 文件内容的摘要；每个案例的四类响应使用 §4.3 所述的参与文件摘要。
 缺少方案或绑定文件的案例仍列在 `/workspace` 中并带诊断；请求其结果返回 422。
 `/workspace` 的 JSON Schema 见 `schema/workspace.schema.json`。
 
-只读阶段提供 `/workspace`、`structure`、`run`、`paper`、`diagnostics`、`parameters` 和 `/events`。其余 §9.1
-端点在对应工作包完成前返回 501 与 `MANTRA-WORKBENCH-UNAVAILABLE`，不会生成占位结果。
-尚未实现的 `(sources …)` 绑定同样报告诊断并拒绝计算。`GET /cases/{case}/diagnostics`
+下表端点均已接入。无效的 `(sources …)` 绑定报告诊断并拒绝计算，但来源清单及移除端点仍可用于修复。`GET /cases/{case}/diagnostics`
 直接返回 §6.6 的诊断文档。服务可通过 `--ui <dist目录>` 指定 live 前端构建产物；
 省略时查找当前目录的 `workbench-ui/dist`，存在时托管静态资源及前端路由回退。
-409 修订冲突检查在 WP6 的写端点接入时验证；只读阶段没有会修改文档的请求。
+写端点使用基准修订检查冲突，修订过期返回 409。
 
 | 方法 | 路径 | 内容 |
 | --- | --- | --- |
 | GET | `/workspace` | 方案、案例、参数集、版式清单及工作区诊断 |
 | GET | `/cases/{case}/structure` | Structure（§6.2） |
 | GET | `/cases/{case}/sources` | 有序来源绑定 `{sources:[{index,kind,path,options}]}`；`options` 的每个值用 §6.1 编码 |
+| POST | `/cases/{case}/sources/remove` | 在来源失效时按来源修订移除绑定（§8.1） |
 | GET | `/cases/{case}/run` | Run（§6.3） |
 | GET | `/cases/{case}/paper?layout=&panel=` | Paper（§6.4） |
 | GET | `/cases/{case}/diagnostics` | Diagnostics（§6.6） |
@@ -522,6 +521,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |
 | POST | `/cases/{case}/imports/inspect`、`/imports/apply` | 导入（§8.1） |
+| GET、POST | `/import-templates` | 工作区导入映射模板（§8.1） |
 | GET | `/cases/{case}/export.xlsx`、`/export.html`、`/export.txt`（可带 `?layout=`） | 导出（§6.9） |
 | GET | `/cases/{case}/export-preview`（可带 `?sheet=`、`?layout=`） | 工作簿预览与保真度报告（§6.9） |
 | GET | `/events` | SSE：`documentChanged`、`revision` |
@@ -567,11 +567,11 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | 413 | 请求或上传超过上限 | 代码 `MANTRA-WORKBENCH-TOO-LARGE` |
 | 422 | 编辑被引擎拒绝 | 附 §6.6 格式的诊断 |
 | 422 | 工作区文档缺失、绑定尚不可用或无效 | 代码 `MANTRA-WORKBENCH-DOCUMENT`，附诊断 |
-| 501 | 端点所属工作包尚未接入 | 代码 `MANTRA-WORKBENCH-UNAVAILABLE` |
+| 501 | 请求的端点尚未提供 | 代码 `MANTRA-WORKBENCH-UNAVAILABLE` |
 | 500 | 内部错误 | 附关联 id，不向客户端返回堆栈 |
 | 503 | SSE 连接数达到上限 | 代码 `MANTRA-WORKBENCH-BUSY` |
 
-`MANTRA-WORKBENCH-*` 是拟新增的代码。
+`MANTRA-WORKBENCH-*` 是工作台服务使用的诊断代码前缀。
 
 ### 9.4 资源上限
 
@@ -580,7 +580,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | 请求体 | 1 MiB |
 | 导入文件 | 10 MiB |
 | 导入 JSON 请求体 | 14 MiB（容纳 10 MiB 文件的 base64） |
-| 工作区扫描 | 最多 4,096 个 `.mantra` 文件（只读阶段） |
+| 工作区扫描 | 最多 4,096 个 `.mantra` 文件 |
 | SSE 内容复核 | 未变元数据时每轮最多约 8 MiB；变动后完整重算工作区修订 |
 | 单个文档 | 内核读取器上限：固定版本为 65,536 字符；候选内核的 `readForms` 为 1,048,576 字符 |
 | 求值 | 内核预算（每个计数器 100,000）与值上限（集合 10,000 项、嵌套深度 32） |
@@ -594,7 +594,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 
 - **监听地址**：只监听 `127.0.0.1` 和 `::1`。`Host` 头不是回环地址的请求一律拒绝，以防 DNS 重绑定。不开启 CORS。
 - **防跨站写入**：写操作必须在请求头中携带会话令牌。令牌在服务启动时生成，随 `index.html` 下发，使其他网页无法冒充界面写入。
-- **令牌传递**：`index.html` 内注入 `<meta name="mantra-session-token" content="…">`；未来写接口使用 `X-Mantra-Token` 请求头。只读阶段也先对全部 POST 请求验证令牌。
+- **令牌传递**：`index.html` 内注入 `<meta name="mantra-session-token" content="…">`；写接口使用 `X-Mantra-Token` 请求头，所有 POST 请求均验证令牌。
 - **文件访问**：限定在工作区内。先规范化路径再检查前缀，拒绝符号链接越界。上传的文件只在“应用”时写入工作区的 `imports/` 目录。
 - **网络**：服务本身不发起任何网络请求。
 
@@ -664,6 +664,7 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | WP10 表格录入 | Structure 输入字段增加 `keyColumn`，供前端构造稳定的单元格地址 |
 | 2026-09-27 | WP10 表格原文 | `insertRow` 接受 `rowText`，逐列在服务端解析，前端不处理数字格式 |
 | 2026-09-27 | WP9 authoring | 明确 complete、hover、check 的目标、光标、响应及来源偏移契约 |
+| 2026-09-27 | WP9、WP11 交付 | 公式编辑与数据来源已接入；补充来源失效修复、数字格式歧义和映射模板接口 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
 | 2026-09-27 | WP7 只读阶段 | 细化 `/workspace`、诊断端点、未接入端点状态与静态前端/令牌约定 |
