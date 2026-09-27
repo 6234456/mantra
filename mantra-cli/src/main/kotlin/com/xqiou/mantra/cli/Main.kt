@@ -9,9 +9,11 @@ import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.Presets
 import com.xqiou.mantra.workbench.Fixtures
+import com.xqiou.mantra.server.WorkbenchServer
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.system.exitProcess
+import java.util.concurrent.CountDownLatch
 
 private const val USAGE = """
 mantra – calculation-schema engine (Normein DSL)
@@ -22,6 +24,7 @@ Usage:
   mantra check <schema.mantra> [--case <case.mantra>]
   mantra catalog
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
+  mantra serve <workspace> [--port <number>] [--ui <workbench-ui/dist>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
@@ -29,6 +32,7 @@ Commands:
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
   fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra
            and optional sibling layout.mantra. --workspace sets the case-id root.
+  serve    Start the loopback-only, read-only workbench service. Other endpoints report 501 until implemented.
 """
 
 fun main(args: Array<String>) {
@@ -43,6 +47,7 @@ fun main(args: Array<String>) {
             "check" -> check(options)
             "catalog" -> catalog()
             "fixtures" -> fixtures(options)
+            "serve" -> serve(options)
             null, "help", "--help", "-h" -> println(USAGE.trimIndent())
             else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
         }
@@ -127,6 +132,20 @@ private fun fixtures(options: Options) {
     val out = options.path("out") ?: fail("fixtures requires --out <dir>")
     val entries = Fixtures.writeMany(cases, out, workspaceRoot = options.path("workspace"))
     println("mantra: wrote ${entries.joinToString { it.id }} fixtures to ${out.toAbsolutePath()}")
+}
+
+private fun serve(options: Options) {
+    val workspace = options.positional.singleOrNull()?.let(Path::of)
+        ?: fail("serve requires one workspace directory.\n${USAGE.trimIndent()}")
+    val port = options.named["port"]?.toIntOrNull() ?: if (options.flag("port")) fail("--port requires a number") else 8080
+    if (port !in 0..65535) fail("--port must be between 0 and 65535")
+    val ui = options.path("ui")
+    if (options.flag("ui") && ui == null) fail("--ui requires a directory")
+    if (ui != null && !Files.isDirectory(ui)) fail("--ui directory does not exist: $ui")
+    val server = WorkbenchServer(workspace, port, ui ?: Path.of("workbench-ui/dist").takeIf(Files::isDirectory)).start()
+    Runtime.getRuntime().addShutdownHook(Thread { server.close() })
+    println("mantra: serving ${workspace.toAbsolutePath()} at http://127.0.0.1:${server.localPort}/")
+    CountDownLatch(1).await()
 }
 
 private fun check(options: Options) {

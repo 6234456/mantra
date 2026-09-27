@@ -435,12 +435,27 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 
 基址为 `http://127.0.0.1:<port>/api/v1`，使用 UTF-8 JSON，外层见 §6。
 
+只读服务阶段的 `/workspace` 数据为 `{cases, schemas, parameters, layouts, diagnostics}`。
+`cases[]` 至少含工作区相对路径 `id`、`title`、`schema`、`period`、`revision` 和该案例的 `diagnostics`；
+其余三个清单的元素含 `id`、工作区相对 `path`，并可带 `title`。工作区外层 `revision`
+是扫描到的全部 `.mantra` 文件内容的摘要；每个案例的四类响应使用 §4.3 所述的参与文件摘要。
+缺少方案或绑定文件的案例仍列在 `/workspace` 中并带诊断；请求其结果返回 422。
+`/workspace` 的 JSON Schema 见 `schema/workspace.schema.json`。
+
+只读阶段提供 `/workspace`、`structure`、`run`、`paper` 和 `diagnostics`。其余 §9.1
+端点在对应工作包完成前返回 501 与 `MANTRA-WORKBENCH-UNAVAILABLE`，不会生成占位结果。
+尚未实现的 `(sources …)` 绑定同样报告诊断并拒绝计算。`GET /cases/{case}/diagnostics`
+直接返回 §6.6 的诊断文档。服务可通过 `--ui <dist目录>` 指定 live 前端构建产物；
+省略时查找当前目录的 `workbench-ui/dist`，存在时托管静态资源及前端路由回退。
+409 修订冲突检查在 WP6 的写端点接入时验证；只读阶段没有会修改文档的请求。
+
 | 方法 | 路径 | 内容 |
 | --- | --- | --- |
 | GET | `/workspace` | 方案、案例、参数集、版式清单及工作区诊断 |
 | GET | `/cases/{case}/structure` | Structure（§6.2） |
 | GET | `/cases/{case}/run` | Run（§6.3） |
 | GET | `/cases/{case}/paper?layout=&panel=` | Paper（§6.4） |
+| GET | `/cases/{case}/diagnostics` | Diagnostics（§6.6） |
 | GET | `/cases/{case}/explain?address=&depth=` | Explain（§6.5） |
 | GET | `/cases/{case}/parameters` | 参数分层（§6.8） |
 | POST | `/cases/{case}/compare` | Compare（§6.7） |
@@ -473,10 +488,14 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 | 状态 | 情形 | 响应体 |
 | --- | --- | --- |
 | 400 | 请求格式错误、地址无法解析 | `{"error": {"code": "MANTRA-WORKBENCH-REQUEST", "message": "…"}}` |
+| 403 | `Host` 非回环地址或写请求缺少/提交错误会话令牌 | 代码 `MANTRA-WORKBENCH-HOST` 或 `MANTRA-WORKBENCH-TOKEN` |
 | 404 | 案例、板块或节点不存在 | 同上，代码 `MANTRA-WORKBENCH-NOT-FOUND` |
+| 405 | HTTP 方法不适用 | 代码 `MANTRA-WORKBENCH-REQUEST` |
 | 409 | `baseRevision` 与当前修订不一致 | 代码 `MANTRA-WORKBENCH-CONFLICT`，附当前修订 |
 | 413 | 请求或上传超过上限 | 代码 `MANTRA-WORKBENCH-TOO-LARGE` |
 | 422 | 编辑被引擎拒绝 | 附 §6.6 格式的诊断 |
+| 422 | 工作区文档缺失、绑定尚不可用或无效 | 代码 `MANTRA-WORKBENCH-DOCUMENT`，附诊断 |
+| 501 | 端点所属工作包尚未接入 | 代码 `MANTRA-WORKBENCH-UNAVAILABLE` |
 | 500 | 内部错误 | 附关联 id，不向客户端返回堆栈 |
 
 `MANTRA-WORKBENCH-*` 是拟新增的代码。
@@ -487,6 +506,7 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 | --- | --- |
 | 请求体 | 1 MiB |
 | 导入文件 | 10 MiB |
+| 工作区扫描 | 最多 4,096 个 `.mantra` 文件（只读阶段） |
 | 单个文档 | 内核读取器上限：固定版本为 65,536 字符；候选内核的 `readForms` 为 1,048,576 字符 |
 | 求值 | 内核预算（每个计数器 100,000）与值上限（集合 10,000 项、嵌套深度 32） |
 | Explain | 内核 trace 渲染预算；深度 ≤ 5 |
@@ -497,6 +517,7 @@ WP3 的 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁�
 
 - **监听地址**：只监听 `127.0.0.1` 和 `::1`。`Host` 头不是回环地址的请求一律拒绝，以防 DNS 重绑定。不开启 CORS。
 - **防跨站写入**：写操作必须在请求头中携带会话令牌。令牌在服务启动时生成，随 `index.html` 下发，使其他网页无法冒充界面写入。
+- **令牌传递**：`index.html` 内注入 `<meta name="mantra-session-token" content="…">`；未来写接口使用 `X-Mantra-Token` 请求头。只读阶段也先对全部 POST 请求验证令牌。
 - **文件访问**：限定在工作区内。先规范化路径再检查前缀，拒绝符号链接越界。上传的文件只在“应用”时写入工作区的 `imports/` 目录。
 - **网络**：服务本身不发起任何网络请求。
 
@@ -565,3 +586,4 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | v1 草案 | 初稿 |
 | 2026-09-27 | D1、D3、D4 | 案例绑定写入案例文本；前端采用 React、TypeScript、Vite 和 CodeMirror 6；建立 Git 基线 |
 | 2026-09-27 | WP3 | 规定可静态分发的 fixture 清单格式（§6.6.1），四类 fixture 仍使用统一响应外层 |
+| 2026-09-27 | WP7 只读阶段 | 细化 `/workspace`、诊断端点、未接入端点状态与静态前端/令牌约定 |

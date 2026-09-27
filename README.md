@@ -64,6 +64,16 @@ mantra-cli/build/install/mantra/bin/mantra run examples/sap-co-product-cost/sche
 mantra-cli/build/install/mantra/bin/mantra catalog
 ```
 
+启动只读工作台服务（仅监听本机回环地址）：
+
+```bash
+mantra-cli/build/install/mantra/bin/mantra serve examples --port 8080
+```
+
+服务提供 `/api/v1/workspace` 以及案例的 Structure、Run、Paper、Diagnostics JSON。
+若已有 live 前端构建产物，可加 `--ui workbench-ui/dist` 托管页面；
+Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前返回 501。
+
 ## 一个最小方案
 
 ```clojure
@@ -83,7 +93,10 @@ mantra-cli/build/install/mantra/bin/mantra catalog
 | --- | --- |
 | `mantra-core` | 方案/案例读取、模型、依赖图、Normein 集成与 `mantra.calc` 函数库、求值与追溯 |
 | `mantra-render` | 版式 DSL、预设、WorkingPaper 网格模型、HTML/Text 渲染、公式解释器 |
-| `mantra-cli` | `run`、`check`、`catalog` |
+| `mantra-workbench` | 工作区扫描、修订与只读契约文档 |
+| `mantra-server` | 回环地址 HTTP 服务、安全检查与 live 前端静态文件 |
+| `mantra-cli` | `run`、`check`、`catalog`、`fixtures`、`serve` |
+| `workbench-ui` | 工作台 React 前端 |
 | `examples/` | 验收样例（不属于引擎库）：`de-est-2025`、`ifrs-ias36-corporate-assets`、`sap-co-product-cost` |
 | `docs/` | [架构设计](docs/architecture.md)、[引擎与应用职责契约](docs/engine-application-boundary.md)、[DSL 参考](docs/dsl-reference.md)、[RFC](docs/rfc/) |
 
