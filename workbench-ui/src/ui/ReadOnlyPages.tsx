@@ -47,7 +47,7 @@ export function ParametersPage({ caseId, structure, workspace, data, compareSet,
   const parameters = useDocument(signal => data.parameters(caseId, signal), [data, caseId, refresh])
   const options = workspace.parameters ?? []
   const selectedSet = compareSet ?? ''
-  const comparison = useDocument(signal => selectedSet ? data.compare(caseId, [selectedSet], signal) : Promise.reject(new Error('No selection')), [data, caseId, selectedSet])
+  const comparison = useDocument(signal => selectedSet ? data.compare(caseId, [selectedSet], signal) : Promise.reject(new Error('No selection')), [data, caseId, selectedSet, refresh])
   const names = useMemo(() => new Map(parameters.data?.parameters.map(item => [item.id, item.label]) ?? []), [parameters.data])
   return <>
     <div className="page-heading"><span className="eyebrow">{t('workspace', lang)}</span><h1>{t('parameters', lang)}</h1><p>{structure.title}</p></div>

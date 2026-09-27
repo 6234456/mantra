@@ -357,10 +357,11 @@ class WorkbenchServer(
                     else {
                         val source = op["rowText"]?.takeIf(JsonNode::isObject) ?: bad("rowText must be an object")
                         if (source.size() !in 1..64) bad("rowText must contain 1–64 columns")
-                        Value.MapV(source.fields().asSequence().associate { (column, value) ->
+                        val texts = source.fields().asSequence().associate { (column, value) ->
                             if (!value.isTextual || value.textValue().length > 10_000) bad("rowText values must be text")
-                            Value.Kw(column) to catalog.parseEditText(caseId, table, false, value.textValue(), column)
-                        })
+                            column to value.textValue()
+                        }
+                        catalog.parseEditRowText(caseId, table, texts)
                     }
                     CaseTextEditor.Operation.InsertRow(table, row, op["index"]?.let { integer(op, "index") })
                 }

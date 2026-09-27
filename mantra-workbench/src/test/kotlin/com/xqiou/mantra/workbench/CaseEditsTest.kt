@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.model.Value
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -24,6 +25,19 @@ class CaseEditsTest {
             else -> "case-demo.mantra"
         }
         return dir to case
+    }
+
+    @Test fun `date input text uses the documented German format`() {
+        val dir = Files.createDirectories(temp.resolve("dates"))
+        Files.writeString(dir.resolve("schema.mantra"), """
+            (schema test/date {:title "Date" :mainline [main]}
+              (input report-date :date {:optional true})
+              (section main "Main" {:panel true} (field report-date "Report date") (total sum "Sum")))
+        """.trimIndent())
+        Files.writeString(dir.resolve("case.mantra"), "(case sample {:schema \"test/date\"})")
+        val catalog = WorkspaceCatalog(dir)
+        assertEquals(Value.Date(LocalDate.of(2025, 12, 31)), catalog.parseEditText("case.mantra", "report-date", false, "31.12.2025"))
+        assertFailsWith<WorkspaceException> { catalog.parseEditText("case.mantra", "report-date", false, "31.02.2025") }
     }
 
     @Test
