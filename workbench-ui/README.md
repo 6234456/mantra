@@ -51,7 +51,7 @@ For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` 
 - Choice comparison uses Paper option rows when Explain is unavailable. The inspector reads member-specific Paper audit entries. Provenance requires Explain and exposes a continue control after depth five.
 - The UI deliberately has no local arithmetic or number formatting. It reads `display` and cell `text` from the engine.
 - The zero-row toggle requires a contract field or endpoint that exposes both shown and hidden rows. Current Paper reflects only the layout's visibility choice, so the toggle is deferred.
-- Parameter layers, effective values and read-only parameter-set comparison use Parameters and Compare documents. The diagnostics page filters severity, shows location and related positions, and links addressed findings to a panel.
+- Parameter layers, effective values and read-only parameter-set comparison use Parameters and Compare documents. `/cases/{case}/parameters?compare=<set-id>` is directly linkable and follows browser history. Comparison shows mainline, every changed panel/node, and effective parameter changes. The diagnostics page filters severity, shows location and related positions, and links addressed findings to a panel.
 - The diagnostics response contains locations but no source text. The detail view shows line, column and offsets; a line-numbered source excerpt requires a later source-text API.
 - Editing, formula authoring, import and export are later work packages. Their links have placeholder states in this shell.
 

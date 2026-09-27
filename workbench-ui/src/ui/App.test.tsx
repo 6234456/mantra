@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
 import { casePath } from '../address'
 import type { Envelope, Explain, Paper, Run, Structure, Diagnostic } from '../types'
@@ -122,8 +122,19 @@ describe('fixture-backed workbench shell', () => {
     expect(screen.getByText('Section 1')).toBeTruthy()
     expect(document.querySelector('.parameter-layer.is-effective')?.textContent).toContain('12.00')
     fireEvent.change(screen.getByLabelText('Vergleichen mit'), { target: { value: 'sample/next' } })
+    expect(location.search).toBe('?compare=sample%2Fnext')
     expect(await screen.findByText('30.00 → 31.00')).toBeTruthy()
     expect(screen.getByText('sample/current → sample/next')).toBeTruthy()
+    history.back()
+    await waitFor(() => expect((screen.getByLabelText('Vergleichen mit') as HTMLSelectElement).value).toBe(''))
+    expect(location.search).toBe('')
+    history.forward()
+    await waitFor(() => expect((screen.getByLabelText('Vergleichen mit') as HTMLSelectElement).value).toBe('sample/next'))
+    expect(await screen.findByText('30.00 → 31.00')).toBeTruthy()
+    cleanup()
+    render(<App />)
+    expect((await screen.findByLabelText('Vergleichen mit') as HTMLSelectElement).value).toBe('sample/next')
+    expect(await screen.findByText('30.00 → 31.00')).toBeTruthy()
   })
 
   it('filters diagnostics, shows locations, and links an addressed finding to its panel', async () => {

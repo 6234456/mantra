@@ -7,7 +7,7 @@ import { chooseLanguage, language, t } from '../i18n'
 import { auditForCell, nodeValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 
-type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'parameters' | 'diagnostics' | 'other'; panelId?: string; address?: Address }
+type Route = { caseId?: string; page: 'overview' | 'panel' | 'provenance' | 'parameters' | 'diagnostics' | 'other'; panelId?: string; address?: Address; compare?: string }
 const lang = language()
 
 function route(): Route {
@@ -18,7 +18,7 @@ function route(): Route {
   if (parts[2] === 'panels' && parts[3]) return { caseId, page: 'panel', panelId: decodeURIComponent(parts[3]), address: addressFromPath(new URLSearchParams(location.search).get('cell') ?? '') ?? undefined }
   if (parts[2] === 'provenance' && parts[3]) return { caseId, page: 'provenance', address: addressFromPath(decodeURIComponent(parts.slice(3).join('/'))) ?? undefined }
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
-  if (parts[2] === 'parameters') return { caseId, page: 'parameters' }
+  if (parts[2] === 'parameters') return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
   if (parts[2] === 'diagnostics') return { caseId, page: 'diagnostics' }
   return { caseId, page: 'other' }
 }
@@ -73,7 +73,7 @@ export function App() {
           <Overview structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} caseId={caseId!} navigate={navigate} /> : current.page === 'panel' ?
           <PanelPage structure={structure.data!.data} run={run.data!.data} paper={paper.data?.data} panelId={current.panelId} selected={current.address} caseId={caseId!} data={data} navigate={navigate} /> : current.page === 'provenance' && current.address ?
           <ProvenancePage address={current.address} structure={structure.data!.data} run={run.data!.data} data={data} caseId={caseId!} navigate={navigate} /> :
-          current.page === 'parameters' ? <ParametersPage caseId={caseId!} structure={structure.data!.data} workspace={workspace.data} data={data} /> :
+          current.page === 'parameters' ? <ParametersPage caseId={caseId!} structure={structure.data!.data} workspace={workspace.data} data={data} compareSet={current.compare} navigate={navigate} /> :
           current.page === 'diagnostics' ? <DiagnosticsPage caseId={caseId!} structure={structure.data!.data} data={data} navigate={navigate} /> :
           <section className="sheet empty-view"><h1>{t('unavailable', lang)}</h1></section>}
       </main>
