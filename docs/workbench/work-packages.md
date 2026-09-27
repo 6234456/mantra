@@ -8,10 +8,12 @@
 | 工作包 | 状态 |
 | --- | --- |
 | WP0、WP2、WP3、WP5、WP13 | 已实现、审阅并合入主分支；三个方案的 golden 与 ESt 参数比较 golden 已验证 |
-| WP8 | 只读界面已合入，fixture/live 两种模式经内置浏览器检查；自动化端到端测试和从 JSON Schema 生成 TypeScript 类型仍待补齐 |
-| WP7 | 只读服务已合入：工作区、结构、结果、纸面、诊断、参数端点和 live UI 托管；Compare POST、Explain、编辑、SSE 仍返回 501 |
-| WP1 | 等待 Normein 候选变更形成可锁定的新提交；当前固定在 `be7648b5` |
-| WP4、WP6、WP9–WP12 | 尚未开始；依赖关系见 §2 |
+| WP8 | 只读界面已合入；Schema 生成的 TypeScript 类型、三个 golden 流程的浏览器端到端测试已通过（`1f6a324`） |
+| WP7 | 工作区、结构、结果、纸面、诊断、参数和 Compare POST 已合入（`3c60c53`）；Explain、编辑、SSE 和导出端点待接入 |
+| WP1 | 新 Normein 接入已在独立分支 `codex/wp1-normein-adoption` 完成并审阅，锁定已发布的 `0a3ae1de`（language 25 / stdlib 33）；全套测试通过，待合入主分支 |
+| WP4 | Explain 已安排从 WP1 分支另起隔离分支实施 |
+| WP6、WP9–WP11 | 尚未合入；依赖关系见 §2 |
+| WP12 | 导出视图在独立工作树实施中 |
 
 四个验收案例的版式现已写入案例文本，fixture 与 live 服务依同一 `:layout` 绑定选择版式。
 
@@ -39,7 +41,7 @@
 
 ```text
 阶段 A  WP0 版本控制 ──► WP2 只读结果视图 ──► WP3 契约 JSON 与 golden
-        WP1 采用新内核（待 Normein 候选变更提交）
+        WP1 采用新内核（已锁定提交，待合入）
 
 阶段 B  WP4 Explain（WP1、WP3）        WP5 Compare 与参数分层（WP3）
         WP6 案例回写（WP1、WP3）        WP13 呈现提示（WP2）
@@ -50,7 +52,7 @@
         WP12 导出视图（WP7、WP8）   WP11 数据接入（D1、WP6、WP7、WP10）
 ```
 
-阶段 B 最多可以有五个 agent 并行。WP1 要等你提交 Normein 的候选变更；在此之前，WP2、WP3、WP8、WP13 都可以先做。
+Normein 提交 `0a3ae1de` 已发布，WP1 已通过干净锁定检出的全套测试。WP4 Explain 与 WP6 案例回写可接续 WP1；WP7 的导出接口、WP10 的参数与诊断界面，以及 WP12 导出视图可并行推进。WP9 需等 WP6 的编辑接口；WP11 需等 WP6、WP7、WP10 的本地工作完成。
 
 ## 3. 工作包
 

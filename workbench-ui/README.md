@@ -29,6 +29,8 @@ is generated and ignored by Git. Its `index.json` has this shape:
         "paper": "/fixtures/example/paper.json",
         "export-preview": "/fixtures/example/export-preview.json",
         "export-preview:Overview": "/fixtures/example/export-preview-0.json",
+        "diagnostics": "/fixtures/example/diagnostics.json",
+        "parameters": "/fixtures/example/parameters.json",
         "explains": { "node%40member": "/fixtures/example/explain.json" }
       }
     }
@@ -36,7 +38,7 @@ is generated and ignored by Git. Its `index.json` has this shape:
 }
 ```
 
-Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. WP3 supplies the manifest and three golden case sets; Explain fixtures are added with WP4.
+Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. Fixture synchronization also discovers tracked Compare golden files and lists their variant parameter sets in the copied manifest. WP3 supplies the three golden case sets; Explain fixtures are added with WP4.
 
 `npm run types:generate` derives `src/generated/contract.ts` from the checked-in JSON Schemas. The generated file is committed, and `npm test`, `npm run typecheck`, and `npm run build` fail if it is stale. `src/types.ts` uses those wire types and refines the schema's intentionally open presentation objects for UI components.
 
@@ -51,6 +53,8 @@ For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` 
 - Choice comparison uses Paper option rows when Explain is unavailable. The inspector reads member-specific Paper audit entries. Provenance requires Explain and exposes a continue control after depth five.
 - The UI deliberately has no local arithmetic or number formatting. It reads `display` and cell `text` from the engine.
 - The zero-row toggle requires a contract field or endpoint that exposes both shown and hidden rows. Current Paper reflects only the layout's visibility choice, so the toggle is deferred.
-- Export shows the generated workbook sheets, a bounded cell preview, formulas, and the exporter fidelity report. Fixture mode uses tracked previews; live mode also offers XLSX, HTML, and text downloads. Editing, formula authoring, import, diagnostics, and parameters are later work packages.
+- Parameter layers, effective values and read-only parameter-set comparison use Parameters and Compare documents. `/cases/{case}/parameters?compare=<set-id>` is directly linkable and follows browser history. Comparison shows mainline, every changed panel/node, and effective parameter changes. The diagnostics page filters severity, shows location and related positions, and links addressed findings to a panel.
+- The diagnostics response contains locations but no source text. The detail view shows line, column and offsets; a line-numbered source excerpt requires a later source-text API.
+- Export shows workbook sheets, a bounded cell preview, formulas, and the exporter fidelity report. Fixture mode uses tracked previews; live mode offers XLSX, HTML, and text downloads. Editing, formula authoring, and import are later work packages.
 
 No browser binaries or test daemons are installed by this package. Fonts use local system fallbacks; the UI makes no remote font request and remains usable offline.

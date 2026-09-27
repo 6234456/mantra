@@ -22,9 +22,10 @@ const scenarios = [
   { id: 'sap-co-product-cost/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: { node: 'direct-primary-total' } },
 ]
 
-function serveGolden() {
+function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
+  const available = { ...files, '/fixtures/index.json': fixtureManifest, ...extraFiles }
   vi.stubGlobal('fetch', vi.fn(async input => {
-    const document = files[input]
+    const document = available[input]
     if (!document) return { ok: false, status: 404, statusText: 'Not Found' }
     return { ok: true, json: async () => document }
   }))
@@ -74,5 +75,30 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     const selected = files[entry.files[`export-preview:${second.name}`]].data
     expect(document.querySelector('.export-formula .mono')?.textContent).toBe(selected.preview.cells.find(cell => cell.formula)?.address ?? selected.preview.cells[0]?.address ?? '—')
     expect(screen.getByRole('button', { name: 'Herunterladen' }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('renders every panel and node change from the tracked 2026 Compare golden on a deep link', async () => {
+    const id = 'de-est-2025/case-mustermann.mantra'
+    const path = '/fixtures/de-est-2025-case-mustermann-b598e71c/compare-2026.json'
+    const compare = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
+    expect(compare.data.changes.length).toBeGreaterThan(0)
+    const indexed = JSON.parse(JSON.stringify(manifest))
+    indexed.parameters = [{ id: 'de.est/params-2026', path: '' }]
+    indexed.cases.find(item => item.id === id).files.compares = { '["de.est/params-2026"]': path }
+    serveGolden({ [path]: compare }, indexed)
+    history.replaceState(null, '', `${casePath(id)}/parameters?compare=de.est%2Fparams-2026`)
+    render(<App />)
+
+    expect((await screen.findAllByText('83.217,90 → 83.061,90')).length).toBeGreaterThan(0)
+    expect(screen.getByLabelText('Vergleichen mit').value).toBe('de.est/params-2026')
+    expect(document.querySelectorAll('.comparison-group').length).toBe(compare.data.changes.length)
+    expect(document.querySelectorAll('.comparison-group .comparison-row').length)
+      .toBe(compare.data.changes.reduce((count, group) => count + group.items.length, 0))
+    for (const group of compare.data.changes) {
+      for (const change of group.items) {
+        expect([...document.querySelectorAll('.comparison-group .comparison-row small')]
+          .some(label => label.textContent?.startsWith(change.node))).toBe(true)
+      }
+    }
   })
 })

@@ -21,11 +21,17 @@ import com.xqiou.normein.dsl.compiler.DslCompileRequest
 import com.xqiou.normein.dsl.compiler.DslCompileResult
 import com.xqiou.normein.dsl.compiler.DslNamedDefinition
 import com.xqiou.normein.dsl.compiler.DslSemanticCompiler
+import com.xqiou.normein.dsl.compiler.DslSourcePosition
 import com.xqiou.normein.dsl.diagnostic.DslDiagnostic
 import com.xqiou.normein.dsl.environment.DslAnalysisScope
 import com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult
 import com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder
 import com.xqiou.normein.dsl.environment.DslRootDeclaration
+import com.xqiou.normein.dsl.form.DslForm
+import com.xqiou.normein.dsl.form.DslFormAtomKind
+import com.xqiou.normein.dsl.form.DslFormPostfix
+import com.xqiou.normein.dsl.form.DslFormReadResult
+import com.xqiou.normein.dsl.form.DslFormReader
 import com.xqiou.normein.dsl.reference.DslReferenceKind
 import com.xqiou.normein.dsl.type.DslFieldPresence
 import com.xqiou.normein.dsl.type.DslObjectField
@@ -120,7 +126,9 @@ class Planner(private val sink: DiagnosticSink) {
                 return null
             }
         }
-        definitions = (schema.functions + case.functions).map { DslNamedDefinition(it.name, Qualified.rewrite(it.source), "defn.${it.name}") }
+        definitions = (schema.functions + case.functions).map {
+            DslNamedDefinition(it.name, Qualified.rewrite(it.source), "defn.${it.name}", hostPosition = hostPosition(it.location, it.source))
+        }
         if (!validateDefinitions(schema.functions + case.functions)) return null
         compileAll()
         if (sink.hasErrors) return null
@@ -476,6 +484,7 @@ class Planner(private val sink: DiagnosticSink) {
             namedDefinitions = definitions,
             expectedType = expected,
             logicalLocation = logical.take(200),
+            hostPosition = hostPosition(formula.location, formula.source),
         )
         return when (val result = compiler.compile(request, environment, scopeFor(dims))) {
             is DslCompileResult.Failure -> {
@@ -515,13 +524,9 @@ class Planner(private val sink: DiagnosticSink) {
 
     private fun report(diagnostic: DslDiagnostic, formula: Formula, nodeId: String) {
         val span = diagnostic.span
-        val location = if (span == null) {
-            formula.location
-        } else if (span.line == 1) {
-            formula.location.copy(column = formula.location.column + span.column - 1)
-        } else {
-            formula.location.copy(line = formula.location.line + span.line - 1, column = span.column)
-        }
+        val location = span?.let {
+            SourceLocation(formula.location.source, it.line, it.column, it.startOffset, it.endOffset)
+        } ?: formula.location
         val detail = diagnostic.attributes.entries.joinToString(", ") { (k, v) -> "$k=$v" }.take(300)
         sink.error(
             "MANTRA-FORMULA",
@@ -602,6 +607,13 @@ class Planner(private val sink: DiagnosticSink) {
     }
 }
 
+private fun hostPosition(location: SourceLocation, source: String): DslSourcePosition {
+    val start = requireNotNull(location.startOffset) { "Embedded DSL source needs a host start offset" }
+    val end = requireNotNull(location.endOffset) { "Embedded DSL source needs a host end offset" }
+    require(end - start == source.length) { "Embedded DSL source must match its host span" }
+    return DslSourcePosition(location.line, location.column, start, end)
+}
+
 /** Operator of a node item as displayed in its section (sign of its contribution). */
 internal fun Op.symbolSign(): Int = sign
 
@@ -610,7 +622,27 @@ internal fun Op.symbolSign(): Int = sign
  * `mantra_<id>`, so kernel diagnostics keep pointing at the author's source positions.
  */
 internal object Qualified {
-    private val pattern = Regex("""(?<![A-Za-z0-9_\-*?!/.])mantra/(?=[A-Za-z])""")
+    private val reader = DslFormReader()
 
-    fun rewrite(source: String): String = pattern.replace(source, "mantra_")
+    fun rewrite(source: String): String {
+        val document = (reader.readDocument(source) as? DslFormReadResult.Success)?.document ?: return source
+        val slashes = mutableListOf<Int>()
+        fun visit(form: DslForm) {
+            when (form) {
+                is DslForm.Atom -> if (
+                    form.kind == DslFormAtomKind.SYMBOL &&
+                    form.sourceText.startsWith("mantra/") &&
+                    form.sourceText.getOrNull(7)?.isLetter() == true
+                ) slashes += form.span.startOffset + 6
+                is DslForm.Sequence -> form.values.forEach(::visit)
+                is DslForm.Postfix -> {
+                    visit(form.target)
+                    form.suffixes.forEach { if (it is DslFormPostfix.Bracket) visit(it.key) }
+                }
+            }
+        }
+        visit(document.root)
+        if (slashes.isEmpty()) return source
+        return source.toCharArray().also { chars -> slashes.forEach { chars[it] = '_' } }.concatToString()
+    }
 }
