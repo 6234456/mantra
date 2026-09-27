@@ -17,6 +17,7 @@ import java.net.InetSocketAddress
 import java.net.InetAddress
 import java.net.URLDecoder
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -24,6 +25,7 @@ import java.nio.file.InvalidPathException
 import java.security.SecureRandom
 import java.util.UUID
 import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
 
 /** Loopback-only HTTP adapter. All calculation and document resolution are delegated to WorkspaceCatalog. */
 class WorkbenchServer(
@@ -37,6 +39,12 @@ class WorkbenchServer(
         .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
     private val token = ByteArray(32).also(SecureRandom()::nextBytes).joinToString("") { "%02x".format(it) }
     private val executor = Executors.newFixedThreadPool(4)
+    private val eventSlots = Semaphore(2)
+    private val stampLock = Any()
+    private var sharedStamp: WorkspaceCatalog.WorkspaceStamp? = null
+    private var stampError: WorkspaceException? = null
+    private var stampCheckedAt = 0L
+    @Volatile private var running = false
     private val servers: List<HttpServer> = run {
         val ipv4 = HttpServer.create(InetSocketAddress("127.0.0.1", port), 16)
         val ipv6 = runCatching {
@@ -49,11 +57,12 @@ class WorkbenchServer(
     }
     val localPort: Int get() = servers.first().address.port
 
-    fun start(): WorkbenchServer { servers.forEach(HttpServer::start); return this }
+    fun start(): WorkbenchServer { running = true; servers.forEach(HttpServer::start); return this }
 
     override fun close() {
-        servers.forEach { it.stop(0) }
+        running = false
         executor.shutdownNow()
+        servers.forEach { it.stop(0) }
     }
 
     private fun handle(exchange: HttpExchange) {
@@ -101,7 +110,11 @@ class WorkbenchServer(
 
     private fun api(exchange: HttpExchange, rawPath: String, method: String, body: ByteArray) {
         if (rawPath == "/api/v1/workspace" && method == "GET") return json(exchange, 200, catalog.envelope(catalog.workspace()))
-        if (rawPath == "/api/v1/events" && method == "GET") return unavailable(exchange)
+        if (rawPath == "/api/v1/events" && method == "GET") {
+            if (exchange.requestURI.rawQuery != null)
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            return events(exchange)
+        }
         val match = Regex("^/api/v1/cases/([^/]+)/(.+)$").matchEntire(rawPath)
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
@@ -269,6 +282,75 @@ class WorkbenchServer(
 
     private fun unavailable(exchange: HttpExchange) =
         error(exchange, 501, "MANTRA-WORKBENCH-UNAVAILABLE", "Endpoint is not implemented in the read-only phase")
+
+    private fun eventStamp(): WorkspaceCatalog.WorkspaceStamp = synchronized(stampLock) {
+        val now = System.nanoTime()
+        val delay = if (stampError == null) 1_000_000_000L else 5_000_000_000L
+        if (stampCheckedAt != 0L && now - stampCheckedAt < delay) {
+            stampError?.let { throw it }
+            sharedStamp?.let { return@synchronized it }
+        }
+        stampCheckedAt = now
+        try {
+            catalog.workspaceStamp(sharedStamp).also { sharedStamp = it; stampError = null }
+        } catch (problem: WorkspaceException) {
+            stampError = problem
+            throw problem
+        }
+    }
+
+    private fun events(exchange: HttpExchange) {
+        if (!eventSlots.tryAcquire())
+            return error(exchange, 503, "MANTRA-WORKBENCH-BUSY", "Too many event streams")
+        try {
+            exchange.responseHeaders.set("Content-Type", "text/event-stream; charset=utf-8")
+            exchange.responseHeaders.set("Cache-Control", "no-store")
+            exchange.responseHeaders.set("X-Accel-Buffering", "no")
+            exchange.sendResponseHeaders(200, 0)
+            val output = exchange.responseBody
+            fun sendEvent(name: String, data: Map<String, Any?>) {
+                output.write("event: $name\ndata: ${WorkbenchJson.write(data)}\n\n".toByteArray(Charsets.UTF_8))
+                output.flush()
+            }
+            var previous: WorkspaceCatalog.WorkspaceStamp? = null
+            var scanError: String? = null
+            while (running && !Thread.currentThread().isInterrupted) {
+                val current = try {
+                    eventStamp()
+                } catch (problem: WorkspaceException) {
+                    val code = when (problem.problem) {
+                        WorkspaceProblem.TOO_LARGE -> "MANTRA-WORKBENCH-TOO-LARGE"
+                        else -> "MANTRA-WORKBENCH-DOCUMENT"
+                    }
+                    val signature = "$code:${problem.message}"
+                    if (scanError != signature) {
+                        sendEvent("workspaceError", mapOf("code" to code, "message" to problem.message))
+                        scanError = signature
+                    }
+                    Thread.sleep(5_000)
+                    continue
+                }
+                if (previous == null || scanError != null) {
+                    sendEvent("revision", mapOf("revision" to current.revision))
+                } else if (current.revision != previous.revision) {
+                    val changed = (previous.files.keys + current.files.keys).filter { previous.files[it] != current.files[it] }.sorted()
+                    sendEvent("documentChanged", mapOf("revision" to current.revision, "paths" to changed))
+                } else {
+                    output.write(": keepalive\n\n".toByteArray(Charsets.UTF_8))
+                    output.flush()
+                }
+                previous = current
+                scanError = null
+                Thread.sleep(1_000)
+            }
+        } catch (_: IOException) {
+            // A closed browser tab is observed when the next event or heartbeat is written.
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
+        } finally {
+            eventSlots.release()
+        }
+    }
 
     private fun error(exchange: HttpExchange, status: Int, code: String, message: String,
                       diagnostics: List<com.xqiou.mantra.core.Diagnostic> = emptyList(), correlationId: String? = null) {

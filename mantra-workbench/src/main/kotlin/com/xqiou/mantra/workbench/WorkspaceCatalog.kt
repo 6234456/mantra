@@ -27,6 +27,7 @@ import com.xqiou.normein.dsl.form.DslForm
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 
 enum class WorkspaceProblem { REQUEST, NOT_FOUND, INVALID, TOO_LARGE }
@@ -56,6 +57,57 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     }
 
     data class DocumentResult(val revision: String, val data: Map<String, Any?>)
+
+    /** The event scanner retains digests, not document contents. Its revision equals /workspace's revision. */
+    data class FileMarker(val size: Long, val modified: java.nio.file.attribute.FileTime, val key: String?)
+    data class WorkspaceStamp(val revision: String, val files: Map<String, String>,
+                              val metadata: Map<String, FileMarker>, val nextVerifyIndex: Int = 0)
+
+    fun workspaceStamp(previous: WorkspaceStamp? = null): WorkspaceStamp {
+        val paths = mantraFiles()
+        val metadata = paths.associate { file ->
+            val attributes = Files.readAttributes(file, BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS)
+            if (attributes.size() > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            relative(file) to FileMarker(attributes.size(), attributes.lastModifiedTime(), attributes.fileKey()?.toString())
+        }
+        if (previous != null && previous.metadata == metadata) {
+            if (paths.isEmpty()) return previous
+            var index = previous.nextVerifyIndex % paths.size
+            var verifiedBytes = 0L
+            var verifiedFiles = 0
+            // Metadata catches ordinary saves immediately. This rotating content check also catches
+            // replacements whose size and timestamp were deliberately preserved, without rereading
+            // a multi-gigabyte workspace on every polling tick.
+            while (verifiedFiles < paths.size && (verifiedBytes < 8L * 1024 * 1024 || verifiedFiles == 0)) {
+                val path = paths[index]
+                val bytes = Files.readAllBytes(checked(path))
+                if (bytes.size > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+                val contentHash = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+                if (contentHash != previous.files[relative(path)]) return fullWorkspaceStamp(paths, metadata)
+                verifiedBytes += bytes.size
+                verifiedFiles++
+                index = (index + 1) % paths.size
+            }
+            return previous.copy(nextVerifyIndex = index)
+        }
+        return fullWorkspaceStamp(paths, metadata)
+    }
+
+    private fun fullWorkspaceStamp(paths: List<Path>, metadata: Map<String, FileMarker>): WorkspaceStamp {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val files = linkedMapOf<String, String>()
+        paths.forEach { file ->
+            val bytes = Files.readAllBytes(checked(file))
+            if (bytes.size > 1_048_576) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document is too large")
+            val name = relative(file)
+            val nameBytes = name.toByteArray(Charsets.UTF_8)
+            digest.update(nameBytes.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(nameBytes)
+            digest.update(0.toByte()); digest.update(bytes.size.toString().toByteArray()); digest.update(0.toByte()); digest.update(bytes)
+            digest.update(0.toByte())
+            files[name] = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        }
+        return WorkspaceStamp(digest.digest().take(8).joinToString("") { "%02x".format(it) }, files, metadata)
+    }
 
     fun workspace(): DocumentResult {
         val snapshot = scan()
@@ -296,12 +348,7 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
     }
 
     private fun scan(): Snapshot {
-        val files = Files.walk(root).use { stream ->
-            stream.filter { it.toString().endsWith(".mantra") && Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
-                .sorted().limit(4097).toList()
-        }
-        if (files.size > 4096) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace exceeds 4096 Mantra files")
-        return Snapshot(files.map { file ->
+        return Snapshot(mantraFiles().map { file ->
             val diagnostics = DiagnosticSink()
             val document = try { Document.read(source(file), diagnostics) } catch (error: WorkspaceException) {
                 if (error.problem == WorkspaceProblem.TOO_LARGE) throw error
@@ -313,6 +360,15 @@ class WorkspaceCatalog(directory: Path, private val mantraVersion: String = "0.1
             val name = form?.values?.getOrNull(1)?.let { it.symbol ?: (it as? DslForm.Atom)?.value }
             Indexed(file, relative(file), kind, name, diagnostics.all)
         })
+    }
+
+    private fun mantraFiles(): List<Path> {
+        val files = Files.walk(root).use { stream ->
+            stream.filter { it.toString().endsWith(".mantra") && Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
+                .sorted().limit(4097).toList()
+        }
+        if (files.size > 4096) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Workspace exceeds 4096 Mantra files")
+        return files
     }
 
     private fun loadCase(file: Path): CaseData = Mantra.loadCase(source(file))
