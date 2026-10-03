@@ -84,7 +84,10 @@ After `installDist`, use `mantra-cli/build/install/mantra/bin/mantra`:
 | `explain <schema> --case <case> --address <node> [--coord <member[,member...]>]` | Explain one value with bounded source steps; JSON or Text |
 | `serve <workspace> [--port 8080] [--ui workbench-ui/dist]` | Start the local workbench service |
 
-Run `mantra help` for full options. XLSX exports report any formulas that fall back to values; they never silently promise full recalculation coverage.
+Run `mantra help` for full options. XLSX exports report formulas replaced with verified calculation
+values. An unsupported auxiliary formula with no verified value causes an explicit export error.
+Large sums use compact ranges and bounded argument lists; Excel's formula size and nesting limits
+remain enforced.
 
 ## A minimal schema
 

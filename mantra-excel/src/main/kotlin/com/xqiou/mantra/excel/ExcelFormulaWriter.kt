@@ -235,6 +235,14 @@ internal fun ExcelWorkbookBuilder.setFormula(slot: Slot, nodeId: String, build: 
     valueStyles[slot]?.let { c.cellStyle = styles.get(it.applyRule(paperCellStyles[slot] ?: StyleSpec())) }
     try {
         val formula = build() ?: return
+        try {
+            Ex.validateFormula(formula.text)
+        } catch (error: Untranslatable) {
+            if (fallbackValue(slot, nodeId) == null) {
+                throw ExcelExportLimitException("Cannot export $nodeId at ${slot.address}: ${error.reason}")
+            }
+            throw error
+        }
         c.cellFormula = formula.text
         formulaCells++
     } catch (e: Untranslatable) {
@@ -244,10 +252,19 @@ internal fun ExcelWorkbookBuilder.setFormula(slot: Slot, nodeId: String, build: 
     }
 }
 
+private fun ExcelWorkbookBuilder.fallbackValue(slot: Slot, nodeId: String): Value? {
+    val coord = nodeSlots[nodeId]?.entries?.firstOrNull { it.value == slot }?.key ?: return null
+    return view.nodes[nodeId]?.values?.get(coord)
+}
+
 internal fun ExcelWorkbookBuilder.fallback(slot: Slot, nodeId: String, reason: String) {
+    // Helper cells have no computed node snapshot. Guessing Nil can silently alter dependent results.
+    val value = fallbackValue(slot, nodeId)
+        ?: throw IllegalArgumentException(
+            "Cannot export $nodeId at ${slot.address}: $reason; no computed fallback value",
+        )
     val c = cell(slot.sheet, slot.row, slot.col)
-    val coord = nodeSlots[nodeId]?.entries?.firstOrNull { it.value == slot }?.key ?: emptyList()
-    writeValue(slot, view.nodes[nodeId]?.values?.get(coord) ?: Value.Nil)
+    writeValue(slot, value)
     c.cellStyle =
         styles.get(
             (valueStyles[slot] ?: StyleKey()).applyRule(

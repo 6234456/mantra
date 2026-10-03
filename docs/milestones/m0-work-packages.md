@@ -15,7 +15,7 @@ M0 不改变 DSL 语义。Monorepo、公开 API、质量门、职责拆分和展
 
 | 工作包 | 交付与验收 | 状态 |
 | --- | --- | --- |
-| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 专用只读凭据已配置；待首次远端 CI |
+| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 专用只读凭据已配置；[远端 CI 通过](https://github.com/6234456/mantra/actions/runs/37157900961) |
 | M0-2 Monorepo | `:apps:de-est`、`:apps:ifrs-impairment`、`:apps:cost-accounting`；各自拥有方案、案例、版式、测试及 README；中性成本方案 ID；fixture 从 `apps/` 生成 | 本地验收通过 |
 | M0-3 公开 API 与边界 | 结果/公式接口在 `core.api`；坐标、成员及 trace 在 `core.view`；planner 与 vertex 为 internal；`Mantra.inspect` 与 `FunctionCatalog`；自动扫描领域标识符、内部导入与项目依赖 | 本地验收与独立审阅通过 |
 | M0-4 展示验证与文档 | 每个案例及参数变体的 HTML/Text golden、XLSX 逐值重算；独立金额核对脚本；通用工作台打开全部案例；导入样本/模板；英文 README、DSL 参考及社区文件；目录一致性检查 | 本地验收通过 |
@@ -50,7 +50,7 @@ npm run test:e2e
 
 ## 本轮验证结果（2026-10-04）
 
-- `./gradlew --no-daemon check`：166 项测试，0 失败；golden 更新变量未设置。
+- `./gradlew --no-daemon check`：173 项测试，0 失败；golden 更新变量未设置。
 - Python 边界检查回归：18 项通过；目录一致性测试通过。
 - 所有九个案例/参数变体的独立金额核对通过；XLSX 包括输入表格单元格逐值核对。
 - `scripts/smoke-cli.sh`：七个命令全部通过，临时服务与目录已清理。
@@ -58,8 +58,9 @@ npm run test:e2e
 - 独立审阅发现的快照别名、依赖检查语法绕过和 POI 错误值误判均已修复并复审。
 - 新边界案例发现并修复通用 XLSX 空维度/不适用布尔值问题；Normein 检出未修改。
 - 所有 Kotlin/TypeScript 质量门、10 模块测试下限与新增 6 个渲染行为测试通过。
+- 新增 6 个大表 SUM/公式限制回归和 1 个工作台导出拒绝回归；1,000 行公式零回退，修改输入后可重算，未知辅助值不会猜成空值。
 - IAS 36 展示使用独立虚构案例，默认/自定义/零损失总额分别为 121/133/0；来源核查与内核制品发布方式已记录。
-- CI workflow 首次远端执行待推送；性能记录待基线运行完成。
+- 首次远端 CI 已通过；大表 SUM 修复后的全量检查已通过；修复后的远端 CI 与最终性能基线正在收尾。
 
 ## 审阅与后续
 

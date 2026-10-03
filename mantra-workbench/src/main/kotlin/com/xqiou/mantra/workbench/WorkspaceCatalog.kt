@@ -228,6 +228,8 @@ class WorkspaceCatalog(
         )
     } catch (error: ExcelExportLimitException) {
         throw WorkspaceException(WorkspaceProblem.TOO_LARGE, error.message.orEmpty())
+    } catch (error: IllegalArgumentException) {
+        throw WorkspaceException(WorkspaceProblem.INVALID, error.message.orEmpty())
     }
 
     fun compare(caseId: String, variantCaseId: String?, variantParameters: List<String>?): DocumentResult {

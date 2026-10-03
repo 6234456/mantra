@@ -1,0 +1,6 @@
+All 128 calculated values matched independent arithmetic and cached XLSX values.
+Expected answer: 500638.75
+Formula cells: 152
+Fallbacks: 1
+table-sum 1 Synthetic baseline!G32: formula rejected by POI: Too many arguments to function 'SUM'. At most 255 were expected but got 1000.
+Evaluation errors: 0

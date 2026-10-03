@@ -88,6 +88,10 @@ class SyntheticFixture(val scenario: Scenario) {
     /** Checks cached workbook values after the exporter has recalculated its formulas with POI. */
     fun verify(workbook: ExcelWorkbook) {
         check(workbook.report.evaluationErrors.isEmpty()) { workbook.report.evaluationErrors.joinToString("\n") }
+        check(workbook.report.fallbacks.isEmpty()) {
+            "Baseline workbook must remain recalculable:\n" +
+                workbook.report.fallbacks.joinToString("\n") { "${it.nodeId}: ${it.reason}" }
+        }
         fun value(id: String, coord: List<String>, expected: BigDecimal) {
             val address = checkNotNull(workbook.address(id, coord)) { "No workbook address for $id/$coord" }
             val reference = CellReference(address)

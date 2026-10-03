@@ -10,8 +10,8 @@ import xml.etree.ElementTree as ET
 MINIMUM_TESTS = {
     'mantra-core': 53,
     'mantra-render': 18,
-    'mantra-excel': 6,
-    'mantra-workbench': 37,
+    'mantra-excel': 12,
+    'mantra-workbench': 38,
     'mantra-server': 19,
     'mantra-cli': 2,
     'apps/de-est': 12,
