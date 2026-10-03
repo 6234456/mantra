@@ -5,8 +5,10 @@ tax or accounting rules do not belong in the engine or workbench.
 
 ## Build and verification
 
-Use JDK 21, Git and Node.js 22.13 or newer. Bootstrap a clean Normein checkout at the commit in
-`normein-build.lock`; do not patch it as part of a Mantra change.
+Use JDK 21, Git and Node.js 22.13+ (22.x) or 24+. Bootstrap a clean Normein checkout at the commit in
+`normein-build.lock`; do not patch it as part of a Mantra change. Normein is currently private, so
+bootstrap requires authorized repository access. Alternatively, set `NORMEIN_BUILD_PATH` to an
+existing authorized, clean checkout at the locked commit. See the [kernel publication plan](docs/normein-publication.md).
 
 ```bash
 NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh

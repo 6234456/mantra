@@ -16,9 +16,11 @@ schema + case + parameters ─▶ mantra-core ─▶ calculation values and trac
 
 ## Quick start
 
-Requirements: JDK 21, Git, and Node.js 22.13 or newer for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
+Requirements: JDK 21, Git, and Node.js 22.13+ (22.x) or 24+ for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
 
-Create the pinned Normein checkout. The default bootstrap source is SSH; HTTPS or an existing local clone can be selected explicitly:
+Normein is currently private, so a full build requires authorized access or an existing authorized
+local checkout. See the [kernel publication plan](docs/normein-publication.md) for the public artifact
+release sequence. Create the pinned checkout using SSH by default, or select HTTPS explicitly:
 
 ```bash
 NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh

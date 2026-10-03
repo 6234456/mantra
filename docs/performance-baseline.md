@@ -38,8 +38,10 @@ answer = tableSum + memberSum
 ```
 
 Before measuring a scenario, the harness checks every calculated coordinate against that arithmetic,
-checks Explain, writes Text and HTML, and checks every cached calculated XLSX cell against the same
-expectations. The workbook report records formula fallbacks and evaluation errors. A failed
+checks Explain, writes Text and HTML, and checks the cached XLSX cell for every calculated coordinate
+against the same expectations. The exporter also creates presentation cross-total formulas; the
+coordinate counts below refer to canonical calculation values. The workbook report records formula
+fallbacks and evaluation errors. A failed
 calculation, numeric comparison, export evaluation error or formula fallback aborts the current
 harness run: this baseline requires every calculated value to remain recalculable in XLSX. The
 initial run below predates that requirement and retains its explicit fallback reports.
@@ -101,40 +103,73 @@ counts can be changed with `--warmup` and `--repetitions`; keep those counts and
 when comparing a milestone to this baseline. Build artifacts and generated papers are ignored by
 Git; the recorded M0 CSV and environment metadata are retained under `benchmarks/baselines/`.
 
-## Recorded M0 runs
+## Recorded M0 baseline
 
-The first clean implementation run used revision
-`c62a2fb6742a653d8093f42a7ded1c3f0203e319` and started at
-`2026-10-03T22:17:17.798269Z` (2026-10-04 in Europe/Berlin). It used Azul OpenJDK 21.0.12.1,
+The final baseline used clean revision `fc268811642f40682502cd0f6cc2c20cebd0d536`, starting at
+`2026-10-03T22:50:43.292222Z` (2026-10-04 in Europe/Berlin). It used Azul OpenJDK 21.0.12.1,
 Kotlin 2.2.20, Mac OS X 27.0 on aarch64, ten available processors and the JVM settings above.
 The kernel was `normein-dsl` 0.3.0 at
 `0a3ae1de844c92635fbbc03406a13cb0e8920c03`.
 
-This run discovered a large-table export limit: `table-rows` and `combined` each reported one
-explicit fallback for `table-sum`. The generated `SUM` had 1,000 arguments; POI rejected it with a
-255-argument limit. All cached calculated values still matched the independent arithmetic and
-there were zero evaluation errors, but changing a source table cell would not recalculate that
-fallback. The run is retained as evidence for the generic export fix, rather than the final baseline:
-[environment](../benchmarks/baselines/m0-before-large-sum-fix/environment.txt),
-[all 250 samples](../benchmarks/baselines/m0-before-large-sum-fix/samples.csv),
-[summary](../benchmarks/baselines/m0-before-large-sum-fix/summary.csv) and per-scenario verification
-reports in the same directory.
+All five scenarios passed independent numeric verification with zero formula fallbacks and zero
+evaluation errors. That covers 15,265 calculated coordinates across the five scenarios; the largest
+scenario contains 12,503 coordinates and the workbook contains 12,753 formula cells, including
+presentation cross-totals. Source fingerprint independently recomputed from the 68 committed
+Kotlin/lock files:
+`b382105c98240a7117258c4dc617f0b3d5420760fc755069288f32e85d838f30`.
 
-Its median wall times in milliseconds were:
+The complete records are retained as [environment metadata](../benchmarks/baselines/m0-macos-aarch64/environment.txt),
+[all 250 samples](../benchmarks/baselines/m0-macos-aarch64/samples.csv) and
+[25 summaries](../benchmarks/baselines/m0-macos-aarch64/summary.csv). Each scenario also has its
+`verification.txt` in the same directory. Medians and nearest-rank p95 were independently checked
+against the raw samples after the run.
+
+Median wall times in milliseconds:
 
 | Scenario | plan | calculate | explain | paper | xlsx |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| small | 60.580 | 62.713 | 59.370 | 2.289 | 24.096 |
-| lines | 460.423 | 538.013 | 537.099 | 6.495 | 325.839 |
-| members | 49.711 | 77.616 | 77.282 | 5.377 | 248.259 |
-| table-rows | 48.955 | 59.057 | 58.337 | 2.018 | 30.474 |
-| combined | 457.301 | 1,285.139 | 1,281.207 | 52.347 | 27,021.441 |
+| small | 61.250 | 64.477 | 59.372 | 2.150 | 24.567 |
+| lines | 462.369 | 536.730 | 536.300 | 6.660 | 323.189 |
+| members | 50.383 | 76.040 | 76.650 | 5.381 | 250.609 |
+| table-rows | 50.801 | 58.794 | 58.333 | 1.954 | 30.802 |
+| combined | 456.914 | 1,268.880 | 1,255.582 | 52.650 | 26,825.940 |
 
-The combined XLSX p95 was 27,192.072 ms. The complete run took 9 minutes 20 seconds, dominated
-by repeatedly exporting the largest workbook. All five schemas, cases, HTML, Text and XLSX outputs
-were generated and checked. Source fingerprint:
-`54390c531c4d62eb91aabff00c6800ea8e790e95dcecc0f803416d7e767f9d53`.
+Maximum heap-pool peak increase over the before-sample heap, in MiB, using the method above:
 
-The final baseline will be recorded after the large-table formula fix, using the same workload,
-five warmups and ten samples per operation, with zero formula fallbacks required for all scenarios.
+| Scenario | plan | calculate | explain | paper | xlsx |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| small | 250.00 | 257.00 | 257.00 | 1.00 | 11.00 |
+| lines | 343.26 | 307.17 | 343.22 | 12.00 | 68.00 |
+| members | 250.00 | 306.77 | 306.76 | 11.00 | 54.00 |
+| table-rows | 250.00 | 271.00 | 271.00 | 4.00 | 35.00 |
+| combined | 366.03 | 312.91 | 312.81 | 117.00 | 353.68 |
+
+The combined XLSX p95 was 27,629.119 ms, with a maximum heap-pool peak of 398.01 MiB. The complete
+run took 9 minutes 11 seconds. XLSX construction, recalculation and encoding for 12,503 calculation
+coordinates remain the dominant cost at this scale; M4 can use this workload to assess export scaling.
 No budget or regression threshold is set until repeat runs establish the machine's variability.
+
+The generated schemas, cases, Text, HTML and XLSX files remain under
+`benchmarks/build/performance-final/`. The task-owned benchmark JVM and single-use Gradle daemon
+were both verified stopped after completion. Reproduce this run from the recorded revision with:
+
+```sh
+./gradlew --no-daemon :benchmarks:run --args='--warmup 5 --repetitions 10 --output benchmarks/build/performance-final'
+```
+
+## Export limit discovered during measurement
+
+The preceding clean run at `c62a2fb6742a653d8093f42a7ded1c3f0203e319` started at
+`2026-10-03T22:17:17.798269Z` with the same workload and machine settings. `table-rows` and
+`combined` each reported one explicit fallback for `table-sum`: the generated `SUM` had 1,000
+arguments, and POI rejected it with a 255-argument limit. Cached values matched the independent
+arithmetic and there were zero evaluation errors, but changing a source table cell would not
+recalculate that fallback. This exposed the generic export issue fixed before the final run.
+
+The original [environment](../benchmarks/baselines/m0-before-large-sum-fix/environment.txt),
+[250 samples](../benchmarks/baselines/m0-before-large-sum-fix/samples.csv),
+[25 summaries](../benchmarks/baselines/m0-before-large-sum-fix/summary.csv) and five verification
+reports are retained for comparison. That run took 9 minutes 20 seconds; its combined XLSX median
+was 27,021.441 ms and p95 was 27,192.072 ms. Its source fingerprint independently matched the
+67 committed Kotlin/lock files:
+`54390c531c4d62eb91aabff00c6800ea8e790e95dcecc0f803416d7e767f9d53`.

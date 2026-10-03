@@ -1,10 +1,10 @@
 # M0 工作包
 
-> 开工：2026-10-03 · 分支：`codex/m0-monorepo-foundation`
+> 开工：2026-10-03 · 完成：2026-10-04 · 分支：`codex/m0-monorepo-foundation`
 > 依据：[路线图 M0](../roadmap.md) · 基线：`9539c6d`
 
-M0 不改变 DSL 语义。Monorepo、公开 API、质量门、职责拆分和展示验收已完成本地验证；
-正在记录性能基线并运行远端 CI，全部退出条件通过后才标为 M0 完成。
+M0 已完成，不改变 DSL 语义。Monorepo、公开 API、质量门、职责拆分、展示验收、公开准备和
+性能基线均已交付；固定源码版本 `fc26881` 的干净检出 CI 全绿，全部退出条件通过。
 
 ## 必读顺序
 
@@ -15,12 +15,12 @@ M0 不改变 DSL 语义。Monorepo、公开 API、质量门、职责拆分和展
 
 | 工作包 | 交付与验收 | 状态 |
 | --- | --- | --- |
-| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 专用只读凭据已配置；[远端 CI 通过](https://github.com/6234456/mantra/actions/runs/37157900961) |
-| M0-2 Monorepo | `:apps:de-est`、`:apps:ifrs-impairment`、`:apps:cost-accounting`；各自拥有方案、案例、版式、测试及 README；中性成本方案 ID；fixture 从 `apps/` 生成 | 本地验收通过 |
-| M0-3 公开 API 与边界 | 结果/公式接口在 `core.api`；坐标、成员及 trace 在 `core.view`；planner 与 vertex 为 internal；`Mantra.inspect` 与 `FunctionCatalog`；自动扫描领域标识符、内部导入与项目依赖 | 本地验收与独立审阅通过 |
-| M0-4 展示验证与文档 | 每个案例及参数变体的 HTML/Text golden、XLSX 逐值重算；独立金额核对脚本；通用工作台打开全部案例；导入样本/模板；英文 README、DSL 参考及社区文件；目录一致性检查 | 本地验收通过 |
-| M0-5 质量门 | Spotless/ktlint、Prettier/ESLint、文件与行宽门禁；拆分三个大文件；选择器/预设/行号测试；10 个模块测试下限 | 完整本地 check 通过 |
-| M0-6 性能与公开发布 | 五轴合成方案；plan/calculate/explain/paper/xlsx 耗时及内存；IFRS 案例改为独立虚构事实；[内核发布计划](../normein-publication.md) | 实现与来源核查完成；性能记录中 |
+| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 完成；专用只读凭据已配置；[远端 CI 通过](https://github.com/6234456/mantra/actions/runs/37159771062) |
+| M0-2 Monorepo | `:apps:de-est`、`:apps:ifrs-impairment`、`:apps:cost-accounting`；各自拥有方案、案例、版式、测试及 README；中性成本方案 ID；fixture 从 `apps/` 生成 | 完成 |
+| M0-3 公开 API 与边界 | 结果/公式接口在 `core.api`；坐标、成员及 trace 在 `core.view`；planner 与 vertex 为 internal；`Mantra.inspect` 与 `FunctionCatalog`；自动扫描领域标识符、内部导入与项目依赖 | 完成；独立审阅通过 |
+| M0-4 展示验证与文档 | 每个案例及参数变体的 HTML/Text golden、XLSX 逐值重算；独立金额核对脚本；通用工作台打开全部案例；导入样本/模板；英文 README、DSL 参考及社区文件；目录一致性检查 | 完成 |
+| M0-5 质量门 | Spotless/ktlint、Prettier/ESLint、文件与行宽门禁；拆分三个大文件；选择器/预设/行号测试；10 个模块测试下限 | 完成；全量 check 通过 |
+| M0-6 性能与公开发布 | 五轴合成方案；plan/calculate/explain/paper/xlsx 耗时及内存；IFRS 案例改为独立虚构事实；[内核发布计划](../normein-publication.md) | 完成；[基线与原始数据](../performance-baseline.md) 已记录 |
 
 M0-1 的 CI 对私有 Normein 只需要专用只读 deploy key，在 Mantra 的 Actions secret
 `NORMEIN_DEPLOY_KEY` 中保存。不要使用个人账号的通用 SSH 私钥或将密钥提交到仓库。
@@ -60,7 +60,8 @@ npm run test:e2e
 - 所有 Kotlin/TypeScript 质量门、10 模块测试下限与新增 6 个渲染行为测试通过。
 - 新增 6 个大表 SUM/公式限制回归和 1 个工作台导出拒绝回归；1,000 行公式零回退，修改输入后可重算，未知辅助值不会猜成空值。
 - IAS 36 展示使用独立虚构案例，默认/自定义/零损失总额分别为 121/133/0；来源核查与内核制品发布方式已记录。
-- 首次远端 CI 已通过；大表 SUM 修复后的全量检查已通过；修复后的远端 CI 与最终性能基线正在收尾。
+- 大表 SUM 修复后的完整远端 [CI 已通过](https://github.com/6234456/mantra/actions/runs/37159771062)，包括前端和浏览器流程。
+- 最终性能基线完成：5 场景 × 5 操作 × 10 样本，共 250 次测量，每操作另有 5 次预热；所有场景零公式回退、零求值错误。最大场景覆盖 12,503 个计算坐标，XLSX 中位数 26.826 秒、p95 27.629 秒；原始耗时、堆内存和环境记录均归档。
 
 ## 审阅与后续
 
@@ -68,4 +69,4 @@ npm run test:e2e
 - 边界扫描只豁免有明确公共含义的 `order`、`orders`、`person`、`rounding`、`summary`；方案 ID
   没有豁免。应用 ID 不得加入此集合以绕过检查。测试及 golden 允许领域数据。
 - 结果快照必须与调用者的可变输入集合分离；导出不得静默回退为固定值。
-- 路线图中 M0 退出条件仍全部有效，未完成项保留在 M0-5/M0-6。
+- 路线图中 M0 退出条件全部满足。首个库制品按已记录的发布计划在 M1 后与 Normein 协同发布。
