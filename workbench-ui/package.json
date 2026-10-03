@@ -27,7 +27,7 @@
     "@codemirror/autocomplete": "^6.18.6",
     "@codemirror/commands": "^6.8.1",
     "@codemirror/lint": "^6.8.5",
-    "@codemirror/state": "^6.5.2",
+    "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.38.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
