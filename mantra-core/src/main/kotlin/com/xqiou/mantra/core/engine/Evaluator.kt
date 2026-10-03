@@ -42,8 +42,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 /** Executes a [CalculationPlan] vertex by vertex in dependency order. */
-internal class Evaluator(private val plan: CalculationPlan, private val sink: DiagnosticSink,
-                         private val explainTarget: Pair<String, Coord>? = null) {
+internal class Evaluator(
+    private val plan: CalculationPlan,
+    private val sink: DiagnosticSink,
+    private val explainTarget: Pair<String, Coord>? = null,
+) {
     private val engine = DslEvaluationEngine()
     private val environment = MantraKernel.environment
     private val inputIdentity = MantraKernel.inputIdentity(plan.case.id, plan.case.source + "|" + plan.schema.id)
@@ -97,7 +100,16 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 val condition = vertex.memberConditions[member.key] ?: return@filter true
                 evaluate(condition, emptyList(), "${decl.id}.${member.key}")?.value?.truthy ?: false
             }.mapIndexed { index, member ->
-                Member(member.key, member.label, index, mapOf("key" to Value.Kw(member.key), "label" to Value.Text(member.label), "index" to Value.num(index.toLong())))
+                Member(
+                    member.key,
+                    member.label,
+                    index,
+                    mapOf(
+                        "key" to Value.Kw(member.key),
+                        "label" to Value.Text(member.label),
+                        "index" to Value.num(index.toLong()),
+                    ),
+                )
             }
         }
         val rows = (values[table]?.get(emptyList()) as? Value.Vec)?.items.orEmpty()
@@ -105,7 +117,11 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         return rows.mapIndexedNotNull { index, row ->
             val fields = (row as Value.MapV).entries.entries.associate { (k, v) -> (k as Value.Kw).name to v }
             val key = memberKey(fields[decl.keyColumn]) ?: run {
-                sink.error("MANTRA-DIMENSION-KEY", "Row ${index + 1} of $table has no :${decl.keyColumn} for dimension ${decl.id}", decl.location)
+                sink.error(
+                    "MANTRA-DIMENSION-KEY",
+                    "Row ${index + 1} of $table has no :${decl.keyColumn} for dimension ${decl.id}",
+                    decl.location,
+                )
                 return@mapIndexedNotNull null
             }
             if (!seen.add(key)) {
@@ -124,13 +140,21 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 }
             }
             val label = decl.titleColumn?.let { (fields[it] as? Value.Text)?.value } ?: key
-            Member(key, label, index, fields + mapOf("key" to Value.Kw(key), "label" to Value.Text(label), "index" to Value.num(index.toLong())))
+            Member(
+                key,
+                label,
+                index,
+                fields +
+                    mapOf("key" to Value.Kw(key), "label" to Value.Text(label), "index" to Value.num(index.toLong())),
+            )
         }
     }
 
     /** Validate declared foreign keys against the active members, after all dimensions are resolved. */
     private fun validateTableReferences() {
-        plan.valueVertices.values.filterIsInstance<InputVertex>().filter { it.decl.references.isNotEmpty() }.forEach { input ->
+        plan.valueVertices.values.filterIsInstance<InputVertex>().filter {
+            it.decl.references.isNotEmpty()
+        }.forEach { input ->
             values[input.id].orEmpty().forEach { (coord, value) ->
                 val rows = (value as? Value.Vec)?.items.orEmpty()
                 rows.forEachIndexed { index, row ->
@@ -142,7 +166,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                         if (members[target].orEmpty().none { it.key == key }) {
                             sink.error(
                                 "MANTRA-INPUT-REFERENCE",
-                                "Row ${index + 1} of ${input.id}${coordText(input.dims, coord)} :$column refers to `$key`, which is not a member of $target",
+                                "Row ${index + 1} of ${input.id}${coordText(
+                                    input.dims,
+                                    coord,
+                                )} :$column refers to `$key`, which is not a member of $target",
                                 inputLocation(input.id, input.location),
                                 input.id,
                                 coord,
@@ -154,11 +181,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         }
     }
 
-    private fun coords(dims: List<String>): List<Coord> =
-        dims.fold(listOf(emptyList())) { acc, dim ->
-            val keys = members[dim].orEmpty().map { it.key }
-            acc.flatMap { prefix -> keys.map { prefix + it } }
-        }
+    private fun coords(dims: List<String>): List<Coord> = dims.fold(listOf(emptyList())) { acc, dim ->
+        val keys = members[dim].orEmpty().map { it.key }
+        acc.flatMap { prefix -> keys.map { prefix + it } }
+    }
 
     private fun project(coord: Coord, from: List<String>, to: List<String>): Coord = to.map { coord[from.indexOf(it)] }
 
@@ -207,8 +233,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             val raw = if (vertex.dims.isEmpty()) supplied else lookup(supplied, coord)
             val source = plan.case.inputOrigins[vertex.id]?.get(coord.joinToString("/"))
             val (value, origin) = when {
-                raw != null && raw != Value.Nil -> convertInput(raw, decl, coord) to if (source == null) InputOrigin.CASE else InputOrigin.SOURCE
-                decl.default != null && decl.default != Value.Nil -> convertInput(decl.default, decl, coord) to InputOrigin.DEFAULT
+                raw != null && raw != Value.Nil -> convertInput(raw, decl, coord) to
+                    if (source == null) InputOrigin.CASE else InputOrigin.SOURCE
+                decl.default != null && decl.default != Value.Nil -> convertInput(decl.default, decl, coord) to
+                    InputOrigin.DEFAULT
                 decl.optional -> Value.Nil to InputOrigin.DEFAULT
                 decl.type.isNumeric -> Value.ZERO to InputOrigin.IMPLICIT
                 decl.type == ValueType.TABLE -> Value.Vec(emptyList()) to InputOrigin.IMPLICIT
@@ -216,7 +244,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 else -> {
                     // Inputs marked :required are reported by validateInput with a more specific code.
                     if (decl.presentation.attributes["required"] != Value.Bool(true)) {
-                        sink.error("MANTRA-INPUT-MISSING", "Required input ${decl.id}${coordText(vertex.dims, coord)} is missing", decl.location, decl.id)
+                        sink.error(
+                            "MANTRA-INPUT-MISSING",
+                            "Required input ${decl.id}${coordText(vertex.dims, coord)} is missing",
+                            decl.location,
+                            decl.id,
+                        )
                     }
                     Value.Nil to InputOrigin.IMPLICIT
                 }
@@ -231,14 +264,40 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         val attributes = vertex.decl.presentation.attributes
         val where = "${vertex.id}${coordText(vertex.dims, coord)}"
         if (attributes["required"] == Value.Bool(true) && origin !in setOf(InputOrigin.CASE, InputOrigin.SOURCE)) {
-            sink.error("MANTRA-INPUT-REQUIRED", "Input $where is required but was not supplied", vertex.location, vertex.id, coord)
+            sink.error(
+                "MANTRA-INPUT-REQUIRED",
+                "Input $where is required but was not supplied",
+                vertex.location,
+                vertex.id,
+                coord,
+            )
         }
         val number = (value as? Value.Num)?.value ?: return
         (attributes["min"] as? Value.Num)?.value?.let { min ->
-            if (number < min) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is below the minimum ${min.toPlainString()}", inputLocation(vertex.id, vertex.location), vertex.id, coord)
+            if (number <
+                min
+            ) {
+                sink.error(
+                    "MANTRA-INPUT-RANGE",
+                    "Input $where = ${number.toPlainString()} is below the minimum ${min.toPlainString()}",
+                    inputLocation(vertex.id, vertex.location),
+                    vertex.id,
+                    coord,
+                )
+            }
         }
         (attributes["max"] as? Value.Num)?.value?.let { max ->
-            if (number > max) sink.error("MANTRA-INPUT-RANGE", "Input $where = ${number.toPlainString()} is above the maximum ${max.toPlainString()}", inputLocation(vertex.id, vertex.location), vertex.id, coord)
+            if (number >
+                max
+            ) {
+                sink.error(
+                    "MANTRA-INPUT-RANGE",
+                    "Input $where = ${number.toPlainString()} is above the maximum ${max.toPlainString()}",
+                    inputLocation(vertex.id, vertex.location),
+                    vertex.id,
+                    coord,
+                )
+            }
         }
     }
 
@@ -256,18 +315,33 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
 
     private fun convertInput(raw: Value, decl: InputDecl, coord: Coord): Value {
         fun fail(message: String): Value {
-            sink.error("MANTRA-INPUT-TYPE", "Input ${decl.id}${coordText(emptyList(), coord)}: $message", inputLocation(decl.id, decl.location), decl.id, coord)
+            sink.error(
+                "MANTRA-INPUT-TYPE",
+                "Input ${decl.id}${coordText(emptyList(), coord)}: $message",
+                inputLocation(decl.id, decl.location),
+                decl.id,
+                coord,
+            )
             return Value.Nil
         }
         return when (decl.type) {
             ValueType.DECIMAL -> raw as? Value.Num ?: fail("expected a number, got $raw")
-            ValueType.INTEGER -> (raw as? Value.Num)?.takeIf { it.value.stripTrailingZeros().scale() <= 0 } ?: fail("expected an integer, got $raw")
+            ValueType.INTEGER -> (raw as? Value.Num)?.takeIf { it.value.stripTrailingZeros().scale() <= 0 }
+                ?: fail("expected an integer, got $raw")
             ValueType.BOOLEAN -> raw as? Value.Bool ?: fail("expected true or false, got $raw")
             ValueType.TEXT -> raw as? Value.Text ?: fail("expected a string, got $raw")
             ValueType.KEYWORD -> {
                 // Text from JSON/CSV sources is accepted as keyword name.
-                val keyword = raw as? Value.Kw ?: (raw as? Value.Text)?.let { Value.Kw(it.value.removePrefix(":")) } ?: return fail("expected a keyword, got $raw")
-                if (decl.options.isNotEmpty() && keyword.name !in decl.options) fail("`$keyword` is not one of ${decl.options.keys.joinToString { ":$it" }}") else keyword
+                val keyword =
+                    raw as? Value.Kw ?: (raw as? Value.Text)?.let { Value.Kw(it.value.removePrefix(":")) }
+                        ?: return fail("expected a keyword, got $raw")
+                if (decl.options.isNotEmpty() &&
+                    keyword.name !in decl.options
+                ) {
+                    fail("`$keyword` is not one of ${decl.options.keys.joinToString { ":$it" }}")
+                } else {
+                    keyword
+                }
             }
             ValueType.DATE -> when (raw) {
                 is Value.Date -> raw
@@ -289,23 +363,43 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     private fun convertRow(row: Value, decl: InputDecl, index: Int): Value {
         val map = row as? Value.MapV
         if (map == null) {
-            sink.error("MANTRA-INPUT-TYPE", "Row ${index + 1} of ${decl.id} must be a map", inputLocation(decl.id, decl.location), decl.id)
+            sink.error(
+                "MANTRA-INPUT-TYPE",
+                "Row ${index + 1} of ${decl.id} must be a map",
+                inputLocation(decl.id, decl.location),
+                decl.id,
+            )
             return Value.MapV(emptyMap())
         }
         val byName = map.entries.entries.associate { (k, v) -> ((k as? Value.Kw)?.name ?: k.toString()) to v }
         byName.keys.filter { key -> decl.columns.none { it.name == key } }.forEach {
-            sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} has unknown column :$it", inputLocation(decl.id, decl.location), decl.id)
+            sink.error(
+                "MANTRA-INPUT-COLUMN",
+                "Row ${index + 1} of ${decl.id} has unknown column :$it",
+                inputLocation(decl.id, decl.location),
+                decl.id,
+            )
         }
         val converted = linkedMapOf<Value, Value>()
         decl.columns.forEach { column ->
             val value = byName[column.name]
-            val columnDecl = decl.copy(id = "${decl.id}[${index + 1}].${column.name}", type = column.type, options = emptyMap(), optional = column.optional)
+            val columnDecl = decl.copy(
+                id = "${decl.id}[${index + 1}].${column.name}",
+                type = column.type,
+                options = emptyMap(),
+                optional = column.optional,
+            )
             converted[Value.Kw(column.name)] = when {
                 value != null && value != Value.Nil -> convertInput(value, columnDecl, emptyList())
                 column.optional -> Value.Nil
                 column.type.isNumeric -> Value.ZERO
                 else -> {
-                    sink.error("MANTRA-INPUT-COLUMN", "Row ${index + 1} of ${decl.id} is missing column :${column.name}", inputLocation(decl.id, decl.location), decl.id)
+                    sink.error(
+                        "MANTRA-INPUT-COLUMN",
+                        "Row ${index + 1} of ${decl.id} is missing column :${column.name}",
+                        inputLocation(decl.id, decl.location),
+                        decl.id,
+                    )
                     Value.Nil
                 }
             }
@@ -333,7 +427,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                         continue
                     }
                     val raw = map?.entries?.get(Value.Kw(member.key)) ?: Value.ZERO
-                    store(vertex, coord, round(coerce(raw, vertex), item.rounding), NodeTrace.Computed(outcome.references, raw, item.rounding, spread = true))
+                    store(
+                        vertex,
+                        coord,
+                        round(coerce(raw, vertex), item.rounding),
+                        NodeTrace.Computed(outcome.references, raw, item.rounding, spread = true),
+                    )
                 }
             }
             return
@@ -350,7 +449,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
             val value = round(coerce(outcome.value, vertex), item.rounding)
             if (explainTarget == (vertex.id to coord)) explainTrace = outcome.explainTrace
-            store(vertex, coord, value, NodeTrace.Computed(outcome.references, outcome.value, item.rounding, spread = false))
+            store(
+                vertex,
+                coord,
+                value,
+                NodeTrace.Computed(outcome.references, outcome.value, item.rounding, spread = false),
+            )
         }
     }
 
@@ -362,7 +466,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
             val parts = vertex.components.map { component ->
                 val source = plan.valueVertices.getValue(component.vertexId)
-                TracePart(component.vertexId, component.sign, contribution(source, vertex.dims, coord), source.dims.size > vertex.dims.size)
+                TracePart(
+                    component.vertexId,
+                    component.sign,
+                    contribution(source, vertex.dims, coord),
+                    source.dims.size > vertex.dims.size,
+                )
             }
             val sum = parts.fold(BigDecimal.ZERO) { acc, part -> acc + part.value.multiply(BigDecimal(part.sign)) }
             store(vertex, coord, Value.Num(sum), NodeTrace.Sum(parts))
@@ -375,7 +484,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         if (source.dims.size == dims.size) return stored[project(coord, dims, source.dims)].orZero()
         val fixed = dims.mapIndexed { index, dim -> dim to coord[index] }.toMap()
         return stored.entries.fold(BigDecimal.ZERO) { acc, (sourceCoord, value) ->
-            val matches = source.dims.withIndex().all { (index, dim) -> fixed[dim]?.let { it == sourceCoord[index] } ?: true }
+            val matches = source.dims.withIndex().all { (index, dim) ->
+                fixed[dim]?.let { it == sourceCoord[index] }
+                    ?: true
+            }
             if (matches) acc + value.orZero() else acc
         }
     }
@@ -391,10 +503,19 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
             val references = mutableListOf<TraceRef>()
             val outcomes = vertex.options.map { option ->
-                val available = option.condition?.let { evaluate(it, coord, vertex.id, captureTrace = false)?.value?.truthy ?: false } ?: true
+                val available =
+                    option.condition?.let {
+                        evaluate(it, coord, vertex.id, captureTrace = false)?.value?.truthy ?: false
+                    }
+                        ?: true
                 val result = if (available) evaluate(option.formula, coord, vertex.id, captureTrace = false) else null
                 result?.let { references += it.references }
-                TraceOption(option.option.key, option.option.label, result?.value ?: Value.Nil, available && result?.value is Value.Num)
+                TraceOption(
+                    option.option.key,
+                    option.option.label,
+                    result?.value ?: Value.Nil,
+                    available && result?.value is Value.Num,
+                )
             }
             var selected: TraceOption? = null
             for (candidate in outcomes.filter { it.available }) {
@@ -411,7 +532,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 val chosen = vertex.options.firstOrNull { it.option.key == selected?.key }
                 explainTrace = chosen?.let { evaluate(it.formula, coord, vertex.id)?.explainTrace }
             }
-            store(vertex, coord, round(raw, item.rounding), NodeTrace.Choice(outcomes, selected?.key, raw, item.rounding))
+            store(
+                vertex,
+                coord,
+                round(raw, item.rounding),
+                NodeTrace.Choice(outcomes, selected?.key, raw, item.rounding),
+            )
         }
     }
 
@@ -421,14 +547,24 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             is Value.Num -> value
             Value.Nil -> Value.ZERO
             else -> {
-                sink.error("MANTRA-RESULT-TYPE", "Formula of ${vertex.id} returned $value where a number is required", vertex.location, vertex.id)
+                sink.error(
+                    "MANTRA-RESULT-TYPE",
+                    "Formula of ${vertex.id} returned $value where a number is required",
+                    vertex.location,
+                    vertex.id,
+                )
                 Value.ZERO
             }
         }
     }
 
-    private fun round(value: Value, rounding: Rounding?): Value =
-        if (rounding != null && value is Value.Num) Value.Num(value.value.setScale(rounding.scale, rounding.mode)) else value
+    private fun round(value: Value, rounding: Rounding?): Value = if (rounding != null &&
+        value is Value.Num
+    ) {
+        Value.Num(value.value.setScale(rounding.scale, rounding.mode))
+    } else {
+        value
+    }
 
     // ── Normein evaluation ─────────────────────────────────────────────────────────────────────
 
@@ -444,7 +580,15 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             val dim = remaining.first()
             return Value.MapV(
                 LinkedHashMap<Value, Value>().apply {
-                    members[dim].orEmpty().forEach { member -> put(Value.Kw(member.key), build(remaining.drop(1), assignment + (dim to member.key))) }
+                    members[dim].orEmpty().forEach { member ->
+                        put(
+                            Value.Kw(member.key),
+                            build(
+                                remaining.drop(1),
+                                assignment + (dim to member.key),
+                            ),
+                        )
+                    }
                 },
             )
         }
@@ -457,7 +601,15 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         }
         return when {
             vertex.type == ValueType.TABLE && value is Value.Vec -> structured(
-                value.items.map { row -> hostRecord((row as Value.MapV).entries.entries.associate { (k, v) -> (k as Value.Kw).name to v }, rowTypes(vertex)) },
+                value.items.map { row ->
+                    hostRecord(
+                        (row as Value.MapV).entries.entries.associate { (k, v) ->
+                            (k as Value.Kw).name to
+                                v
+                        },
+                        rowTypes(vertex),
+                    )
+                },
                 DslTypes.vector(DslTypes.ref(plan.types.tableRow.getValue(vertex.id))),
                 vertex.id,
             )
@@ -467,7 +619,10 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     }
 
     private fun hostRecord(fields: Map<String, Value>, types: Map<String, ValueType>): Map<String, Any?> =
-        fields.filterKeys { it in types }.mapValues { (name, v) ->
+        fields.filterKeys {
+            it in
+                types
+        }.mapValues { (name, v) ->
             when {
                 v == Value.Nil -> null
                 types[name] == ValueType.INTEGER && v is Value.Num -> Values.toIntegerDsl(v)
@@ -478,13 +633,18 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
     private val recordTypes: Map<String, Map<String, ValueType>> by lazy {
         val base = mapOf("key" to ValueType.KEYWORD, "label" to ValueType.TEXT, "index" to ValueType.INTEGER)
         plan.dimensions.values.associate { dim ->
-            val columns = dim.fromTable?.let { table -> (plan.valueVertices[table] as? InputVertex)?.decl?.columns }.orEmpty()
+            val columns = dim.fromTable?.let { table ->
+                (plan.valueVertices[table] as? InputVertex)?.decl?.columns
+            }.orEmpty()
             dim.id to (columns.associate { it.name to it.type } + base)
         }
     }
 
     private fun rowTypes(vertex: ValueVertex): Map<String, ValueType> =
-        (vertex as? InputVertex)?.decl?.columns.orEmpty().associate { it.name to it.type }
+        (vertex as? InputVertex)?.decl?.columns.orEmpty().associate {
+            it.name to
+                it.type
+        }
 
     private fun structured(host: Any?, type: DslType, what: String): DslValue =
         when (val result = DslValues.importStructuredHost(host, type, plan.typeSchema)) {
@@ -495,7 +655,12 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             }
         }
 
-    private fun evaluate(formula: CompiledFormula, coord: Coord, nodeId: String, captureTrace: Boolean = true): Outcome? = try {
+    private fun evaluate(
+        formula: CompiledFormula,
+        coord: Coord,
+        nodeId: String,
+        captureTrace: Boolean = true,
+    ): Outcome? = try {
         evaluateUnchecked(formula, coord, nodeId, captureTrace)
     } catch (failure: DslValueConstructionException) {
         sink.error(
@@ -508,35 +673,55 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         null
     }
 
-    private fun evaluateUnchecked(formula: CompiledFormula, coord: Coord, nodeId: String, captureTrace: Boolean): Outcome? {
+    private fun evaluateUnchecked(
+        formula: CompiledFormula,
+        coord: Coord,
+        nodeId: String,
+        captureTrace: Boolean,
+    ): Outcome? {
         val roots = mutableListOf<DslInputRootCandidate>()
         val references = mutableListOf<TraceRef>()
         for ((root, ref) in formula.rootNames) {
             val vertex = plan.valueVertices.getValue(ref)
             val value = rootValue(vertex, formula.dims, coord)
             val extra = vertex.dims.count { it !in formula.dims }
-            if (references.none { it.id == ref }) references += TraceRef(ref, value, if (extra == 0) TraceRef.Kind.ALIGNED else TraceRef.Kind.MEMBER_MAP)
+            if (references.none { it.id == ref }) {
+                references +=
+                    TraceRef(ref, value, if (extra == 0) TraceRef.Kind.ALIGNED else TraceRef.Kind.MEMBER_MAP)
+            }
             roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(toDsl(vertex, value, extra)))
         }
         for (dim in formula.dimRefs) {
             val key = coord[formula.dims.indexOf(dim)]
             val member = members[dim].orEmpty().first { it.key == key }
             references += TraceRef(dim, Value.Text(member.label), TraceRef.Kind.MEMBER)
-            roots += DslInputRootCandidate(dim, DslInputCandidate.ControlledValue(structured(hostRecord(member.record, recordTypes.getValue(dim)), DslTypes.ref(plan.types.dimensionRecord.getValue(dim)), "member $key of $dim")))
+            roots +=
+                DslInputRootCandidate(
+                    dim,
+                    DslInputCandidate.ControlledValue(
+                        structured(
+                            hostRecord(member.record, recordTypes.getValue(dim)),
+                            DslTypes.ref(plan.types.dimensionRecord.getValue(dim)),
+                            "member $key of $dim",
+                        ),
+                    ),
+                )
         }
         formula.relationRefs.forEach { (root, dim) ->
             val column = plan.dimensions.getValue(dim).parentKeyColumn!!
-            val relation = Value.MapV(linkedMapOf<Value, Value>().apply {
-                members[dim].orEmpty().forEach { member ->
-                    val parent = when (val raw = member.record[column]) {
-                        is Value.Kw -> raw.name
-                        is Value.Text -> raw.value
-                        is Value.Num -> raw.value.toPlainString()
-                        else -> null
+            val relation = Value.MapV(
+                linkedMapOf<Value, Value>().apply {
+                    members[dim].orEmpty().forEach { member ->
+                        val parent = when (val raw = member.record[column]) {
+                            is Value.Kw -> raw.name
+                            is Value.Text -> raw.value
+                            is Value.Num -> raw.value.toPlainString()
+                            else -> null
+                        }
+                        if (parent != null) put(Value.Kw(member.key), Value.Kw(parent))
                     }
-                    if (parent != null) put(Value.Kw(member.key), Value.Kw(parent))
-                }
-            })
+                },
+            )
             references += TraceRef(root, relation, TraceRef.Kind.MEMBER_MAP)
             roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(Values.toDsl(relation)))
         }
@@ -548,19 +733,41 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                 references += TraceRef("all.$ref", full, TraceRef.Kind.ALL)
                 host[ref] = toDsl(vertex, full, vertex.dims.size)
             }
-            roots += DslInputRootCandidate("all", DslInputCandidate.ControlledValue(structured(host, DslTypes.ref(plan.types.all), "all")))
+            roots +=
+                DslInputRootCandidate(
+                    "all",
+                    DslInputCandidate.ControlledValue(structured(host, DslTypes.ref(plan.types.all), "all")),
+                )
         }
         val request = DslEvaluationRequest(
             expression = formula.expression,
             environment = environment,
-            input = DslEvaluationInput(roots = roots, bindings = emptyList(), inputIdentity = inputIdentity,
-                tracePolicy = if (captureTrace && explainTarget == (nodeId to coord)) DslTracePolicy.FULL else DslTracePolicy.NONE),
+            input = DslEvaluationInput(
+                roots = roots,
+                bindings = emptyList(),
+                inputIdentity = inputIdentity,
+                tracePolicy = if (captureTrace &&
+                    explainTarget == (nodeId to coord)
+                ) {
+                    DslTracePolicy.FULL
+                } else {
+                    DslTracePolicy.NONE
+                },
+            ),
             kernelArtifact = MantraKernel.kernelArtifact,
         )
         return when (val outcome = engine.evaluate(request)) {
-            is DslEvaluationOutcome.Success -> Outcome(Values.fromDsl(outcome.value), references,
-                outcome.trace?.let { projectTrace(formula, it,
-                    outcome.receipt.traceStatus == DslTraceStatus.TRUNCATED) })
+            is DslEvaluationOutcome.Success -> Outcome(
+                Values.fromDsl(outcome.value),
+                references,
+                outcome.trace?.let {
+                    projectTrace(
+                        formula,
+                        it,
+                        outcome.receipt.traceStatus == DslTraceStatus.TRUNCATED,
+                    )
+                },
+            )
             is DslEvaluationOutcome.Failure -> {
                 outcome.diagnostics.forEach { diagnostic ->
                     val span = diagnostic.span
@@ -593,9 +800,13 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
         }
         walk(root)
         fun executedChild(node: DslTraceNode, id: com.xqiou.normein.dsl.identity.DslCanonicalNodeId): DslTraceNode? {
-            fun find(candidate: DslTraceNode): DslTraceNode? =
-                if (candidate.kind == DslTraceNodeKind.AST_NODE && candidate.nodeId == id) candidate
-                else candidate.children.firstNotNullOfOrNull(::find)
+            fun find(candidate: DslTraceNode): DslTraceNode? = if (candidate.kind == DslTraceNodeKind.AST_NODE &&
+                candidate.nodeId == id
+            ) {
+                candidate
+            } else {
+                candidate.children.firstNotNullOfOrNull(::find)
+            }
             return node.children.firstNotNullOfOrNull(::find)
         }
         fun snippet(node: DslTraceNode): Pair<String, SourceLocation>? {
@@ -610,8 +821,13 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
             val start = entry.span.startOffset - sourceStart
             val end = entry.span.endOffset - sourceStart
             if (start < 0 || end > source.length || start >= end) return null
-            return source.substring(start, end) to SourceLocation(owner.source,
-                entry.span.line, entry.span.column, entry.span.startOffset, entry.span.endOffset)
+            return source.substring(start, end) to SourceLocation(
+                owner.source,
+                entry.span.line,
+                entry.span.column,
+                entry.span.startOffset,
+                entry.span.endOffset,
+            )
         }
         for (node in visited.filter { it.kind == DslTraceNodeKind.AST_NODE }) {
             val (text, location) = snippet(node) ?: continue
@@ -623,17 +839,27 @@ internal class Evaluator(private val plan: CalculationPlan, private val sink: Di
                     ?: executedChild(node, node.nodeId.child(2))
                 val branchSnippet = branchNode?.let(::snippet)
                 if (branchSnippet != null && branchSnippet.first != text &&
-                    !Regex("^\\s*\\(cond(?=\\s|\\))").containsMatchIn(branchSnippet.first))
+                    !Regex("^\\s*\\(cond(?=\\s|\\))").containsMatchIn(branchSnippet.first)
+                ) {
                     branches += ExplainBranch(branchSnippet.first, true, branchSnippet.second)
+                }
             }
             if (!text.startsWith('(') || text == formula.formula.source) continue
             val number = node.resultSummary?.rendered?.toBigDecimalOrNull() ?: continue
-            if (steps.size < 64) steps += ExplainStep(text, Value.Num(number), location)
-            else truncated = true
+            if (steps.size < 64) {
+                steps += ExplainStep(text, Value.Num(number), location)
+            } else {
+                truncated = true
+            }
         }
         return ExplainTrace(steps, branches.take(32), truncated || branches.size > 32)
     }
 
-    private fun coordText(dims: List<String>, coord: Coord): String =
-        if (coord.isEmpty()) "" else " [" + coord.mapIndexed { i, key -> "${dims.getOrElse(i) { "dim" }}=$key" }.joinToString(", ") + "]"
+    private fun coordText(dims: List<String>, coord: Coord): String = if (coord.isEmpty()) {
+        ""
+    } else {
+        " [" +
+            coord.mapIndexed { i, key -> "${dims.getOrElse(i) { "dim" }}=$key" }.joinToString(", ") +
+            "]"
+    }
 }

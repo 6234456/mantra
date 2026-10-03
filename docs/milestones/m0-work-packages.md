@@ -3,8 +3,8 @@
 > 开工：2026-10-03 · 分支：`codex/m0-monorepo-foundation`
 > 依据：[路线图 M0](../roadmap.md) · 基线：`9539c6d`
 
-M0 不改变 DSL 语义。本轮交付先建立可检查的 monorepo 与公开 API；完整 M0 还需要质量工具、
-大文件拆分、性能基线与公开发布检查。不能将本工作包完成等同于 M0 完成。
+M0 不改变 DSL 语义。Monorepo、公开 API、质量门、职责拆分和展示验收已完成本地验证；
+正在记录性能基线并运行远端 CI，全部退出条件通过后才标为 M0 完成。
 
 ## 必读顺序
 
@@ -15,29 +15,30 @@ M0 不改变 DSL 语义。本轮交付先建立可检查的 monorepo 与公开 A
 
 | 工作包 | 交付与验收 | 状态 |
 | --- | --- | --- |
-| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 本地配置已实现；远端运行待推送与私有依赖凭据 |
+| M0-1 远端与 CI | `origin` 指向 `6234456/mantra`；Java 21/Node 22；锁定 Normein；JVM、前端、浏览器和独立金额核对；测试产物归档 | 专用只读凭据已配置；待首次远端 CI |
 | M0-2 Monorepo | `:apps:de-est`、`:apps:ifrs-impairment`、`:apps:cost-accounting`；各自拥有方案、案例、版式、测试及 README；中性成本方案 ID；fixture 从 `apps/` 生成 | 本地验收通过 |
 | M0-3 公开 API 与边界 | 结果/公式接口在 `core.api`；坐标、成员及 trace 在 `core.view`；planner 与 vertex 为 internal；`Mantra.inspect` 与 `FunctionCatalog`；自动扫描领域标识符、内部导入与项目依赖 | 本地验收与独立审阅通过 |
 | M0-4 展示验证与文档 | 每个案例及参数变体的 HTML/Text golden、XLSX 逐值重算；独立金额核对脚本；通用工作台打开全部案例；导入样本/模板；英文 README、DSL 参考及社区文件；目录一致性检查 | 本地验收通过 |
-| M0-5 质量门 | Kotlin/TypeScript 格式化与静态分析；拆分三个大文件；补渲染选择器、预设和行号测试 | 待开始 |
-| M0-6 性能与公开发布 | 合成方案生成器；plan/calculate/explain/paper/xlsx 耗时和内存基线；IFRS 引用材料来源与授权核查；Normein 制品发布协同 | 待开始 |
+| M0-5 质量门 | Spotless/ktlint、Prettier/ESLint、文件与行宽门禁；拆分三个大文件；选择器/预设/行号测试；10 个模块测试下限 | 完整本地 check 通过 |
+| M0-6 性能与公开发布 | 五轴合成方案；plan/calculate/explain/paper/xlsx 耗时及内存；IFRS 案例改为独立虚构事实；[内核发布计划](../normein-publication.md) | 实现与来源核查完成；性能记录中 |
 
 M0-1 的 CI 对私有 Normein 只需要专用只读 deploy key，在 Mantra 的 Actions secret
 `NORMEIN_DEPLOY_KEY` 中保存。不要使用个人账号的通用 SSH 私钥或将密钥提交到仓库。
 Dependabot 触发的 PR 需要同名 Dependabot secret。外部 fork 的 PR 没有私有库凭据，完整 JVM
 验收须由维护者在受信分支运行；不使用 `pull_request_target` 执行 PR 代码。
 
-远端检查发现 Mantra 已是公开空仓库、Normein 私有。此状态与 R10 的预定公开顺序不同；代码
-推送前应明确远端可见性。本轮不承诺法规完整性，也不发布 Maven 制品。
+Mantra 是公开仓库，维护者已于 2026-10-03 明确确认继续；路线图 R10 的公开时点已同步。
+Normein 当前私有，Actions 与 Dependabot 的同名 secret 已配置为专用只读 deploy key。
+本轮公开源码；首个 Maven 制品仍按路线图在 M1 后与 Normein 协同发布。
 
 ## 验证命令
 
 ```sh
+npm --prefix workbench-ui ci
 ./gradlew --no-daemon check :mantra-cli:installDist
 python3 -m unittest discover -s scripts/tests
 scripts/smoke-cli.sh
 cd workbench-ui
-npm ci
 npm test
 npm run build
 npm run test:e2e
@@ -47,16 +48,18 @@ npm run test:e2e
 时才设置 `MANTRA_UPDATE_GOLDEN=1`，先检查差异，再以未设置此变量的 `check` 重跑。
 浏览器测试使用已安装的 Chrome，任务临时 profile/cache/logs 随测试删除，不下载浏览器。
 
-## 本轮验证结果（2026-10-03）
+## 本轮验证结果（2026-10-04）
 
-- `./gradlew --no-daemon check`：159 项测试，0 失败；golden 更新变量未设置。
-- Python 边界检查回归：9 项通过；目录一致性测试通过。
+- `./gradlew --no-daemon check`：166 项测试，0 失败；golden 更新变量未设置。
+- Python 边界检查回归：18 项通过；目录一致性测试通过。
 - 所有九个案例/参数变体的独立金额核对通过；XLSX 包括输入表格单元格逐值核对。
 - `scripts/smoke-cli.sh`：七个命令全部通过，临时服务与目录已清理。
-- `npm ci`、前端 29 项测试、生产构建及三个浏览器流程通过；临时 profile/cache/logs 已删除。
+- `npm ci`、前端 30 项测试、生产构建及三个浏览器流程通过；临时 profile/cache/logs 已删除。
 - 独立审阅发现的快照别名、依赖检查语法绕过和 POI 错误值误判均已修复并复审。
 - 新边界案例发现并修复通用 XLSX 空维度/不适用布尔值问题；Normein 检出未修改。
-- CI workflow 尚未在远端执行：等待确认公开/私有设置、推送及配置私有 Normein 只读凭据。
+- 所有 Kotlin/TypeScript 质量门、10 模块测试下限与新增 6 个渲染行为测试通过。
+- IAS 36 展示使用独立虚构案例，默认/自定义/零损失总额分别为 121/133/0；来源核查与内核制品发布方式已记录。
+- CI workflow 首次远端执行待推送；性能记录待基线运行完成。
 
 ## 审阅与后续
 

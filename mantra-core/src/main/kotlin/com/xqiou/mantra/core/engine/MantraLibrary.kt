@@ -68,69 +68,150 @@ internal object MantraLibrary {
         function(
             "alloc/capped",
             "Allocates an amount pro rata over a weight map but never beyond each key's cap; excess is re-allocated to uncapped keys (water-filling). Unallocatable excess is dropped.",
-            signature("amount" to numberType, "weights" to numberMap, "caps" to numberMap, "scale" to numberType, returns = decimalMap),
+            signature(
+                "amount" to numberType,
+                "weights" to numberMap,
+                "caps" to numberMap,
+                "scale" to numberType,
+                returns = decimalMap,
+            ),
         ) { args -> map(capped(args[0].number(), args[1].numberMap(), args[2].numberMap(), args[3].scale())) },
         function(
             "alloc/waterfall",
             "Allocates an amount over the keys of a capacity map in key order: each key receives min(capacity, remaining); a nil capacity takes everything left.",
-            signature("amount" to numberType, "capacities" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)), returns = decimalMap),
+            signature(
+                "amount" to numberType,
+                "capacities" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)),
+                returns = decimalMap,
+            ),
         ) { args -> map(waterfall(args[0].number(), args[1].entries().map { (k, v) -> k to v.numberOrNull() })) },
         function(
             "table/band",
             "Looks up the value of the last row [threshold value] whose threshold is not above x (thresholds ascending); returns the default or nil below the first threshold.",
-            signature("x" to numberType, "rows" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))), returns = DslTypes.nullable(DslType.Decimal)),
-            signature("x" to numberType, "rows" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))), "default" to DslTypes.nullable(numberType), returns = DslTypes.nullable(DslType.Decimal)),
-        ) { args -> band(args[0].number(), args[1], args.getOrNull(2)?.numberOrNull())?.let(DslValues::decimal) ?: DslValue.Nil },
+            signature(
+                "x" to numberType,
+                "rows" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))),
+                returns = DslTypes.nullable(DslType.Decimal),
+            ),
+            signature(
+                "x" to numberType,
+                "rows" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))),
+                "default" to DslTypes.nullable(numberType),
+                returns = DslTypes.nullable(DslType.Decimal),
+            ),
+        ) { args ->
+            band(args[0].number(), args[1], args.getOrNull(2)?.numberOrNull())?.let(DslValues::decimal)
+                ?: DslValue.Nil
+        },
         function(
             "fin/pmt",
             "Annuity payment per period for a present value pv over n periods at rate (end of period), rounded to scale; rate 0 gives pv/n.",
-            signature("rate" to numberType, "n" to numberType, "pv" to numberType, "scale" to numberType, returns = DslType.Decimal),
-        ) { args -> DslValues.decimal(pmt(args[0].number(), args[1].number().intValueExactOrFail("fin/pmt periods"), args[2].number(), args[3].scale())) },
+            signature(
+                "rate" to numberType,
+                "n" to numberType,
+                "pv" to numberType,
+                "scale" to numberType,
+                returns = DslType.Decimal,
+            ),
+        ) { args ->
+            DslValues.decimal(
+                pmt(
+                    args[0].number(),
+                    args[1].number().intValueExactOrFail("fin/pmt periods"),
+                    args[2].number(),
+                    args[3].scale(),
+                ),
+            )
+        },
         function(
             "calc/stepwise",
             "Applies banded rates: bands are [[upper-limit rate] ...] with nil as the open upper limit of the last band; returns the sum of (band slice x rate).",
-            signature("amount" to numberType, "bands" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))), returns = DslType.Decimal),
+            signature(
+                "amount" to numberType,
+                "bands" to DslTypes.vector(DslTypes.vector(DslTypes.nullable(numberType))),
+                returns = DslType.Decimal,
+            ),
         ) { args -> DslValues.decimal(stepwise(args[0].number(), args[1])) },
         function(
             "dim/sum",
             "Sums the values of a member map (cross-footing over a dimension); nil values count as zero.",
-            signature("values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)), returns = DslType.Decimal),
-        ) { args -> DslValues.decimal(args[0].entries().fold(BigDecimal.ZERO) { acc, (_, v) -> acc + (v.numberOrNull() ?: BigDecimal.ZERO) }) },
+            signature(
+                "values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)),
+                returns = DslType.Decimal,
+            ),
+        ) { args ->
+            DslValues.decimal(
+                args[0].entries().fold(BigDecimal.ZERO) { acc, (_, v) ->
+                    acc +
+                        (v.numberOrNull() ?: BigDecimal.ZERO)
+                },
+            )
+        },
         function(
             "dim/rollup",
             "Sums a source-member amount map for one parent key using a declared source-to-parent relation map.",
-            signature("values" to numberMap, "parents" to DslTypes.map(DslType.Keyword, DslType.Keyword), "target" to DslType.Keyword, returns = DslType.Decimal),
+            signature(
+                "values" to numberMap,
+                "parents" to DslTypes.map(DslType.Keyword, DslType.Keyword),
+                "target" to DslType.Keyword,
+                returns = DslType.Decimal,
+            ),
         ) { args ->
             val parents = args[1].entries().associate { (source, parent) -> keyText(source) to keyText(parent) }
             val target = keyText(args[2])
-            DslValues.decimal(args[0].numberMap().fold(BigDecimal.ZERO) { acc, (source, value) ->
-                val parent = parents[keyText(source)]
-                    ?: fail("DSL-MANTRA-ROLLUP-KEY", "No parent relation for source member ${keyText(source)}")
-                if (parent == target) acc + value else acc
-            })
+            DslValues.decimal(
+                args[0].numberMap().fold(BigDecimal.ZERO) { acc, (source, value) ->
+                    val parent = parents[keyText(source)]
+                        ?: fail("DSL-MANTRA-ROLLUP-KEY", "No parent relation for source member ${keyText(source)}")
+                    if (parent == target) acc + value else acc
+                },
+            )
         },
         function(
             "dim/min",
             "Smallest non-nil value of a member map, or nil when the map has no values.",
-            signature("values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)), returns = DslTypes.nullable(DslType.Decimal)),
-        ) { args -> args[0].entries().mapNotNull { (_, v) -> v.numberOrNull() }.minOrNull()?.let(DslValues::decimal) ?: DslValue.Nil },
+            signature(
+                "values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)),
+                returns = DslTypes.nullable(DslType.Decimal),
+            ),
+        ) { args ->
+            args[0].entries().mapNotNull { (_, v) -> v.numberOrNull() }.minOrNull()?.let(DslValues::decimal)
+                ?: DslValue.Nil
+        },
         function(
             "dim/max",
             "Largest non-nil value of a member map, or nil when the map has no values.",
-            signature("values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)), returns = DslTypes.nullable(DslType.Decimal)),
-        ) { args -> args[0].entries().mapNotNull { (_, v) -> v.numberOrNull() }.maxOrNull()?.let(DslValues::decimal) ?: DslValue.Nil },
+            signature(
+                "values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)),
+                returns = DslTypes.nullable(DslType.Decimal),
+            ),
+        ) { args ->
+            args[0].entries().mapNotNull { (_, v) -> v.numberOrNull() }.maxOrNull()?.let(DslValues::decimal)
+                ?: DslValue.Nil
+        },
         function(
             "fin/df",
             "Discount factor 1 / (1 + rate)^t rounded to scale (end-of-period convention).",
             signature("rate" to numberType, "t" to numberType, "scale" to numberType, returns = DslType.Decimal),
         ) { args ->
             val t = args[1].number().intValueExactOrFail("fin/df period")
-            DslValues.decimal(BigDecimal.ONE.divide(BigDecimal.ONE.add(args[0].number()).pow(t, MathContext.DECIMAL128), args[2].scale(), RoundingMode.HALF_UP))
+            DslValues.decimal(
+                BigDecimal.ONE.divide(
+                    BigDecimal.ONE.add(args[0].number()).pow(t, MathContext.DECIMAL128),
+                    args[2].scale(),
+                    RoundingMode.HALF_UP,
+                ),
+            )
         },
         function(
             "fin/npv",
             "Present value of periodic cash flows at the end of periods 1..n, discounted at rate and rounded to scale.",
-            signature("rate" to numberType, "flows" to DslTypes.vector(numberType), "scale" to numberType, returns = DslType.Decimal),
+            signature(
+                "rate" to numberType,
+                "flows" to DslTypes.vector(numberType),
+                "scale" to numberType,
+                returns = DslType.Decimal,
+            ),
         ) { args ->
             val rate = BigDecimal.ONE.add(args[0].number())
             val flows = (args[1] as DslValue.VectorValue).values.map { it.number() }
@@ -143,17 +224,19 @@ internal object MantraLibrary {
 
     fun extendLanguage(base: DslLanguageDescriptor): DslLanguageDescriptor = base.copy(
         surfaceManifest = base.surfaceManifest.copy(
-            entries = (base.surfaceManifest.entries + functions.map { function ->
-                DslLanguageSurfaceEntry(
-                    surfaceId = "function:mantra:${function.name}",
-                    sourceName = function.name,
-                    kind = DslLanguageSurfaceKind.FUNCTION,
-                    classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
-                    arities = function.signatures.map { DslArityShape.Fixed(it.parameters.size) }.distinct(),
-                    evaluationStrategy = function.evaluationStrategy,
-                    status = DslLanguageSurfaceStatus.SUPPORTED,
-                )
-            }).sortedBy(DslLanguageSurfaceEntry::surfaceId),
+            entries = (
+                base.surfaceManifest.entries + functions.map { function ->
+                    DslLanguageSurfaceEntry(
+                        surfaceId = "function:mantra:${function.name}",
+                        sourceName = function.name,
+                        kind = DslLanguageSurfaceKind.FUNCTION,
+                        classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
+                        arities = function.signatures.map { DslArityShape.Fixed(it.parameters.size) }.distinct(),
+                        evaluationStrategy = function.evaluationStrategy,
+                        status = DslLanguageSurfaceStatus.SUPPORTED,
+                    )
+                }
+                ).sortedBy(DslLanguageSurfaceEntry::surfaceId),
         ),
     )
 
@@ -161,13 +244,25 @@ internal object MantraLibrary {
         val digest = MessageDigest.getInstance("SHA-256")
         functions.forEach { digest.update("${it.name}@${it.semanticsVersion}\n".toByteArray()) }
         val sha = digest.digest().joinToString("") { "%02x".format(it) }
-        DslArtifactIdentity("application-code:$LIBRARY_ID:$SEMANTICS_VERSION", sha, sha, sha, "mantra-$SEMANTICS_VERSION", listOf(PROVIDER_ID))
+        DslArtifactIdentity(
+            "application-code:$LIBRARY_ID:$SEMANTICS_VERSION",
+            sha,
+            sha,
+            sha,
+            "mantra-$SEMANTICS_VERSION",
+            listOf(PROVIDER_ID),
+        )
     }
 
     fun descriptor(): DslLibraryDescriptor = DslLibraryDescriptor(
         id = LIBRARY_ID,
         semanticsVersion = SEMANTICS_VERSION,
-        dependencies = setOf(DslLibraryRequirement(NormeinStandardLibraries.EXTENSION_LIBRARY_ID, NormeinStandardLibraries.LIBRARY_SEMANTICS_VERSION)),
+        dependencies = setOf(
+            DslLibraryRequirement(
+                NormeinStandardLibraries.EXTENSION_LIBRARY_ID,
+                NormeinStandardLibraries.LIBRARY_SEMANTICS_VERSION,
+            ),
+        ),
         environmentTags = setOf("pure"),
         functions = functions,
         providers = listOf(
@@ -186,7 +281,11 @@ internal object MantraLibrary {
     // ── Algorithms (public for direct unit testing) ───────────────────────────────────────────
 
     /** Largest-remainder allocation; ties are resolved in key order for determinism. */
-    fun proRata(amount: BigDecimal, weights: List<Pair<DslValue, BigDecimal>>, scale: Int): List<Pair<DslValue, BigDecimal>> {
+    fun proRata(
+        amount: BigDecimal,
+        weights: List<Pair<DslValue, BigDecimal>>,
+        scale: Int,
+    ): List<Pair<DslValue, BigDecimal>> {
         if (weights.isEmpty()) return emptyList()
         val totalWeight = weights.fold(BigDecimal.ZERO) { acc, (_, w) -> acc + w }
         if (totalWeight.signum() == 0) fail("DSL-MANTRA-ALLOC-ZERO-BASIS", "Allocation basis sums to zero")
@@ -235,11 +334,18 @@ internal object MantraLibrary {
             }
             open = open - overflow.toSet()
         }
-        val openAllocation = if (open.isNotEmpty() && remaining.signum() > 0) proRata(remaining, open, scale) else open.map { it.first to BigDecimal.ZERO }
+        val openAllocation = if (open.isNotEmpty() &&
+            remaining.signum() > 0
+        ) {
+            proRata(remaining, open, scale)
+        } else {
+            open.map { it.first to BigDecimal.ZERO }
+        }
         val openByKey = openAllocation.associate { (k, v) -> keyText(k) to v }
         return weights.map { (k, _) ->
             val key = keyText(k)
-            k to (fixed[key]?.setScale(scale, RoundingMode.HALF_UP) ?: openByKey[key] ?: BigDecimal.ZERO.setScale(scale))
+            k to
+                (fixed[key]?.setScale(scale, RoundingMode.HALF_UP) ?: openByKey[key] ?: BigDecimal.ZERO.setScale(scale))
         }
     }
 
@@ -267,8 +373,13 @@ internal object MantraLibrary {
     fun pmt(rate: BigDecimal, periods: Int, pv: BigDecimal, scale: Int): BigDecimal {
         if (periods <= 0) fail("DSL-MANTRA-PMT-PERIODS", "fin/pmt needs a positive number of periods")
         if (rate.signum() == 0) return pv.divide(BigDecimal(periods), scale, RoundingMode.HALF_UP)
-        val discount = BigDecimal.ONE.divide(BigDecimal.ONE.add(rate).pow(periods, MathContext.DECIMAL128), MathContext.DECIMAL128)
-        return pv.multiply(rate).divide(BigDecimal.ONE - discount, MathContext.DECIMAL128).setScale(scale, RoundingMode.HALF_UP)
+        val discount = BigDecimal.ONE.divide(
+            BigDecimal.ONE.add(rate).pow(periods, MathContext.DECIMAL128),
+            MathContext.DECIMAL128,
+        )
+        return pv.multiply(
+            rate,
+        ).divide(BigDecimal.ONE - discount, MathContext.DECIMAL128).setScale(scale, RoundingMode.HALF_UP)
     }
 
     fun stepwise(amount: BigDecimal, bands: DslValue): BigDecimal {
@@ -289,7 +400,8 @@ internal object MantraLibrary {
 
     // ── Conversion helpers ─────────────────────────────────────────────────────────────────────
 
-    private fun DslValue.number(): BigDecimal = numberOrNull() ?: fail("DSL-MANTRA-NUMBER-REQUIRED", "A number is required")
+    private fun DslValue.number(): BigDecimal =
+        numberOrNull() ?: fail("DSL-MANTRA-NUMBER-REQUIRED", "A number is required")
 
     private fun DslValue.numberOrNull(): BigDecimal? = when (this) {
         is DslValue.DecimalValue -> value
@@ -304,7 +416,10 @@ internal object MantraLibrary {
         else -> fail("DSL-MANTRA-MAP-REQUIRED", "A member map is required")
     }
 
-    private fun DslValue.numberMap(): List<Pair<DslValue, BigDecimal>> = entries().map { (k, v) -> k to (v.numberOrNull() ?: BigDecimal.ZERO) }
+    private fun DslValue.numberMap(): List<Pair<DslValue, BigDecimal>> = entries().map { (k, v) ->
+        k to
+            (v.numberOrNull() ?: BigDecimal.ZERO)
+    }
 
     private fun DslValue.scale(): Int = number().intValueExactOrFail("scale")
 
@@ -320,30 +435,47 @@ internal object MantraLibrary {
         else -> key.numberOrNull()?.toPlainString() ?: key.toString()
     }
 
-    private fun map(entries: List<Pair<DslValue, BigDecimal>>): DslValue =
-        DslValues.map(entries.map { (k, v) -> k to DslValues.decimal(v) })
+    private fun map(entries: List<Pair<DslValue, BigDecimal>>): DslValue = DslValues.map(
+        entries.map { (k, v) ->
+            k to
+                DslValues.decimal(v)
+        },
+    )
 
     private fun fail(code: String, message: String): Nothing = throw DslFunctionInvocationException(code, message)
 
     private fun signature(vararg parameters: Pair<String, DslType>, returns: DslType): DslFunctionSignature =
-        DslFunctionSignature(parameters = parameters.map { (name, type) -> DslParameterType(name, type) }, returnType = returns)
-
-    private fun function(name: String, summary: String, vararg signatures: DslFunctionSignature, body: (List<DslValue>) -> DslValue): DslFunctionSpec =
-        DslFunctionSpec(
-            name = name,
-            semanticsVersion = SEMANTICS_VERSION,
-            signatures = signatures.toList(),
-            evaluationStrategy = DslEvaluationStrategy.EAGER,
-            providerId = PROVIDER_ID,
-            handler = handler(body),
-            documentation = DslFunctionDocumentation(
-                category = "mantra calculation primitives",
-                summary = summary,
-                classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
-            ),
+        DslFunctionSignature(
+            parameters = parameters.map { (name, type) ->
+                DslParameterType(name, type)
+            },
+            returnType = returns,
         )
 
-    private fun handler(body: (List<DslValue>) -> DslValue): DslFunctionHandler = dslFunctionHandler { arguments, _, runtime ->
+    private fun function(
+        name: String,
+        summary: String,
+        vararg signatures: DslFunctionSignature,
+        body: (List<DslValue>) -> DslValue,
+    ): DslFunctionSpec = DslFunctionSpec(
+        name = name,
+        semanticsVersion = SEMANTICS_VERSION,
+        signatures = signatures.toList(),
+        evaluationStrategy = DslEvaluationStrategy.EAGER,
+        providerId = PROVIDER_ID,
+        handler = handler(body),
+        documentation = DslFunctionDocumentation(
+            category = "mantra calculation primitives",
+            summary = summary,
+            classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
+        ),
+    )
+
+    private fun handler(body: (List<DslValue>) -> DslValue): DslFunctionHandler = dslFunctionHandler {
+            arguments,
+            _,
+            runtime,
+        ->
         runtime.charge(DslBudgetCounter.NUMERIC_OPERATIONS, arguments.size.toLong().coerceAtLeast(1L))
         DslFunctionResult.Value(body(arguments))
     }

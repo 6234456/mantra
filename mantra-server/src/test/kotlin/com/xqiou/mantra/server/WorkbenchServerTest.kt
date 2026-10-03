@@ -1,20 +1,20 @@
 package com.xqiou.mantra.server
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.networknt.schema.InputFormat
 import com.networknt.schema.SchemaLocation
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.xqiou.mantra.workbench.ExportBudget
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.CellReference
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import java.net.Socket
 import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.io.ByteArrayInputStream
+import java.io.InputStreamReader
+import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Base64
@@ -29,15 +29,21 @@ class WorkbenchServerTest {
     private fun workspace(): Path {
         val root = temp.resolve("workspace")
         Files.createDirectories(root.resolve("sample"))
-        Files.writeString(root.resolve("sample/schema.mantra"), """
+        Files.writeString(
+            root.resolve("sample/schema.mantra"),
+            """
             (schema test/example {:title "Test" :mainline [main]}
               (section main "Main" {:panel true} (field amount "Amount") (total sum "Sum"))
               (input amount :decimal))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/case.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/case.mantra"),
+            """
             (case one {:schema "test/example" :title "Case one"}
               (inputs {:amount 12.5}))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         return root
     }
 
@@ -58,8 +64,14 @@ class WorkbenchServerTest {
         assertTrue(errors.isEmpty(), "$name: $errors")
     }
 
-    private fun request(port: Int, path: String, method: String = "GET", host: String = "127.0.0.1:$port",
-                        headers: Map<String, String> = emptyMap(), body: ByteArray = byteArrayOf()): Response {
+    private fun request(
+        port: Int,
+        path: String,
+        method: String = "GET",
+        host: String = "127.0.0.1:$port",
+        headers: Map<String, String> = emptyMap(),
+        body: ByteArray = byteArrayOf(),
+    ): Response {
         Socket("127.0.0.1", port).use { socket ->
             socket.soTimeout = 15_000
             val output = socket.getOutputStream()
@@ -67,8 +79,9 @@ class WorkbenchServerTest {
                 append("$method $path HTTP/1.1\r\n")
                 append("Host: $host\r\nConnection: close\r\n")
                 headers.forEach { (key, value) -> append("$key: $value\r\n") }
-                if (headers.keys.none { it.equals("Content-Length", ignoreCase = true) })
+                if (headers.keys.none { it.equals("Content-Length", ignoreCase = true) }) {
                     append("Content-Length: ${body.size}\r\n")
+                }
                 append("\r\n")
             }
             output.write(request.toByteArray(Charsets.US_ASCII))
@@ -80,8 +93,11 @@ class WorkbenchServerTest {
             val response = bytes.toString(Charsets.ISO_8859_1)
             val split = response.indexOf("\r\n\r\n")
             val header = response.substring(0, split)
-            return Response(header.lineSequence().first().split(' ')[1].toInt(), header,
-                bytes.copyOfRange(split + 4, bytes.size))
+            return Response(
+                header.lineSequence().first().split(' ')[1].toInt(),
+                header,
+                bytes.copyOfRange(split + 4, bytes.size),
+            )
         }
     }
 
@@ -93,7 +109,7 @@ class WorkbenchServerTest {
         init {
             socket.getOutputStream().write(
                 "GET /api/v1/events HTTP/1.1\r\nHost: $host\r\nConnection: keep-alive\r\n\r\n"
-                    .toByteArray(Charsets.US_ASCII)
+                    .toByteArray(Charsets.US_ASCII),
             )
             status = reader.readLine().split(' ')[1].toInt()
             while (reader.readLine().isNotEmpty()) Unit
@@ -106,8 +122,9 @@ class WorkbenchServerTest {
                 val line = reader.readLine() ?: error("Event stream closed before $name")
                 if (line.startsWith("event: ")) event = line.removePrefix("event: ")
                 if (line.startsWith("data: ")) data = line.removePrefix("data: ")
-                if (line.isEmpty() && event == name && data != null)
+                if (line.isEmpty() && event == name && data != null) {
                     return ObjectMapper().readValue(data, Map::class.java)
+                }
             }
         }
 
@@ -121,7 +138,10 @@ class WorkbenchServerTest {
             EventStream(server.localPort).use { first ->
                 assertEquals(200, first.status)
                 val initial = first.event("revision")["revision"] as String
-                assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), initial)
+                assertEquals(
+                    ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(),
+                    initial,
+                )
                 EventStream(server.localPort).use { second ->
                     assertEquals(200, second.status)
                     assertEquals(initial, second.event("revision")["revision"])
@@ -132,7 +152,12 @@ class WorkbenchServerTest {
                     val changed = first.event("documentChanged")
                     assertEquals(listOf("sample/case.mantra"), changed["paths"])
                     assertFalse(initial == changed["revision"])
-                    assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), changed["revision"])
+                    assertEquals(
+                        ObjectMapper().readTree(
+                            request(server.localPort, "/api/v1/workspace").body,
+                        )["revision"].asText(),
+                        changed["revision"],
+                    )
                     val modified = Files.getLastModifiedTime(case)
                     Files.writeString(case, Files.readString(case).replace("14.5", "15.5"))
                     Files.setLastModifiedTime(case, modified)
@@ -146,7 +171,12 @@ class WorkbenchServerTest {
                     assertEquals("MANTRA-WORKBENCH-TOO-LARGE", first.event("workspaceError")["code"])
                     Files.delete(added)
                     val recovered = first.event("revision")["revision"] as String
-                    assertEquals(ObjectMapper().readTree(request(server.localPort, "/api/v1/workspace").body)["revision"].asText(), recovered)
+                    assertEquals(
+                        ObjectMapper().readTree(
+                            request(server.localPort, "/api/v1/workspace").body,
+                        )["revision"].asText(),
+                        recovered,
+                    )
                 }
             }
             // Closed streams are removed on the next heartbeat; a fresh reader receives the current revision.
@@ -155,7 +185,10 @@ class WorkbenchServerTest {
                 assertEquals(200, stream.status)
                 assertTrue((stream.event("revision")["revision"] as String).isNotEmpty())
             }
-            assertEquals(403, request(server.localPort, "/api/v1/events", host = "evil.example:${server.localPort}").status)
+            assertEquals(
+                403,
+                request(server.localPort, "/api/v1/events", host = "evil.example:${server.localPort}").status,
+            )
             assertEquals(400, request(server.localPort, "/api/v1/events?unexpected=1").status)
         }
     }
@@ -164,7 +197,9 @@ class WorkbenchServerTest {
         val root = temp.resolve("large-workspace")
         Files.createDirectories(root)
         val padding = " ".repeat(62 * 1024)
-        repeat(1_100) { index -> Files.writeString(root.resolve("p$index.mantra"), "(parameters p$index {})\n$padding") }
+        repeat(1_100) { index ->
+            Files.writeString(root.resolve("p$index.mantra"), "(parameters p$index {})\n$padding")
+        }
         val size = Files.list(root).use { paths -> paths.mapToLong(Files::size).sum() }
         assertTrue(size > 64L * 1024 * 1024)
         WorkbenchServer(root, 0).use { server ->
@@ -224,19 +259,37 @@ class WorkbenchServerTest {
             assertFalse(request(port, "/api/v1/workspace").headers.contains("Access-Control-Allow-Origin"))
             val index = request(port, "/cases/sample%2Fcase.mantra/overview")
             assertEquals(200, index.status)
-            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"").find(index.body)?.groupValues?.get(1)
+            val token = Regex(
+                "name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"",
+            ).find(index.body)?.groupValues?.get(1)
             assertTrue(token != null)
             val preview = "/api/v1/cases/sample%2Fcase.mantra/preview"
             assertEquals(403, request(port, preview, "POST").status)
             assertEquals(400, request(port, preview, "POST", headers = mapOf("X-Mantra-Token" to token)).status)
-            assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/compare", "POST",
-                headers = mapOf("X-Mantra-Token" to token)).status)
+            assertEquals(
+                400,
+                request(
+                    port,
+                    "/api/v1/cases/sample%2Fcase.mantra/compare",
+                    "POST",
+                    headers = mapOf("X-Mantra-Token" to token),
+                ).status,
+            )
             assertEquals(400, request(port, "/api/v1/cases/sample%2Fcase.mantra/explain").status)
             assertEquals(404, request(port, "/api/v1/cases/..%2F..%2Fsecret.mantra/structure").status)
             assertEquals(404, request(port, "/%2e%2e/secret.txt").status)
-            assertEquals(413, request(port, preview, "POST", headers = mapOf(
-                "X-Mantra-Token" to token, "Content-Length" to "${1024 * 1024 + 1}"),
-            ).status)
+            assertEquals(
+                413,
+                request(
+                    port,
+                    preview,
+                    "POST",
+                    headers = mapOf(
+                        "X-Mantra-Token" to token,
+                        "Content-Length" to "${1024 * 1024 + 1}",
+                    ),
+                ).status,
+            )
         }
     }
 
@@ -254,13 +307,36 @@ class WorkbenchServerTest {
             val headers = mapOf("X-Mantra-Token" to token)
             val original = Files.readString(root.resolve("sample/case.mantra"))
             val revision = ObjectMapper().readTree(request(port, "$path/run").body)["revision"].asText()
-            fun post(route: String, body: String) = request(port, "$path/$route", "POST", headers = headers, body = body.toByteArray())
-            val edit = """{"baseRevision":"$revision","operations":[{"op":"setInput","address":{"node":"amount"},"text":"1.234,56"}]}"""
+            fun post(route: String, body: String) =
+                request(port, "$path/$route", "POST", headers = headers, body = body.toByteArray())
+            val edit = """
+                {
+                  "baseRevision": "$revision",
+                  "operations": [
+                    {
+                      "op": "setInput",
+                      "address": {
+                        "node": "amount"
+                      },
+                      "text": "1.234,56"
+                    }
+                  ]
+                }
+            """.trimIndent()
             val preview = post("preview", edit)
             assertEquals(200, preview.status, preview.body)
             assertEquals(original, Files.readString(root.resolve("sample/case.mantra")))
-            assertEquals(400, post("preview", """{"baseRevision":"$revision","baseRevision":"$revision","operations":[]}""").status)
-            assertEquals(400, post("preview", """{"baseRevision":"$revision","operations":[{"op":"setInput","address":{"node":"amount"},"value":12.5}]}""").status)
+            assertEquals(
+                400,
+                post("preview", """{"baseRevision":"$revision","baseRevision":"$revision","operations":[]}""").status,
+            )
+            assertEquals(
+                400,
+                post(
+                    "preview",
+                    """{"baseRevision":"$revision","operations":[{"op":"setInput","address":{"node":"amount"},"value":12.5}]}""",
+                ).status,
+            )
             val proposed = ObjectMapper().readTree(preview.body)["data"]["proposedRevision"].asText()
             val committed = post("edits", edit)
             assertEquals(200, committed.status, committed.body)
@@ -269,7 +345,11 @@ class WorkbenchServerTest {
             val stale = post("edits", edit)
             assertEquals(409, stale.status, stale.body)
             assertContains(stale.body, "\"currentRevision\":\"$proposed\"")
-            val invalid = post("edits", """{"baseRevision":"$proposed","operations":[{"op":"setInput","address":{"node":"amount"},"value":"wrong"}]}""")
+            val invalid =
+                post(
+                    "edits",
+                    """{"baseRevision":"$proposed","operations":[{"op":"setInput","address":{"node":"amount"},"value":"wrong"}]}""",
+                )
             assertEquals(422, invalid.status, invalid.body)
             assertContains(Files.readString(root.resolve("sample/case.mantra")), ":amount 1234.56")
             val undo = post("undo", """{"baseRevision":"$proposed"}""")
@@ -286,7 +366,9 @@ class WorkbenchServerTest {
         val target = root.resolve("sample")
         Files.createDirectories(target)
         Files.list(Path.of("apps/de-est")).use { stream ->
-            stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, target.resolve(it.fileName)) }
+            stream.filter {
+                it.fileName.toString().endsWith(".mantra")
+            }.forEach { Files.copy(it, target.resolve(it.fileName)) }
         }
         val ui = temp.resolve("table-ui")
         Files.createDirectories(ui)
@@ -298,12 +380,46 @@ class WorkbenchServerTest {
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(request(port, "/").body)!!.groupValues[1]
             val revision = ObjectMapper().readTree(request(port, "$path/run").body)["revision"].asText()
-            val body = """{"baseRevision":"$revision","operations":[{"op":"insertRow","table":"vermietungsobjekte","rowText":{"id":"berlin","bezeichnung":"Berlin","mieten":"1.234,56","afa":"100,00","schuldzinsen":"20,00","sonstige-wk":"10,00"}}]}"""
-            val response = request(port, "$path/preview", "POST", headers = mapOf("X-Mantra-Token" to token), body = body.toByteArray())
+            val body = """
+                {
+                  "baseRevision": "$revision",
+                  "operations": [
+                    {
+                      "op": "insertRow",
+                      "table": "vermietungsobjekte",
+                      "rowText": {
+                        "id": "berlin",
+                        "bezeichnung": "Berlin",
+                        "mieten": "1.234,56",
+                        "afa": "100,00",
+                        "schuldzinsen": "20,00",
+                        "sonstige-wk": "10,00"
+                      }
+                    }
+                  ]
+                }
+            """.trimIndent()
+            val response =
+                request(
+                    port,
+                    "$path/preview",
+                    "POST",
+                    headers = mapOf("X-Mantra-Token" to token),
+                    body = body.toByteArray(),
+                )
             assertEquals(200, response.status, response.body)
             assertContains(response.body, "berlin")
             val invalid = body.replace("1.234,56", "1.234,xx")
-            assertEquals(422, request(port, "$path/preview", "POST", headers = mapOf("X-Mantra-Token" to token), body = invalid.toByteArray()).status)
+            assertEquals(
+                422,
+                request(
+                    port,
+                    "$path/preview",
+                    "POST",
+                    headers = mapOf("X-Mantra-Token" to token),
+                    body = invalid.toByteArray(),
+                ).status,
+            )
         }
     }
 
@@ -312,7 +428,9 @@ class WorkbenchServerTest {
         val sample = root.resolve("sample")
         Files.createDirectories(sample)
         Files.list(Path.of("apps/ifrs-impairment")).use { stream ->
-            stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, sample.resolve(it.fileName)) }
+            stream.filter {
+                it.fileName.toString().endsWith(".mantra")
+            }.forEach { Files.copy(it, sample.resolve(it.fileName)) }
         }
         val ui = temp.resolve("authoring-ui")
         Files.createDirectories(ui)
@@ -320,11 +438,11 @@ class WorkbenchServerTest {
         WorkbenchServer(root, 0, ui).use { server ->
             server.start()
             val port = server.localPort
-            val path = "/api/v1/cases/sample%2Fcase-ie8.mantra/authoring"
+            val path = "/api/v1/cases/sample%2Fcase-demo.mantra/authoring"
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(request(port, "/").body)!!.groupValues[1]
             val headers = mapOf("X-Mantra-Token" to token)
-            val caseFile = sample.resolve("case-ie8.mantra")
+            val caseFile = sample.resolve("case-demo.mantra")
             val original = Files.readString(caseFile)
             fun post(action: String, source: String, cursor: Int? = null): Response {
                 val target = """{"kind":"formulaSlot","id":"weighting"}"""
@@ -342,17 +460,29 @@ class WorkbenchServerTest {
             assertFalse(emptyItems.any { it["label"].asText() == "allocable-corporate" })
             val qualified = ObjectMapper().readTree(post("complete", "mantra/remaining-", 17).body)["data"]
             assertEquals("mantra/remaining-", qualified["query"].asText())
-            assertTrue(qualified["items"].any { it["label"].asText() == "mantra/remaining-life" &&
-                it["insertText"].asText() == "mantra/remaining-life" })
+            assertTrue(
+                qualified["items"].any {
+                    it["label"].asText() == "mantra/remaining-life" &&
+                        it["insertText"].asText() == "mantra/remaining-life"
+                },
+            )
             val hover = post("hover", "(* carrying-amount 2)", 8)
             assertEquals(200, hover.status, hover.body)
             assertEquals("carrying-amount", ObjectMapper().readTree(hover.body)["data"]["hover"]["symbol"].asText())
             val qualifiedHover = post("hover", "mantra/carrying-amount", 10)
-            assertEquals("mantra/carrying-amount", ObjectMapper().readTree(qualifiedHover.body)["data"]["hover"]["symbol"].asText())
-            val valid = post("check", "(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)")
+            assertEquals(
+                "mantra/carrying-amount",
+                ObjectMapper().readTree(qualifiedHover.body)["data"]["hover"]["symbol"].asText(),
+            )
+            val valid =
+                post("check", "(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)")
             assertEquals(200, valid.status, valid.body)
             assertTrue(ObjectMapper().readTree(valid.body)["data"]["valid"].asBoolean(), valid.body)
-            val qualifiedCheck = post("check", "(if weight-by-life (decimal/divide mantra/remaining-life (dim/min all.remaining-life) 4) 1)")
+            val qualifiedCheck =
+                post(
+                    "check",
+                    "(if weight-by-life (decimal/divide mantra/remaining-life (dim/min all.remaining-life) 4) 1)",
+                )
             assertTrue(ObjectMapper().readTree(qualifiedCheck.body)["data"]["valid"].asBoolean(), qualifiedCheck.body)
             val disallowed = post("check", "allocable-corporate")
             assertEquals(200, disallowed.status, disallowed.body)
@@ -365,8 +495,10 @@ class WorkbenchServerTest {
 
     @Test fun `export preview and downloads come from the selected layout and generated workbook`() {
         val root = workspace()
-        Files.writeString(root.resolve("sample/layout.mantra"),
-            "(layout test/export {:preset :de-staffel-4 :title \"Custom export\"} (table main))")
+        Files.writeString(
+            root.resolve("sample/layout.mantra"),
+            "(layout test/export {:preset :de-staffel-4 :title \"Custom export\"} (table main))",
+        )
         WorkbenchServer(root, 0).use { server ->
             server.start()
             val path = "/api/v1/cases/sample%2Fcase.mantra"
@@ -377,14 +509,22 @@ class WorkbenchServerTest {
             assertContains(preview.body, "\"formulaCells\"")
             assertContains(preview.body, "\"fallbacks\"")
             val sheet = Regex("\"selectedSheet\":\"([^\"]+)\"").find(preview.body)!!.groupValues[1]
-            val selected = request(server.localPort, "$path/export-preview?sheet=${java.net.URLEncoder.encode(sheet, Charsets.UTF_8)}")
+            val selected =
+                request(
+                    server.localPort,
+                    "$path/export-preview?sheet=${java.net.URLEncoder.encode(sheet, Charsets.UTF_8)}",
+                )
             assertEquals(200, selected.status, selected.body)
             assertEquals(404, request(server.localPort, "$path/export-preview?sheet=missing").status)
             assertEquals(400, request(server.localPort, "$path/export-preview?other=x").status)
             val changedLayout = request(server.localPort, "$path/export-preview?layout=test%2Fexport")
             assertEquals(200, changedLayout.status, changedLayout.body)
-            assertFalse(changedLayout.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"")
-                .find(preview.body)!!.value))
+            assertFalse(
+                changedLayout.body.contains(
+                    Regex("\"revision\":\"([a-f0-9]{16})\"")
+                        .find(preview.body)!!.value,
+                ),
+            )
             assertEquals(422, request(server.localPort, "$path/export-preview?layout=missing").status)
             val xlsx = request(server.localPort, "$path/export.xlsx")
             assertEquals(200, xlsx.status)
@@ -395,14 +535,23 @@ class WorkbenchServerTest {
                 val sheetNames = (0 until workbook.numberOfSheets).map(workbook::getSheetName)
                 assertEquals(previewData["sheets"].map { it["name"].asText() }, sheetNames)
                 assertEquals(previewData["report"]["names"].asInt(), workbook.allNames.size)
-                val formulaCells = workbook.sumOf { sheet -> sheet.sumOf { row -> row.count { it.cellType == CellType.FORMULA } } }
+                val formulaCells = workbook.sumOf { sheet ->
+                    sheet.sumOf { row ->
+                        row.count {
+                            it.cellType ==
+                                CellType.FORMULA
+                        }
+                    }
+                }
                 assertEquals(previewData["report"]["formulaCells"].asInt(), formulaCells)
                 val formula = workbook.asSequence().flatMap { sheet -> sheet.asSequence() }
                     .flatMap { row -> row.asSequence() }.first { it.cellType == CellType.FORMULA }
                 val formulaSheet = formula.sheet.sheetName
                 val formulaAddress = CellReference(formula.rowIndex, formula.columnIndex).formatAsString()
-                val formulaPreview = request(server.localPort,
-                    "$path/export-preview?sheet=${java.net.URLEncoder.encode(formulaSheet, Charsets.UTF_8)}")
+                val formulaPreview = request(
+                    server.localPort,
+                    "$path/export-preview?sheet=${java.net.URLEncoder.encode(formulaSheet, Charsets.UTF_8)}",
+                )
                 val previewCell = ObjectMapper().readTree(formulaPreview.body)["data"]["preview"]["cells"]
                     .first { it["address"].asText() == formulaAddress }
                 assertEquals(formula.cellFormula, previewCell["formula"].asText())
@@ -441,7 +590,9 @@ class WorkbenchServerTest {
             val response = request(server.localPort, "$path/export.xlsx")
             assertEquals(413, response.status, response.body)
             assertContains(response.body, "MANTRA-WORKBENCH-TOO-LARGE")
-            assertFalse(response.bytes.take(2).toByteArray().contentEquals(byteArrayOf('P'.code.toByte(), 'K'.code.toByte())))
+            assertFalse(
+                response.bytes.take(2).toByteArray().contentEquals(byteArrayOf('P'.code.toByte(), 'K'.code.toByte())),
+            )
         }
     }
 
@@ -466,7 +617,7 @@ class WorkbenchServerTest {
             server.start()
             for (id in listOf(
                 "de-est/case-mustermann.mantra",
-                "ifrs-impairment/case-ie8.mantra",
+                "ifrs-impairment/case-demo.mantra",
                 "cost-accounting/case-demo.mantra",
             )) {
                 val encoded = id.replace("/", "%2F")
@@ -505,7 +656,7 @@ class WorkbenchServerTest {
     @Test fun `explain resolves a dimensioned choice and its option difference`() {
         WorkbenchServer(Path.of("apps"), 0).use { server ->
             server.start()
-            val path = "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=recoverable-amount%40B"
+            val path = "/api/v1/cases/ifrs-impairment%2Fcase-demo.mantra/explain?address=recoverable-amount%40B"
             val response = request(server.localPort, path)
             assertEquals(200, response.status, response.body)
             validate("explain", response.body)
@@ -515,25 +666,32 @@ class WorkbenchServerTest {
             val nested = request(server.localPort, "$path&depth=2")
             assertEquals(200, nested.status, nested.body)
             validate("explain", nested.body)
-            val mapPath = "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=allocation-key%40B&depth=2"
+            val mapPath = "/api/v1/cases/ifrs-impairment%2Fcase-demo.mantra/explain?address=allocation-key%40B&depth=2"
             val mapReference = request(server.localPort, mapPath)
             assertEquals(200, mapReference.status, mapReference.body)
             validate("explain", mapReference.body)
             assertContains(mapReference.body, "\"node\":\"all.weighted-amount\"")
-            val directMap = request(server.localPort,
-                "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
+            val directMap = request(
+                server.localPort,
+                "/api/v1/cases/ifrs-impairment%2Fcase-demo.mantra/explain?address=all.weighted-amount",
+            )
             assertEquals(200, directMap.status, directMap.body)
             validate("explain", directMap.body)
             val mapper = ObjectMapper()
             val allReference = mapper.readTree(mapReference.body).path("data").path("references")
                 .first { it.path("address").path("node").asText() == "all.weighted-amount" }
-            assertEquals(allReference.path("value"), mapper.readTree(directMap.body).path("data").path("result").path("value"))
+            assertEquals(
+                allReference.path("value"),
+                mapper.readTree(directMap.body).path("data").path("result").path("value"),
+            )
         }
     }
 
     @Test fun `ordinary member-map references retain fixed dimension members`() {
         val root = workspace()
-        Files.writeString(root.resolve("sample/schema.mantra"), """
+        Files.writeString(
+            root.resolve("sample/schema.mantra"),
+            """
             (schema test/member-map {:mainline [summary]}
               (dimension area {:members [:A :B]})
               (dimension year {:members [:Y1 :Y2]})
@@ -541,7 +699,8 @@ class WorkbenchServerTest {
                 (line detail-value "Amount" (if (= year.key :Y1) 10 20)))
               (section summary "Summary" {:per area :panel true}
                 (line subtotal "Subtotal" (dim/sum detail-value))))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         Files.writeString(root.resolve("sample/case.mantra"), "(case one {:schema \"test/member-map\"})")
         WorkbenchServer(root, 0).use { server ->
             server.start()
@@ -554,33 +713,50 @@ class WorkbenchServerTest {
             assertEquals("all.detail-value", memberMap.path("address").path("node").asText())
             assertEquals("area=A", memberMap.path("address").path("coord")[0].asText())
             assertEquals(memberMap.path("value"), memberMap.path("explanation").path("result").path("value"))
-            val direct = request(server.localPort,
-                "/api/v1/cases/sample%2Fcase.mantra/explain?address=all.detail-value%40area%3DA")
+            val direct = request(
+                server.localPort,
+                "/api/v1/cases/sample%2Fcase.mantra/explain?address=all.detail-value%40area%3DA",
+            )
             assertEquals(200, direct.status, direct.body)
             validate("explain", direct.body)
-            assertEquals(memberMap.path("value"), ObjectMapper().readTree(direct.body).path("data").path("result").path("value"))
+            assertEquals(
+                memberMap.path("value"),
+                ObjectMapper().readTree(direct.body).path("data").path("result").path("value"),
+            )
         }
     }
 
     @Test fun `declared parameter and layout bindings affect documents and revisions`() {
         val root = workspace()
-        Files.writeString(root.resolve("sample/schema.mantra"), """
+        Files.writeString(
+            root.resolve("sample/schema.mantra"),
+            """
             (schema test/example {:title "Test" :mainline [main]}
               (param adjustment 1)
               (section main "Main" {:panel true}
                 (line adjusted "Adjusted" (+ base-value adjustment))
                 (total sum "Sum"))
               (input base-value :decimal))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/params.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/params.mantra"),
+            """
             (parameters test/variant {:for "test/example"}
               (values {:adjustment 3}))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/layout.mantra"), "(layout test/brief {:preset :de-staffel-4} (table main))")
-        Files.writeString(root.resolve("sample/case.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/layout.mantra"),
+            "(layout test/brief {:preset :de-staffel-4} (table main))",
+        )
+        Files.writeString(
+            root.resolve("sample/case.mantra"),
+            """
             (case one {:schema "test/example" :parameters ["test/variant"] :layout "test/brief"}
               (inputs {:base-value 12.5}))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         WorkbenchServer(root, 0).use { server ->
             server.start()
             val path = "/api/v1/cases/sample%2Fcase.mantra"
@@ -595,7 +771,10 @@ class WorkbenchServerTest {
             assertContains(parameters.body, "\"set\":\"test/variant\"")
             assertContains(parameters.body, "\"layer\":\"parameters\"")
             val oldRevision = Regex("\"revision\":\"([a-f0-9]{16})\"").find(before.body)!!.groupValues[1]
-            Files.writeString(root.resolve("sample/layout.mantra"), "(layout test/brief {:preset :de-staffel-4 :zero \"0\"} (table main))")
+            Files.writeString(
+                root.resolve("sample/layout.mantra"),
+                "(layout test/brief {:preset :de-staffel-4 :zero \"0\"} (table main))",
+            )
             val after = request(server.localPort, "$path/run")
             assertEquals(200, after.status, after.body)
             assertFalse(after.body.contains("\"revision\":\"$oldRevision\""))
@@ -604,26 +783,41 @@ class WorkbenchServerTest {
 
     @Test fun `compare calculates a variant without writing and validates its request`() {
         val root = workspace()
-        Files.writeString(root.resolve("sample/schema.mantra"), """
+        Files.writeString(
+            root.resolve("sample/schema.mantra"),
+            """
             (schema test/example {:title "Test" :mainline [main]}
               (param adjustment 1)
               (section main "Main" {:panel true}
                 (line adjusted "Adjusted" (+ base-value adjustment))
                 (total sum "Sum"))
               (input base-value :decimal))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/case.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/case.mantra"),
+            """
             (case one {:schema "test/example"} (inputs {:base-value 12.5}))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/other.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/other.mantra"),
+            """
             (case one {:schema "test/example" :layout "missing/layout"} (inputs {:base-value 20}))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/bad-binding.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/bad-binding.mantra"),
+            """
             (case one {:schema "test/example" :parameters "invalid"} (inputs {:base-value 20}))
-        """.trimIndent())
-        Files.writeString(root.resolve("sample/params.mantra"), """
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("sample/params.mantra"),
+            """
             (parameters test/variant {:for "test/example"} (values {:adjustment 3}))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         val before = Files.readString(root.resolve("sample/case.mantra"))
         val ui = temp.resolve("dist")
         Files.createDirectories(ui)
@@ -634,8 +828,13 @@ class WorkbenchServerTest {
             val token = Regex("content=\"([a-f0-9]{64})\"")
                 .find(request(port, "/").body)!!.groupValues[1]
             val path = "/api/v1/cases/sample%2Fcase.mantra/compare"
-            fun post(json: String) = request(port, path, "POST", headers = mapOf("X-Mantra-Token" to token),
-                body = json.toByteArray())
+            fun post(json: String) = request(
+                port,
+                path,
+                "POST",
+                headers = mapOf("X-Mantra-Token" to token),
+                body = json.toByteArray(),
+            )
             val variant = post("""{"variant":{"parameters":["test/variant"]}}""")
             assertEquals(200, variant.status, variant.body)
             validate("compare", variant.body)
@@ -647,12 +846,16 @@ class WorkbenchServerTest {
             assertContains(other.body, "\"case\":\"sample/other.mantra\"")
             assertEquals(200, post("""{"variant":{"case":"sample/bad-binding.mantra","parameters":[]}}""").status)
             assertFalse(other.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"").find(variant.body)!!.value))
-            for (invalid in listOf("{}", "{", """{"variant":{"parameters":[3]}}""",
-                    """{"variant":{"parameters":["missing"]}}""",
-                    """{"variant":{"case":"/sample/other.mantra"}}""",
-                    """{"variant":{"case":"sample/../sample/other.mantra"}}""",
-                    """{"variant":{"case":"sample/other.mantra","extra":1}}""",
-                    """{"variant":{"case":"sample/other.mantra","case":"sample/case.mantra"}}""")) {
+            for (invalid in listOf(
+                "{}",
+                "{",
+                """{"variant":{"parameters":[3]}}""",
+                """{"variant":{"parameters":["missing"]}}""",
+                """{"variant":{"case":"/sample/other.mantra"}}""",
+                """{"variant":{"case":"sample/../sample/other.mantra"}}""",
+                """{"variant":{"case":"sample/other.mantra","extra":1}}""",
+                """{"variant":{"case":"sample/other.mantra","case":"sample/case.mantra"}}""",
+            )) {
                 assertTrue(post(invalid).status in setOf(400, 422), invalid)
             }
             assertEquals(403, request(port, path, "POST", body = "{}".toByteArray()).status)
@@ -665,9 +868,12 @@ class WorkbenchServerTest {
         val ui = temp.resolve("repair-ui")
         Files.createDirectories(ui)
         Files.writeString(ui.resolve("index.html"), "<html><head></head><body></body></html>")
-        Files.writeString(root.resolve("sample/case.mantra"), """
+        Files.writeString(
+            root.resolve("sample/case.mantra"),
+            """
             (case one {:schema "test/example"} (sources (csv {:path "imports/data.csv"})) (inputs {:amount 12.5}))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         WorkbenchServer(root, 0, ui).use { server ->
             server.start()
             val workspace = request(server.localPort, "/api/v1/workspace")
@@ -682,8 +888,13 @@ class WorkbenchServerTest {
             val revision = ObjectMapper().readTree(sources.body)["revision"].asText()
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(request(server.localPort, "/").body)!!.groupValues[1]
-            val repair = request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/sources/remove", "POST",
-                headers = mapOf("X-Mantra-Token" to token), body = """{"baseRevision":"$revision","index":0}""".toByteArray())
+            val repair = request(
+                server.localPort,
+                "/api/v1/cases/sample%2Fcase.mantra/sources/remove",
+                "POST",
+                headers = mapOf("X-Mantra-Token" to token),
+                body = """{"baseRevision":"$revision","index":0}""".toByteArray(),
+            )
             assertEquals(200, repair.status, repair.body)
             assertContains(repair.body, "\"sources\":[]")
             assertEquals(200, request(server.localPort, "/api/v1/cases/sample%2Fcase.mantra/run").status)
@@ -704,15 +915,44 @@ class WorkbenchServerTest {
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(index.body)!!.groupValues[1]
             val headers = mapOf("X-Mantra-Token" to token)
-            val templateBody = """{"name":"payroll","format":"csv","options":{"mode":"wide","member-column":"Person","columns":{"Wage":"amount"}}}"""
-            val template = request(port, "/api/v1/import-templates", "POST", headers = headers, body = templateBody.toByteArray())
+            val templateBody = """
+                {
+                  "name": "payroll",
+                  "format": "csv",
+                  "options": {
+                    "mode": "wide",
+                    "member-column": "Person",
+                    "columns": {
+                      "Wage": "amount"
+                    }
+                  }
+                }
+            """.trimIndent()
+            val template =
+                request(port, "/api/v1/import-templates", "POST", headers = headers, body = templateBody.toByteArray())
             assertEquals(200, template.status, template.body)
-            assertContains(Files.readString(root.resolve("import-templates/payroll.json")), "\"member-column\":\"Person\"")
-            assertEquals(409, request(port, "/api/v1/import-templates", "POST", headers = headers, body = templateBody.toByteArray()).status)
+            assertContains(
+                Files.readString(root.resolve("import-templates/payroll.json")),
+                "\"member-column\":\"Person\"",
+            )
+            assertEquals(
+                409,
+                request(
+                    port,
+                    "/api/v1/import-templates",
+                    "POST",
+                    headers = headers,
+                    body = templateBody.toByteArray(),
+                ).status,
+            )
             assertContains(request(port, "/api/v1/import-templates").body, "\"name\":\"payroll\"")
             val route = "/api/v1/cases/sample%2Fcase.mantra/imports/"
-            val revision = ObjectMapper().readTree(request(port,
-                "/api/v1/cases/sample%2Fcase.mantra/structure").body)["revision"].asText()
+            val revision = ObjectMapper().readTree(
+                request(
+                    port,
+                    "/api/v1/cases/sample%2Fcase.mantra/structure",
+                ).body,
+            )["revision"].asText()
             val csv = "input;value\namount;13,5\n"
             val content = Base64.getEncoder().encodeToString(csv.toByteArray())
             val inspect = """{"name":"data.csv","format":"csv","contentBase64":"$content"}"""
@@ -720,12 +960,34 @@ class WorkbenchServerTest {
             assertEquals(200, preview.status, preview.body)
             assertContains(preview.body, "\"rowCount\":1")
             assertEquals("(case one {:schema \"test/example\"})", Files.readString(caseFile))
-            val invalidApply = """{"name":"data.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{"mode":"wide","member-column":"missing","columns":{"value":"amount"}}}"""
+            val invalidApply = """
+                {
+                  "name": "data.csv",
+                  "format": "csv",
+                  "contentBase64": "$content",
+                  "baseRevision": "$revision",
+                  "options": {
+                    "mode": "wide",
+                    "member-column": "missing",
+                    "columns": {
+                      "value": "amount"
+                    }
+                  }
+                }
+            """.trimIndent()
             val rejected = request(port, route + "apply", "POST", headers = headers, body = invalidApply.toByteArray())
             assertEquals(422, rejected.status, rejected.body)
             assertEquals("(case one {:schema \"test/example\"})", Files.readString(caseFile))
             assertTrue(Files.list(root.resolve("sample/imports")).use { it.findAny().isEmpty })
-            val apply = """{"name":"data.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{}}"""
+            val apply = """
+                {
+                  "name": "data.csv",
+                  "format": "csv",
+                  "contentBase64": "$content",
+                  "baseRevision": "$revision",
+                  "options": {}
+                }
+            """.trimIndent()
             val saved = request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray())
             assertEquals(200, saved.status, saved.body)
             assertContains(Files.readString(caseFile), "(csv {:path \"imports/")
@@ -733,9 +995,20 @@ class WorkbenchServerTest {
             assertEquals(200, run.status, run.body)
             assertContains(run.body, "\"origin\":\"source:csv:")
             assertContains(run.body, "\"n\":\"13.5\"")
-            assertEquals(409, request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray()).status)
-            assertEquals(400, request(port, route + "inspect", "POST", headers = headers,
-                body = inspect.replace(content, "not base64").toByteArray()).status)
+            assertEquals(
+                409,
+                request(port, route + "apply", "POST", headers = headers, body = apply.toByteArray()).status,
+            )
+            assertEquals(
+                400,
+                request(
+                    port,
+                    route + "inspect",
+                    "POST",
+                    headers = headers,
+                    body = inspect.replace(content, "not base64").toByteArray(),
+                ).status,
+            )
         }
     }
 
@@ -751,15 +1024,45 @@ class WorkbenchServerTest {
             val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
                 .find(request(port, "/").body)!!.groupValues[1]
             val route = "/api/v1/cases/sample%2Fcase.mantra/imports/"
-            val revision = ObjectMapper().readTree(request(port,
-                "/api/v1/cases/sample%2Fcase.mantra/structure").body)["revision"].asText()
+            val revision = ObjectMapper().readTree(
+                request(
+                    port,
+                    "/api/v1/cases/sample%2Fcase.mantra/structure",
+                ).body,
+            )["revision"].asText()
             val content = Base64.getEncoder().encodeToString("input,value\namount,0.12345\n".toByteArray())
-            val inspect = request(port, route + "inspect", "POST", headers = mapOf("X-Mantra-Token" to token),
-                body = """{"name":"english.csv","format":"csv","contentBase64":"$content"}""".toByteArray())
+            val inspect = request(
+                port,
+                route + "inspect",
+                "POST",
+                headers = mapOf("X-Mantra-Token" to token),
+                body = """{"name":"english.csv","format":"csv","contentBase64":"$content"}""".toByteArray(),
+            )
             assertEquals(200, inspect.status, inspect.body)
             assertContains(inspect.body, "\"decimal\":\".\"")
-            val apply = """{"name":"english.csv","format":"csv","contentBase64":"$content","baseRevision":"$revision","options":{"delimiter":",","decimal":".","grouping":","}}"""
-            assertEquals(200, request(port, route + "apply", "POST", headers = mapOf("X-Mantra-Token" to token), body = apply.toByteArray()).status)
+            val apply = """
+                {
+                  "name": "english.csv",
+                  "format": "csv",
+                  "contentBase64": "$content",
+                  "baseRevision": "$revision",
+                  "options": {
+                    "delimiter": ",",
+                    "decimal": ".",
+                    "grouping": ","
+                  }
+                }
+            """.trimIndent()
+            assertEquals(
+                200,
+                request(
+                    port,
+                    route + "apply",
+                    "POST",
+                    headers = mapOf("X-Mantra-Token" to token),
+                    body = apply.toByteArray(),
+                ).status,
+            )
             val run = request(port, "/api/v1/cases/sample%2Fcase.mantra/run")
             assertContains(run.body, "\"n\":\"0.12345\"")
             assertFalse(run.body.contains("\"n\":\"12345\""))

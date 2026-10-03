@@ -16,7 +16,10 @@ class CalculationCompareTest {
 
     @Test
     fun `compares member coordinates nonnumeric values and decimal scale exactly`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema app/compare {:mainline [panel]}
               (param factor 1.0)
               (input include-b :boolean {:default true})
@@ -26,11 +29,19 @@ class CalculationCompareTest {
                 (section panel "Panel" {:display :schedule :per member}
                   (line result "Result" (+ input-quantity factor))
                   (total total "Total"))))
-        """.trimIndent()), noIncludes)
+                """.trimIndent(),
+            ),
+            noIncludes,
+        )
         val baseCase = Mantra.loadCase(SourceText("base.mantra", "(case base (inputs {:input-quantity {:A 2 :B 3}}))"))
-        val variantCase = Mantra.loadCase(SourceText("variant.mantra", """
+        val variantCase = Mantra.loadCase(
+            SourceText(
+                "variant.mantra",
+                """
             (case variant (inputs {:input-quantity {:A 4 :B 3} :include-b false}) (params {:factor 1.00}))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val base = CalculationView.of(Mantra.calculate(schema, baseCase))
         val variant = CalculationView.of(Mantra.calculate(schema, variantCase))
         val diff = CalculationCompare.between(base, variant)

@@ -42,9 +42,10 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: workbench-ui/package-lock.json
-      - name: Architecture gate regression tests
-        run: python3 -m unittest discover -s scripts/tests
-      - name: JVM tests and application rendering
+      - name: Frontend dependencies
+        working-directory: workbench-ui
+        run: npm ci
+      - name: Quality gates, JVM tests and application rendering
         run: ./gradlew --no-daemon check :mantra-cli:installDist
       - name: All CLI commands
         run: scripts/smoke-cli.sh
@@ -54,14 +55,11 @@ jobs:
           python3 apps/de-est/verify_expected.py --year 2026 --verify-values apps/de-est/build/out/case-mustermann-params-2026-values.json
           python3 apps/de-est/verify_expected.py --verify-tax-free apps/de-est/build/out/case-single-tax-free-values.json
           python3 apps/de-est/verify_expected.py --verify-tax-free apps/de-est/build/out/case-single-tax-free-params-2026-values.json
-          python3 apps/ifrs-impairment/verify_expected.py --verify apps/ifrs-impairment/build/out/case-ie8-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --verify apps/ifrs-impairment/build/out/case-demo-values.json
           python3 apps/ifrs-impairment/verify_expected.py --case custom-weight --verify apps/ifrs-impairment/build/out/case-custom-weight-values.json
           python3 apps/ifrs-impairment/verify_expected.py --case no-impairment --verify apps/ifrs-impairment/build/out/case-no-impairment-values.json
           python3 apps/cost-accounting/verify_expected.py --verify apps/cost-accounting/build/out/case-demo-values.json
           python3 apps/cost-accounting/verify_expected.py --zero-pools --verify apps/cost-accounting/build/out/case-zero-pools-values.json
-      - name: Frontend dependencies
-        working-directory: workbench-ui
-        run: npm ci
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test
@@ -82,4 +80,5 @@ jobs:
             mantra-*/build/reports/tests/
             apps/*/build/reports/tests/
             apps/*/build/out/
+            benchmarks/build/reports/tests/
           if-no-files-found: ignore

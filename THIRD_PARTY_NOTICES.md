@@ -54,6 +54,9 @@ metadata; the installed packages retain their full upstream license texts.
 | [Testing Library React](https://github.com/testing-library/react-testing-library) | 16.3.2 | MIT | Component tests |
 | [jsdom](https://github.com/jsdom/jsdom) | 26.1.0 | MIT | Test DOM |
 | [DefinitelyTyped React / React DOM types](https://github.com/DefinitelyTyped/DefinitelyTyped) | 19.2.18 / 19.2.4 | MIT | Type checking |
+| [ESLint](https://github.com/eslint/eslint), [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint) | 10.12.0; 8.71.0 | MIT | Static checks |
+| [React Hooks ESLint plugin](https://github.com/facebook/react), [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier) | 7.1.1; 10.1.8 | MIT | Hook correctness and formatter compatibility |
+| [Prettier](https://github.com/prettier/prettier) | 3.9.9 | MIT | Source formatting |
 
 Test/build tooling has additional transitive packages recorded in `package-lock.json`. Before
 shipping a frontend or CLI distribution, inventory the actual bundled dependencies and include their
@@ -64,25 +67,24 @@ declared dependencies or resolved runtime versions change.
 
 ### IAS 36 impairment demonstration
 
-`apps/ifrs-impairment/case-ie8.mantra` uses numerical facts attributed to IAS 36 Illustrative
-Example 8, paragraphs IE69–IE79. The schema, case labels, tests and generated working papers refer
-to the same example. The original standard and illustrative material are owned by the IFRS Foundation.
+The current `apps/ifrs-impairment` application uses independently authored fictional facts and
+project-authored formulas, comments and presentation. The three cases, CSV input sample, expected
+values, generated golden papers and browser fixtures share those facts. They do not reproduce
+IAS 36 Illustrative Example 8. The pre-M0 dataset was replaced during the 2026-10-04 source review;
+historical commits and design notes may identify that former comparison.
 
-The repository contains a Mantra implementation and case data, rather than a bundled IFRS standard
-or PDF. This does not establish permission to publish every adapted label, example selection or
-rendered output. The Foundation's [intellectual-property policy](https://www.ifrs.org/legal/intellectual-property/)
-describes permission and licensing routes; its [website terms](https://www.ifrs.org/legal/terms-and-conditions/)
-reserve the rights in its content and include Illustrative Examples. Mantra's Apache license grants
-no rights in that underlying source material.
+The schema retains paragraph identifiers as references to IAS 36. The standard, its illustrative
+material and IFRS names retain their owners' rights; Mantra's license does not grant rights in them.
+No standard PDF, paragraph text, official logo or Foundation publication is included as an application
+resource. No written reproduction permission is recorded or claimed. Future copied source material
+requires a separate source and permission review under the Foundation's
+[intellectual-property policy](https://www.ifrs.org/legal/intellectual-property/) and
+[website terms](https://www.ifrs.org/legal/terms-and-conditions/).
 
-**Publication review remains open:** record the exact source edition and provenance of the IE8
-figures and wording, determine the applicable reproduction basis, and retain permission where needed
-or replace restricted example material with independently authored fictional facts and wording before
-a public distribution. No written reproduction permission is recorded in this repository.
-
-The independently authored custom-weight case and recomputation scripts verify Mantra's calculations;
-they do not themselves resolve source-material rights. The application is a demonstration and is not
-endorsed by the IFRS Foundation.
+The independent Fraction-arithmetic script verifies the fictional calculations and rounding.
+The application supplies recoverable amounts and implements only a simplified subset of the
+referenced accounting concepts. It is a demonstration, not an IFRS compliance product, and is
+not endorsed by the IFRS Foundation.
 
 ### German income-tax demonstration
 
@@ -104,4 +106,4 @@ do not imply that third-party trademarks are licensed by Mantra.
 - Keep fictional/generated fixtures distinct from adapted published examples.
 - Preserve upstream copyright, license and NOTICE files in distributions.
 - Recheck this inventory against actual resolved dependencies for each release.
-- Resolve the IAS 36 publication review before treating M0's open-source exit criteria as complete.
+- Keep the current impairment demonstration fictional; re-review provenance before adding published examples.

@@ -86,7 +86,9 @@ class SapCoProductCostTest {
             val entries = (row as Value.MapV).entries
             if (entries[Value.Kw("id")] == Value.Kw("O200")) {
                 Value.MapV(entries + (Value.Kw("product-id") to Value.Kw("missing")))
-            } else row
+            } else {
+                row
+            }
         }
         val invalid = Mantra.calculate(schema, case.copy(inputs = case.inputs + ("orders" to Value.Vec(rows))))
         assertFalse(invalid.succeeded)
@@ -96,9 +98,18 @@ class SapCoProductCostTest {
     @Test
     fun `a primary posting referring to an unknown order is rejected by the engine`() {
         val rows = (case.inputs.getValue("primary-postings") as Value.Vec).items.mapIndexed { index, row ->
-            if (index == 0) Value.MapV((row as Value.MapV).entries + (Value.Kw("order-id") to Value.Kw("missing"))) else row
+            if (index ==
+                0
+            ) {
+                Value.MapV((row as Value.MapV).entries + (Value.Kw("order-id") to Value.Kw("missing")))
+            } else {
+                row
+            }
         }
-        val invalid = Mantra.calculate(schema, case.copy(inputs = case.inputs + ("primary-postings" to Value.Vec(rows))))
+        val invalid = Mantra.calculate(
+            schema,
+            case.copy(inputs = case.inputs + ("primary-postings" to Value.Vec(rows))),
+        )
         assertFalse(invalid.succeeded)
         assertTrue(invalid.diagnostics.any { it.code == "MANTRA-INPUT-REFERENCE" && "missing" in it.message })
     }
@@ -126,14 +137,29 @@ class SapCoProductCostTest {
         val workbook = ExcelExport.workbook(result, Render.loadLayout(dir.resolve("layout.mantra")))
         assertEquals(emptyList(), workbook.report.fallbacks)
         assertEquals(emptyList(), workbook.report.evaluationErrors)
-        val varianceAddress = CellReference(workbook.address("product-variance", listOf("A")) ?: fail("no variance cell"))
-        val varianceCell = workbook.workbook.getSheet(varianceAddress.sheetName).getRow(varianceAddress.row).getCell(varianceAddress.col.toInt())
+        val varianceAddress =
+            CellReference(workbook.address("product-variance", listOf("A")) ?: fail("no variance cell"))
+        val varianceCell = workbook.workbook.getSheet(
+            varianceAddress.sheetName,
+        ).getRow(varianceAddress.row).getCell(varianceAddress.col.toInt())
         assertTrue(workbook.workbook.getFontAt(varianceCell.cellStyle.fontIndex).bold)
-        assertEquals(listOf(0xEE, 0xF3, 0xFA), varianceCell.cellStyle.fillForegroundColorColor.rgb.map { it.toInt() and 0xFF })
-        val relationCell = CellReference(workbook.recordAddress("order", "O200", "product-id") ?: fail("no product-id cell"))
-        workbook.workbook.getSheet(relationCell.sheetName).getRow(relationCell.row).getCell(relationCell.col.toInt()).setCellValue("A")
-        val actualCell = CellReference(workbook.address("product-actual-cost", listOf("A")) ?: fail("no product cost cell"))
-        val cell = workbook.workbook.getSheet(actualCell.sheetName).getRow(actualCell.row).getCell(actualCell.col.toInt())
+        assertEquals(
+            listOf(0xEE, 0xF3, 0xFA),
+            varianceCell.cellStyle.fillForegroundColorColor.rgb.map {
+                it.toInt() and
+                    0xFF
+            },
+        )
+        val relationCell =
+            CellReference(workbook.recordAddress("order", "O200", "product-id") ?: fail("no product-id cell"))
+        workbook.workbook.getSheet(
+            relationCell.sheetName,
+        ).getRow(relationCell.row).getCell(relationCell.col.toInt()).setCellValue("A")
+        val actualCell =
+            CellReference(workbook.address("product-actual-cost", listOf("A")) ?: fail("no product cost cell"))
+        val cell = workbook.workbook.getSheet(
+            actualCell.sheetName,
+        ).getRow(actualCell.row).getCell(actualCell.col.toInt())
         val evaluator = workbook.workbook.creationHelper.createFormulaEvaluator()
         evaluator.clearAllCachedResultValues()
         assertEquals(15100.0, evaluator.evaluate(cell).numberValue, 0.000001)
@@ -144,7 +170,8 @@ class SapCoProductCostTest {
         val workbook = ExcelExport.workbook(result, Render.loadLayout(dir.resolve("layout.mantra")))
         assertEquals(emptyList(), workbook.report.fallbacks)
         assertEquals(emptyList(), workbook.report.evaluationErrors)
-        val postingAddress = CellReference(workbook.tableAddress("primary-postings", 0, "amount") ?: fail("no posting amount cell"))
+        val postingAddress =
+            CellReference(workbook.tableAddress("primary-postings", 0, "amount") ?: fail("no posting amount cell"))
         workbook.workbook.getSheet(postingAddress.sheetName).getRow(postingAddress.row)
             .getCell(postingAddress.col.toInt()).setCellValue(4100.0)
         val evaluator = workbook.workbook.creationHelper.createFormulaEvaluator()

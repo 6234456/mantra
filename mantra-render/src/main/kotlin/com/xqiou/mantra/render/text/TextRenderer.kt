@@ -22,12 +22,26 @@ object TextRenderer {
             appendLine()
             appendLine(paper.texts.structure)
             paper.overview.forEach { step ->
-                appendLine("  ${paper.texts.mainline} ${step.step}: ${step.panel.title}${step.panel.tableRef?.let { " [$it]" }.orEmpty()}  ${step.panel.value}".trimEnd())
+                appendLine(
+                    "  ${paper.texts.mainline} ${step.step}: ${step.panel.title}${step.panel.tableRef?.let {
+                        " [$it]"
+                    }.orEmpty()}  ${step.panel.value}".trimEnd(),
+                )
                 step.branches.forEach { branch ->
-                    appendLine("      ↳ ${branch.title}${branch.tableRef?.let { " [$it]" }.orEmpty()}  ${branch.value}  ${branch.entry.orEmpty()}".trimEnd())
+                    appendLine(
+                        "      ↳ ${branch.title}${branch.tableRef?.let {
+                            " [$it]"
+                        }.orEmpty()}  ${branch.value}  ${branch.entry.orEmpty()}".trimEnd(),
+                    )
                 }
             }
-            paper.auxiliary.forEach { aux -> appendLine("  ${paper.texts.auxiliary}: ${aux.title}${aux.tableRef?.let { " [$it]" }.orEmpty()}  ${aux.value}".trimEnd()) }
+            paper.auxiliary.forEach { aux ->
+                appendLine(
+                    "  ${paper.texts.auxiliary}: ${aux.title}${aux.tableRef?.let {
+                        " [$it]"
+                    }.orEmpty()}  ${aux.value}".trimEnd(),
+                )
+            }
         }
         paper.tables.forEach { table ->
             appendLine()
@@ -57,7 +71,21 @@ object TextRenderer {
         val labelIndex = table.columns.indexOfFirst { it.content == ColumnContent.Label }
         val cells = table.rows.map { row ->
             row.cells.mapIndexed { index, cell ->
-                if (index == labelIndex) (" ".repeat(row.depth * INDENT) + cell).let { if (it.length > MAX_LABEL) it.take(MAX_LABEL - 1) + "…" else it } else cell
+                if (index ==
+                    labelIndex
+                ) {
+                    (" ".repeat(row.depth * INDENT) + cell).let {
+                        if (it.length >
+                            MAX_LABEL
+                        ) {
+                            it.take(MAX_LABEL - 1) + "…"
+                        } else {
+                            it
+                        }
+                    }
+                } else {
+                    cell
+                }
             }
         }
         val widths = table.columns.mapIndexed { index, column ->
@@ -73,11 +101,19 @@ object TextRenderer {
         appendLine(visible.joinToString("-+-") { "-".repeat(widths[it]) })
         table.rows.forEachIndexed { index, row ->
             if (row.kind == RowKind.TOTAL || row.kind == RowKind.RESULT || row.kind == RowKind.SUBTOTAL) {
-                appendLine(visible.joinToString("-+-") { i -> if (table.columns[i].content.numeric) "-".repeat(widths[i]) else " ".repeat(widths[i]) }.trimEnd())
+                appendLine(
+                    visible.joinToString("-+-") { i ->
+                        if (table.columns[i].content.numeric) "-".repeat(widths[i]) else " ".repeat(widths[i])
+                    }.trimEnd(),
+                )
             }
             appendLine(line(cells[index]))
             if (RowFlag.GRAND in row.flags) {
-                appendLine(visible.joinToString("=+=") { i -> if (table.columns[i].content.numeric) "=".repeat(widths[i]) else " ".repeat(widths[i]) }.trimEnd())
+                appendLine(
+                    visible.joinToString("=+=") { i ->
+                        if (table.columns[i].content.numeric) "=".repeat(widths[i]) else " ".repeat(widths[i])
+                    }.trimEnd(),
+                )
             }
         }
     }

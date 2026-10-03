@@ -30,10 +30,13 @@ class CalculationResult internal constructor(
 ) {
     /** Findings retained with detached coordinate lists. */
     val diagnostics: List<Diagnostic> = frozenList(diagnostics.map { it.copy(coord = frozenList(it.coord)) })
+
     /** Source-level trace captured for an Explain request, when requested. */
     val explainTrace: ExplainTrace? = explainTrace?.snapshot()
+
     /** Detached schema document retained for reproducing this calculation. */
     val schema: Schema = plan.schema.snapshot()
+
     /** Detached, read-only snapshot captured before the calculation is returned to its caller. */
     val view: CalculationView = CalculationView.fromResult(this)
     val case: CaseData get() = view.case

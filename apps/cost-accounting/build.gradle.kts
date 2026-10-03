@@ -8,7 +8,12 @@ dependencies {
 }
 
 tasks.named<Test>("test") {
-    inputs.files(fileTree(projectDir) { include("**/*.mantra"); exclude("build/**") })
+    inputs.files(
+        fileTree(projectDir) {
+            include("**/*.mantra")
+            exclude("build/**")
+        },
+    )
         .withPropertyName("mantraDocuments")
     outputs.dir(layout.buildDirectory.dir("out")).withPropertyName("renderedPapers")
 }

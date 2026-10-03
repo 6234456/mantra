@@ -1,4 +1,4 @@
 id;name;carrying-amount;remaining-life;value-in-use
-A;A;100;10;199
-B;B;150;20;164
-C;C;200;20;271
+A;North;120;6;180
+B;Central;180;12;210
+C;South;260;18;300

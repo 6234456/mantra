@@ -5,15 +5,17 @@ tax or accounting rules do not belong in the engine or workbench.
 
 ## Build and verification
 
-Use JDK 21, Git and Node.js 22.12 or newer. Bootstrap a clean Normein checkout at the commit in
+Use JDK 21, Git and Node.js 22.13 or newer. Bootstrap a clean Normein checkout at the commit in
 `normein-build.lock`; do not patch it as part of a Mantra change.
 
 ```bash
 NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
-./gradlew test
+npm --prefix workbench-ui ci
+./gradlew --no-daemon check
 ./gradlew :mantra-cli:installDist
+scripts/smoke-cli.sh
+python3 -m unittest discover -s scripts/tests
 cd workbench-ui
-npm ci
 npm test
 npm run build
 MANTRA_TEST_CHROME="/path/to/installed/chrome" npm run test:e2e
@@ -47,6 +49,11 @@ small documentation corrections do not need new tests.
 
 ## Style and documentation
 
+The root `check` task runs Spotless/ktlint, public-API and application-boundary checks, source-size
+checks and frontend format/lint/type checks alongside JVM tests. Install frontend dependencies first.
+Use `./gradlew --no-daemon spotlessApply` and `npm --prefix workbench-ui run format` to format sources.
+Handwritten Kotlin files are limited to 1,200 nonblank lines; TypeScript files allow 1,200
+nonblank, noncomment lines. Code lines use a 120-character target (literal strings and URLs are exempt where splitting changes meaning).
 Follow existing Kotlin and TypeScript conventions and the repository's format/check scripts. Prefer
 small functions with clear responsibilities. Explain non-obvious constraints, source references and
 intentional simplifications in comments. Use stable diagnostic codes and keep document locations useful.

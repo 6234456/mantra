@@ -53,7 +53,11 @@ object Mantra {
     }
 
     /** Compiles and orders the calculation; throws [MantraException] with all findings on error. */
-    internal fun plan(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationPlan {
+    internal fun plan(
+        schema: Schema,
+        case: CaseData = CaseData.empty(),
+        parameters: List<ParameterSet> = emptyList(),
+    ): CalculationPlan {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
@@ -61,15 +65,22 @@ object Mantra {
     }
 
     /** Compiles a schema without evaluating it and returns its read-only structure and metadata. */
-    fun inspect(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationView =
-        CalculationView.of(plan(schema, case, parameters))
+    fun inspect(
+        schema: Schema,
+        case: CaseData = CaseData.empty(),
+        parameters: List<ParameterSet> = emptyList(),
+    ): CalculationView = CalculationView.of(plan(schema, case, parameters))
 
     /**
      * Evaluates the schema for a case. Parameter values come from the schema, then the given
      * [parameters] sets (later sets win), then the case's own `(params …)`. Evaluation errors do not
      * throw: they are reported in [CalculationResult.diagnostics] so a partial paper can be rendered.
      */
-    fun calculate(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationResult {
+    fun calculate(
+        schema: Schema,
+        case: CaseData = CaseData.empty(),
+        parameters: List<ParameterSet> = emptyList(),
+    ): CalculationResult {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
@@ -79,8 +90,13 @@ object Mantra {
     internal fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).run()
 
     /** Recalculates one case while collecting a bounded FULL trace only for the requested value. */
-    fun calculateForExplain(schema: Schema, case: CaseData, parameters: List<ParameterSet>, node: String,
-                            coord: Coord = emptyList()): CalculationResult {
+    fun calculateForExplain(
+        schema: Schema,
+        case: CaseData,
+        parameters: List<ParameterSet>,
+        node: String,
+        coord: Coord = emptyList(),
+    ): CalculationResult {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
@@ -106,7 +122,8 @@ object FileSources : SourceResolver {
 class ClasspathSources(private val loader: ClassLoader = ClasspathSources::class.java.classLoader) : SourceResolver {
     fun read(resource: String): SourceText? {
         val normalized = resource.trimStart('/')
-        val text = loader.getResourceAsStream(normalized)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: return null
+        val text =
+            loader.getResourceAsStream(normalized)?.use { it.readBytes().toString(Charsets.UTF_8) } ?: return null
         return SourceText(normalized.substringAfterLast('/'), text, normalized.substringBeforeLast('/', ""))
     }
 

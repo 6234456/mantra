@@ -2,10 +2,27 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
 plugins {
     kotlin("jvm") version "2.2.20" apply false
+    id("com.diffplug.spotless") version "8.10.3"
+}
+
+// Pin formatters so local and CI output stays identical. Normein and build outputs are excluded.
+spotless {
+    kotlin {
+        target("mantra-*/src/**/*.kt", "apps/*/src/**/*.kt", "build-support/**/*.kt", "benchmarks/src/**/*.kt")
+        ktlint("1.7.1")
+    }
+    kotlinGradle {
+        target("*.gradle.kts", "mantra-*/build.gradle.kts", "apps/*/build.gradle.kts", "benchmarks/build.gradle.kts")
+        ktlint("1.7.1")
+    }
 }
 
 group = "com.xqiou.mantra"
 version = "0.1.0-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+}
 
 val normeinVersion: String = java.util.Properties().apply {
     file("normein-build.lock").inputStream().use { load(it) }
@@ -41,10 +58,12 @@ configure(subprojects.filter { it.path != ":apps" }) {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         workingDir = rootProject.projectDir
-        inputs.files(rootProject.fileTree("apps") {
-            include("**/*.mantra", "**/data/*.csv", "**/import-templates/*.json")
-            exclude("**/build/**")
-        }).withPropertyName("applicationDocuments")
+        inputs.files(
+            rootProject.fileTree("apps") {
+                include("**/*.mantra", "**/data/*.csv", "**/import-templates/*.json")
+                exclude("**/build/**")
+            },
+        ).withPropertyName("applicationDocuments")
         inputs.property("updateGolden", System.getenv("MANTRA_UPDATE_GOLDEN") ?: "0")
         if (project.path.startsWith(":apps:")) {
             systemProperty("mantra.appDir", project.projectDir.absolutePath)
@@ -72,15 +91,44 @@ val checkBoundaries by tasks.registering(Exec::class) {
                     check(!consumer.path.startsWith(":apps:") || target in libraryPaths) {
                         "${consumer.path}:${configuration.name} may depend only on library modules, found $target"
                     }
+                    check(consumer.path != ":benchmarks" || target in libraryPaths) {
+                        "${consumer.path}:${configuration.name} may depend only on library modules, found $target"
+                    }
                 }
             }
         }
     }
 }
 
-tasks.register("check") {
+val checkFrontend by tasks.registering(Exec::class) {
     group = "verification"
-    dependsOn(checkBoundaries)
+    description = "Checks frontend formatting, ESLint rules and generated TypeScript contracts (run npm ci first)."
+    workingDir = file("workbench-ui")
+    commandLine("npm", "run", "check")
+}
+
+val checkSourceSize by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Checks that handwritten Kotlin files stay within 1200 nonblank lines."
+    commandLine("python3", "scripts/check-source-size.py")
+}
+
+val checkBuildGates by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Runs regression tests for the architecture and quality gates."
+    commandLine("python3", "-m", "unittest", "discover", "-s", "scripts/tests")
+}
+
+val checkTestCounts by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Checks executed-test floors and failures in every module's JUnit reports."
+    dependsOn(subprojects.filter { it.path != ":apps" }.map { it.tasks.named("test") })
+    commandLine("python3", "scripts/check-test-counts.py")
+}
+
+tasks.named("check") {
+    group = "verification"
+    dependsOn(checkBoundaries, "spotlessCheck", checkFrontend, checkSourceSize, checkBuildGates, checkTestCounts)
     dependsOn(subprojects.filter { it.path != ":apps" }.map { it.tasks.named("check") })
 }
 

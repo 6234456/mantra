@@ -29,7 +29,7 @@ class ExcelExportTest {
         val result = Mantra.calculate(schema, Mantra.loadCase(base.resolve(case)))
         val layout = Render.loadLayout(base.resolve("layout.mantra"))
         val workbook = ExcelExport.workbook(result, layout)
-        val out = Path.of("apps/de-est/build/out/${dir}.xlsx")
+        val out = Path.of("apps/de-est/build/out/$dir.xlsx")
         workbook.write(out)
         return Triple(result, workbook, out)
     }
@@ -79,7 +79,10 @@ class ExcelExportTest {
         workbook.workbook.getSheet(ref.sheetName).getRow(ref.row).getCell(ref.col.toInt()).setCellValue(value)
     }
 
-    private fun withInput(case: CaseData, id: String, value: Value): CaseData = case.copy(inputs = case.inputs + (id to value))
+    private fun withInput(case: CaseData, id: String, value: Value): CaseData = case.copy(
+        inputs =
+        case.inputs + (id to value),
+    )
 
     @Test
     fun `income tax workbook is fully formula based and recalculates`() {
@@ -93,7 +96,12 @@ class ExcelExportTest {
         val changed = withInput(
             result.case,
             "bruttoarbeitslohn",
-            Value.MapV(mapOf(Value.Kw("A") to Value.Num(BigDecimal(91500)), Value.Kw("B") to Value.Num(BigDecimal(31200)))),
+            Value.MapV(
+                mapOf(
+                    Value.Kw("A") to Value.Num(BigDecimal(91500)),
+                    Value.Kw("B") to Value.Num(BigDecimal(31200)),
+                ),
+            ),
         )
         assertWorkbookMatches(Mantra.calculate(result.schema, changed), workbook)
     }

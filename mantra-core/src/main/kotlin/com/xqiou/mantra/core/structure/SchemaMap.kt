@@ -95,8 +95,8 @@ object SchemaMaps {
         val nodePanel = hashMapOf<String, String>()
         val sectionPanel = hashMapOf<String, String>()
 
-        fun isPanel(section: ResolvedSection): Boolean =
-            section.item.display == SectionDisplay.SCHEDULE || section.item.presentation.attributes["panel"] == Value.Bool(true)
+        fun isPanel(section: ResolvedSection): Boolean = section.item.display == SectionDisplay.SCHEDULE ||
+            section.item.presentation.attributes["panel"] == Value.Bool(true)
 
         fun walk(item: ResolvedItem, current: String?, topLevel: Boolean) {
             when (item) {
@@ -174,7 +174,14 @@ object SchemaMaps {
                         if (target in mainline) {
                             if (result.none { it.stepPanel == target }) {
                                 val consumer = via.first().toNode
-                                result += MainlineEntry(mainline.indexOf(target) + 1, target, consumer, label(consumer), path + target)
+                                result +=
+                                    MainlineEntry(
+                                        mainline.indexOf(target) + 1,
+                                        target,
+                                        consumer,
+                                        label(consumer),
+                                        path + target,
+                                    )
                             }
                         } else if (seen.add(target)) {
                             next += path + target
@@ -223,9 +230,14 @@ object SchemaMaps {
                 dims = rp.section.dims,
                 parentId = rp.parent,
                 resultId = rp.section.resultId,
-                fields = nodePanel.filter { (node, panel) -> panel == id && plan.valueVertices[node] is InputVertex }.keys.toList() +
+                fields =
+                nodePanel.filter { (node, panel) ->
+                    panel == id && plan.valueVertices[node] is InputVertex
+                }.keys.toList() +
                     homeInputs.filterValues { it == id }.keys,
-                nodes = nodePanel.filter { (node, panel) -> panel == id && plan.valueVertices[node] !is InputVertex }.keys.toList(),
+                nodes = nodePanel.filter { (node, panel) ->
+                    panel == id && plan.valueVertices[node] !is InputVertex
+                }.keys.toList(),
                 imports = flows.filter { it.toPanel == id },
                 exports = flows.filter { it.fromPanel == id },
                 entries = entries,

@@ -10,9 +10,15 @@ import com.xqiou.mantra.render.layout.LayoutSpec
  * named input and parameter cells, so the workbook recalculates when inputs change.
  */
 object ExcelExport {
-    fun workbook(result: CalculationResult, layout: LayoutSpec = Render.defaultLayout(result), options: ExcelOptions = ExcelOptions()): ExcelWorkbook =
-        workbook(CalculationView.of(result), layout, options)
+    fun workbook(
+        result: CalculationResult,
+        layout: LayoutSpec = Render.defaultLayout(result),
+        options: ExcelOptions = ExcelOptions(),
+    ): ExcelWorkbook = workbook(CalculationView.of(result), layout, options)
 
-    fun workbook(view: CalculationView, layout: LayoutSpec = Render.defaultLayout(view), options: ExcelOptions = ExcelOptions()): ExcelWorkbook =
-        ExcelWorkbookBuilder(view, layout, options).build()
+    fun workbook(
+        view: CalculationView,
+        layout: LayoutSpec = Render.defaultLayout(view),
+        options: ExcelOptions = ExcelOptions(),
+    ): ExcelWorkbook = ExcelWorkbookBuilder(view, layout, options).build()
 }

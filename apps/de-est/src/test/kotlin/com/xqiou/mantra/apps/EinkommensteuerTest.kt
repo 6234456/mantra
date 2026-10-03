@@ -1,9 +1,9 @@
 package com.xqiou.mantra.apps
 
 import com.xqiou.mantra.core.Mantra
-import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceText
+import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.render.Render
 import java.math.BigDecimal
 import java.nio.file.Files
@@ -22,8 +22,11 @@ class EinkommensteuerTest {
     private val schema = Mantra.loadSchema(dir.resolve("schema.mantra"))
     private val result = Mantra.calculate(schema, Mantra.loadCase(dir.resolve("case-mustermann.mantra")))
 
-    private fun assertAmount(expected: String, id: String, vararg coord: String) =
-        assertEquals(0, BigDecimal(expected).compareTo(result.decimal(id, *coord)), "$id${coord.toList()} = ${result.decimal(id, *coord).toPlainString()}")
+    private fun assertAmount(expected: String, id: String, vararg coord: String) = assertEquals(
+        0,
+        BigDecimal(expected).compareTo(result.decimal(id, *coord)),
+        "$id${coord.toList()} = ${result.decimal(id, *coord).toPlainString()}",
+    )
 
     @Test
     fun `computes the joint assessment including Guenstigerpruefung`() {
@@ -70,8 +73,11 @@ class EinkommensteuerTest {
         val tarif = result2026.node("tarif-gfb")
         assertEquals("de.est/params-2026", tarif.parameterSource)
         // Expected values: apps/de-est/verify_expected.py (parameters 2026).
-        fun amount(expected: String, id: String) =
-            assertEquals(0, BigDecimal(expected).compareTo(result2026.decimal(id)), "$id = ${result2026.decimal(id).toPlainString()}")
+        fun amount(expected: String, id: String) = assertEquals(
+            0,
+            BigDecimal(expected).compareTo(result2026.decimal(id)),
+            "$id = ${result2026.decimal(id).toPlainString()}",
+        )
         amount("18618", "est-ohne-kfb")
         amount("15396", "est-mit-kfb")
         amount("83061.90", "zu-versteuerndes-einkommen")
@@ -79,7 +85,11 @@ class EinkommensteuerTest {
         amount("1319.04", "kirchensteuer")
         amount("1205.04", "abrechnungsergebnis")
         // A case-level override still wins over the parameter set.
-        val overridden = Mantra.calculate(schema, result.case.copy(params = mapOf("kindergeld-monat" to Value.num(300))), listOf(params))
+        val overridden = Mantra.calculate(
+            schema,
+            result.case.copy(params = mapOf("kindergeld-monat" to Value.num(300))),
+            listOf(params),
+        )
         assertEquals("case", overridden.node("kindergeld-monat").parameterSource)
     }
 
@@ -107,9 +117,9 @@ class EinkommensteuerTest {
         assertTrue(tariff.succeeded, tariff.diagnostics.joinToString("\n"))
         fun t(id: String) = tariff.decimal(id).toBigInteger().toInt()
         assertEquals(0, t("t1"))
-        assertEquals(1015, t("t2"))   // (932,30 · 0,5347 + 1.400) · 0,5347 = 1.015,13 → 1.015
+        assertEquals(1015, t("t2")) // (932,30 · 0,5347 + 1.400) · 0,5347 = 1.015,13 → 1.015
         assertEquals(7320, t("t3"))
-        assertEquals(17849, t("t4"))  // Zone 3: (176,64 · 5,1037 + 2.397) · 5,1037 + 1.015,13 = 17.849,77
+        assertEquals(17849, t("t4")) // Zone 3: (176,64 · 5,1037 + 2.397) · 5,1037 + 1.015,13 = 17.849,77
         assertEquals(115753, t("t5")) // 0,45 · 300.000 − 19.246,67 = 115.753,33
         assertEquals(2 * 7320, t("s1"))
     }

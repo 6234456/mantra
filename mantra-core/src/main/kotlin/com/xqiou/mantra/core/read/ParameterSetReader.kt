@@ -34,7 +34,11 @@ object ParameterSetReader {
         val document = Document.read(source, sink) ?: return null
         val root = document.root as? DslForm.Sequence
         if (root == null || root.listHead != "parameters") {
-            sink.error("MANTRA-PARAMETERS-ROOT", "A parameter set must start with (parameters <id> ...)", document.location(document.root))
+            sink.error(
+                "MANTRA-PARAMETERS-ROOT",
+                "A parameter set must start with (parameters <id> ...)",
+                document.location(document.root),
+            )
             return null
         }
         val id = root.values.getOrNull(1)?.let { it.symbol ?: it.string } ?: run {
@@ -52,7 +56,11 @@ object ParameterSetReader {
         val values = linkedMapOf<String, Value>()
         val references = linkedMapOf<String, String>()
         fun put(key: String, value: Value, at: DslForm) {
-            if (values.put(key, value) != null) sink.error("MANTRA-PARAMETERS-DUPLICATE", "Parameter $key is set twice", document.location(at))
+            if (values.put(key, value) !=
+                null
+            ) {
+                sink.error("MANTRA-PARAMETERS-DUPLICATE", "Parameter $key is set twice", document.location(at))
+            }
         }
         root.values.drop(index).forEach { form ->
             val list = form as? DslForm.Sequence
@@ -66,13 +74,24 @@ object ParameterSetReader {
                     val key = list.values.getOrNull(1)?.symbol
                     val valueForm = list.values.getOrNull(2)
                     if (key == null || valueForm == null) {
-                        sink.error("MANTRA-PARAMETERS-VALUE", "(value <param-id> <literal> {:reference …}?) is malformed", document.location(list))
+                        sink.error(
+                            "MANTRA-PARAMETERS-VALUE",
+                            "(value <param-id> <literal> {:reference …}?) is malformed",
+                            document.location(list),
+                        )
                     } else {
                         document.literal(valueForm, sink, "parameter $key")?.let { put(key, it, valueForm) }
-                        document.options(list.values.getOrNull(3), sink, "value $key")["reference"]?.string?.let { references[key] = it }
+                        document.options(list.values.getOrNull(3), sink, "value $key")["reference"]?.string?.let {
+                            references[key] =
+                                it
+                        }
                     }
                 }
-                else -> sink.error("MANTRA-PARAMETERS-FORM", "Unknown form in parameter set: `${document.slice(form).take(60)}`", document.location(form))
+                else -> sink.error(
+                    "MANTRA-PARAMETERS-FORM",
+                    "Unknown form in parameter set: `${document.slice(form).take(60)}`",
+                    document.location(form),
+                )
             }
         }
         return ParameterSet(id, meta, values, references, document.location(root))

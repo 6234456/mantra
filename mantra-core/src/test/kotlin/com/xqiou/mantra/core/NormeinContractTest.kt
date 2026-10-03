@@ -61,12 +61,18 @@ import kotlin.test.assertIs
 /** Contract of the pinned Normein kernel APIs Mantra relies on (form reader, typed roots, records, libraries). */
 class NormeinContractTest {
     private val hash = "a".repeat(64)
-    private val artifact = DslArtifactIdentity("application-code:mantra-spike", hash, hash, hash, "spike", listOf("mantra.spike"))
+    private val artifact =
+        DslArtifactIdentity("application-code:mantra-spike", hash, hash, hash, "spike", listOf("mantra.spike"))
 
     private val doubleFn = DslFunctionSpec(
         name = "spike/double",
         semanticsVersion = "1",
-        signatures = listOf(DslFunctionSignature(parameters = listOf(DslParameterType("x", DslType.Decimal)), returnType = DslType.Decimal)),
+        signatures = listOf(
+            DslFunctionSignature(
+                parameters = listOf(DslParameterType("x", DslType.Decimal)),
+                returnType = DslType.Decimal,
+            ),
+        ),
         evaluationStrategy = DslEvaluationStrategy.EAGER,
         providerId = "mantra.spike",
         handler = dslFunctionHandler { args, _, _ ->
@@ -78,36 +84,59 @@ class NormeinContractTest {
             }
             DslFunctionResult.Value(DslValues.decimal(x.multiply(BigDecimal(2))))
         },
-        documentation = DslFunctionDocumentation(category = "spike", summary = "Doubles a number.", classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY),
+        documentation = DslFunctionDocumentation(
+            category = "spike",
+            summary = "Doubles a number.",
+            classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
+        ),
     )
 
     private val environment: DslEnvironment = run {
         val library = DslLibraryDescriptor(
             id = "mantra.spike",
             semanticsVersion = "1",
-            dependencies = setOf(DslLibraryRequirement(NormeinStandardLibraries.EXTENSION_LIBRARY_ID, NormeinStandardLibraries.LIBRARY_SEMANTICS_VERSION)),
+            dependencies = setOf(
+                DslLibraryRequirement(
+                    NormeinStandardLibraries.EXTENSION_LIBRARY_ID,
+                    NormeinStandardLibraries.LIBRARY_SEMANTICS_VERSION,
+                ),
+            ),
             environmentTags = setOf("pure"),
             functions = listOf(doubleFn),
             providers = listOf(
-                DslProviderManifestEntry("mantra.spike", artifact, DslProviderReproducibility.FIRST_PARTY_REVIEWED, DslProviderConcurrency.THREAD_SAFE, listOf(doubleFn.identity), null),
+                DslProviderManifestEntry(
+                    "mantra.spike",
+                    artifact,
+                    DslProviderReproducibility.FIRST_PARTY_REVIEWED,
+                    DslProviderConcurrency.THREAD_SAFE,
+                    listOf(doubleFn.identity),
+                    null,
+                ),
             ),
             artifact = artifact,
         )
         val base = NormeinStandardLibraries.language
         val language = base.copy(
             surfaceManifest = base.surfaceManifest.copy(
-                entries = (base.surfaceManifest.entries + DslLanguageSurfaceEntry(
-                    surfaceId = "function:mantra:spike/double",
-                    sourceName = "spike/double",
-                    kind = DslLanguageSurfaceKind.FUNCTION,
-                    classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
-                    arities = listOf(DslArityShape.Fixed(1)),
-                    evaluationStrategy = DslEvaluationStrategy.EAGER,
-                    status = DslLanguageSurfaceStatus.SUPPORTED,
-                )).sortedBy { it.surfaceId },
+                entries = (
+                    base.surfaceManifest.entries + DslLanguageSurfaceEntry(
+                        surfaceId = "function:mantra:spike/double",
+                        sourceName = "spike/double",
+                        kind = DslLanguageSurfaceKind.FUNCTION,
+                        classification = DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
+                        arities = listOf(DslArityShape.Fixed(1)),
+                        evaluationStrategy = DslEvaluationStrategy.EAGER,
+                        status = DslLanguageSurfaceStatus.SUPPORTED,
+                    )
+                    ).sortedBy { it.surfaceId },
             ),
         )
-        val built = DslEnvironmentBuilder.create("mantra.spike", "1", language, NormeinStandardLibraries.pureExecutionProfile)
+        val built = DslEnvironmentBuilder.create(
+            "mantra.spike",
+            "1",
+            language,
+            NormeinStandardLibraries.pureExecutionProfile,
+        )
             .addAll(NormeinStandardLibraries.descriptors)
             .add(library)
             .build()
@@ -128,14 +157,24 @@ class NormeinContractTest {
         (DslNames.normalize("person", DslNameCategory.TYPE_COMPONENT) as DslNameResult.Valid).name,
     )
     private val personDefinition = com.xqiou.normein.dsl.type.DslTypeDefinition(personTypeId, personType)
-    private val typeSchema = (com.xqiou.normein.dsl.type.DslTypeSchema.create(listOf(personDefinition)) as com.xqiou.normein.dsl.type.DslTypeSchemaResult.Success).schema
+    private val typeSchema = (
+        com.xqiou.normein.dsl.type.DslTypeSchema.create(
+            listOf(personDefinition),
+        ) as com.xqiou.normein.dsl.type.DslTypeSchemaResult.Success
+        ).schema
 
     private val scope: DslAnalysisScope = assertIs<DslAnalysisScopeBuildResult.Success>(
         DslAnalysisScopeBuilder.create("mantra.spike.scope", "1")
             .type(personDefinition)
             .root(DslRootDeclaration("bruttolohn", DslType.Decimal, DslFieldPresence.OPTIONAL))
             .root(DslRootDeclaration("werbungskosten", DslType.Decimal, DslFieldPresence.OPTIONAL))
-            .root(DslRootDeclaration("per-person", DslTypes.map(DslType.Keyword, DslType.Decimal), DslFieldPresence.OPTIONAL))
+            .root(
+                DslRootDeclaration(
+                    "per-person",
+                    DslTypes.map(DslType.Keyword, DslType.Decimal),
+                    DslFieldPresence.OPTIONAL,
+                ),
+            )
             .root(DslRootDeclaration("person", DslTypes.ref(personTypeId), DslFieldPresence.OPTIONAL))
             .build(),
     ).scope
@@ -143,17 +182,24 @@ class NormeinContractTest {
     private fun compile(source: String, definitions: List<DslNamedDefinition> = emptyList()) =
         DslSemanticCompiler().compile(DslCompileRequest(source, namedDefinitions = definitions), environment, scope)
 
-    private fun eval(source: String, roots: Map<String, DslValue>, definitions: List<DslNamedDefinition> = emptyList()): DslValue {
+    private fun eval(
+        source: String,
+        roots: Map<String, DslValue>,
+        definitions: List<DslNamedDefinition> = emptyList(),
+    ): DslValue {
         val compiled = compile(source, definitions)
         val expression = assertIs<DslCompileResult.Success>(compiled, compiled.toString()).expression
         val outcome = DslEvaluationEngine().evaluate(
             DslEvaluationRequest(
-                expression, environment,
+                expression,
+                environment,
                 DslEvaluationInput(
                     roots = roots.map { (k, v) -> DslInputRootCandidate(k, DslInputCandidate.ControlledValue(v)) },
                     bindings = emptyList(),
                     inputIdentity = DslInputIdentity(
-                        locator = assertIs<DslInputLocatorResult.Success>(DslInputLocators.create("mantra", "spike", "case")).locator,
+                        locator = assertIs<DslInputLocatorResult.Success>(
+                            DslInputLocators.create("mantra", "spike", "case"),
+                        ).locator,
                         snapshotVersion = "1",
                         fingerprintAuthority = DslFingerprintAuthority.KERNEL,
                         fingerprintAlgorithm = DslFingerprintAlgorithm.NORMEIN_CANONICAL_SHA_256_V1,
@@ -170,16 +216,32 @@ class NormeinContractTest {
 
     @Test
     fun `decimal arithmetic and required roots`() {
-        val compiled = assertIs<DslCompileResult.Success>(compile("(- bruttolohn (max werbungskosten 1230))")).expression
+        val compiled = assertIs<DslCompileResult.Success>(
+            compile("(- bruttolohn (max werbungskosten 1230))"),
+        ).expression
         assertEquals(setOf("bruttolohn", "werbungskosten"), compiled.requiredRoots.keys)
-        val value = eval("(- bruttolohn (max werbungskosten 1230))", mapOf("bruttolohn" to dec("60000.00"), "werbungskosten" to dec("800.00")))
+        val value = eval(
+            "(- bruttolohn (max werbungskosten 1230))",
+            mapOf(
+                "bruttolohn" to dec("60000.00"),
+                "werbungskosten" to dec("800.00"),
+            ),
+        )
         assertEquals(BigDecimal("58770.00"), (value as DslValue.DecimalValue).value)
     }
 
     @Test
     fun `keyword maps and object roots`() {
-        val map = DslValues.map(listOf(DslValues.keyword(null, "A") to dec("10"), DslValues.keyword(null, "B") to dec("32.5")))
-        assertEquals(BigDecimal("42.5"), (eval("(sum (vals per-person))", mapOf("per-person" to map)) as DslValue.DecimalValue).value)
+        val map = DslValues.map(
+            listOf(
+                DslValues.keyword(null, "A") to dec("10"),
+                DslValues.keyword(null, "B") to dec("32.5"),
+            ),
+        )
+        assertEquals(
+            BigDecimal("42.5"),
+            (eval("(sum (vals per-person))", mapOf("per-person" to map)) as DslValue.DecimalValue).value,
+        )
         val imported = DslValues.importStructuredHost(
             mapOf("key" to DslValues.keyword(null, "B"), "label" to "Person B"),
             DslTypes.ref(personTypeId),
@@ -196,7 +258,10 @@ class NormeinContractTest {
     fun `domain function and named definitions`() {
         assertEquals(BigDecimal("21.0"), (eval("(spike/double 10.5)", emptyMap()) as DslValue.DecimalValue).value)
         val defs = listOf(DslNamedDefinition("halve", "(defn halve [^Decimal x] (/ x 2))"))
-        assertEquals(BigDecimal("5"), (eval("(halve 10)", emptyMap(), defs) as DslValue.IntegerValue).value.toBigDecimal())
+        assertEquals(
+            BigDecimal("5"),
+            (eval("(halve 10)", emptyMap(), defs) as DslValue.IntegerValue).value.toBigDecimal(),
+        )
     }
 
     @Test
@@ -212,7 +277,11 @@ class NormeinContractTest {
         fun walk(form: DslForm) {
             when (form) {
                 is DslForm.Atom -> kinds += "${form.kind}:${form.sourceText}"
-                is DslForm.Sequence -> { kinds += "${form.kind}("; form.values.forEach(::walk); kinds += ")" }
+                is DslForm.Sequence -> {
+                    kinds += "${form.kind}("
+                    form.values.forEach(::walk)
+                    kinds += ")"
+                }
                 is DslForm.Postfix -> kinds += "POSTFIX:${source.substring(form.span.startOffset, form.span.endOffset)}"
             }
         }

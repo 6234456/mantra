@@ -57,8 +57,13 @@ object Ex {
 
     fun paren(x: X.Scalar, min: Int): String = if (x.prec < min) "(${x.text})" else x.text
 
-    fun fn(name: String, args: List<X.Scalar>, kind: XKind = XKind.NUM) =
-        X.Scalar("$name(" + args.joinToString(",") { it.text } + ")", ATOM, kind)
+    fun fn(name: String, args: List<X.Scalar>, kind: XKind = XKind.NUM) = X.Scalar(
+        "$name(" + args.joinToString(",") {
+            it.text
+        } + ")",
+        ATOM,
+        kind,
+    )
 
     fun fn(name: String, vararg args: X.Scalar, kind: XKind = XKind.NUM) = fn(name, args.toList(), kind)
 
@@ -67,7 +72,12 @@ object Ex {
         X.Scalar(paren(a, prec) + op + paren(b, prec + 1), prec, kind)
 
     fun chain(op: String, items: List<X.Scalar>, prec: Int, kind: XKind = XKind.NUM): X.Scalar =
-        items.drop(1).fold(items.first()) { acc, item -> bin(op, acc, item, prec, kind) }
+        items.drop(1).fold(items.first()) {
+                acc,
+                item,
+            ->
+            bin(op, acc, item, prec, kind)
+        }
 
     fun add(a: X.Scalar, b: X.Scalar) = bin("+", a, b, ADD)
     fun sub(a: X.Scalar, b: X.Scalar) = bin("-", a, b, ADD)
@@ -75,11 +85,29 @@ object Ex {
     fun div(a: X.Scalar, b: X.Scalar) = bin("/", a, b, MUL)
     fun neg(a: X.Scalar) = X.Scalar("-" + paren(a, UNARY), UNARY, XKind.NUM)
     fun cmp(op: String, a: X.Scalar, b: X.Scalar) = bin(op, a, b, CMP, XKind.BOOL)
-    fun iff(c: X.Scalar, a: X.Scalar, b: X.Scalar) = fn("IF", c, a, b, kind = if (a.kind == b.kind) a.kind else XKind.ANY)
+    fun iff(c: X.Scalar, a: X.Scalar, b: X.Scalar) = fn(
+        "IF",
+        c,
+        a,
+        b,
+        kind = if (a.kind ==
+            b.kind
+        ) {
+            a.kind
+        } else {
+            XKind.ANY
+        },
+    )
 
     fun pow10(scale: X.Scalar): X.Scalar {
         val literal = scale.text.toBigDecimalOrNull()
-        return if (literal != null) num(BigDecimal.ONE.movePointRight(literal.intValueExact())) else bin("^", atom("10"), scale, POW)
+        return if (literal !=
+            null
+        ) {
+            num(BigDecimal.ONE.movePointRight(literal.intValueExact()))
+        } else {
+            bin("^", atom("10"), scale, POW)
+        }
     }
 
     private fun isZero(x: X.Scalar) = x.text.toBigDecimalOrNull()?.signum() == 0
@@ -98,7 +126,13 @@ object Ex {
             RoundingMode.HALF_EVEN, RoundingMode.HALF_DOWN -> {
                 val s = scaled(x)
                 val tie = cmp("=", fn("ABS", sub(s, fn("TRUNC", s))), atom("0.5"))
-                val alternative = if (mode == RoundingMode.HALF_EVEN) mul(num(2), fn("ROUND", div(s, num(2)), ZERO)) else fn("TRUNC", s)
+                val alternative = if (mode ==
+                    RoundingMode.HALF_EVEN
+                ) {
+                    mul(num(2), fn("ROUND", div(s, num(2)), ZERO))
+                } else {
+                    fn("TRUNC", s)
+                }
                 unscaled(iff(tie, alternative, fn("ROUND", s, ZERO)))
             }
             RoundingMode.UNNECESSARY -> x

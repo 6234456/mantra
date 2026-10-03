@@ -7,10 +7,16 @@ export function nodeValue(run: Run, node?: string | null, coord = ''): string | 
 }
 
 /** WorkingPaperBuilder appends the member coordinates to each row audit anchor. */
-export function auditForCell(paper: Paper | undefined, rows: PaperRow[] | undefined, address: Address | undefined): AuditEntry | undefined {
+export function auditForCell(
+  paper: Paper | undefined,
+  rows: PaperRow[] | undefined,
+  address: Address | undefined,
+): AuditEntry | undefined {
   if (!paper || !rows || !address) return undefined
-  const row = rows.find(item => item.cells.some(cell => cell.address && addressKey(cell.address) === addressKey(address)))
+  const row = rows.find((item) =>
+    item.cells.some((cell) => cell.address && addressKey(cell.address) === addressKey(address)),
+  )
   if (!row?.anchor) return undefined
   const anchor = address.coord?.length ? `${row.anchor}-${address.coord.join('-')}` : row.anchor
-  return paper.audit.find(entry => entry.anchor === anchor)
+  return paper.audit.find((entry) => entry.anchor === anchor)
 }

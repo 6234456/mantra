@@ -45,12 +45,8 @@ enum class NodeKind { INPUT, PARAM, LINE, TOTAL, CHOICE, FORMULA_SLOT, EXTENSION
 sealed interface ViewItem
 
 /** A resolved section whose children preserve schema order and case extensions. */
-class ViewSection(
-    val item: SectionItem,
-    val dims: List<String>,
-    val children: List<ViewItem>,
-    val resultId: String?,
-) : ViewItem {
+class ViewSection(val item: SectionItem, val dims: List<String>, val children: List<ViewItem>, val resultId: String?) :
+    ViewItem {
     val id: String get() = item.id
     val label: String get() = item.label
 }
@@ -65,6 +61,7 @@ class ViewNote(val item: NoteItem) : ViewItem
 
 /** Source formula and dimension context of an inherited section condition. */
 data class ViewCondition(val id: String, val sectionId: String, val dims: List<String>, val formula: Formula)
+
 /** A referenced node and its sign in a running total. */
 data class ViewComponent(val vertexId: String, val sign: Int)
 
@@ -144,10 +141,11 @@ class CalculationView private constructor(
     companion object {
         internal fun of(plan: com.xqiou.mantra.core.engine.CalculationPlan): CalculationView = of(
             CalculationResult(
-                plan, emptyMap(),
+                plan,
+                emptyMap(),
                 plan.valueVertices.mapValues { (_, vertex) -> NodeResult(vertex, emptyMap(), emptyMap(), emptyMap()) },
                 emptyList(),
-            )
+            ),
         )
 
         /** Returns the read-only snapshot owned by [result]. */
@@ -183,7 +181,12 @@ class CalculationView private constructor(
             }
             plan.case.extensions.forEach { (slotId, items) -> items.forEach { collectExtensions(it, slotId) } }
             fun tree(item: ResolvedItem): ViewItem = when (item) {
-                is ResolvedSection -> ViewSection(item.item.snapshot() as SectionItem, frozenList(item.dims), frozenList(item.children.map(::tree)), item.resultId)
+                is ResolvedSection -> ViewSection(
+                    item.item.snapshot() as SectionItem,
+                    frozenList(item.dims),
+                    frozenList(item.children.map(::tree)),
+                    item.resultId,
+                )
                 is ResolvedNode -> ViewTreeNode(item.item.snapshot() as NodeItem, frozenList(item.dims), item.op)
                 is ResolvedNote -> ViewNote(item.item.snapshot() as NoteItem)
             }
@@ -199,21 +202,29 @@ class CalculationView private constructor(
                     input != null -> NodeKind.INPUT
                     param != null -> NodeKind.PARAM
                     line?.item?.formulaSlot == true -> NodeKind.FORMULA_SLOT
-                    line?.item?.userDefined == true || choice?.item?.userDefined == true || total?.item?.userDefined == true -> NodeKind.EXTENSION
+                    line?.item?.userDefined == true || choice?.item?.userDefined == true ||
+                        total?.item?.userDefined == true -> NodeKind.EXTENSION
                     line != null -> NodeKind.LINE
                     total != null -> NodeKind.TOTAL
                     choice != null -> NodeKind.CHOICE
                     else -> error("Unknown value vertex ${vertex.id}")
                 }
+                val presentation = item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation
                 ViewNode(
                     id = vertex.id, kind = kind, label = vertex.label, type = vertex.type,
                     dims = frozenList(vertex.dims), op = opByNode[vertex.id] ?: 0,
                     userDefined = item?.userDefined == true, slotId = slotByNode[vertex.id],
                     location = vertex.location,
-                    presentation = (item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation).snapshot(),
-                    input = input?.decl?.snapshot(), parameter = param?.decl?.snapshot(), parameterValue = param?.value?.snapshot(),
+                    presentation = presentation.snapshot(),
+                    input = input?.decl?.snapshot(),
+                    parameter = param?.decl?.snapshot(),
+                    parameterValue = param?.value?.snapshot(),
                     parameterSource = param?.source,
-                    parameterLayers = frozenList(param?.layers?.map { it.copy(value = it.value?.snapshot()) }.orEmpty()),
+                    parameterLayers = frozenList(
+                        param?.layers?.map {
+                            it.copy(value = it.value?.snapshot())
+                        }.orEmpty(),
+                    ),
                     line = line?.item?.snapshot() as? LineItem,
                     total = total?.item?.snapshot() as? TotalItem, choice = choice?.item?.snapshot() as? ChoiceItem,
                     components = frozenList(total?.components?.map { ViewComponent(it.vertexId, it.sign) }.orEmpty()),
@@ -224,12 +235,24 @@ class CalculationView private constructor(
                 )
             }
             return CalculationView(
-                schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(), structure = SchemaMaps.of(plan).snapshot(),
+                schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(),
+                structure = SchemaMaps.of(
+                    plan,
+                ).snapshot(),
                 tree = tree(plan.tree) as ViewSection,
                 dimensions = frozenMap(plan.dimensions.mapValues { (_, decl) -> decl.snapshot() }),
-                members = frozenMap(result.rawMembers.mapValues { (_, members) -> frozenList(members.map { it.snapshot() }) }),
+                members = frozenMap(
+                    result.rawMembers.mapValues { (_, members) ->
+                        frozenList(members.map { it.snapshot() })
+                    },
+                ),
                 nodes = frozenMap(nodes),
-                conditions = frozenMap(plan.vertices.values.filterIsInstance<ConditionVertex>().associate { it.id to ViewCondition(it.id, it.sectionId, frozenList(it.dims), it.formula) }),
+                conditions = frozenMap(
+                    plan.vertices.values.filterIsInstance<ConditionVertex>().associate {
+                        it.id to
+                            ViewCondition(it.id, it.sectionId, frozenList(it.dims), it.formula)
+                    },
+                ),
                 functions = frozenList(plan.schema.functions + plan.case.functions),
                 formulaSlotDefaults = frozenMap(formulaSlotDefaults),
                 diagnostics = frozenList(result.diagnostics),

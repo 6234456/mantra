@@ -61,6 +61,15 @@ class BoundaryTests(unittest.TestCase):
         self.write('apps/demo/build.gradle.kts', 'plugins { `maven-publish` }')
         self.assertEqual(1, len(boundaries.check(self.root)))
 
+    def test_benchmarks_use_public_api_and_only_library_dependencies(self):
+        self.write('benchmarks/src/test/kotlin/Code.kt', 'import com.xqiou.mantra.core.engine.Coord')
+        self.write('benchmarks/build.gradle.kts', 'implementation(project(":apps:demo"))')
+        self.assertEqual(2, len(boundaries.check(self.root)))
+
+    def test_benchmarks_remain_domain_independent(self):
+        self.write('benchmarks/src/main/kotlin/Code.kt', 'val node = "tax-result"')
+        self.assertEqual(1, len(boundaries.check(self.root)))
+
 
 if __name__ == '__main__':
     unittest.main()

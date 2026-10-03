@@ -31,7 +31,11 @@ class FormulaExplainer(private val numbers: NumberFormatter) {
         return if (text.length > maxLength) text.take(maxLength - 1) + "…" else text
     }
 
-    private fun symbolText(qualified: String, values: Map<String, Value>, records: Map<String, Map<String, Value>>): String {
+    private fun symbolText(
+        qualified: String,
+        values: Map<String, Value>,
+        records: Map<String, Map<String, Value>>,
+    ): String {
         val symbol = qualified.removePrefix("mantra/")
         values[symbol]?.let { return numbers.explain(it) }
         val path = symbol.split('.')
@@ -42,7 +46,12 @@ class FormulaExplainer(private val numbers: NumberFormatter) {
         return symbol
     }
 
-    private fun render(form: DslForm, values: Map<String, Value>, records: Map<String, Map<String, Value>>, nested: Boolean): String {
+    private fun render(
+        form: DslForm,
+        values: Map<String, Value>,
+        records: Map<String, Map<String, Value>>,
+        nested: Boolean,
+    ): String {
         form.number?.let { return numbers.plain(it) }
         form.string?.let { return "\"$it\"" }
         form.keyword?.let { return ":$it" }
@@ -62,12 +71,20 @@ class FormulaExplainer(private val numbers: NumberFormatter) {
             is DslForm.Sequence -> {
                 val parts = form.values
                 return when (form.kind) {
-                    DslFormSequenceKind.VECTOR -> parts.joinToString("; ", "[", "]") { render(it, values, records, false) }
-                    DslFormSequenceKind.MAP -> parts.chunked(2).joinToString("; ", "{", "}") { pair -> pair.joinToString(" ") { render(it, values, records, false) } }
-                    DslFormSequenceKind.SET -> parts.joinToString("; ", "#{", "}") { render(it, values, records, false) }
+                    DslFormSequenceKind.VECTOR -> parts.joinToString("; ", "[", "]") {
+                        render(it, values, records, false)
+                    }
+                    DslFormSequenceKind.MAP -> parts.chunked(2).joinToString("; ", "{", "}") { pair ->
+                        pair.joinToString(" ") { render(it, values, records, false) }
+                    }
+                    DslFormSequenceKind.SET -> parts.joinToString("; ", "#{", "}") {
+                        render(it, values, records, false)
+                    }
                     DslFormSequenceKind.LAMBDA -> "#(…)"
                     DslFormSequenceKind.LIST -> {
-                        val head = form.listHead ?: return "(" + parts.joinToString(" ") { render(it, values, records, true) } + ")"
+                        val head =
+                            form.listHead
+                                ?: return "(" + parts.joinToString(" ") { render(it, values, records, true) } + ")"
                         val args = parts.drop(1)
                         val operator = infix[head]
                         when {

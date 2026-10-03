@@ -69,7 +69,12 @@ internal sealed class ValueVertex(id: String, location: SourceLocation) : Vertex
 }
 
 /** A parameter; [source] is `schema`, the id of the parameter set that supplied it, or `case`. */
-internal class ParamVertex(val decl: ParamDecl, val value: Value, val source: String, val layers: List<ParameterLayer>) : ValueVertex(decl.id, decl.location) {
+internal class ParamVertex(
+    val decl: ParamDecl,
+    val value: Value,
+    val source: String,
+    val layers: List<ParameterLayer>,
+) : ValueVertex(decl.id, decl.location) {
     val overridden: Boolean get() = source != "schema"
     override val dims: List<String> = emptyList()
     override val type: ValueType = when (value) {
@@ -102,7 +107,8 @@ internal class TotalVertex(val item: TotalItem, override val dims: List<String>,
     override val label: String = item.label
 }
 
-internal class ChoiceVertex(val item: ChoiceItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
+internal class ChoiceVertex(val item: ChoiceItem, override val dims: List<String>) :
+    ValueVertex(item.id, item.location) {
     override val type: ValueType = ValueType.DECIMAL
     override val label: String = item.label
     val options: MutableList<CompiledOption> = mutableListOf()

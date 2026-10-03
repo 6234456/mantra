@@ -2,15 +2,15 @@ package com.xqiou.mantra.workbench.json
 
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
-import com.xqiou.mantra.core.view.NodeTrace
-import com.xqiou.mantra.core.view.ExplainTrace
-import com.xqiou.mantra.core.view.TraceRef
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
-import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.CalculationCompare
-import com.xqiou.mantra.core.view.ValueChange
+import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.ExplainTrace
 import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.NodeTrace
+import com.xqiou.mantra.core.view.TraceRef
+import com.xqiou.mantra.core.view.ValueChange
 import com.xqiou.mantra.core.view.ViewItem
 import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.view.ViewSection
@@ -18,12 +18,12 @@ import com.xqiou.mantra.core.view.groupKey
 import com.xqiou.mantra.core.view.groupTitle
 import com.xqiou.mantra.core.view.headlineId
 import com.xqiou.mantra.core.view.signLabels
+import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.render.layout.StyleSpec
 import com.xqiou.mantra.render.layout.TableSpec
 import com.xqiou.mantra.render.layout.styleRole
-import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.paper.NumberFormatter
 import com.xqiou.mantra.render.paper.PaperTable
 import com.xqiou.mantra.render.paper.WorkingPaper
@@ -31,8 +31,15 @@ import com.xqiou.mantra.render.paper.WorkingPaper
 /** Pure projections of the public read-only calculation and presentation views. */
 object WorkbenchDocuments {
     /** One calculated value and its bounded source trace; no evaluator state reaches the UI. */
-    fun explain(view: CalculationView, layout: LayoutSpec, nodeId: String, coord: List<String>,
-                full: ExplainTrace?, cell: Pair<String, String>? = null, cellValue: Value? = null): Map<String, Any?> {
+    fun explain(
+        view: CalculationView,
+        layout: LayoutSpec,
+        nodeId: String,
+        coord: List<String>,
+        full: ExplainTrace?,
+        cell: Pair<String, String>? = null,
+        cellValue: Value? = null,
+    ): Map<String, Any?> {
         val node = view.node(nodeId)
         val formatter = NumberFormatter(layout.number)
         val trace = node.trace(coord)
@@ -53,8 +60,10 @@ object WorkbenchDocuments {
             }
             val targetId = if (memberMap) "all.${target.id}" else target.id
             linkedMapOf<String, Any?>(
-                "address" to address(targetId, targetCoord), "label" to target.label,
-                "value" to WorkbenchJson.value(ref.value), "display" to display(ref.value, target),
+                "address" to address(targetId, targetCoord),
+                "label" to target.label,
+                "value" to WorkbenchJson.value(ref.value),
+                "display" to display(ref.value, target),
                 "kind" to ref.kind.name.lowercase().replace('_', '-'),
                 "origin" to when (val origin = target.trace(if (memberMap) emptyList() else targetCoord)) {
                     is NodeTrace.Input -> origin.label()
@@ -65,21 +74,34 @@ object WorkbenchDocuments {
         }
         val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
             val target = view.nodes[part.id] ?: return@mapNotNull null
-            linkedMapOf<String, Any?>("address" to address(part.id, aligned(target)), "label" to target.label,
-                "sign" to part.sign, "value" to WorkbenchJson.value(Value.Num(part.value)),
-                "display" to display(Value.Num(part.value), target), "crossFooted" to part.crossFooted)
+            linkedMapOf<String, Any?>(
+                "address" to address(part.id, aligned(target)),
+                "label" to target.label,
+                "sign" to part.sign,
+                "value" to WorkbenchJson.value(Value.Num(part.value)),
+                "display" to display(Value.Num(part.value), target),
+                "crossFooted" to part.crossFooted,
+            )
         }
         val choice = trace as? NodeTrace.Choice
         val selectedValue = choice?.options?.firstOrNull { it.key == choice.selected }?.value
         val options = choice?.options.orEmpty().map { option ->
             val optionValue = option.value
-            val difference = if (selectedValue is Value.Num && optionValue is Value.Num)
-                Value.Num(selectedValue.value - optionValue.value) else null
-            linkedMapOf<String, Any?>("key" to option.key, "label" to option.label,
-                "value" to WorkbenchJson.value(optionValue), "display" to display(optionValue),
-                "available" to option.available, "selected" to (option.key == choice?.selected),
+            val difference = if (selectedValue is Value.Num && optionValue is Value.Num) {
+                Value.Num(selectedValue.value - optionValue.value)
+            } else {
+                null
+            }
+            linkedMapOf<String, Any?>(
+                "key" to option.key,
+                "label" to option.label,
+                "value" to WorkbenchJson.value(optionValue),
+                "display" to display(optionValue),
+                "available" to option.available,
+                "selected" to (option.key == choice?.selected),
                 "difference" to difference?.let(WorkbenchJson::value),
-                "differenceDisplay" to difference?.let { display(it) })
+                "differenceDisplay" to difference?.let { display(it) },
+            )
         }
         val rounding = when (trace) {
             is NodeTrace.Computed -> trace.rounding
@@ -95,59 +117,93 @@ object WorkbenchDocuments {
             "address" to requestedAddress, "label" to node.label,
             "kind" to node.kind.name.lowercase().replace('_', '-'),
             "formula" to formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
-            "result" to linkedMapOf("value" to WorkbenchJson.value(value), "display" to display(value),
-                "rounding" to rounding?.let { linkedMapOf("scale" to it.scale, "mode" to it.mode.name.lowercase()) }),
+            "result" to linkedMapOf(
+                "value" to WorkbenchJson.value(value),
+                "display" to display(value),
+                "rounding" to rounding?.let { linkedMapOf("scale" to it.scale, "mode" to it.mode.name.lowercase()) },
+            ),
             "status" to when (trace) {
                 is NodeTrace.Inactive -> "inactive"
                 is NodeTrace.Failed -> "failed"
                 else -> if (node.isActive(coord)) "active" else "inactive"
             },
-            "reason" to when (trace) { is NodeTrace.Inactive -> trace.reason; is NodeTrace.Failed -> trace.message; else -> null },
-            "steps" to full?.steps.orEmpty().map { step -> linkedMapOf("text" to step.text,
-                "value" to WorkbenchJson.value(step.value), "display" to display(step.value),
-                "location" to location(step.location)) },
-            "branches" to full?.branches.orEmpty().map { branch -> linkedMapOf("text" to branch.text,
-                "selected" to branch.selected, "location" to location(branch.location)) },
+            "reason" to
+                when (trace) {
+                    is NodeTrace.Inactive -> trace.reason
+                    is NodeTrace.Failed -> trace.message
+                    else -> null
+                },
+            "steps" to full?.steps.orEmpty().map { step ->
+                linkedMapOf(
+                    "text" to step.text,
+                    "value" to WorkbenchJson.value(step.value),
+                    "display" to display(step.value),
+                    "location" to location(step.location),
+                )
+            },
+            "branches" to full?.branches.orEmpty().map { branch ->
+                linkedMapOf(
+                    "text" to branch.text,
+                    "selected" to branch.selected,
+                    "location" to location(branch.location),
+                )
+            },
             "references" to references, "parts" to parts, "options" to options,
             "reference" to node.presentation.reference, "truncated" to (full?.truncated ?: false),
         )
     }
 
     /** A navigable source-tree node for an `all.<id>` reference to a dimensioned member map. */
-    fun memberMap(view: CalculationView, layout: LayoutSpec, nodeId: String,
-                  fixed: Map<String, String> = emptyMap()): Map<String, Any?> {
+    fun memberMap(
+        view: CalculationView,
+        layout: LayoutSpec,
+        nodeId: String,
+        fixed: Map<String, String> = emptyMap(),
+    ): Map<String, Any?> {
         val node = view.node(nodeId)
         require(node.dims.isNotEmpty()) { "Member map requires a dimensioned node" }
         val formatter = NumberFormatter(layout.number)
         val variableDims = node.dims.filter { it !in fixed }
         require(variableDims.isNotEmpty()) { "Member map requires at least one unfixed dimension" }
         fun build(dims: List<String>, assignment: Map<String, String>): Value {
-            if (dims.isEmpty()) return node.values[node.dims.map(assignment::getValue)]
-                ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
-            return Value.MapV(linkedMapOf<Value, Value>().apply {
-                view.members[dims.first()].orEmpty().forEach { member ->
-                    put(Value.Kw(member.key), build(dims.drop(1), assignment + (dims.first() to member.key)))
-                }
-            })
+            if (dims.isEmpty()) {
+                return node.values[node.dims.map(assignment::getValue)]
+                    ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
+            }
+            return Value.MapV(
+                linkedMapOf<Value, Value>().apply {
+                    view.members[dims.first()].orEmpty().forEach { member ->
+                        put(Value.Kw(member.key), build(dims.drop(1), assignment + (dims.first() to member.key)))
+                    }
+                },
+            )
         }
         val value = build(variableDims, fixed)
-        val members = node.values.keys.filter { coord -> node.dims.indices.all { i ->
-            fixed[node.dims[i]] == null || fixed[node.dims[i]] == coord[i]
-        } }.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
+        val members = node.values.keys.filter { coord ->
+            node.dims.indices.all { i ->
+                fixed[node.dims[i]] == null || fixed[node.dims[i]] == coord[i]
+            }
+        }.sortedWith(compareBy<List<String>> { it.joinToString("\u0000") })
         val references = members.take(63).map { coord ->
             val item = node.value(coord)
-            linkedMapOf<String, Any?>("address" to address(nodeId, coord), "label" to node.label,
+            linkedMapOf<String, Any?>(
+                "address" to address(nodeId, coord),
+                "label" to node.label,
                 "value" to WorkbenchJson.value(item),
                 "display" to formatter.value(item, node.presentation.format, node.presentation.precision),
-                "kind" to "member", "origin" to null)
+                "kind" to "member",
+                "origin" to null,
+            )
         }
         return linkedMapOf(
             "address" to address("all.$nodeId", node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } }),
             "label" to node.label,
             "kind" to "member-map", "formula" to null,
-            "result" to linkedMapOf("value" to WorkbenchJson.value(value),
+            "result" to linkedMapOf(
+                "value" to WorkbenchJson.value(value),
                 "display" to formatter.value(value, node.presentation.format, node.presentation.precision),
-                "rounding" to null),
+                "rounding" to null,
+            ),
             "status" to "active", "reason" to null,
             "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
             "references" to references, "parts" to emptyList<Any>(), "options" to emptyList<Any>(),
@@ -161,10 +217,15 @@ object WorkbenchDocuments {
             val node = view.node(id)
             val source = node.parameterSource ?: "schema"
             linkedMapOf(
-                "id" to id, "label" to node.label, "reference" to node.presentation.reference,
+                "id" to id,
+                "label" to node.label,
+                "reference" to node.presentation.reference,
                 "layers" to node.parameterLayers.map { layer ->
-                    linkedMapOf<String, Any?>("layer" to layer.layer, "value" to layer.value?.let(WorkbenchJson::value),
-                        "declared" to layer.declared).apply {
+                    linkedMapOf<String, Any?>(
+                        "layer" to layer.layer,
+                        "value" to layer.value?.let(WorkbenchJson::value),
+                        "declared" to layer.declared,
+                    ).apply {
                         layer.set?.let { put("set", it) }
                         layer.reference?.let { put("reference", it) }
                     }
@@ -178,22 +239,32 @@ object WorkbenchDocuments {
     )
 
     /** Exact engine differences projected with the same number formatter used by Paper and Run. */
-    fun compare(base: CalculationView, variant: CalculationView, layout: LayoutSpec,
+    fun compare(
+        base: CalculationView,
+        variant: CalculationView,
+        layout: LayoutSpec,
         variantParameterSets: List<String> = emptyList(),
-        variantCaseId: String? = variant.case.id.takeIf { it != base.case.id }): Map<String, Any?> {
+        variantCaseId: String? = variant.case.id.takeIf { it != base.case.id },
+    ): Map<String, Any?> {
         val diff = CalculationCompare.between(base, variant)
         val formatter = NumberFormatter(layout.number)
         fun change(value: ValueChange): Map<String, Any?> {
             val node = variant.nodes[value.node] ?: base.nodes[value.node]
-            fun display(v: Value?): String? = v?.let { formatter.value(it, node?.presentation?.format, node?.presentation?.precision) }
+            fun display(v: Value?): String? =
+                v?.let { formatter.value(it, node?.presentation?.format, node?.presentation?.precision) }
             return linkedMapOf(
-                "node" to value.node, "coord" to value.coord,
+                "node" to value.node,
+                "coord" to value.coord,
                 "base" to value.base?.let(WorkbenchJson::value),
                 "variant" to value.variant?.let(WorkbenchJson::value),
                 "delta" to value.delta?.let { WorkbenchJson.value(Value.Num(it)) },
-                "basePresent" to value.basePresent, "variantPresent" to value.variantPresent,
-                "display" to linkedMapOf("base" to display(value.base), "variant" to display(value.variant),
-                    "delta" to value.delta?.let { display(Value.Num(it)) }),
+                "basePresent" to value.basePresent,
+                "variantPresent" to value.variantPresent,
+                "display" to linkedMapOf(
+                    "base" to display(value.base),
+                    "variant" to display(value.variant),
+                    "delta" to value.delta?.let { display(Value.Num(it)) },
+                ),
             )
         }
         return linkedMapOf(
@@ -201,7 +272,9 @@ object WorkbenchDocuments {
                 if (variantCaseId != null) put("case", variantCaseId)
             },
             "mainline" to diff.mainline.map { entry ->
-                linkedMapOf<String, Any?>("step" to entry.step, "panel" to entry.panel).apply { putAll(change(entry.value)) }
+                linkedMapOf<String, Any?>("step" to entry.step, "panel" to entry.panel).apply {
+                    putAll(change(entry.value))
+                }
             },
             "changes" to diff.changes.map { group ->
                 linkedMapOf("step" to group.step, "panel" to group.panel, "items" to group.items.map(::change))
@@ -232,8 +305,9 @@ object WorkbenchDocuments {
             "schemaVersion" to view.schema.text("version"),
             "title" to map.title,
             "headline" to view.headlineId,
-            "groupTitles" to view.nodes.values.filter { it.kind == NodeKind.INPUT }.mapNotNull { it.groupKey }.distinct()
-                .associateWith(view::groupTitle),
+            "groupTitles" to
+                view.nodes.values.filter { it.kind == NodeKind.INPUT }.mapNotNull { it.groupKey }.distinct()
+                    .associateWith(view::groupTitle),
             "mainline" to map.mainline.map { id ->
                 val panel = map.panel(id)
                 linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId)
@@ -244,12 +318,20 @@ object WorkbenchDocuments {
                     "step" to panel.step, "parent" to panel.parentId, "dims" to panel.dims,
                     "result" to panel.resultId,
                     "breadcrumb" to panel.breadcrumb.map { crumb ->
-                        if (crumb.panelId == null) linkedMapOf("kind" to "mainline")
-                        else linkedMapOf("panel" to crumb.panelId, "label" to crumb.label, "node" to crumb.nodeId)
+                        if (crumb.panelId == null) {
+                            linkedMapOf("kind" to "mainline")
+                        } else {
+                            linkedMapOf("panel" to crumb.panelId, "label" to crumb.label, "node" to crumb.nodeId)
+                        }
                     },
                     "entries" to panel.entries.map { entry ->
-                        linkedMapOf("step" to entry.step, "panel" to entry.stepPanel, "via" to entry.viaNode,
-                            "viaLabel" to entry.viaLabel, "path" to entry.path)
+                        linkedMapOf(
+                            "step" to entry.step,
+                            "panel" to entry.stepPanel,
+                            "via" to entry.viaNode,
+                            "viaLabel" to entry.viaLabel,
+                            "path" to entry.path,
+                        )
                     },
                     "fields" to panel.fields.map { field(view, it) },
                     "nodes" to panel.nodes,
@@ -262,10 +344,14 @@ object WorkbenchDocuments {
             "nodes" to view.nodes.mapValues { (_, node) -> metadata(node) },
             "slots" to slots(view.tree, view),
             "formulaSlots" to view.nodes.values.filter { it.kind == NodeKind.FORMULA_SLOT }.map { node ->
-                linkedMapOf("id" to node.id, "title" to node.label,
-                    "panel" to map.panelOf(node.id)?.id, "uses" to node.line?.allowedRefs?.sorted(),
+                linkedMapOf(
+                    "id" to node.id,
+                    "title" to node.label,
+                    "panel" to map.panelOf(node.id)?.id,
+                    "uses" to node.line?.allowedRefs?.sorted(),
                     "defaultFormula" to view.formulaSlotDefaults[node.id]?.source,
-                    "binding" to view.case.formulaBindings[node.id]?.source)
+                    "binding" to view.case.formulaBindings[node.id]?.source,
+                )
             },
         )
     }
@@ -282,8 +368,12 @@ object WorkbenchDocuments {
                     val coord = if (key.isEmpty()) emptyList() else key.split("/")
                     linkedMapOf<String, Any?>(
                         "value" to WorkbenchJson.value(value),
-                        "display" to if (node.isActive(coord)) formatter.value(value, node.presentation.format, node.presentation.precision)
-                            else layout.texts.notApplicable,
+                        "display" to
+                            if (node.isActive(coord)) {
+                                formatter.value(value, node.presentation.format, node.presentation.precision)
+                            } else {
+                                layout.texts.notApplicable
+                            },
                         "active" to node.isActive(coord),
                     ).apply {
                         when (val trace = node.trace(coord)) {
@@ -301,22 +391,34 @@ object WorkbenchDocuments {
     /** If a panel has an explicit table, return only that table. A missing table is reported to the caller. */
     fun paper(paper: WorkingPaper, view: CalculationView, panelId: String? = null): Map<String, Any?> {
         val tables = if (panelId == null) paper.tables else paper.tables.filter { it.id == panelId }
-        require(panelId == null || tables.isNotEmpty()) { "No table for panel ${panelId}" }
+        require(panelId == null || tables.isNotEmpty()) { "No table for panel $panelId" }
         return linkedMapOf(
             "title" to paper.title, "subtitle" to paper.subtitle,
-            "headline" to paper.headline?.let { linkedMapOf("node" to it.nodeId, "label" to it.label, "value" to it.value) },
-            "inputGroups" to paper.inputGroups.map { linkedMapOf("key" to it.key, "title" to it.title, "inputs" to it.inputs) },
+            "headline" to
+                paper.headline?.let { linkedMapOf("node" to it.nodeId, "label" to it.label, "value" to it.value) },
+            "inputGroups" to
+                paper.inputGroups.map { linkedMapOf("key" to it.key, "title" to it.title, "inputs" to it.inputs) },
             "header" to paper.header.map { (key, value) -> listOf(key, value) },
             "overview" to paper.overview.map { step ->
-                linkedMapOf("step" to step.step, "panel" to overviewPanel(step.panel),
-                    "branches" to step.branches.map(::overviewPanel))
+                linkedMapOf(
+                    "step" to step.step,
+                    "panel" to overviewPanel(step.panel),
+                    "branches" to step.branches.map(::overviewPanel),
+                )
             },
             "auxiliary" to paper.auxiliary.map(::overviewPanel),
             "tables" to tables.map { table(it, view) },
             "audit" to paper.audit.map { entry ->
-                linkedMapOf("anchor" to entry.anchor, "citation" to entry.citation, "label" to entry.label,
-                    "member" to entry.member, "formula" to entry.formula, "working" to entry.working,
-                    "result" to entry.result, "reference" to entry.reference)
+                linkedMapOf(
+                    "anchor" to entry.anchor,
+                    "citation" to entry.citation,
+                    "label" to entry.label,
+                    "member" to entry.member,
+                    "formula" to entry.formula,
+                    "working" to entry.working,
+                    "result" to entry.result,
+                    "reference" to entry.reference,
+                )
             },
             "legend" to paper.legend.map { (mark, meaning) -> listOf(mark, meaning) },
             "diagnostics" to paper.findings.map(::diagnostic),
@@ -336,18 +438,25 @@ object WorkbenchDocuments {
         "related" to emptyList<Any>(),
     )
 
-    private fun location(location: SourceLocation): Map<String, Any?> =
-        linkedMapOf<String, Any?>("document" to location.source, "line" to location.line, "column" to location.column).apply {
-            location.startOffset?.let { put("startOffset", it) }
-            location.endOffset?.let { put("endOffset", it) }
-        }
+    private fun location(location: SourceLocation): Map<String, Any?> = linkedMapOf<String, Any?>(
+        "document" to location.source,
+        "line" to location.line,
+        "column" to location.column,
+    ).apply {
+        location.startOffset?.let { put("startOffset", it) }
+        location.endOffset?.let { put("endOffset", it) }
+    }
 
     private fun address(id: String, coord: List<String>? = null): Map<String, Any?> =
-        linkedMapOf<String, Any?>("node" to id).apply { if (!coord.isNullOrEmpty()) put("coord", coord) }
+        linkedMapOf<String, Any?>("node" to id).apply {
+            if (!coord.isNullOrEmpty()) put("coord", coord)
+        }
 
     private fun flow(flow: Flow): Map<String, Any?> = linkedMapOf(
-        "fromPanel" to flow.fromPanel, "fromNode" to flow.fromNode,
-        "toPanel" to flow.toPanel, "toNode" to flow.toNode,
+        "fromPanel" to flow.fromPanel,
+        "fromNode" to flow.fromNode,
+        "toPanel" to flow.toPanel,
+        "toNode" to flow.toNode,
     )
 
     private fun field(view: CalculationView, id: String): Map<String, Any?> {
@@ -356,13 +465,17 @@ object WorkbenchDocuments {
         return linkedMapOf(
             "id" to id, "label" to node.label, "type" to decl.type.keyword, "dims" to node.dims,
             "optional" to decl.optional, "default" to decl.default?.let(WorkbenchJson::value),
-            "options" to decl.options, "columns" to decl.columns.map { col ->
+            "options" to decl.options,
+            "columns" to decl.columns.map { col ->
                 linkedMapOf("name" to col.name, "type" to col.type.keyword, "optional" to col.optional)
             },
             "keyColumn" to view.dimensions.values.firstOrNull { it.fromTable == id }?.keyColumn,
             "references" to decl.references,
-            "constraints" to decl.presentation.attributes.filterKeys { it in setOf("min", "max", "required", "pattern", "max-length") }
-                .mapValues { (_, value) -> WorkbenchJson.value(value) },
+            "constraints" to
+                decl.presentation.attributes.filterKeys {
+                    it in setOf("min", "max", "required", "pattern", "max-length")
+                }
+                    .mapValues { (_, value) -> WorkbenchJson.value(value) },
             "help" to (decl.presentation.attributes["help"] as? Value.Text)?.value,
             "unit" to (decl.presentation.attributes["unit"] as? Value.Kw)?.name,
             "reference" to decl.presentation.reference,
@@ -373,7 +486,9 @@ object WorkbenchDocuments {
     }
 
     private fun parameter(node: ViewNode): Map<String, Any?> = linkedMapOf(
-        "id" to node.id, "label" to node.label, "type" to node.type.keyword,
+        "id" to node.id,
+        "label" to node.label,
+        "type" to node.type.keyword,
         "reference" to node.presentation.reference,
         "attributes" to node.presentation.attributes.mapValues { (_, value) -> WorkbenchJson.value(value) },
     )
@@ -384,7 +499,10 @@ object WorkbenchDocuments {
         "op" to (node.line?.op ?: node.choice?.op)?.keyword,
         "reference" to node.presentation.reference, "source" to node.presentation.source,
         "note" to node.presentation.note, "class" to node.presentation.classes,
-        "signLabels" to node.signLabels?.let { linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero) },
+        "signLabels" to
+            node.signLabels?.let {
+                linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero)
+            },
         "group" to node.groupKey,
         "attributes" to node.presentation.attributes.mapValues { (_, value) -> WorkbenchJson.value(value) },
         "formula" to node.line?.formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
@@ -395,22 +513,29 @@ object WorkbenchDocuments {
     )
 
     private fun fieldMetadata(input: com.xqiou.mantra.core.model.InputDecl): Map<String, Any?> = linkedMapOf(
-        "optional" to input.optional, "default" to input.default?.let(WorkbenchJson::value),
-        "options" to input.options, "columns" to input.columns.map { col ->
+        "optional" to input.optional,
+        "default" to input.default?.let(WorkbenchJson::value),
+        "options" to input.options,
+        "columns" to input.columns.map { col ->
             linkedMapOf("name" to col.name, "type" to col.type.keyword, "optional" to col.optional)
-        }, "references" to input.references,
+        },
+        "references" to input.references,
     )
 
     private fun slots(root: ViewSection, view: CalculationView): List<Map<String, Any?>> {
         val result = mutableListOf<Map<String, Any?>>()
         fun walk(item: ViewItem) {
             if (item is ViewSection) {
-                if (item.item.slot) result += linkedMapOf(
-                    "id" to item.id, "title" to item.label, "panel" to view.structure.panelOf(item.id)?.id,
-                    "extensions" to view.case.extensions[item.id].orEmpty().mapNotNull {
-                        (it as? com.xqiou.mantra.core.model.NodeItem)?.id
-                    },
-                )
+                if (item.item.slot) {
+                    result += linkedMapOf(
+                        "id" to item.id,
+                        "title" to item.label,
+                        "panel" to view.structure.panelOf(item.id)?.id,
+                        "extensions" to view.case.extensions[item.id].orEmpty().mapNotNull {
+                            (it as? com.xqiou.mantra.core.model.NodeItem)?.id
+                        },
+                    )
+                }
                 item.children.forEach(::walk)
             }
         }
@@ -418,16 +543,28 @@ object WorkbenchDocuments {
         return result
     }
 
-    private fun overviewPanel(panel: com.xqiou.mantra.render.paper.OverviewPanel): Map<String, Any?> =
-        linkedMapOf("panelId" to panel.panelId, "title" to panel.title, "tableRef" to panel.tableRef,
-            "value" to panel.value, "entry" to panel.entry)
+    private fun overviewPanel(panel: com.xqiou.mantra.render.paper.OverviewPanel): Map<String, Any?> = linkedMapOf(
+        "panelId" to panel.panelId,
+        "title" to panel.title,
+        "tableRef" to panel.tableRef,
+        "value" to panel.value,
+        "entry" to panel.entry,
+    )
 
     private fun table(table: PaperTable, view: CalculationView): Map<String, Any?> = linkedMapOf(
-        "id" to table.id, "ref" to table.ref, "title" to table.title,
-        "breadcrumb" to table.breadcrumb, "style" to table.style.name.lowercase(),
+        "id" to table.id,
+        "ref" to table.ref,
+        "title" to table.title,
+        "breadcrumb" to table.breadcrumb,
+        "style" to table.style.name.lowercase(),
         "columns" to table.columns.map { col ->
-            linkedMapOf("id" to col.id, "header" to col.header,
-                "content" to col.content.styleRole(), "align" to col.align.name.lowercase(), "width" to col.width)
+            linkedMapOf(
+                "id" to col.id,
+                "header" to col.header,
+                "content" to col.content.styleRole(),
+                "align" to col.align.name.lowercase(),
+                "width" to col.width,
+            )
         },
         "rows" to table.rows.map { row ->
             val node = row.nodeId?.let(view.nodes::get)
@@ -445,8 +582,10 @@ object WorkbenchDocuments {
                     linkedMapOf(
                         "text" to cell,
                         "address" to cellAddress,
-                        "editable" to (numeric && hasExactCoord && node?.kind == NodeKind.INPUT &&
-                            view.structure.panelOf(node.id)?.id == table.id),
+                        "editable" to (
+                            numeric && hasExactCoord && node?.kind == NodeKind.INPUT &&
+                                view.structure.panelOf(node.id)?.id == table.id
+                            ),
                         "style" to style(row.cellStyles.getOrNull(index) ?: row.style),
                     )
                 },

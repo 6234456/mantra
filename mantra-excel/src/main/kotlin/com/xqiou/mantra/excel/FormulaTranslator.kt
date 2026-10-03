@@ -1,6 +1,5 @@
 package com.xqiou.mantra.excel
 
-import com.xqiou.mantra.core.view.Coord
 import com.xqiou.mantra.core.model.FunctionDecl
 import com.xqiou.mantra.core.read.keyword
 import com.xqiou.mantra.core.read.listHead
@@ -8,6 +7,7 @@ import com.xqiou.mantra.core.read.number
 import com.xqiou.mantra.core.read.roundingMode
 import com.xqiou.mantra.core.read.string
 import com.xqiou.mantra.core.read.symbol
+import com.xqiou.mantra.core.view.Coord
 import com.xqiou.normein.dsl.form.DslForm
 import com.xqiou.normein.dsl.form.DslFormPostfix
 import com.xqiou.normein.dsl.form.DslFormReadResult
@@ -48,10 +48,18 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     private class Defn(val params: List<String>, val body: DslForm)
 
     private val defns: Map<String, Defn> = functions.mapNotNull { decl ->
-        val root = (DslFormReader().readDocument(decl.source) as? DslFormReadResult.Success)?.document?.root as? DslForm.Sequence
-            ?: return@mapNotNull null
-        val params = (root.values.getOrNull(2) as? DslForm.Sequence)?.values?.mapNotNull { it.symbol }?.filterNot { it.startsWith("^") }
-            ?: return@mapNotNull null
+        val root =
+            (
+                DslFormReader().readDocument(
+                    decl.source,
+                ) as? DslFormReadResult.Success
+                )?.document?.root as? DslForm.Sequence
+                ?: return@mapNotNull null
+        val params =
+            (root.values.getOrNull(2) as? DslForm.Sequence)?.values?.mapNotNull {
+                it.symbol
+            }?.filterNot { it.startsWith("^") }
+                ?: return@mapNotNull null
         val body = root.values.drop(3).lastOrNull { it.string == null } ?: return@mapNotNull null
         decl.name to Defn(params, body)
     }.toMap()
@@ -66,7 +74,10 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         return when (form) {
             is DslForm.Postfix -> {
                 val target = form.target.symbol ?: throw Untranslatable("unsupported postfix target")
-                val path = form.suffixes.map { (it as? DslFormPostfix.Member)?.value ?: throw Untranslatable("bracket access") }
+                val path = form.suffixes.map {
+                    (it as? DslFormPostfix.Member)?.value
+                        ?: throw Untranslatable("bracket access")
+                }
                 symbol((listOf(target) + path).joinToString("."), ctx)
             }
             is DslForm.Sequence -> when (form.kind) {
@@ -74,7 +85,13 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 DslFormSequenceKind.MAP -> {
                     if (form.values.size % 2 != 0) throw Untranslatable("odd map literal")
                     val pairs = form.values.chunked(2)
-                    X.MapX(pairs.map { (k, _) -> k.keyword ?: k.string ?: throw Untranslatable("map keys must be keywords") }, pairs.map { (_, v) -> translate(v, ctx) })
+                    X.MapX(
+                        pairs.map { (k, _) ->
+                            k.keyword ?: k.string
+                                ?: throw Untranslatable("map keys must be keywords")
+                        },
+                        pairs.map { (_, v) -> translate(v, ctx) },
+                    )
                 }
                 DslFormSequenceKind.LIST -> call(form, ctx)
                 else -> throw Untranslatable("${form.kind.name.lowercase()} literal")
@@ -100,11 +117,17 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         if ('.' in name) {
             val (head, field) = name.split('.', limit = 2)
             ctx.env[head]?.let { record ->
-                if (record is X.MapX) return record.values.getOrNull(record.keys.indexOf(field))
-                    ?: throw Untranslatable("$head has no field $field")
+                if (record is X.MapX) {
+                    return record.values.getOrNull(record.keys.indexOf(field))
+                        ?: throw Untranslatable("$head has no field $field")
+                }
                 throw Untranslatable("field access on non-record $head")
             }
-            if (head == "all") return resolver.reference(field, emptyList(), emptyList()) ?: throw Untranslatable("all.$field")
+            if (head ==
+                "all"
+            ) {
+                return resolver.reference(field, emptyList(), emptyList()) ?: throw Untranslatable("all.$field")
+            }
             if (head in ctx.dims) {
                 val key = ctx.coord[ctx.dims.indexOf(head)]
                 return resolver.record(head, key, field) ?: throw Untranslatable("$head.$field")
@@ -175,12 +198,16 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             "case" -> {
                 val subject = s(0)
                 val rest = args.drop(1)
-                val cases = rest.chunked(2).filter { it.size == 2 }.map { (key, value) -> Ex.cmp("=", subject, scalar(key, ctx)) to translate(value, ctx) }
+                val cases = rest.chunked(2).filter { it.size == 2 }.map { (key, value) ->
+                    Ex.cmp("=", subject, scalar(key, ctx)) to
+                        translate(value, ctx)
+                }
                 branches(cases, if (rest.size % 2 == 1) translate(rest.last(), ctx) else null)
             }
             "let" -> {
-                val bindings = (args.firstOrNull() as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
-                    ?: throw Untranslatable("let without bindings")
+                val bindings =
+                    (args.firstOrNull() as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
+                        ?: throw Untranslatable("let without bindings")
                 var local = ctx
                 bindings.chunked(2).forEach { pair ->
                     val name = pair[0].symbol ?: throw Untranslatable("destructuring let")
@@ -189,17 +216,29 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 translate(args.last(), local)
             }
             "decimal/round" -> {
-                val mode = args.getOrNull(2)?.keyword?.let { roundingMode(it) ?: throw Untranslatable("rounding mode $it") } ?: RoundingMode.HALF_UP
+                val mode =
+                    args.getOrNull(2)?.keyword?.let { roundingMode(it) ?: throw Untranslatable("rounding mode $it") }
+                        ?: RoundingMode.HALF_UP
                 Ex.round(s(0), args.getOrNull(1)?.let { scalar(it, ctx) } ?: Ex.ZERO, mode)
             }
             "decimal/floor" -> Ex.round(s(0), args.getOrNull(1)?.let { scalar(it, ctx) } ?: Ex.ZERO, RoundingMode.FLOOR)
-            "decimal/ceil" -> Ex.round(s(0), args.getOrNull(1)?.let { scalar(it, ctx) } ?: Ex.ZERO, RoundingMode.CEILING)
+            "decimal/ceil" -> Ex.round(
+                s(0),
+                args.getOrNull(1)?.let {
+                    scalar(it, ctx)
+                } ?: Ex.ZERO,
+                RoundingMode.CEILING,
+            )
             "decimal/truncate" -> Ex.fn("TRUNC", s(0), args.getOrNull(1)?.let { scalar(it, ctx) } ?: Ex.ZERO)
             "decimal/clamp" -> Ex.fn("MIN", Ex.fn("MAX", s(0), s(1)), s(2))
             "decimal/divide" -> {
                 val quotient = Ex.div(s(0), s(1))
                 val value = if (args.size >= 3) {
-                    val mode = args.getOrNull(3)?.keyword?.let { roundingMode(it) ?: throw Untranslatable("rounding mode $it") } ?: RoundingMode.HALF_UP
+                    val mode =
+                        args.getOrNull(3)?.keyword?.let {
+                            roundingMode(it) ?: throw Untranslatable("rounding mode $it")
+                        }
+                            ?: RoundingMode.HALF_UP
                     Ex.round(quotient, s(2), mode)
                 } else {
                     quotient
@@ -244,13 +283,27 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 }
             }
             "get" -> get(args, ctx)
-            "nth" -> nth(translate(args[0], ctx), args[1].number?.intValueExact() ?: throw Untranslatable("nth with computed index"), args.getOrNull(2)?.let { translate(it, ctx) })
+            "nth" -> nth(
+                translate(args[0], ctx),
+                args[1].number?.intValueExact() ?: throw Untranslatable("nth with computed index"),
+                args.getOrNull(2)?.let {
+                    translate(it, ctx)
+                },
+            )
             "calc/stepwise" -> stepwise(s(0), translate(args[1], ctx))
             "alloc/pro-rata" -> proRata(s(0), translate(args[1], ctx), s(2))
             "alloc/waterfall" -> waterfall(s(0), translate(args[1], ctx))
             "table/band" -> band(s(0), translate(args[1], ctx), args.getOrNull(2)?.let { scalar(it, ctx) })
-            "fin/npv" -> Ex.round(Ex.fn("NPV", listOf(s(0)) + aggregateArgs(translate(args[1], ctx))), s(2), RoundingMode.HALF_UP)
-            "fin/df" -> Ex.round(Ex.div(Ex.num(1), Ex.bin("^", Ex.add(Ex.num(1), s(0)), s(1), Ex.POW)), s(2), RoundingMode.HALF_UP)
+            "fin/npv" -> Ex.round(
+                Ex.fn("NPV", listOf(s(0)) + aggregateArgs(translate(args[1], ctx))),
+                s(2),
+                RoundingMode.HALF_UP,
+            )
+            "fin/df" -> Ex.round(
+                Ex.div(Ex.num(1), Ex.bin("^", Ex.add(Ex.num(1), s(0)), s(1), Ex.POW)),
+                s(2),
+                RoundingMode.HALF_UP,
+            )
             "fin/pmt" -> Ex.round(Ex.fn("PMT", s(0), s(1), Ex.neg(s(2))), s(3), RoundingMode.HALF_UP)
             "str" -> Ex.chain("&", all(), Ex.CONCAT, XKind.TEXT)
             else -> {
@@ -271,26 +324,49 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             val scalars = x.cases.map { (c, v) -> c to toScalar(v) }
             val default = scalars.lastOrNull { it.first == null }?.second
             val conditional = scalars.filter { it.first != null }
-            conditional.foldRight(default ?: neutralFor(conditional.map { it.second })) { (c, v), acc -> Ex.iff(c!!, v, acc) }
+            conditional.foldRight(
+                default ?: neutralFor(
+                    conditional.map {
+                        it.second
+                    },
+                ),
+            ) { (c, v), acc -> Ex.iff(c!!, v, acc) }
         }
         is X.Range -> throw Untranslatable("member map used as a single value")
         is X.Vec, is X.MapX -> throw Untranslatable("collection used as a single value")
     }
 
-    private fun neutralFor(values: List<X.Scalar>): X.Scalar =
-        if (values.isNotEmpty() && values.all { it.kind == XKind.NUM }) Ex.ZERO else Ex.EMPTY
+    private fun neutralFor(values: List<X.Scalar>): X.Scalar = if (values.isNotEmpty() &&
+        values.all { it.kind == XKind.NUM }
+    ) {
+        Ex.ZERO
+    } else {
+        Ex.EMPTY
+    }
 
     private fun branches(cases: List<Pair<X.Scalar, X>>, default: X?): X {
-        val all = cases.map { it.first as X.Scalar? to it.second } + listOfNotNull(default?.let { null as X.Scalar? to it })
-        return if (all.all { it.second is X.Scalar || it.second == X.Nil }) toScalar(X.Branches(all)) else X.Branches(all)
+        val all =
+            cases.map { it.first as X.Scalar? to it.second } + listOfNotNull(default?.let { null as X.Scalar? to it })
+        return if (all.all {
+                it.second is X.Scalar || it.second == X.Nil
+            }
+        ) {
+            toScalar(X.Branches(all))
+        } else {
+            X.Branches(all)
+        }
     }
 
     /** Clojure truthiness: only nil and false are falsey. */
-    fun truthy(x: X.Scalar): X.Scalar = if (x.kind == XKind.BOOL)
-        Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x) else Ex.cmp("<>", x, Ex.EMPTY)
+    fun truthy(x: X.Scalar): X.Scalar = if (x.kind == XKind.BOOL) {
+        Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x)
+    } else {
+        Ex.cmp("<>", x, Ex.EMPTY)
+    }
 
-    private fun or(items: List<X.Scalar>): X.Scalar =
-        items.foldRight(Ex.EMPTY) { item, acc -> Ex.iff(truthy(item), item, acc) }
+    private fun or(items: List<X.Scalar>): X.Scalar = items.foldRight(Ex.EMPTY) { item, acc ->
+        Ex.iff(truthy(item), item, acc)
+    }
 
     private fun comparison(op: String, items: List<X.Scalar>): X.Scalar {
         val excel = when (op) {
@@ -314,7 +390,17 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         fun pick(m: X): X = when (m) {
             is X.Range -> m.cells.getOrNull(m.keys.indexOf(key)) ?: default ?: X.Nil
             is X.MapX -> m.values.getOrNull(m.keys.indexOf(key)) ?: default ?: X.Nil
-            is X.Branches -> X.Branches(m.cases.map { (c, v) -> c to pick(v) }).let { if (it.cases.all { case -> case.second is X.Scalar || case.second == X.Nil }) toScalar(it) else it }
+            is X.Branches -> X.Branches(m.cases.map { (c, v) -> c to pick(v) }).let {
+                if (it.cases.all { case ->
+                        case.second is X.Scalar ||
+                            case.second == X.Nil
+                    }
+                ) {
+                    toScalar(it)
+                } else {
+                    it
+                }
+            }
             else -> throw Untranslatable("get on ${m::class.simpleName}")
         }
         return pick(translate(args[0], ctx))
@@ -379,9 +465,24 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         fun q(m: Int): X.Scalar = Ex.div(Ex.mul(amount, w[m]), total).let { if (scaled) Ex.mul(it, factor) else it }
         fun floor(m: Int) = Ex.fn("INT", q(m))
         fun remainder(m: Int) = Ex.sub(q(m), floor(m))
-        val units = Ex.sub(Ex.fn("ROUND", if (scaled) Ex.mul(amount, factor) else amount, Ex.ZERO), Ex.chain("+", keys.indices.map(::floor), Ex.ADD))
+        val units = Ex.sub(
+            Ex.fn("ROUND", if (scaled) Ex.mul(amount, factor) else amount, Ex.ZERO),
+            Ex.chain("+", keys.indices.map(::floor), Ex.ADD),
+        )
         val values = keys.indices.map { j ->
-            val ahead = keys.indices.filter { it != j }.map { m -> Ex.cmp(if (m < j) ">=" else ">", remainder(m), remainder(j)) }
+            val ahead = keys.indices.filter { it != j }.map { m ->
+                Ex.cmp(
+                    if (m <
+                        j
+                    ) {
+                        ">="
+                    } else {
+                        ">"
+                    },
+                    remainder(m),
+                    remainder(j),
+                )
+            }
             val rank = if (ahead.isEmpty()) Ex.num(1) else Ex.chain("+", listOf(Ex.num(1)) + ahead, Ex.ADD)
             val value = Ex.add(floor(j), Ex.fn("IF", Ex.cmp("<=", rank, units), Ex.num(1), Ex.ZERO))
             if (scaled) Ex.div(value, factor) else value
@@ -394,14 +495,31 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         val keys: List<String>
         val c: List<X>
         when (caps) {
-            is X.MapX -> { keys = caps.keys; c = caps.values }
-            is X.Range -> { keys = caps.keys; c = caps.cells }
+            is X.MapX -> {
+                keys = caps.keys
+                c = caps.values
+            }
+            is X.Range -> {
+                keys = caps.keys
+                c = caps.cells
+            }
             else -> throw Untranslatable("alloc/waterfall needs a member map")
         }
-        if (c.dropLast(1).any { it == X.Nil }) throw Untranslatable("alloc/waterfall: only the last capacity may be unlimited")
+        if (c.dropLast(1).any {
+                it == X.Nil
+            }
+        ) {
+            throw Untranslatable("alloc/waterfall: only the last capacity may be unlimited")
+        }
         val positive = Ex.fn("MAX", Ex.ZERO, amount)
         val values = keys.indices.map { j ->
-            val left = if (j == 0) positive else Ex.fn("MAX", Ex.ZERO, Ex.sub(positive, Ex.chain("+", c.take(j).map { toScalar(it) }, Ex.ADD)))
+            val left = if (j ==
+                0
+            ) {
+                positive
+            } else {
+                Ex.fn("MAX", Ex.ZERO, Ex.sub(positive, Ex.chain("+", c.take(j).map { toScalar(it) }, Ex.ADD)))
+            }
             if (c[j] == X.Nil) left else Ex.fn("MIN", Ex.fn("MAX", Ex.ZERO, toScalar(c[j])), left)
         }
         return X.MapX(keys, values)
@@ -409,8 +527,14 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
 
     /** Value of the last band whose threshold is not above x (thresholds ascending). */
     private fun band(x: X.Scalar, table: X, default: X.Scalar?): X.Scalar {
-        val rows = (table as? X.Vec)?.items?.map { row -> (row as? X.Vec)?.items ?: throw Untranslatable("table/band row shape") }
-            ?: throw Untranslatable("table/band table must be a literal")
-        return rows.fold(default ?: Ex.EMPTY) { acc, row -> Ex.iff(Ex.cmp(">=", x, toScalar(row[0])), toScalar(row[1]), acc) }
+        val rows =
+            (table as? X.Vec)?.items?.map { row ->
+                (row as? X.Vec)?.items
+                    ?: throw Untranslatable("table/band row shape")
+            }
+                ?: throw Untranslatable("table/band table must be a literal")
+        return rows.fold(default ?: Ex.EMPTY) { acc, row ->
+            Ex.iff(Ex.cmp(">=", x, toScalar(row[0])), toScalar(row[1]), acc)
+        }
     }
 }

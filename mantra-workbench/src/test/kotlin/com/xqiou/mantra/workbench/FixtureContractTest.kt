@@ -1,20 +1,20 @@
 package com.xqiou.mantra.workbench
 
 import com.networknt.schema.InputFormat
-import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SchemaLocation
+import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
-import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Path
-import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -24,7 +24,7 @@ import kotlin.test.assertTrue
 class FixtureContractTest {
     private val examples = listOf(
         "de-est" to "case-mustermann.mantra",
-        "ifrs-impairment" to "case-ie8.mantra",
+        "ifrs-impairment" to "case-demo.mantra",
         "cost-accounting" to "case-demo.mantra",
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
@@ -36,14 +36,20 @@ class FixtureContractTest {
         try {
             val directory = temp.resolve("sample")
             Files.createDirectories(directory)
-            Files.writeString(directory.resolve("schema.mantra"), """
+            Files.writeString(
+                directory.resolve("schema.mantra"),
+                """
                 (schema test/example {:title "Default paper" :mainline [main]}
                   (section main "Main" {:panel true} (field amount "Amount") (total sum "Sum"))
                   (input amount :decimal))
-            """.trimIndent())
-            Files.writeString(directory.resolve("layout.mantra"), """
+                """.trimIndent(),
+            )
+            Files.writeString(
+                directory.resolve("layout.mantra"),
+                """
                 (layout test/paper {:preset :de-staffel-4 :title "Bound paper"} (table main))
-            """.trimIndent())
+                """.trimIndent(),
+            )
             val casePath = directory.resolve("case.mantra")
             fun writeCase(layout: String?) {
                 val binding = layout?.let { " :layout \"$it\"" }.orEmpty()
@@ -56,8 +62,10 @@ class FixtureContractTest {
                     as com.xqiou.mantra.core.model.Value.MapV
                 val data = document.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("data"))
                     as com.xqiou.mantra.core.model.Value.MapV
-                return (data.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("title"))
-                    as com.xqiou.mantra.core.model.Value.Text).value
+                return (
+                    data.entries.getValue(com.xqiou.mantra.core.model.Value.Kw("title"))
+                        as com.xqiou.mantra.core.model.Value.Text
+                    ).value
             }
             writeCase(null)
             assertEquals("Default paper", paperTitle())
@@ -73,22 +81,29 @@ class FixtureContractTest {
     @Test
     fun `presentation hints project as stable structure and paper fields`() {
         val directory = Path.of("apps/de-est")
-        val view = CalculationView.of(Mantra.calculate(
-            Mantra.loadSchema(directory.resolve("schema.mantra")),
-            Mantra.loadCase(directory.resolve("case-mustermann.mantra")),
-        ))
+        val view = CalculationView.of(
+            Mantra.calculate(
+                Mantra.loadSchema(directory.resolve("schema.mantra")),
+                Mantra.loadCase(directory.resolve("case-mustermann.mantra")),
+            ),
+        )
         val structure = WorkbenchDocuments.structure(view)
         assertEquals("abrechnungsergebnis", structure["headline"])
         assertEquals("Veranlagungsmerkmale", (structure["groupTitles"] as Map<*, *>)["assessment"])
-        val input = (structure["generalInputs"] as List<*>).map { it as Map<*, *> }.first { it["id"] == "veranlagungsart" }
+        val input = (structure["generalInputs"] as List<*>).map { it as Map<*, *> }.first {
+            it["id"] ==
+                "veranlagungsart"
+        }
         assertEquals("assessment", input["group"])
         val resultNode = (structure["nodes"] as Map<*, *>)["abrechnungsergebnis"] as Map<*, *>
         assertEquals("Erstattung", (resultNode["signLabels"] as Map<*, *>)["negative"])
         val paper = WorkbenchDocuments.paper(view, Render.loadLayout(directory.resolve("layout.mantra")))
         assertEquals("Nachzahlung", (paper["headline"] as Map<*, *>)["label"])
-        assertTrue((paper["inputGroups"] as List<*>).any {
-            (it as Map<*, *>)["key"] == "assessment" && "veranlagungsart" in (it["inputs"] as List<*>)
-        })
+        assertTrue(
+            (paper["inputGroups"] as List<*>).any {
+                (it as Map<*, *>)["key"] == "assessment" && "veranlagungsart" in (it["inputs"] as List<*>)
+            },
+        )
     }
 
     @Test
@@ -96,23 +111,36 @@ class FixtureContractTest {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
-            val entries = Fixtures.writeMany(cases, temp, explainAddresses = mapOf(
-                "de-est/case-mustermann.mantra" to listOf(ExplainAddress("ermaessigung-35a"),
-                    ExplainAddress("zu-versteuerndes-einkommen"), ExplainAddress("tarifliche-est")),
-                "ifrs-impairment/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B")),
-                    ExplainAddress("allocation-key", listOf("B")), ExplainAddress("all.weighted-amount"),
-                    ExplainAddress("weighted-amount", listOf("A")), ExplainAddress("weighted-amount", listOf("B")),
-                    ExplainAddress("weighted-amount", listOf("C"))),
-                "cost-accounting/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
-            ))
+            val entries = Fixtures.writeMany(
+                cases,
+                temp,
+                explainAddresses = mapOf(
+                    "de-est/case-mustermann.mantra" to listOf(
+                        ExplainAddress("ermaessigung-35a"),
+                        ExplainAddress("zu-versteuerndes-einkommen"),
+                        ExplainAddress("tarifliche-est"),
+                    ),
+                    "ifrs-impairment/case-demo.mantra" to listOf(
+                        ExplainAddress("recoverable-amount", listOf("B")),
+                        ExplainAddress("allocation-key", listOf("B")),
+                        ExplainAddress("all.weighted-amount"),
+                        ExplainAddress("weighted-amount", listOf("A")),
+                        ExplainAddress("weighted-amount", listOf("B")),
+                        ExplainAddress("weighted-amount", listOf("C")),
+                    ),
+                    "cost-accounting/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
+                ),
+            )
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
             assertEquals("Eheleute Erika und Max Mustermann", entries.first().title)
             if (System.getenv("MANTRA_UPDATE_GOLDEN") == "1") {
-                Files.walk(temp).use { files -> files.filter(Files::isRegularFile).forEach { path ->
-                    val destination = golden.resolve(temp.relativize(path))
-                    Files.createDirectories(destination.parent)
-                    Files.copy(path, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-                } }
+                Files.walk(temp).use { files ->
+                    files.filter(Files::isRegularFile).forEach { path ->
+                        val destination = golden.resolve(temp.relativize(path))
+                        Files.createDirectories(destination.parent)
+                        Files.copy(path, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                    }
+                }
             }
             assertEquals(Files.readString(golden.resolve("index.json")), Files.readString(temp.resolve("index.json")))
             val schemas = Files.list(schemaDirectory).use { stream ->
@@ -124,13 +152,18 @@ class FixtureContractTest {
                 it.schemas(schemas)
             }
             entries.forEach { entry ->
-                entry.files.filterKeys { it in setOf("structure", "run", "paper", "diagnostics", "parameters", "export-preview") ||
-                    it.startsWith("export-preview:") }.forEach { (key, url) ->
+                entry.files.filterKeys {
+                    it in
+                        setOf("structure", "run", "paper", "diagnostics", "parameters", "export-preview") ||
+                        it.startsWith("export-preview:")
+                }.forEach { (key, url) ->
                     val name = key.substringBefore(':')
                     val relative = (url as String).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
                     assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$key changed")
-                    val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json"))
+                    val schema = registry.getSchema(
+                        SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json"),
+                    )
                     val errors = schema.validate(generated, InputFormat.JSON)
                     assertTrue(errors.isEmpty(), "${entry.id}/$key: $errors")
                 }
@@ -140,7 +173,9 @@ class FixtureContractTest {
                     val relative = path.removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
                     assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$relative changed")
-                    val schema = registry.getSchema(SchemaLocation.of("https://mantra.local/workbench/schema/explain.schema.json"))
+                    val schema = registry.getSchema(
+                        SchemaLocation.of("https://mantra.local/workbench/schema/explain.schema.json"),
+                    )
                     assertTrue(schema.validate(generated, InputFormat.JSON).isEmpty(), "${entry.id}/$relative")
                 }
             }
@@ -162,18 +197,30 @@ class FixtureContractTest {
 
     @Test
     fun `value limit diagnostics retain the dimension address`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema test/limit {}
               (dimension member {:members [:A :B]})
               (section result "Result" {:per member}
                 (field principal "Principal")
                 (line value "Value" principal)))
-        """.trimIndent()), SourceResolver { _, _ -> null })
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
         val supplied = Mantra.loadCase(SourceText("case.mantra", "(case c)"))
-            .copy(inputs = mapOf("principal" to Value.MapV(linkedMapOf(
-                Value.Kw("A") to Value.num(1),
-                Value.Kw("B") to Value.Num(BigDecimal("1E-1001")),
-            ))))
+            .copy(
+                inputs = mapOf(
+                    "principal" to Value.MapV(
+                        linkedMapOf(
+                            Value.Kw("A") to Value.num(1),
+                            Value.Kw("B") to Value.Num(BigDecimal("1E-1001")),
+                        ),
+                    ),
+                ),
+            )
         val result = Mantra.calculate(schema, supplied)
         val finding = result.diagnostics.single { it.code == "MANTRA-VALUE-LIMIT" }
         assertEquals(listOf("B"), finding.coord)
@@ -187,7 +234,7 @@ class FixtureContractTest {
         val directory = Path.of("apps/ifrs-impairment")
         val result = Mantra.calculate(
             Mantra.loadSchema(directory.resolve("schema.mantra")),
-            Mantra.loadCase(directory.resolve("case-ie8.mantra")),
+            Mantra.loadCase(directory.resolve("case-demo.mantra")),
         )
         val view = CalculationView.of(result)
         val layout = Render.loadLayout(directory.resolve("layout.mantra"))

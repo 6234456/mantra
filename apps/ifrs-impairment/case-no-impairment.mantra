@@ -1,18 +1,17 @@
-;; Synthetic boundary case: no unit or group has an impairment loss.
-;; Facts of IAS 36 Illustrative Example 8 (IE69–IE79): entity M with CGUs A, B and C,
-;; a headquarters building (allocable) and a research centre (not allocable).
+;; Independently authored fictional inputs for the Mantra demonstration.
+;; Amounts, useful lives and labels are not a reproduction of an IFRS illustrative example.
 (case ias36-no-impairment
   {:schema "ifrs.ias36/corporate-assets"
    :layout "ifrs.ias36/working-paper"
-   :title "Entity M – corporate assets"
-   :subject "Entity M"
-   :period "End of 20X0"
-   :prepared-by "Mantra acceptance example"
-   :reference "IAS 36 IE69–IE79"}
+   :title "Fictional zero-loss boundary"
+   :subject "Demo Facilities Ltd"
+   :period "2025-12-31"
+   :prepared-by "Mantra acceptance demonstration"
+   :reference "Project-authored fictional data"}
   (inputs
-    {:cgus [{:id :A :name "A" :carrying-amount 100 :remaining-life 10 :value-in-use 1000}
-            {:id :B :name "B" :carrying-amount 150 :remaining-life 20 :value-in-use 1000}
-            {:id :C :name "C" :carrying-amount 200 :remaining-life 20 :value-in-use 1000}]
-     :allocable-corporate 150
-     :unallocable-corporate 50
+    {:cgus [{:id :A :name "North" :carrying-amount 120 :remaining-life 6 :value-in-use 1000}
+            {:id :B :name "Central" :carrying-amount 180 :remaining-life 12 :value-in-use 1000}
+            {:id :C :name "South" :carrying-amount 260 :remaining-life 18 :value-in-use 1000}]
+     :allocable-corporate 211
+     :unallocable-corporate 73
      :group-recoverable-amount 1000}))

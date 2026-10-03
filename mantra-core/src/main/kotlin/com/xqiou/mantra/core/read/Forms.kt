@@ -45,7 +45,9 @@ class Document(val source: SourceText, val root: DslForm) {
                         sink.error(
                             "MANTRA-READ-SYNTAX",
                             "${diagnostic.code}: ${diagnostic.message}",
-                            diagnostic.span?.let { SourceLocation(source.name, it.line, it.column, it.startOffset, it.endOffset) },
+                            diagnostic.span?.let {
+                                SourceLocation(source.name, it.line, it.column, it.startOffset, it.endOffset)
+                            },
                         )
                     }
                     null
@@ -77,8 +79,7 @@ val DslForm.string: String?
 val DslForm.number: BigDecimal?
     get() = (literalKind as? DslFormLiteral.Number)?.value
 
-fun DslForm.isSequence(kind: DslFormSequenceKind): Boolean =
-    this is DslForm.Sequence && this.kind == kind
+fun DslForm.isSequence(kind: DslFormSequenceKind): Boolean = this is DslForm.Sequence && this.kind == kind
 
 val DslForm.listHead: String?
     get() = (this as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.LIST }?.values?.firstOrNull()?.symbol

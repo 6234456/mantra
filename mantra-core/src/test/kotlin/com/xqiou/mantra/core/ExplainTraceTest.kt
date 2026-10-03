@@ -13,12 +13,20 @@ import kotlin.test.assertTrue
 
 class ExplainTraceTest {
     @Test fun `full trace identifies the selected if branch`() {
-        val schema = Mantra.loadSchema(SourceText("choice.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "choice.mantra",
+                """
             (schema app/branch {:mainline [main]}
               (section main "Main" {:panel true} (line selected "Selected" (if flag (+ 4 6) 20)))
               (input flag :boolean))
-        """.trimIndent()), SourceResolver { _, _ -> null })
-        val case = Mantra.loadCase(SourceText("case.mantra", "(case one {:schema \"app/branch\"} (inputs {:flag true}))"))
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
+        val case = Mantra.loadCase(
+            SourceText("case.mantra", "(case one {:schema \"app/branch\"} (inputs {:flag true}))"),
+        )
         val result = Mantra.calculateForExplain(schema, case, emptyList(), "selected")
         assertEquals(Value.Num(BigDecimal.TEN), result.value("selected"))
         assertTrue(assertNotNull(result.explainTrace).branches.any { it.text == "(+ 4 6)" && it.selected })
@@ -35,8 +43,18 @@ class ExplainTraceTest {
         val trace = assertNotNull(explained.explainTrace)
         assertFalse(trace.truncated)
         assertTrue(trace.steps.isNotEmpty())
-        assertTrue(trace.steps.any { it.value == Value.Num(BigDecimal("240.0")) && it.text.contains("haushaltsnahe-dienstleistungen") })
-        assertTrue(trace.steps.any { it.value == Value.Num(BigDecimal("500.0")) && it.text.contains("handwerkerleistungen") })
+        assertTrue(
+            trace.steps.any {
+                it.value == Value.Num(BigDecimal("240.0")) &&
+                    it.text.contains("haushaltsnahe-dienstleistungen")
+            },
+        )
+        assertTrue(
+            trace.steps.any {
+                it.value == Value.Num(BigDecimal("500.0")) &&
+                    it.text.contains("handwerkerleistungen")
+            },
+        )
         assertTrue(trace.steps.all { it.location.source.endsWith("schema.mantra") && it.location.startOffset != null })
         val inner = trace.steps.indexOfFirst { it.text.startsWith("(- tarifliche-est") }
         val outer = trace.steps.indexOfFirst { it.text.startsWith("(max 0") }
@@ -45,8 +63,12 @@ class ExplainTraceTest {
 
     @Test fun `named tariff function reports the executed cond branch and child first steps`() {
         val directory = Path.of("apps/de-est")
-        val result = Mantra.calculateForExplain(Mantra.loadSchema(directory.resolve("schema.mantra")),
-            Mantra.loadCase(directory.resolve("case-mustermann.mantra")), emptyList(), "tarifliche-est")
+        val result = Mantra.calculateForExplain(
+            Mantra.loadSchema(directory.resolve("schema.mantra")),
+            Mantra.loadCase(directory.resolve("case-mustermann.mantra")),
+            emptyList(),
+            "tarifliche-est",
+        )
         val trace = assertNotNull(result.explainTrace)
         assertTrue(trace.steps.any { it.location.line == 86 && it.text.startsWith("(let [z ") })
         assertTrue(trace.branches.any { it.location.line == 86 && it.text.startsWith("(let [z ") })

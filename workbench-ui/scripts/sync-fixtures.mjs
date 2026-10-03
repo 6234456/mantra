@@ -20,15 +20,15 @@ for (const entry of manifest.cases) {
   const directory = dirname(resolve(target, entry.files.structure.replace('/fixtures/', '')))
   const folder = entry.files.structure.split('/')[2]
   const comparisons = {}
-  for (const filename of (await readdir(directory)).filter(name => /^compare-.*\.json$/.test(name)).sort()) {
+  for (const filename of (await readdir(directory)).filter((name) => /^compare-.*\.json$/.test(name)).sort()) {
     const document = JSON.parse(await readFile(resolve(directory, filename), 'utf8'))
     const ids = document.data?.variant?.parameters
-    if (!Array.isArray(ids) || !ids.every(id => typeof id === 'string')) continue
+    if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) continue
     comparisons[JSON.stringify(ids)] = `/fixtures/${folder}/${filename}`
-    ids.forEach(id => parameterIds.add(id))
+    ids.forEach((id) => parameterIds.add(id))
   }
   if (Object.keys(comparisons).length) entry.files.compares = comparisons
 }
-manifest.parameters = [...parameterIds].sort().map(id => ({ id, path: '' }))
+manifest.parameters = [...parameterIds].sort().map((id) => ({ id, path: '' }))
 await writeFile(resolve(target, 'index.json'), `${JSON.stringify(manifest)}\n`)
 console.log(`Copied workbench golden fixtures to ${target}`)

@@ -3,23 +3,23 @@ package com.xqiou.mantra.cli
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.api.FunctionCatalog
-import com.xqiou.mantra.core.view.NodeKind
-import com.xqiou.mantra.core.view.ViewSection
-import com.xqiou.mantra.core.view.ViewTreeNode
-import com.xqiou.mantra.core.view.ViewNote
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.ViewNote
+import com.xqiou.mantra.core.view.ViewSection
+import com.xqiou.mantra.core.view.ViewTreeNode
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.Presets
-import com.xqiou.mantra.workbench.Fixtures
 import com.xqiou.mantra.server.WorkbenchServer
+import com.xqiou.mantra.workbench.Fixtures
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.system.exitProcess
 import java.util.concurrent.CountDownLatch
+import kotlin.system.exitProcess
 
 private const val USAGE = """
 mantra – calculation-schema engine (Normein DSL)
@@ -103,13 +103,18 @@ private fun fail(message: String): Nothing {
 }
 
 private fun loadInputs(options: Options): Pair<com.xqiou.mantra.core.model.Schema, CaseData> {
-    val schemaPath = options.positional.firstOrNull()?.let(Path::of) ?: fail("A schema file is required.\n${USAGE.trimIndent()}")
+    val schemaPath =
+        options.positional.firstOrNull()?.let(Path::of) ?: fail("A schema file is required.\n${USAGE.trimIndent()}")
     val schema = Mantra.loadSchema(schemaPath)
     val casePath = options.path("case")?.toAbsolutePath()?.normalize()
     val case = casePath?.let { path ->
         val loaded = Mantra.loadCase(path)
-        com.xqiou.mantra.workbench.BoundSources.load(loaded, schema, path,
-            options.path("workspace")?.toAbsolutePath()?.normalize() ?: path.parent).case
+        com.xqiou.mantra.workbench.BoundSources.load(
+            loaded,
+            schema,
+            path,
+            options.path("workspace")?.toAbsolutePath()?.normalize() ?: path.parent,
+        ).case
     } ?: CaseData.empty()
     return schema to case
 }
@@ -123,8 +128,12 @@ private fun run(options: Options) {
         val workbook = com.xqiou.mantra.excel.ExcelExport.workbook(result, layout)
         workbook.write(out)
         val report = workbook.report
-        System.err.println("mantra: wrote ${out.toAbsolutePath()} – ${report.formulaCells} formula cells, ${report.inputCells} input cells, ${report.names} names, ${report.fallbacks.size} values without formula")
-        report.fallbacks.forEach { System.err.println("  value only: ${it.sheet}!${it.cell} ${it.nodeId}: ${it.reason}") }
+        System.err.println(
+            "mantra: wrote ${out.toAbsolutePath()} – ${report.formulaCells} formula cells, ${report.inputCells} input cells, ${report.names} names, ${report.fallbacks.size} values without formula",
+        )
+        report.fallbacks.forEach {
+            System.err.println("  value only: ${it.sheet}!${it.cell} ${it.nodeId}: ${it.reason}")
+        }
         report.evaluationErrors.forEach { System.err.println("  evaluation: $it") }
         result.diagnostics.forEach { System.err.println(it) }
         if (!result.succeeded) exitProcess(3)
@@ -158,7 +167,8 @@ private fun fixtures(options: Options) {
 private fun serve(options: Options) {
     val workspace = options.positional.singleOrNull()?.let(Path::of)
         ?: fail("serve requires one workspace directory.\n${USAGE.trimIndent()}")
-    val port = options.named["port"]?.toIntOrNull() ?: if (options.flag("port")) fail("--port requires a number") else 8080
+    val port =
+        options.named["port"]?.toIntOrNull() ?: if (options.flag("port")) fail("--port requires a number") else 8080
     if (port !in 0..65535) fail("--port must be between 0 and 65535")
     val ui = options.path("ui")
     if (options.flag("ui") && ui == null) fail("--ui requires a directory")
@@ -182,15 +192,25 @@ private fun diff(options: Options) {
     val base = Mantra.calculate(schema, baseCase, baseSets)
     val variant = Mantra.calculate(schema, variantCase, variantSets)
     val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(base)
-    val document = WorkbenchDocuments.compare(CalculationView.of(base), CalculationView.of(variant), layout,
-        variantSets.map { it.id })
+    val document = WorkbenchDocuments.compare(
+        CalculationView.of(base),
+        CalculationView.of(variant),
+        layout,
+        variantSets.map { it.id },
+    )
     val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
     val revision = DiffRevision.calculate(
-        schemaPath = schemaPath, schemaSources = schema.sources,
-        baseCase = options.path("case"), variantCase = options.path("variant-case"),
+        schemaPath = schemaPath,
+        schemaSources = schema.sources,
+        baseCase = options.path("case"),
+        variantCase = options.path("variant-case"),
         layout = options.path("layout"),
-        baseParameters = options.named["base-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
-        variantParameters = options.named["variant-parameters"].orEmpty().split(',').filter { it.isNotBlank() }.map { Path.of(it.trim()) },
+        baseParameters = options.named["base-parameters"].orEmpty().split(',').filter {
+            it.isNotBlank()
+        }.map { Path.of(it.trim()) },
+        variantParameters = options.named["variant-parameters"].orEmpty().split(',').filter {
+            it.isNotBlank()
+        }.map { Path.of(it.trim()) },
     )
     var directory: Path? = schemaPath.parent
     var normein = "unknown"
@@ -212,7 +232,9 @@ private fun diff(options: Options) {
             val mainline = document["mainline"] as List<Map<String, Any?>>
             mainline.forEach { row ->
                 val display = row["display"] as Map<*, *>
-                appendLine("${row["step"]}. ${row["panel"]}: ${display["base"]} → ${display["variant"]} (${display["delta"]})")
+                appendLine(
+                    "${row["step"]}. ${row["panel"]}: ${display["base"]} → ${display["variant"]} (${display["delta"]})",
+                )
             }
             @Suppress("UNCHECKED_CAST")
             val changes = document["changes"] as List<Map<String, Any?>>
@@ -222,7 +244,9 @@ private fun diff(options: Options) {
                 (group["items"] as List<Map<String, Any?>>).forEach { item ->
                     val display = item["display"] as Map<*, *>
                     val coord = (item["coord"] as List<*>).joinToString("/")
-                    appendLine("  ${item["node"]}${if (coord.isEmpty()) "" else "[$coord]"}: ${display["base"]} → ${display["variant"]} (${display["delta"] ?: "–"})")
+                    appendLine(
+                        "  ${item["node"]}${if (coord.isEmpty()) "" else "[$coord]"}: ${display["base"]} → ${display["variant"]} (${display["delta"] ?: "–"})",
+                    )
                 }
             }
             @Suppress("UNCHECKED_CAST")
@@ -251,16 +275,29 @@ private fun explain(options: Options) {
         ?: fail("explain requires --address <node>")
     val coord = options.named["coord"]?.split(',')?.map(String::trim) ?: emptyList()
     if (coord.any(String::isBlank)) fail("--coord must contain nonempty member keys")
-    val parameterPaths = options.named["parameters"].orEmpty().split(',').filter(String::isNotBlank).map { Path.of(it.trim()) }
+    val parameterPaths = options.named["parameters"].orEmpty().split(',').filter(String::isNotBlank).map {
+        Path.of(it.trim())
+    }
     val result = Mantra.calculateForExplain(schema, case, parameterPaths.map(Mantra::loadParameters), nodeId, coord)
     val view = CalculationView.of(result)
     val node = view.nodes[nodeId] ?: fail("Explain node was not found: $nodeId")
-    if (node.dims.size != coord.size || coord !in node.values) fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
+    if (node.dims.size != coord.size ||
+        coord !in node.values
+    ) {
+        fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
+    }
     val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
     val document = WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
     val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
-    val revision = DiffRevision.calculate(schemaPath, schema.sources, options.path("case"), null,
-        options.path("layout"), parameterPaths, emptyList())
+    val revision = DiffRevision.calculate(
+        schemaPath,
+        schema.sources,
+        options.path("case"),
+        null,
+        options.path("layout"),
+        parameterPaths,
+        emptyList(),
+    )
     var directory: Path? = schemaPath.parent
     var normein = "unknown"
     while (directory != null) {
@@ -341,14 +378,16 @@ private fun catalog() {
         "(include \"path\")" to "include a fragment",
         "(param id literal {opts})" to "template parameter, overridable per case",
         "(input id :type {opts})" to "user fact (:decimal :integer :boolean :keyword :text :date :table)",
-        "(dimension id {:members [...] | :from table})" to "members; table dimensions may declare :parent and :parent-key",
+        "(dimension id {:members [...] | :from table})" to
+            "members; table dimensions may declare :parent and :parent-key",
         "(defn name [^Type arg] body)" to "helper function in Normein DSL",
         "(section id \"Label\" {opts} item*)" to "grouping; with a total it has a running sum",
         "(field id \"Label\" {opts})" to "input shown in place",
         "(line id \"Label\" formula {opts})" to "computed line (Normein expression)",
         "(formula-slot id \"Label\" default {opts})" to "typed formula hook; cases may use (bind id formula)",
         "(total id \"Label\" {opts})" to "running subtotal / total of the section",
-        "(choice id \"Label\" {:rule :min|:max} (option :key \"Label\" formula)+)" to "alternatives (Günstigerprüfung, higher-of)",
+        "(choice id \"Label\" {:rule :min|:max} (option :key \"Label\" formula)+)" to
+            "alternatives (Günstigerprüfung, higher-of)",
         "(slot id \"Label\" {opts})" to "extension point filled by (extend id ...) in a case",
         "(note \"Text\")" to "text row",
     ).forEach { (form, text) -> println("  %-64s %s".format(form, text)) }
@@ -356,12 +395,16 @@ private fun catalog() {
     println("                :reference :note :source :format :precision :hidden :type :class")
     println("                application attributes (for example :kz or :zeile) pass through unchanged")
     println()
-    println("Kernel functions (${FunctionCatalog.libraryId}@${FunctionCatalog.semanticsVersion}, plus the Normein standard library)")
+    println(
+        "Kernel functions (${FunctionCatalog.libraryId}@${FunctionCatalog.semanticsVersion}, plus the Normein standard library)",
+    )
     FunctionCatalog.functions.forEach { println("  %-16s %s".format(it.name, it.summary)) }
     println("  (${FunctionCatalog.callableCount} callables in total)")
     println()
     println("Layout forms (presentation layer)")
-    println("  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)")
+    println(
+        "  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)",
+    )
     println("  (operators {...})  (columns :tiered|:matrix col*)  (table section-id {opts} col*)")
     println("  (attribute :name {opts}?)  application metadata column")
     println("  (schedule id*)  (inline id*)  (hide id*)")

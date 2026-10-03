@@ -41,12 +41,24 @@ object HtmlRenderer {
             appendLine("</dl>")
         }
         appendLine("</header>")
-        paper.headline?.let { appendLine("<p class=\"headline\"><strong>${esc(it.label)}</strong> ${esc(it.value)}</p>") }
+        paper.headline?.let {
+            appendLine("<p class=\"headline\"><strong>${esc(it.label)}</strong> ${esc(it.value)}</p>")
+        }
         if (paper.overview.isNotEmpty()) append(structure(paper))
         if (paper.tables.size > 1) {
             appendLine("<nav class=\"toc\"><ol>")
-            paper.tables.forEach { appendLine("<li><a href=\"#table-${esc(it.ref)}\"><span class=\"ref\">${esc(it.ref)}</span> ${esc(it.title)}</a></li>") }
-            if (paper.audit.isNotEmpty()) appendLine("<li><a href=\"#audit\"><span class=\"ref\">§</span> ${esc(paper.texts.audit)}</a></li>")
+            paper.tables.forEach {
+                appendLine(
+                    "<li><a href=\"#table-${esc(
+                        it.ref,
+                    )}\"><span class=\"ref\">${esc(it.ref)}</span> ${esc(it.title)}</a></li>",
+                )
+            }
+            if (paper.audit.isNotEmpty()) {
+                appendLine(
+                    "<li><a href=\"#audit\"><span class=\"ref\">§</span> ${esc(paper.texts.audit)}</a></li>",
+                )
+            }
             appendLine("</ol></nav>")
         }
         paper.tables.forEach { append(table(it, paper, auditAnchors)) }
@@ -60,17 +72,43 @@ object HtmlRenderer {
     private fun rowAnchor(anchor: String): String = anchor.split('-').take(2).joinToString("-")
 
     private fun structure(paper: WorkingPaper): String = buildString {
-        fun link(ref: String?, body: String) = if (ref == null) "<span class=\"card\">$body</span>" else "<a class=\"card\" href=\"#table-${esc(ref)}\">$body</a>"
+        fun link(ref: String?, body: String) = if (ref ==
+            null
+        ) {
+            "<span class=\"card\">$body</span>"
+        } else {
+            "<a class=\"card\" href=\"#table-${esc(ref)}\">$body</a>"
+        }
         appendLine("<section class=\"structure\" id=\"structure\">")
         appendLine("<h2><span class=\"ref\">⌂</span>${esc(paper.texts.structure)}</h2>")
         appendLine("<ol class=\"mainline\" aria-label=\"${esc(paper.texts.mainline)}\">")
         paper.overview.forEach { step ->
             appendLine("<li class=\"step\">")
-            appendLine(link(step.panel.tableRef, "<span class=\"step-no\">${esc(paper.texts.mainline)} ${step.step}</span><span class=\"title\">${esc(step.panel.title)}</span><span class=\"value\">${esc(step.panel.value)}</span>"))
+            appendLine(
+                link(
+                    step.panel.tableRef,
+                    "<span class=\"step-no\">${esc(
+                        paper.texts.mainline,
+                    )} ${step.step}</span><span class=\"title\">${esc(
+                        step.panel.title,
+                    )}</span><span class=\"value\">${esc(step.panel.value)}</span>",
+                ),
+            )
             if (step.branches.isNotEmpty()) {
                 appendLine("<ul class=\"branches\">")
                 step.branches.forEach { branch ->
-                    appendLine("<li>" + link(branch.tableRef, "<span class=\"title\">↳ ${esc(branch.title)}</span><span class=\"value\">${esc(branch.value)}</span>${branch.entry?.let { "<span class=\"entry\">${esc(it)}</span>" }.orEmpty()}") + "</li>")
+                    appendLine(
+                        "<li>" +
+                            link(
+                                branch.tableRef,
+                                "<span class=\"title\">↳ ${esc(
+                                    branch.title,
+                                )}</span><span class=\"value\">${esc(branch.value)}</span>${branch.entry?.let {
+                                    "<span class=\"entry\">${esc(it)}</span>"
+                                }.orEmpty()}",
+                            ) +
+                            "</li>",
+                    )
                 }
                 appendLine("</ul>")
             }
@@ -78,9 +116,17 @@ object HtmlRenderer {
         }
         appendLine("</ol>")
         if (paper.auxiliary.isNotEmpty()) {
-            appendLine("<p class=\"aux\"><strong>${esc(paper.texts.auxiliary)}:</strong> " + paper.auxiliary.joinToString(" · ") { aux ->
-                (aux.tableRef?.let { "<a href=\"#table-${esc(it)}\">${esc(aux.title)}</a>" } ?: esc(aux.title)) + " ${esc(aux.value)}"
-            } + "</p>")
+            appendLine(
+                "<p class=\"aux\"><strong>${esc(paper.texts.auxiliary)}:</strong> " +
+                    paper.auxiliary.joinToString(" · ") { aux ->
+                        (
+                            aux.tableRef?.let {
+                                "<a href=\"#table-${esc(it)}\">${esc(aux.title)}</a>"
+                            } ?: esc(aux.title)
+                            ) +
+                            " ${esc(aux.value)}"
+                    } + "</p>",
+            )
         }
         appendLine("</section>")
     }
@@ -114,7 +160,11 @@ object HtmlRenderer {
             }
             val id = row.anchor?.let { " id=\"${esc(it)}\"" }.orEmpty()
             val context = row.cellContexts.firstOrNull()
-            val location = context?.let { " data-section=\"${esc(it.sectionPath.lastOrNull().orEmpty())}\" data-depth=\"${it.depth}\" data-height=\"${it.height}\" data-row-index=\"${it.rowIndex}\"" }.orEmpty()
+            val location = context?.let {
+                " data-section=\"${esc(
+                    it.sectionPath.lastOrNull().orEmpty(),
+                )}\" data-depth=\"${it.depth}\" data-height=\"${it.height}\" data-row-index=\"${it.rowIndex}\""
+            }.orEmpty()
             appendLine("<tr class=\"${esc(classes.joinToString(" "))}\"$id$location>")
             table.columns.forEachIndexed { index, column ->
                 val cellStyle = styleAttribute(row.cellStyles.getOrNull(index) ?: row.style)
@@ -128,11 +178,18 @@ object HtmlRenderer {
                         } ?: text
                         "<span class=\"label\" style=\"--depth:${row.depth}\">$linked</span>"
                     }
-                    column.content == ColumnContent.RowNumber && raw.isNotEmpty() && row.anchor != null && row.anchor in auditAnchors ->
-                        "<a href=\"#audit-${esc(auditAnchors.getValue(row.anchor))}\" title=\"${esc(paper.texts.audit)}\">${esc(raw)}</a>"
+                    column.content == ColumnContent.RowNumber && raw.isNotEmpty() && row.anchor != null &&
+                        row.anchor in auditAnchors ->
+                        "<a href=\"#audit-${esc(
+                            auditAnchors.getValue(row.anchor),
+                        )}\" title=\"${esc(paper.texts.audit)}\">${esc(raw)}</a>"
                     else -> esc(raw)
                 }
-                appendLine("<td class=\"${align(column.align)} c-${cssName(column.content)}\" data-column=\"${esc(column.id)}\"$cellStyle>$content</td>")
+                appendLine(
+                    "<td class=\"${align(
+                        column.align,
+                    )} c-${cssName(column.content)}\" data-column=\"${esc(column.id)}\"$cellStyle>$content</td>",
+                )
             }
             appendLine("</tr>")
         }
@@ -169,15 +226,29 @@ object HtmlRenderer {
         appendLine("<h2><span class=\"ref\">§</span>${esc(texts.audit)}</h2>")
         appendLine("<p class=\"intro\">${esc(texts.auditIntro)}</p>")
         appendLine("<div class=\"table-wrap\"><table class=\"audit-table\">")
-        appendLine("<thead><tr><th class=\"left\">${esc(texts.row)}</th><th class=\"left\">${esc(texts.label)}</th><th class=\"left\">${esc(texts.formula)} / ${esc(texts.explain)}</th><th class=\"right\">${esc(texts.result)}</th></tr></thead>")
+        appendLine(
+            "<thead><tr><th class=\"left\">${esc(
+                texts.row,
+            )}</th><th class=\"left\">${esc(
+                texts.label,
+            )}</th><th class=\"left\">${esc(
+                texts.formula,
+            )} / ${esc(texts.explain)}</th><th class=\"right\">${esc(texts.result)}</th></tr></thead>",
+        )
         appendLine("<tbody>")
         paper.audit.forEach { entry ->
             appendLine("<tr id=\"audit-${esc(entry.anchor)}\">")
-            appendLine("<td class=\"left cite\"><a href=\"#${esc(rowAnchor(entry.anchor))}\">${esc(entry.citation)}</a></td>")
+            appendLine(
+                "<td class=\"left cite\"><a href=\"#${esc(rowAnchor(entry.anchor))}\">${esc(entry.citation)}</a></td>",
+            )
             val member = entry.member?.let { " <span class=\"member\">${esc(it)}</span>" }.orEmpty()
             val ref = entry.reference?.let { "<div class=\"norm\">${esc(it)}</div>" }.orEmpty()
             appendLine("<td class=\"left\">${esc(entry.label)}$member$ref</td>")
-            appendLine("<td class=\"left\"><code class=\"formula\">${esc(entry.formula)}</code><div class=\"working\">${esc(entry.working)}</div></td>")
+            appendLine(
+                "<td class=\"left\"><code class=\"formula\">${esc(
+                    entry.formula,
+                )}</code><div class=\"working\">${esc(entry.working)}</div></td>",
+            )
             appendLine("<td class=\"right num\">${esc(entry.result)}</td>")
             appendLine("</tr>")
         }
@@ -187,12 +258,22 @@ object HtmlRenderer {
 
     private fun footer(paper: WorkingPaper): String = buildString {
         appendLine("<footer class=\"wp-footer\">")
-        appendLine("<div class=\"legend\"><strong>${esc(paper.texts.legend)}:</strong> " + paper.legend.joinToString(" · ") { (mark, text) -> "<span><b>${esc(mark)}</b> ${esc(text)}</span>" } + "</div>")
+        appendLine(
+            "<div class=\"legend\"><strong>${esc(paper.texts.legend)}:</strong> " +
+                paper.legend.joinToString(" · ") { (mark, text) -> "<span><b>${esc(mark)}</b> ${esc(text)}</span>" } +
+                "</div>",
+        )
         if (paper.findings.isNotEmpty()) {
             appendLine("<div class=\"findings\"><strong>${esc(paper.texts.diagnostics)}</strong><ul>")
             paper.findings.forEach { finding ->
                 val css = if (finding.severity == Severity.ERROR) "error" else "warning"
-                appendLine("<li class=\"$css\"><code>${esc(finding.code)}</code> ${esc(finding.message)}${finding.location?.let { " <span class=\"loc\">${esc(it.toString())}</span>" }.orEmpty()}</li>")
+                appendLine(
+                    "<li class=\"$css\"><code>${esc(
+                        finding.code,
+                    )}</code> ${esc(finding.message)}${finding.location?.let {
+                        " <span class=\"loc\">${esc(it.toString())}</span>"
+                    }.orEmpty()}</li>",
+                )
             }
             appendLine("</ul></div>")
         }
@@ -319,5 +400,5 @@ code.formula { font-size: 11px; color: var(--muted); }
 .engine { color: var(--faint); }
 @media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
 @media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
-""".trimIndent()
+    """.trimIndent()
 }

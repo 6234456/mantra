@@ -31,7 +31,14 @@ class DiffRevisionTest {
             val (schemaA, caseA, paramsA) = files(temp.resolve("checkout-a"))
             val (schemaB, caseB, paramsB) = files(temp.resolve("checkout-b"))
             fun revision(schema: Path, case: Path, params: List<Path>) = DiffRevision.calculate(
-                schema, listOf("schema.mantra", "fragment.mantra"), case, null, null, emptyList(), params)
+                schema,
+                listOf("schema.mantra", "fragment.mantra"),
+                case,
+                null,
+                null,
+                emptyList(),
+                params,
+            )
             val first = revision(schemaA, caseA, paramsA)
             assertEquals(first, revision(schemaB, caseB, paramsB))
             assertNotEquals(first, revision(schemaA, caseA, paramsA.reversed()))
@@ -48,11 +55,17 @@ class DiffRevisionTest {
         val schemaPath = directory.resolve("schema.mantra")
         val schema = Mantra.loadSchema(schemaPath)
         val revision = DiffRevision.calculate(
-            schemaPath, schema.sources,
-            directory.resolve("case-mustermann.mantra"), null,
-            directory.resolve("layout.mantra"), emptyList(), listOf(directory.resolve("params-2026.mantra")),
+            schemaPath,
+            schema.sources,
+            directory.resolve("case-mustermann.mantra"),
+            null,
+            directory.resolve("layout.mantra"),
+            emptyList(),
+            listOf(directory.resolve("params-2026.mantra")),
         )
-        val goldenPath = Path.of("mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json")
+        val goldenPath = Path.of(
+            "mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json",
+        )
         val golden = Json.parse(Files.readString(goldenPath)) as Value.MapV
         assertEquals(revision, (golden.entries.getValue(Value.Kw("revision")) as Value.Text).value)
     }

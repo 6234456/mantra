@@ -2,8 +2,8 @@ package com.xqiou.mantra.core.read
 
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.SourceLocation
-import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.AggregateRule
+import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceOption
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.ColumnDecl
@@ -52,7 +52,11 @@ class SchemaReader(private val resolver: SourceResolver) {
         val document = Document.read(source, sink) ?: return null
         val root = document.root as? DslForm.Sequence
         if (root == null || root.listHead != "schema") {
-            sink.error("MANTRA-SCHEMA-ROOT", "A schema document must start with (schema <id> ...)", document.location(document.root))
+            sink.error(
+                "MANTRA-SCHEMA-ROOT",
+                "A schema document must start with (schema <id> ...)",
+                document.location(document.root),
+            )
             return null
         }
         val id = root.values.getOrNull(1)?.let { it.symbol ?: it.string }
@@ -84,21 +88,37 @@ class SchemaReader(private val resolver: SourceResolver) {
                 }
             }
             if (name == null || !hasNode(rootChildren)) {
-                sink.error("MANTRA-SCHEMA-HEADLINE", ":headline must name a declared calculation node", document.location(metaForm ?: root))
+                sink.error(
+                    "MANTRA-SCHEMA-HEADLINE",
+                    ":headline must name a declared calculation node",
+                    document.location(metaForm ?: root),
+                )
             }
         }
         val groupTitles = meta["group-titles"]
-        if (groupTitles != null && (groupTitles !is Value.MapV || groupTitles.entries.any { (key, value) ->
-                key !is Value.Kw && key !is Value.Text || value !is Value.Text
-            })) {
-            sink.error("MANTRA-SCHEMA-GROUP-TITLES", ":group-titles must map group keys to title strings", document.location(metaForm ?: root))
+        if (groupTitles != null && (
+                groupTitles !is Value.MapV || groupTitles.entries.any { (key, value) ->
+                    key !is Value.Kw && key !is Value.Text || value !is Value.Text
+                }
+                )
+        ) {
+            sink.error(
+                "MANTRA-SCHEMA-GROUP-TITLES",
+                ":group-titles must map group keys to title strings",
+                document.location(metaForm ?: root),
+            )
         }
         fun checkPresentation(presentation: Presentation, location: SourceLocation) {
             val labels = presentation.attributes["sign-labels"] ?: return
             if (labels !is Value.MapV || labels.entries.any { (key, value) ->
                     key !is Value.Kw || key.name !in setOf("positive", "negative", "zero") || value !is Value.Text
-                }) {
-                sink.error("MANTRA-SCHEMA-SIGN-LABELS", ":sign-labels must map :positive, :negative and :zero to strings", location)
+                }
+            ) {
+                sink.error(
+                    "MANTRA-SCHEMA-SIGN-LABELS",
+                    ":sign-labels must map :positive, :negative and :zero to strings",
+                    location,
+                )
             }
         }
         fun checkItems(items: List<Item>) {
@@ -162,15 +182,25 @@ internal class ItemReader(
             "slot" -> section(list, slot = true)
             "line" -> line(list, formulaSlot = false)
             "formula-slot" -> if (userDefined) {
-                sink.error("MANTRA-FORMULA-SLOT-OWNER", "Only an application schema may declare formula-slot", document.location(list))
+                sink.error(
+                    "MANTRA-FORMULA-SLOT-OWNER",
+                    "Only an application schema may declare formula-slot",
+                    document.location(list),
+                )
                 null
-            } else line(list, formulaSlot = true)
+            } else {
+                line(list, formulaSlot = true)
+            }
             "field" -> field(list)
             "total" -> total(list)
             "choice" -> choice(list)
             "note" -> note(list)
             else -> {
-                sink.error("MANTRA-SCHEMA-FORM", "Unknown schema form `${document.slice(form).take(60)}`", document.location(form))
+                sink.error(
+                    "MANTRA-SCHEMA-FORM",
+                    "Unknown schema form `${document.slice(form).take(60)}`",
+                    document.location(form),
+                )
                 null
             }
         }
@@ -179,12 +209,20 @@ internal class ItemReader(
     private fun header(list: DslForm.Sequence, kind: String): Pair<String, String>? {
         val id = list.values.getOrNull(1)?.symbol
         if (id == null || !isIdentifier(id)) {
-            sink.error("MANTRA-SCHEMA-ID", "($kind ...) requires an identifier as first argument", document.location(list))
+            sink.error(
+                "MANTRA-SCHEMA-ID",
+                "($kind ...) requires an identifier as first argument",
+                document.location(list),
+            )
             return null
         }
         val label = list.values.getOrNull(2)?.string
         if (label == null) {
-            sink.error("MANTRA-SCHEMA-LABEL", "($kind $id ...) requires a label string as second argument", document.location(list))
+            sink.error(
+                "MANTRA-SCHEMA-LABEL",
+                "($kind $id ...) requires a label string as second argument",
+                document.location(list),
+            )
             return null
         }
         return id to label
@@ -199,7 +237,11 @@ internal class ItemReader(
         val opts = document.options(optsForm, sink, "$kind $id")
         val children = mutableListOf<Item>()
         if (slot && list.values.size > index) {
-            sink.error("MANTRA-SLOT-CONTENT", "(slot $id ...) cannot contain items; cases fill slots with (extend $id ...)", document.location(list))
+            sink.error(
+                "MANTRA-SLOT-CONTENT",
+                "(slot $id ...) cannot contain items; cases fill slots with (extend $id ...)",
+                document.location(list),
+            )
         } else {
             list.values.drop(index).forEach { child -> read(child)?.let(children::add) }
         }
@@ -214,13 +256,21 @@ internal class ItemReader(
                 "schedule" -> SectionDisplay.SCHEDULE
                 "hidden" -> SectionDisplay.HIDDEN
                 else -> {
-                    sink.error("MANTRA-SCHEMA-DISPLAY", "Unknown :display :$display", document.location(opts.getValue("display")))
+                    sink.error(
+                        "MANTRA-SCHEMA-DISPLAY",
+                        "Unknown :display :$display",
+                        document.location(opts.getValue("display")),
+                    )
                     SectionDisplay.INLINE
                 }
             },
             layout = opts["layout"]?.let { form ->
                 form.keyword?.takeIf { it == "tiered" || it == "matrix" } ?: run {
-                    sink.error("MANTRA-SCHEMA-LAYOUT", ":layout of $kind $id must be :tiered or :matrix", document.location(form))
+                    sink.error(
+                        "MANTRA-SCHEMA-LAYOUT",
+                        ":layout of $kind $id must be :tiered or :matrix",
+                        document.location(form),
+                    )
                     null
                 }
             },
@@ -238,26 +288,48 @@ internal class ItemReader(
         val (id, label) = header(list, kind) ?: return null
         val formulaForm = list.values.getOrNull(3)
         if (formulaForm == null) {
-            sink.error("MANTRA-LINE-FORMULA", "($kind $id ...) requires a formula; use (field ...) for inputs", document.location(list))
+            sink.error(
+                "MANTRA-LINE-FORMULA",
+                "($kind $id ...) requires a formula; use (field ...) for inputs",
+                document.location(list),
+            )
             return null
         }
         val opts = document.options(list.values.getOrNull(4), sink, "$kind $id")
         if (!formulaSlot && "uses" in opts) {
-            sink.error("MANTRA-FORMULA-SLOT-USES", ":uses is only valid on formula-slot", document.location(opts.getValue("uses")))
+            sink.error(
+                "MANTRA-FORMULA-SLOT-USES",
+                ":uses is only valid on formula-slot",
+                document.location(opts.getValue("uses")),
+            )
         }
         val allowedRefs = opts["uses"]?.let { form ->
             if (!form.isSequence(DslFormSequenceKind.VECTOR)) {
-                sink.error("MANTRA-FORMULA-SLOT-USES", ":uses of $id must be a vector of root names", document.location(form))
+                sink.error(
+                    "MANTRA-FORMULA-SLOT-USES",
+                    ":uses of $id must be a vector of root names",
+                    document.location(form),
+                )
                 emptySet()
-            } else (form as DslForm.Sequence).values.mapNotNull { root ->
-                root.symbol ?: run {
-                    sink.error("MANTRA-FORMULA-SLOT-USES", ":uses of $id must list root symbols", document.location(root))
-                    null
-                }
-            }.toSet()
+            } else {
+                (form as DslForm.Sequence).values.mapNotNull { root ->
+                    root.symbol ?: run {
+                        sink.error(
+                            "MANTRA-FORMULA-SLOT-USES",
+                            ":uses of $id must list root symbols",
+                            document.location(root),
+                        )
+                        null
+                    }
+                }.toSet()
+            }
         }
         if (list.values.size > 5) {
-            sink.error("MANTRA-LINE-ARITY", "($kind $id ...) has unexpected trailing forms", document.location(list.values[5]))
+            sink.error(
+                "MANTRA-LINE-ARITY",
+                "($kind $id ...) has unexpected trailing forms",
+                document.location(list.values[5]),
+            )
         }
         return LineItem(
             id = id,
@@ -282,7 +354,11 @@ internal class ItemReader(
         form == null || form.symbol == "true" || form.keyword == "sum" -> AggregateRule.SUM
         form.symbol == "false" || form.keyword == "none" -> AggregateRule.NONE
         else -> {
-            sink.error("MANTRA-AGGREGATE", ":aggregate of $what must be true, false, :sum, or :none", document.location(form))
+            sink.error(
+                "MANTRA-AGGREGATE",
+                ":aggregate of $what must be true, false, :sum, or :none",
+                document.location(form),
+            )
             AggregateRule.SUM
         }
     }
@@ -324,25 +400,43 @@ internal class ItemReader(
             "min" -> ChoiceRule.MIN
             "max" -> ChoiceRule.MAX
             else -> {
-                sink.error("MANTRA-CHOICE-RULE", "(choice $id ...) requires :rule :min or :rule :max (found ${rule ?: "nothing"})", document.location(list))
+                sink.error(
+                    "MANTRA-CHOICE-RULE",
+                    "(choice $id ...) requires :rule :min or :rule :max (found ${rule ?: "nothing"})",
+                    document.location(list),
+                )
                 ChoiceRule.MAX
             }
         }
         val options = list.values.drop(index).mapNotNull { form ->
             val option = form as? DslForm.Sequence
             if (option?.listHead != "option") {
-                sink.error("MANTRA-CHOICE-OPTION", "(choice $id ...) may only contain (option :key \"Label\" formula)", document.location(form))
+                sink.error(
+                    "MANTRA-CHOICE-OPTION",
+                    "(choice $id ...) may only contain (option :key \"Label\" formula)",
+                    document.location(form),
+                )
                 return@mapNotNull null
             }
             val key = option.values.getOrNull(1)?.keyword
             val optionLabel = option.values.getOrNull(2)?.string
             val formula = option.values.getOrNull(3)
             if (key == null || optionLabel == null || formula == null) {
-                sink.error("MANTRA-CHOICE-OPTION", "(option :key \"Label\" formula {opts}?) is incomplete", document.location(option))
+                sink.error(
+                    "MANTRA-CHOICE-OPTION",
+                    "(option :key \"Label\" formula {opts}?) is incomplete",
+                    document.location(option),
+                )
                 return@mapNotNull null
             }
             val optionOpts = document.options(option.values.getOrNull(4), sink, "option :$key")
-            ChoiceOption(key, optionLabel, document.formula(formula), optionOpts["when"]?.let(document::formula), document.location(option))
+            ChoiceOption(
+                key,
+                optionLabel,
+                document.formula(formula),
+                optionOpts["when"]?.let(document::formula),
+                document.location(option),
+            )
         }
         if (options.size < 2) {
             sink.error("MANTRA-CHOICE-OPTION", "(choice $id ...) needs at least two options", document.location(list))
@@ -372,16 +466,28 @@ internal class ItemReader(
         return NoteItem(text, presentation(opts, "note"), document.location(list), userDefined)
     }
 
-    fun inputDecl(id: String, label: String?, opts: Map<String, DslForm>, location: SourceLocation, defaultPerInherit: Boolean): InputDecl {
+    fun inputDecl(
+        id: String,
+        label: String?,
+        opts: Map<String, DslForm>,
+        location: SourceLocation,
+        defaultPerInherit: Boolean,
+    ): InputDecl {
         val type = type(opts["type"], ValueType.DECIMAL, "input $id")
         val columns = opts["columns"]?.let { columns(it, id) } ?: emptyList()
         val references = opts["references"]?.let { form ->
             document.options(form, sink, "input $id :references").mapNotNull { (column, target) ->
                 val dimension = target.symbol
                 if (dimension == null) {
-                    sink.error("MANTRA-INPUT-REFERENCE", "Reference target of :$column in $id must be a dimension name", document.location(target))
+                    sink.error(
+                        "MANTRA-INPUT-REFERENCE",
+                        "Reference target of :$column in $id must be a dimension name",
+                        document.location(target),
+                    )
                     null
-                } else column to dimension
+                } else {
+                    column to dimension
+                }
             }.toMap()
         }.orEmpty()
         if (type == ValueType.TABLE && columns.isEmpty()) {
@@ -395,7 +501,11 @@ internal class ItemReader(
                     val key = (k as? Value.Kw)?.name
                     if (key != null) options[key] = (v as? Value.Text)?.value ?: key
                 }
-                else -> sink.error("MANTRA-INPUT-OPTIONS", ":options must be a vector or map of keywords", document.location(form))
+                else -> sink.error(
+                    "MANTRA-INPUT-OPTIONS",
+                    ":options must be a vector or map of keywords",
+                    document.location(form),
+                )
             }
         }
         return InputDecl(
@@ -420,7 +530,11 @@ internal class ItemReader(
             val optional = raw?.endsWith("?") == true
             val type = raw?.removeSuffix("?")?.let(ValueType::of)
             if (type == null || type == ValueType.TABLE) {
-                sink.error("MANTRA-INPUT-COLUMNS", "Column :$name of $id needs a scalar type keyword such as :decimal", document.location(typeForm))
+                sink.error(
+                    "MANTRA-INPUT-COLUMNS",
+                    "Column :$name of $id needs a scalar type keyword such as :decimal",
+                    document.location(typeForm),
+                )
                 null
             } else {
                 ColumnDecl(name, type, optional)
@@ -446,7 +560,11 @@ internal class ItemReader(
     fun op(form: DslForm?, default: Op, what: String): Op {
         if (form == null) return default
         val op = form.keyword?.let(Op::of)
-        if (op == null) sink.error("MANTRA-SCHEMA-OP", ":op of $what must be :plus, :minus or :info", document.location(form))
+        if (op ==
+            null
+        ) {
+            sink.error("MANTRA-SCHEMA-OP", ":op of $what must be :plus, :minus or :info", document.location(form))
+        }
         return op ?: default
     }
 
@@ -482,13 +600,26 @@ internal class ItemReader(
             }
         }
         val classes = opts["class"]?.let { form ->
-            val entries = if (form.isSequence(DslFormSequenceKind.VECTOR)) (form as DslForm.Sequence).values else listOf(form)
+            val entries = if (form.isSequence(
+                    DslFormSequenceKind.VECTOR,
+                )
+            ) {
+                (form as DslForm.Sequence).values
+            } else {
+                listOf(form)
+            }
             entries.mapNotNull { entry ->
                 val name = entry.keyword
                 if (name == null || !name.matches(Regex("[a-z][a-z0-9-]*"))) {
-                    sink.error("MANTRA-SCHEMA-CLASS", ":class of $what must be a keyword or vector of simple keywords", document.location(entry))
+                    sink.error(
+                        "MANTRA-SCHEMA-CLASS",
+                        ":class of $what must be a keyword or vector of simple keywords",
+                        document.location(entry),
+                    )
                     null
-                } else name
+                } else {
+                    name
+                }
             }.distinct()
         }.orEmpty()
         return Presentation(
@@ -509,7 +640,8 @@ internal class ItemReader(
             "per", "when", "op", "round", "type", "spread", "display", "layout", "title", "rule",
             "default", "optional", "options", "columns", "references", "label", "uses", "aggregate",
         )
-        val PRESENTATION_KEYS = setOf("reference", "note", "source", "format", "precision", "hidden", "emphasis", "class")
+        val PRESENTATION_KEYS =
+            setOf("reference", "note", "source", "format", "precision", "hidden", "emphasis", "class")
     }
 }
 
@@ -547,7 +679,12 @@ private fun SchemaState.readInput(document: Document, list: DslForm.Sequence): I
     val (typeForm, optsForm) = if (second?.keyword != null) second to list.values.getOrNull(3) else null to second
     val opts = document.options(optsForm, sink, "input $id").toMutableMap()
     if (typeForm != null) opts["type"] = typeForm
-    return ItemReader(document, sink, false, mutableListOf()).inputDecl(id, null, opts, document.location(list), defaultPerInherit = false)
+    return ItemReader(
+        document,
+        sink,
+        false,
+        mutableListOf(),
+    ).inputDecl(id, null, opts, document.location(list), defaultPerInherit = false)
 }
 
 private fun SchemaState.readDimension(document: Document, list: DslForm.Sequence): DimensionDecl? {
@@ -563,13 +700,17 @@ private fun SchemaState.readDimension(document: Document, list: DslForm.Sequence
             sink.error("MANTRA-DIMENSION", ":members of dimension $id must be a vector", document.location(form))
         } else {
             (form as DslForm.Sequence).values.forEach { member ->
-                member.keyword?.let { members += MemberDecl(it, it, null); return@forEach }
+                member.keyword?.let {
+                    members += MemberDecl(it, it, null)
+                    return@forEach
+                }
                 val memberOpts = document.options(member, sink, "member of $id")
                 val key = memberOpts["key"]?.keyword
                 if (key == null) {
                     sink.error("MANTRA-DIMENSION", "Member of dimension $id requires :key", document.location(member))
                 } else {
-                    members += MemberDecl(key, memberOpts["label"]?.string ?: key, memberOpts["when"]?.let(document::formula))
+                    members +=
+                        MemberDecl(key, memberOpts["label"]?.string ?: key, memberOpts["when"]?.let(document::formula))
                 }
             }
         }
@@ -615,16 +756,48 @@ private class SchemaState(private val resolver: SourceResolver, val sink: Diagno
     fun readDeclaration(document: Document, form: DslForm, items: MutableList<Item>, topLevel: Boolean) {
         when (form.listHead) {
             "include" -> if (topLevel) include(document, form, items) else notAllowed(document, form, "include")
-            "param" -> if (topLevel) readParam(document, form as DslForm.Sequence)?.let(params::add) else notAllowed(document, form, "param")
-            "input" -> if (topLevel) readInput(document, form as DslForm.Sequence)?.let(inputs::add) else notAllowed(document, form, "input")
-            "dimension" -> if (topLevel) readDimension(document, form as DslForm.Sequence)?.let(dimensions::add) else notAllowed(document, form, "dimension")
-            "defn" -> if (topLevel) readFunction(document, form as DslForm.Sequence)?.let(functions::add) else notAllowed(document, form, "defn")
+            "param" -> if (topLevel) {
+                readParam(
+                    document,
+                    form as DslForm.Sequence,
+                )?.let(params::add)
+            } else {
+                notAllowed(document, form, "param")
+            }
+            "input" -> if (topLevel) {
+                readInput(
+                    document,
+                    form as DslForm.Sequence,
+                )?.let(inputs::add)
+            } else {
+                notAllowed(document, form, "input")
+            }
+            "dimension" -> if (topLevel) {
+                readDimension(
+                    document,
+                    form as DslForm.Sequence,
+                )?.let(dimensions::add)
+            } else {
+                notAllowed(document, form, "dimension")
+            }
+            "defn" -> if (topLevel) {
+                readFunction(
+                    document,
+                    form as DslForm.Sequence,
+                )?.let(functions::add)
+            } else {
+                notAllowed(document, form, "defn")
+            }
             else -> ItemReader(document, sink, userDefined = false, inputs).read(form)?.let(items::add)
         }
     }
 
     private fun notAllowed(document: Document, form: DslForm, what: String) {
-        sink.error("MANTRA-SCHEMA-PLACEMENT", "($what ...) is only allowed at the top level of a schema or fragment", document.location(form))
+        sink.error(
+            "MANTRA-SCHEMA-PLACEMENT",
+            "($what ...) is only allowed at the top level of a schema or fragment",
+            document.location(form),
+        )
     }
 
     private fun include(document: Document, form: DslForm, items: MutableList<Item>) {
@@ -645,7 +818,11 @@ private class SchemaState(private val resolver: SourceResolver, val sink: Diagno
         val included = Document.read(source, sink) ?: return
         val root = included.root as? DslForm.Sequence
         if (root == null || root.listHead != "fragment") {
-            sink.error("MANTRA-INCLUDE-ROOT", "Included documents must start with (fragment ...)", included.location(included.root))
+            sink.error(
+                "MANTRA-INCLUDE-ROOT",
+                "Included documents must start with (fragment ...)",
+                included.location(included.root),
+            )
             return
         }
         sources += source.name

@@ -39,13 +39,18 @@ class FormulaAuthoring private constructor(
         val rewritten = Qualified.rewrite(source)
         val request = DslCompletionRequest(rewritten, cursorOffset, limit = 100)
         val result = scopedCompletion.complete(request)
-        val items = if (allowedRefs == null) result.items else {
+        val items = if (allowedRefs == null) {
+            result.items
+        } else {
             // Filter the catalog before Normein's 100-item cap; :uses may name a root
             // that comes after hundreds of unrelated roots in catalog order.
-            val references = scopedCompletion.complete(request.copy(
-                kinds = setOf(DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD))).items
+            val references = scopedCompletion.complete(
+                request.copy(kinds = setOf(DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD)),
+            ).items
             val allFields = allowedRefs.flatMap { ref ->
-                service.complete(DslCompletionRequest("all.$ref", kinds = setOf(DslCompletionItemKind.FIELD), limit = 100))
+                service.complete(
+                    DslCompletionRequest("all.$ref", kinds = setOf(DslCompletionItemKind.FIELD), limit = 100),
+                )
                     .items.filter(::allowed)
             }.filter { result.query.isEmpty() || it.label.contains(result.query, ignoreCase = true) }
             (references + allFields + result.items).filter(::allowed).distinctBy { it.kind to it.insertText }.take(100)
@@ -62,19 +67,28 @@ class FormulaAuthoring private constructor(
         ?.let { it.copy(symbol = displayName(it.symbol)) }
 
     /** Compiles [source] against the declared result type and returns compiler diagnostics. */
-    fun check(source: String): List<DslDiagnostic> = when (val result = compiler.compile(
-        DslCompileRequest(Qualified.rewrite(source), namedDefinitions = plan.definitions, expectedType = expectedType),
-        MantraKernel.environment, scope,
-    )) {
+    fun check(source: String): List<DslDiagnostic> = when (
+        val result = compiler.compile(
+            DslCompileRequest(
+                Qualified.rewrite(source),
+                namedDefinitions = plan.definitions,
+                expectedType = expectedType,
+            ),
+            MantraKernel.environment,
+            scope,
+        )
+    ) {
         is DslCompileResult.Failure -> result.diagnostics
         is DslCompileResult.Success -> emptyList()
     }
 
-    private fun allowed(item: DslCompletionItem): Boolean =
-        when (item.kind) {
-            DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD -> allowed(item.label, item.kind == DslCompletionItemKind.FIELD)
-            else -> true
-        }
+    private fun allowed(item: DslCompletionItem): Boolean = when (item.kind) {
+        DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD -> allowed(
+            item.label,
+            item.kind == DslCompletionItemKind.FIELD,
+        )
+        else -> true
+    }
 
     private fun allowed(symbol: String, field: Boolean): Boolean {
         val refs = allowedRefs ?: return true
@@ -84,14 +98,29 @@ class FormulaAuthoring private constructor(
         return name.substringBefore('.') in refs || (field && name in refs)
     }
 
-    private fun display(item: DslCompletionItem): DslCompletionItem = if (item.kind in setOf(DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD))
-        item.copy(label = displayName(item.label), insertText = displayName(item.insertText)) else item
+    private fun display(item: DslCompletionItem): DslCompletionItem = if (item.kind in
+        setOf(DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD)
+    ) {
+        item.copy(label = displayName(item.label), insertText = displayName(item.insertText))
+    } else {
+        item
+    }
 
-    private fun displayName(name: String): String = if (name.startsWith("mantra_")) "mantra/" + name.removePrefix("mantra_") else name
+    private fun displayName(name: String): String = if (name.startsWith("mantra_")) {
+        "mantra/" +
+            name.removePrefix("mantra_")
+    } else {
+        name
+    }
 
     companion object {
         /** Builds tooling for an application-declared formula slot and its allowed references. */
-        fun forFormulaSlot(schema: Schema, case: CaseData, parameters: List<ParameterSet>, id: String): FormulaAuthoring {
+        fun forFormulaSlot(
+            schema: Schema,
+            case: CaseData,
+            parameters: List<ParameterSet>,
+            id: String,
+        ): FormulaAuthoring {
             val sink = DiagnosticSink()
             val planner = Planner(sink)
             val plan = planner.plan(schema, case, parameters)
@@ -99,24 +128,39 @@ class FormulaAuthoring private constructor(
             val line = (checkNotNull(plan).vertices[id] as? LineVertex)?.takeIf { it.item.formulaSlot }
                 ?: throw IllegalArgumentException("Unknown formula slot $id")
             val dims = if (line.item.spread) line.dims.dropLast(1) else line.dims
-            val expected = if (line.item.spread) DslTypes.map(DslType.Keyword, Types.expected(line.item.type))
-                else Types.expected(line.item.type)
+            val expected = if (line.item.spread) {
+                DslTypes.map(DslType.Keyword, Types.expected(line.item.type))
+            } else {
+                Types.expected(line.item.type)
+            }
             return create(planner, plan, dims, expected, line.item.allowedRefs)
         }
 
         /** Builds tooling for a new extension line or the existing line identified by [id]. */
-        fun forExtension(schema: Schema, case: CaseData, parameters: List<ParameterSet>, slot: String, id: String? = null): FormulaAuthoring {
+        fun forExtension(
+            schema: Schema,
+            case: CaseData,
+            parameters: List<ParameterSet>,
+            slot: String,
+            id: String? = null,
+        ): FormulaAuthoring {
             val sink = DiagnosticSink()
             val planner = Planner(sink)
             val plan = planner.plan(schema, case, parameters)
             sink.throwIfErrors()
             val dims = slotDimensions(checkNotNull(plan).tree, slot)
                 ?: throw IllegalArgumentException("Unknown extension slot $slot")
-            if (id != null && case.extensions[slot].orEmpty().any { it is com.xqiou.mantra.core.model.LineItem && it.id == id }) {
-                val line = plan.vertices[id] as? LineVertex ?: throw IllegalArgumentException("Unknown extension line $id")
+            if (id != null &&
+                case.extensions[slot].orEmpty().any { it is com.xqiou.mantra.core.model.LineItem && it.id == id }
+            ) {
+                val line =
+                    plan.vertices[id] as? LineVertex ?: throw IllegalArgumentException("Unknown extension line $id")
                 val context = if (line.item.spread) line.dims.dropLast(1) else line.dims
-                val expected = if (line.item.spread) DslTypes.map(DslType.Keyword, Types.expected(line.item.type))
-                    else Types.expected(line.item.type)
+                val expected = if (line.item.spread) {
+                    DslTypes.map(DslType.Keyword, Types.expected(line.item.type))
+                } else {
+                    Types.expected(line.item.type)
+                }
                 return create(planner, plan, context, expected, null)
             }
             return create(planner, plan, dims, DslType.Decimal, null)
@@ -127,18 +171,37 @@ class FormulaAuthoring private constructor(
             return section.children.filterIsInstance<ResolvedSection>().firstNotNullOfOrNull { slotDimensions(it, id) }
         }
 
-        private fun create(planner: Planner, plan: CalculationPlan, dims: List<String>, expected: DslType,
-                           refs: Set<String>?): FormulaAuthoring {
+        private fun create(
+            planner: Planner,
+            plan: CalculationPlan,
+            dims: List<String>,
+            expected: DslType,
+            refs: Set<String>?,
+        ): FormulaAuthoring {
             val scope = planner.authoringScope(dims)
             val service = DslAuthoringService(MantraKernel.environment, scope)
-            val scopedCompletion = if (refs == null) service else DslAuthoringService(
-                MantraKernel.environment.catalog(scope).let { catalog ->
-                    catalog.copy(roots = catalog.roots.filter { root ->
-                        root.name.removePrefix("mantra_").substringBefore('.') in refs
-                    })
-                })
-            return FormulaAuthoring(service, scopedCompletion, DslSemanticCompiler(),
-                plan, scope, expected, refs)
+            val scopedCompletion = if (refs == null) {
+                service
+            } else {
+                DslAuthoringService(
+                    MantraKernel.environment.catalog(scope).let { catalog ->
+                        catalog.copy(
+                            roots = catalog.roots.filter { root ->
+                                root.name.removePrefix("mantra_").substringBefore('.') in refs
+                            },
+                        )
+                    },
+                )
+            }
+            return FormulaAuthoring(
+                service,
+                scopedCompletion,
+                DslSemanticCompiler(),
+                plan,
+                scope,
+                expected,
+                refs,
+            )
         }
     }
 }

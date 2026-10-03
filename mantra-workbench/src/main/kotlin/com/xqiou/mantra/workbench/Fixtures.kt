@@ -3,21 +3,26 @@ package com.xqiou.mantra.workbench
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
-import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.excel.ExcelExport
+import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
+import java.net.URLEncoder
 import java.nio.file.Files
 import java.nio.file.Path
-import java.net.URLEncoder
 import java.security.MessageDigest
 
 /** Produces browser-ready, versioned read-only fixtures for a self-contained example directory. */
 object Fixtures {
     data class Entry(val id: String, val title: String, val files: Map<String, Any?>)
 
-    fun write(casePath: Path, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
-              explainAddresses: List<ExplainAddress> = emptyList()): Entry {
+    fun write(
+        casePath: Path,
+        out: Path,
+        publicPrefix: String = "/fixtures",
+        workspaceRoot: Path? = null,
+        explainAddresses: List<ExplainAddress> = emptyList(),
+    ): Entry {
         val absoluteCase = casePath.toRealPath()
         val directory = absoluteCase.parent
         val schemaPath = directory.resolve("schema.mantra")
@@ -40,7 +45,9 @@ object Fixtures {
                     "Case binds layout ${(layoutBinding).value}, but $layoutPath declares ${layout.id}"
                 }
             }
-        } else null
+        } else {
+            null
+        }
         val layout = selectedLayout ?: Render.defaultLayout(view)
         val paper = Render.paper(result, layout)
         val documents = buildList {
@@ -84,38 +91,68 @@ object Fixtures {
             explainAddresses.distinct().forEach { address ->
                 val memberMap = address.node.startsWith("all.")
                 val nodeId = if (memberMap) address.node.removePrefix("all.") else address.node
-                val explained = if (memberMap) result
-                    else Mantra.calculateForExplain(schema, bound.case, emptyList(), nodeId, address.coord)
+                val explained = if (memberMap) {
+                    result
+                } else {
+                    Mantra.calculateForExplain(schema, bound.case, emptyList(), nodeId, address.coord)
+                }
                 val explainedView = CalculationView.of(explained)
                 val node = explainedView.nodes[nodeId]
-                val fixed = if (memberMap) address.coord.associate { part ->
-                    val split = part.split('=', limit = 2)
-                    require(split.size == 2 && split.none(String::isBlank)) { "Malformed member-map coordinate: $part" }
-                    split[0] to split[1]
-                } else emptyMap()
-                require(node != null && (if (memberMap) node.dims.isNotEmpty() && fixed.size < node.dims.size &&
-                    address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
-                    fixed.all { (dim, member) -> explainedView.members[dim].orEmpty().any { it.key == member } }
-                    else node.dims.size == address.coord.size && address.coord in node.values)) {
+                val fixed = if (memberMap) {
+                    address.coord.associate { part ->
+                        val split = part.split('=', limit = 2)
+                        require(split.size == 2 && split.none(String::isBlank)) {
+                            "Malformed member-map coordinate: $part"
+                        }
+                        split[0] to split[1]
+                    }
+                } else {
+                    emptyMap()
+                }
+                require(
+                    node != null && (
+                        if (memberMap) {
+                            node.dims.isNotEmpty() && fixed.size < node.dims.size &&
+                                address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
+                                fixed.all { (dim, member) ->
+                                    explainedView.members[dim].orEmpty().any { it.key == member }
+                                }
+                        } else {
+                            node.dims.size == address.coord.size && address.coord in node.values
+                        }
+                        ),
+                ) {
                     "Explain address is not a calculated value: $address"
                 }
                 require(address.cell == null) { "Fixture Explain cell addresses are not supported" }
                 val key = addressPath(address)
                 val file = "explain-" + MessageDigest.getInstance("SHA-256")
                     .digest(key.toByteArray(Charsets.UTF_8)).take(8).joinToString("") { "%02x".format(it) } + ".json"
-                val data = if (memberMap) WorkbenchDocuments.memberMap(explainedView, layout, nodeId, fixed)
-                    else WorkbenchDocuments.explain(explainedView, layout, nodeId, address.coord,
-                        explained.explainTrace)
-                Files.writeString(target.resolve(file),
-                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n")
+                val data = if (memberMap) {
+                    WorkbenchDocuments.memberMap(explainedView, layout, nodeId, fixed)
+                } else {
+                    WorkbenchDocuments.explain(
+                        explainedView,
+                        layout,
+                        nodeId,
+                        address.coord,
+                        explained.explainTrace,
+                    )
+                }
+                Files.writeString(
+                    target.resolve(file),
+                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n",
+                )
                 explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"
             }
             files["explains"] = explains
         }
         exportPreviews.forEachIndexed { index, (name, data) ->
             val file = "export-preview-$index.json"
-            Files.writeString(target.resolve(file),
-                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n")
+            Files.writeString(
+                target.resolve(file),
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n",
+            )
             files["export-preview:$name"] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
         val entry = Entry(id, case.text("title") ?: schema.meta.title, files)
@@ -124,8 +161,13 @@ object Fixtures {
         return entry
     }
 
-    fun writeMany(cases: List<Path>, out: Path, publicPrefix: String = "/fixtures", workspaceRoot: Path? = null,
-                  explainAddresses: Map<String, List<ExplainAddress>> = emptyMap()): List<Entry> {
+    fun writeMany(
+        cases: List<Path>,
+        out: Path,
+        publicPrefix: String = "/fixtures",
+        workspaceRoot: Path? = null,
+        explainAddresses: Map<String, List<ExplainAddress>> = emptyMap(),
+    ): List<Entry> {
         require(cases.isNotEmpty()) { "At least one case is required" }
         val absolute = cases.map(Path::toRealPath)
         val root = workspaceRoot?.toRealPath() ?: absolute.map { it.parent.parent }.reduce { common, next ->
@@ -142,8 +184,11 @@ object Fixtures {
         return entries
     }
 
-    private fun manifestEntry(entry: Entry): Map<String, Any?> =
-        linkedMapOf("id" to entry.id, "title" to entry.title, "files" to entry.files)
+    private fun manifestEntry(entry: Entry): Map<String, Any?> = linkedMapOf(
+        "id" to entry.id,
+        "title" to entry.title,
+        "files" to entry.files,
+    )
 
     private fun addressPath(address: ExplainAddress): String {
         fun part(value: String): String = URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")

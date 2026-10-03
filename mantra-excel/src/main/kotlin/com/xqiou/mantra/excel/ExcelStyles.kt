@@ -64,7 +64,19 @@ class ExcelStyles(private val workbook: XSSFWorkbook, private val numbers: Numbe
             key.format?.let { dataFormat = workbook.createDataFormat().getFormat(it) }
             setFont(font(key))
             key.fill.rgb?.let { rgb ->
-                setFillForegroundColor(XSSFColor(byteArrayOf((rgb shr 16).toByte(), (rgb shr 8 and 0xFF).toByte(), (rgb and 0xFF).toByte()), null))
+                setFillForegroundColor(
+                    XSSFColor(
+                        byteArrayOf(
+                            (rgb shr 16).toByte(),
+                            (rgb shr 8 and 0xFF).toByte(),
+                            (
+                                rgb and
+                                    0xFF
+                                ).toByte(),
+                        ),
+                        null,
+                    ),
+                )
                 fillPattern = FillPatternType.SOLID_FOREGROUND
             }
             if (key.topRule) borderTop = BorderStyle.THIN
@@ -77,7 +89,16 @@ class ExcelStyles(private val workbook: XSSFWorkbook, private val numbers: Numbe
         }
     }
 
-    private fun font(key: StyleKey): XSSFFont = fonts.getOrPut(listOf(key.bold, key.italic, key.muted, key.size, key.link, key.tone ?: StyleTone.DEFAULT)) {
+    private fun font(key: StyleKey): XSSFFont = fonts.getOrPut(
+        listOf(
+            key.bold,
+            key.italic,
+            key.muted,
+            key.size,
+            key.link,
+            key.tone ?: StyleTone.DEFAULT,
+        ),
+    ) {
         workbook.createFont().apply {
             fontName = "Calibri"
             fontHeightInPoints = key.size
@@ -89,7 +110,9 @@ class ExcelStyles(private val workbook: XSSFWorkbook, private val numbers: Numbe
                     underline = XSSFFont.U_SINGLE
                 }
                 key.tone == StyleTone.ACCENT -> setColor(XSSFColor(byteArrayOf(0x1F, 0x5F, 0xBF.toByte()), null))
-                key.tone == StyleTone.MUTED || (key.tone == null && key.muted) -> setColor(XSSFColor(byteArrayOf(0x6B, 0x72, 0x80.toByte()), null))
+                key.tone == StyleTone.MUTED || (key.tone == null && key.muted) -> setColor(
+                    XSSFColor(byteArrayOf(0x6B, 0x72, 0x80.toByte()), null),
+                )
             }
         }
     }

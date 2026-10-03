@@ -641,7 +641,7 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
   - 三个验收方案各有 Structure、Run、Paper、Diagnostics 和 Parameters 的 golden 文件；
   - 另有选定地址的 Explain，以及 ESt 2025 对 `params-2026` 的 Compare；
   - golden 文件和服务端测试中的每个响应都通过 JSON Schema 校验。
-- **数值来源**：golden 记录的是引擎输出，验收断言仍须来自独立来源（CLAUDE.md）。例如 ESt 用 `verify_expected.py` 独立复算（需扩展到 2026 参数），IAS 36 用 IE8 公布的数字。
+- **数值来源**：golden 记录的是引擎输出，验收断言仍须来自独立来源（CLAUDE.md）。例如 ESt 用 `verify_expected.py` 独立复算（覆盖 2025/2026 参数），IAS 36 的虚构事实用 Fraction 脚本独立复算，成本案例按原始投入与归集关系独立对账。
 - **回写**：§7.2 的往返性质测试。
 - **服务**：状态码、修订冲突、路径越界、`Host` 检查、令牌、资源上限。
 - **前端**：

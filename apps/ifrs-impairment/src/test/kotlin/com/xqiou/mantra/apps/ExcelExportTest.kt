@@ -29,7 +29,7 @@ class ExcelExportTest {
         val result = Mantra.calculate(schema, Mantra.loadCase(base.resolve(case)))
         val layout = Render.loadLayout(base.resolve("layout.mantra"))
         val workbook = ExcelExport.workbook(result, layout)
-        val out = Path.of("apps/ifrs-impairment/build/out/${dir}.xlsx")
+        val out = Path.of("apps/ifrs-impairment/build/out/$dir.xlsx")
         workbook.write(out)
         return Triple(result, workbook, out)
     }
@@ -79,28 +79,35 @@ class ExcelExportTest {
         workbook.workbook.getSheet(ref.sheetName).getRow(ref.row).getCell(ref.col.toInt()).setCellValue(value)
     }
 
-    private fun withInput(case: CaseData, id: String, value: Value): CaseData = case.copy(inputs = case.inputs + (id to value))
+    private fun withInput(case: CaseData, id: String, value: Value): CaseData = case.copy(
+        inputs =
+        case.inputs + (id to value),
+    )
 
     @Test
     fun `IAS 36 workbook is fully formula based and recalculates`() {
-        val (result, workbook) = export("ifrs-impairment", "case-ie8.mantra")
+        val (result, workbook) = export("ifrs-impairment", "case-demo.mantra")
         assertEquals(emptyList(), workbook.report.fallbacks)
         assertEquals(emptyList(), workbook.report.evaluationErrors)
         assertTrue(workbook.report.formulaCells > 40)
         assertWorkbookMatches(result, workbook)
 
-        // Lower CGU C's value in use in the workbook's input table (271 → 240) and compare with a new
+        // Lower CGU C's value in use in the workbook's input table (300 → 240) and compare with a new
         // engine run: the allocation of the larger loss must follow in Excel as well.
         val ref = CellReference(workbook.recordAddress("cgu", "C", "value-in-use") ?: fail("no record cell"))
         workbook.workbook.getSheet(ref.sheetName).getRow(ref.row).getCell(ref.col.toInt()).setCellValue(240.0)
         val rows = (result.case.inputs.getValue("cgus") as Value.Vec).items.map { row ->
             val map = (row as Value.MapV).entries
-            if (map[Value.Kw("id")] == Value.Kw("C")) Value.MapV(map + (Value.Kw("value-in-use") to Value.Num(BigDecimal(240)))) else row
+            if (map[Value.Kw("id")] ==
+                Value.Kw("C")
+            ) {
+                Value.MapV(map + (Value.Kw("value-in-use") to Value.Num(BigDecimal(240))))
+            } else {
+                row
+            }
         }
         val changed = Mantra.calculate(result.schema, withInput(result.case, "cgus", Value.Vec(rows)))
-        assertEquals(0, BigDecimal(35).compareTo(changed.decimal("impairment-loss", "C")))
+        assertEquals(0, BigDecimal(151).compareTo(changed.decimal("impairment-loss", "C")))
         assertWorkbookMatches(changed, workbook)
     }
-
-
 }

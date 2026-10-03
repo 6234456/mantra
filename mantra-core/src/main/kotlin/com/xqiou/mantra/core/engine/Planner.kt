@@ -74,20 +74,36 @@ internal class Planner(private val sink: DiagnosticSink) {
     private lateinit var types: PlanTypes
     private lateinit var typeSchema: DslTypeSchema
 
-    fun plan(schema: Schema, case: CaseData, parameterSets: List<com.xqiou.mantra.core.read.ParameterSet> = emptyList()): CalculationPlan? {
+    fun plan(
+        schema: Schema,
+        case: CaseData,
+        parameterSets: List<com.xqiou.mantra.core.read.ParameterSet> = emptyList(),
+    ): CalculationPlan? {
         this.schema = schema
         this.case = case
         val declared = schema.params.map { it.id }.toSet()
         parameterSets.forEach { set ->
             set.forSchema?.takeIf { it != schema.id }?.let {
-                sink.warning("MANTRA-PARAMETERS-SCHEMA", "Parameter set ${set.id} is intended for schema $it, not ${schema.id}", set.location)
+                sink.warning(
+                    "MANTRA-PARAMETERS-SCHEMA",
+                    "Parameter set ${set.id} is intended for schema $it, not ${schema.id}",
+                    set.location,
+                )
             }
             set.values.keys.filter { it !in declared }.forEach {
-                sink.error("MANTRA-PARAMETERS-UNKNOWN", "Parameter set ${set.id} sets unknown parameter :$it", set.location)
+                sink.error(
+                    "MANTRA-PARAMETERS-UNKNOWN",
+                    "Parameter set ${set.id} sets unknown parameter :$it",
+                    set.location,
+                )
             }
         }
         schema.dimensions.forEach { decl ->
-            if (dimensions.put(decl.id, decl) != null) sink.error("MANTRA-ID-DUPLICATE", "Dimension ${decl.id} is declared twice", decl.location)
+            if (dimensions.put(decl.id, decl) !=
+                null
+            ) {
+                sink.error("MANTRA-ID-DUPLICATE", "Dimension ${decl.id} is declared twice", decl.location)
+            }
         }
         schema.inputs.forEach { inputDecls.putIfAbsent(it.id, it) }
         validateRelations()
@@ -128,7 +144,12 @@ internal class Planner(private val sink: DiagnosticSink) {
             }
         }
         definitions = (schema.functions + case.functions).map {
-            DslNamedDefinition(it.name, Qualified.rewrite(it.source), "defn.${it.name}", hostPosition = hostPosition(it.location, it.source))
+            DslNamedDefinition(
+                it.name,
+                Qualified.rewrite(it.source),
+                "defn.${it.name}",
+                hostPosition = hostPosition(it.location, it.source),
+            )
         }
         if (!validateDefinitions(schema.functions + case.functions)) return null
         compileAll()
@@ -136,7 +157,9 @@ internal class Planner(private val sink: DiagnosticSink) {
 
         // 4. Dependencies and order.
         val order = order() ?: return null
-        return CalculationPlan(schema, case, parameterSets, dimensions, vertices, order, tree, definitions, typeSchema, types)
+        return CalculationPlan(
+            schema, case, parameterSets, dimensions, vertices, order, tree, definitions, typeSchema, types,
+        )
     }
 
     // ── Tree walk ──────────────────────────────────────────────────────────────────────────────
@@ -171,14 +194,21 @@ internal class Planner(private val sink: DiagnosticSink) {
                     if (sub.resultId != null) {
                         contribute(Component(sub.resultId, child.op.sign))
                     } else {
-                        subPassThrough.remove(sub)?.forEach { contribute(Component(it.vertexId, it.sign * child.op.sign)) }
+                        subPassThrough.remove(sub)?.forEach {
+                            contribute(Component(it.vertexId, it.sign * child.op.sign))
+                        }
                     }
                 }
                 is LineItem -> {
-                    val effective = case.formulaBindings[child.id]?.let { child.copy(formula = it, userDefined = true) } ?: child
+                    val effective =
+                        case.formulaBindings[child.id]?.let { child.copy(formula = it, userDefined = true) } ?: child
                     val lineDims = canonical(effective.per ?: dims, effective.location)
                     if (effective.spread && lineDims.isEmpty()) {
-                        sink.error("MANTRA-SPREAD-DIMS", "Line ${effective.id} uses :spread but has no dimension", effective.location)
+                        sink.error(
+                            "MANTRA-SPREAD-DIMS",
+                            "Line ${effective.id} uses :spread but has no dimension",
+                            effective.location,
+                        )
                     }
                     register(LineVertex(effective, lineDims).also { it.guards += activeGuards })
                     resolved += ResolvedNode(effective, lineDims, effective.op.sign)
@@ -264,7 +294,11 @@ internal class Planner(private val sink: DiagnosticSink) {
         }
         val previous = vertices.putIfAbsent(id, vertex)
         if (previous != null) {
-            sink.error("MANTRA-ID-DUPLICATE", "Identifier `$id` is defined twice (first at ${previous.location})", vertex.location)
+            sink.error(
+                "MANTRA-ID-DUPLICATE",
+                "Identifier `$id` is defined twice (first at ${previous.location})",
+                vertex.location,
+            )
         }
     }
 
@@ -302,24 +336,45 @@ internal class Planner(private val sink: DiagnosticSink) {
             sink.error("MANTRA-CASE-SLOT-UNKNOWN", "Case extends unknown slot `$it`")
         }
         case.formulaBindings.keys.filter { it !in formulaSlots }.forEach {
-            sink.error("MANTRA-CASE-BIND-UNKNOWN", "Case binds `$it`, which is not an application-declared formula-slot")
+            sink.error(
+                "MANTRA-CASE-BIND-UNKNOWN",
+                "Case binds `$it`, which is not an application-declared formula-slot",
+            )
         }
     }
 
     private fun validateRelations() {
         inputDecls.values.forEach { input ->
             if (input.references.isNotEmpty() && input.type != ValueType.TABLE) {
-                sink.error("MANTRA-INPUT-REFERENCE", "Input ${input.id} declares :references but is not a table", input.location)
+                sink.error(
+                    "MANTRA-INPUT-REFERENCE",
+                    "Input ${input.id} declares :references but is not a table",
+                    input.location,
+                )
             }
             input.references.forEach { (columnName, target) ->
                 val column = input.columns.firstOrNull { it.name == columnName }
                 if (column == null) {
-                    sink.error("MANTRA-INPUT-REFERENCE", "Input ${input.id} references unknown column :$columnName", input.location)
-                } else if (column.type !in setOf(ValueType.KEYWORD, ValueType.TEXT, ValueType.INTEGER, ValueType.DECIMAL)) {
-                    sink.error("MANTRA-INPUT-REFERENCE", "Input ${input.id} column :$columnName must contain keyword, text, or numeric keys", input.location)
+                    sink.error(
+                        "MANTRA-INPUT-REFERENCE",
+                        "Input ${input.id} references unknown column :$columnName",
+                        input.location,
+                    )
+                } else if (column.type !in
+                    setOf(ValueType.KEYWORD, ValueType.TEXT, ValueType.INTEGER, ValueType.DECIMAL)
+                ) {
+                    sink.error(
+                        "MANTRA-INPUT-REFERENCE",
+                        "Input ${input.id} column :$columnName must contain keyword, text, or numeric keys",
+                        input.location,
+                    )
                 }
                 if (target !in dimensions) {
-                    sink.error("MANTRA-INPUT-REFERENCE", "Input ${input.id} column :$columnName references unknown dimension $target", input.location)
+                    sink.error(
+                        "MANTRA-INPUT-REFERENCE",
+                        "Input ${input.id} column :$columnName references unknown dimension $target",
+                        input.location,
+                    )
                 }
             }
         }
@@ -328,15 +383,27 @@ internal class Planner(private val sink: DiagnosticSink) {
             val parentKey = decl.parentKeyColumn
             if (parent == null && parentKey == null) return@forEach
             if (parent == null || parentKey == null || decl.fromTable == null) {
-                sink.error("MANTRA-DIMENSION-RELATION", "Dimension ${decl.id} needs :from, :parent and :parent-key together", decl.location)
+                sink.error(
+                    "MANTRA-DIMENSION-RELATION",
+                    "Dimension ${decl.id} needs :from, :parent and :parent-key together",
+                    decl.location,
+                )
                 return@forEach
             }
             if (parent !in dimensions) {
-                sink.error("MANTRA-DIMENSION-RELATION", "Dimension ${decl.id} has unknown parent dimension $parent", decl.location)
+                sink.error(
+                    "MANTRA-DIMENSION-RELATION",
+                    "Dimension ${decl.id} has unknown parent dimension $parent",
+                    decl.location,
+                )
             }
             val source = inputDecls[decl.fromTable]
             if (source?.type != ValueType.TABLE || source.columns.none { it.name == parentKey }) {
-                sink.error("MANTRA-DIMENSION-RELATION", "Dimension ${decl.id} parent key :$parentKey is not a column of ${decl.fromTable}", decl.location)
+                sink.error(
+                    "MANTRA-DIMENSION-RELATION",
+                    "Dimension ${decl.id} parent key :$parentKey is not a column of ${decl.fromTable}",
+                    decl.location,
+                )
             }
         }
     }
@@ -344,11 +411,18 @@ internal class Planner(private val sink: DiagnosticSink) {
     private fun validateDefinitions(functions: List<FunctionDecl>): Boolean {
         if (functions.isEmpty()) return true
         val scope = scopeFor(emptyList())
-        return when (val result = compiler.compile(DslCompileRequest("nil", namedDefinitions = definitions), environment, scope)) {
+        return when (
+            val result = compiler.compile(
+                DslCompileRequest("nil", namedDefinitions = definitions),
+                environment,
+                scope,
+            )
+        ) {
             is DslCompileResult.Success -> true
             is DslCompileResult.Failure -> {
                 result.diagnostics.forEach { diagnostic ->
-                    val function = functions.firstOrNull { diagnostic.logicalLocation == "defn.${it.name}" } ?: functions.first()
+                    val function =
+                        functions.firstOrNull { diagnostic.logicalLocation == "defn.${it.name}" } ?: functions.first()
                     report(diagnostic, Formula(function.source, function.location, dummyForm), function.name)
                 }
                 false
@@ -357,7 +431,11 @@ internal class Planner(private val sink: DiagnosticSink) {
     }
 
     private val dummyForm by lazy {
-        (com.xqiou.normein.dsl.form.DslFormReader().readDocument("nil") as com.xqiou.normein.dsl.form.DslFormReadResult.Success).document.root
+        (
+            com.xqiou.normein.dsl.form.DslFormReader().readDocument(
+                "nil",
+            ) as com.xqiou.normein.dsl.form.DslFormReadResult.Success
+            ).document.root
     }
 
     // ── Types and scopes ───────────────────────────────────────────────────────────────────────
@@ -385,8 +463,12 @@ internal class Planner(private val sink: DiagnosticSink) {
         }
         val allId = Names.typeId("mantra", "all")
         types = PlanTypes(dimensionRecord, tableRow, allId, definitions.toList())
-        val allFields = vertices.values.filterIsInstance<ValueVertex>().filter { it.dims.isNotEmpty() }.mapNotNull { vertex ->
-            Names.field(vertex.id)?.let { DslObjectField(it, mapOver(vertex.dims, elementType(vertex)), DslFieldPresence.OPTIONAL) }
+        val allFields = vertices.values.filterIsInstance<ValueVertex>().filter {
+            it.dims.isNotEmpty()
+        }.mapNotNull { vertex ->
+            Names.field(vertex.id)?.let {
+                DslObjectField(it, mapOver(vertex.dims, elementType(vertex)), DslFieldPresence.OPTIONAL)
+            }
         }
         definitions += DslTypeDefinition(allId, DslTypes.objectType(allFields))
         return PlanTypes(dimensionRecord, tableRow, allId, definitions)
@@ -395,12 +477,19 @@ internal class Planner(private val sink: DiagnosticSink) {
     private fun columnFields(decl: InputDecl): List<DslObjectField> = decl.columns.mapNotNull { column ->
         val type = Types.element(column.type)
         Names.field(column.name)?.let {
-            DslObjectField(it, if (column.optional) DslTypes.nullable(type) else type, if (column.optional) DslFieldPresence.OPTIONAL else DslFieldPresence.REQUIRED)
+            DslObjectField(
+                it,
+                if (column.optional) DslTypes.nullable(type) else type,
+                if (column.optional) DslFieldPresence.OPTIONAL else DslFieldPresence.REQUIRED,
+            )
         }
     }
 
-    private fun field(name: String, type: DslType, optional: Boolean): DslObjectField =
-        DslObjectField(Names.field(name)!!, type, if (optional) DslFieldPresence.OPTIONAL else DslFieldPresence.REQUIRED)
+    private fun field(name: String, type: DslType, optional: Boolean): DslObjectField = DslObjectField(
+        Names.field(name)!!,
+        type,
+        if (optional) DslFieldPresence.OPTIONAL else DslFieldPresence.REQUIRED,
+    )
 
     internal fun elementType(vertex: ValueVertex): DslType = when (vertex) {
         is ParamVertex -> Types.infer(vertex.value)
@@ -409,12 +498,19 @@ internal class Planner(private val sink: DiagnosticSink) {
             vertex.decl.optional || !vertex.type.isNumeric -> DslTypes.nullable(Types.element(vertex.type))
             else -> Types.element(vertex.type)
         }
-        is LineVertex -> if (vertex.type.isNumeric) Types.element(vertex.type) else DslTypes.nullable(Types.element(vertex.type))
+        is LineVertex -> if (vertex.type.isNumeric) {
+            Types.element(
+                vertex.type,
+            )
+        } else {
+            DslTypes.nullable(Types.element(vertex.type))
+        }
         is TotalVertex, is ChoiceVertex -> DslType.Decimal
     }
 
-    private fun mapOver(dims: List<String>, element: DslType): DslType =
-        dims.foldRight(element) { _, inner -> DslTypes.map(DslType.Keyword, inner) }
+    private fun mapOver(dims: List<String>, element: DslType): DslType = dims.foldRight(element) { _, inner ->
+        DslTypes.map(DslType.Keyword, inner)
+    }
 
     private fun scopeFor(dims: List<String>): DslAnalysisScope = scopes.getOrPut(dims) {
         val builder = DslAnalysisScopeBuilder.create("mantra.scope.${dims.joinToString(".").ifEmpty { "scalar" }}", "1")
@@ -423,19 +519,29 @@ internal class Planner(private val sink: DiagnosticSink) {
             val extra = vertex.dims.filter { it !in dims }
             val type = mapOver(extra, elementType(vertex))
             // Plain name unless it would hide a function; the qualified mantra/<id> always works.
-            if (vertex.id !in MantraKernel.callableNames) builder.root(DslRootDeclaration(vertex.id, type, DslFieldPresence.OPTIONAL))
+            if (vertex.id !in
+                MantraKernel.callableNames
+            ) {
+                builder.root(DslRootDeclaration(vertex.id, type, DslFieldPresence.OPTIONAL))
+            }
             builder.root(DslRootDeclaration(MantraKernel.qualifiedRoot(vertex.id), type, DslFieldPresence.OPTIONAL))
         }
         dims.forEach { dim ->
-            builder.root(DslRootDeclaration(dim, DslTypes.ref(types.dimensionRecord.getValue(dim)), DslFieldPresence.OPTIONAL))
+            builder.root(
+                DslRootDeclaration(dim, DslTypes.ref(types.dimensionRecord.getValue(dim)), DslFieldPresence.OPTIONAL),
+            )
         }
         relationRoots.keys.forEach { name ->
-            builder.root(DslRootDeclaration(name, DslTypes.map(DslType.Keyword, DslType.Keyword), DslFieldPresence.OPTIONAL))
+            builder.root(
+                DslRootDeclaration(name, DslTypes.map(DslType.Keyword, DslType.Keyword), DslFieldPresence.OPTIONAL),
+            )
         }
         builder.root(DslRootDeclaration("all", DslTypes.ref(types.all), DslFieldPresence.OPTIONAL))
         when (val result = builder.build()) {
             is DslAnalysisScopeBuildResult.Success -> result.scope
-            is DslAnalysisScopeBuildResult.Failure -> error("Analysis scope for $dims is invalid: ${result.diagnostics}")
+            is DslAnalysisScopeBuildResult.Failure -> error(
+                "Analysis scope for $dims is invalid: ${result.diagnostics}",
+            )
         }
     }
 
@@ -449,34 +555,63 @@ internal class Planner(private val sink: DiagnosticSink) {
             when (vertex) {
                 is DimensionVertex -> vertex.decl.members.forEach { member ->
                     member.condition?.let { formula ->
-                        compile(formula, emptyList(), DslType.Any, "${vertex.id}.${member.key}.when")?.let { vertex.memberConditions[member.key] = it }
+                        compile(formula, emptyList(), DslType.Any, "${vertex.id}.${member.key}.when")?.let {
+                            vertex.memberConditions[member.key] =
+                                it
+                        }
                     }
                 }
                 is ConditionVertex -> vertex.compiled = compile(vertex.formula, vertex.dims, DslType.Any, vertex.id)
                 is LineVertex -> {
                     val item = vertex.item
                     val context = if (item.spread) vertex.dims.dropLast(1) else vertex.dims
-                    val expected = if (item.spread) DslTypes.map(DslType.Keyword, Types.expected(item.type)) else Types.expected(item.type)
+                    val expected = if (item.spread) {
+                        DslTypes.map(
+                            DslType.Keyword,
+                            Types.expected(item.type),
+                        )
+                    } else {
+                        Types.expected(item.type)
+                    }
                     vertex.compiled = compile(item.formula, context, expected, item.id)
                     if (item.formulaSlot && item.userDefined && item.allowedRefs != null) {
                         val compiled = vertex.compiled
-                        val used = compiled?.let { it.nodeRefs + it.allRefs + it.dimRefs + it.relationRefs.keys }.orEmpty()
+                        val used = compiled?.let {
+                            it.nodeRefs + it.allRefs + it.dimRefs + it.relationRefs.keys
+                        }.orEmpty()
                         (used - item.allowedRefs).forEach { root ->
-                            sink.error("MANTRA-FORMULA-SLOT-REFERENCE", "Formula slot ${item.id} may not reference $root", item.formula.location, item.id)
+                            sink.error(
+                                "MANTRA-FORMULA-SLOT-REFERENCE",
+                                "Formula slot ${item.id} may not reference $root",
+                                item.formula.location,
+                                item.id,
+                            )
                         }
                     }
-                    vertex.ownCondition = item.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.when") }
+                    vertex.ownCondition =
+                        item.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.when") }
                 }
                 is ChoiceVertex -> {
                     val item = vertex.item
                     item.options.forEach { option ->
-                        val formula = compile(option.formula, vertex.dims, DslTypes.nullable(Types.number), "${item.id}.${option.key}")
-                        val condition = option.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.${option.key}.when") }
+                        val formula =
+                            compile(
+                                option.formula,
+                                vertex.dims,
+                                DslTypes.nullable(Types.number),
+                                "${item.id}.${option.key}",
+                            )
+                        val condition = option.condition?.let {
+                            compile(it, vertex.dims, DslType.Any, "${item.id}.${option.key}.when")
+                        }
                         if (formula != null) vertex.options += CompiledOption(option, formula, condition)
                     }
-                    vertex.ownCondition = item.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.when") }
+                    vertex.ownCondition =
+                        item.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.when") }
                 }
-                is TotalVertex -> vertex.ownCondition = vertex.item.condition?.let { compile(it, vertex.dims, DslType.Any, "${vertex.id}.when") }
+                is TotalVertex ->
+                    vertex.ownCondition =
+                        vertex.item.condition?.let { compile(it, vertex.dims, DslType.Any, "${vertex.id}.when") }
                 is ParamVertex, is InputVertex -> Unit
             }
         }
@@ -500,13 +635,33 @@ internal class Planner(private val sink: DiagnosticSink) {
                 val roots = expression.requiredRoots.keys
                 val allRefs = expression.references
                     .filter { it.rootName == "all" && it.kind == DslReferenceKind.FIELD_PATH }
-                    .mapNotNull { reference -> reference.staticPath?.let { path -> if (path.firstOrNull() == "all") path.getOrNull(1) else path.firstOrNull() } }
+                    .mapNotNull { reference ->
+                        reference.staticPath?.let { path ->
+                            if (path.firstOrNull() ==
+                                "all"
+                            ) {
+                                path.getOrNull(1)
+                            } else {
+                                path.firstOrNull()
+                            }
+                        }
+                    }
                     .toSet()
                 if ("all" in roots && allRefs.isEmpty()) {
-                    sink.error("MANTRA-ALL-DYNAMIC", "`all` must be used with a static field such as all.<line-id>", formula.location, logical)
+                    sink.error(
+                        "MANTRA-ALL-DYNAMIC",
+                        "`all` must be used with a static field such as all.<line-id>",
+                        formula.location,
+                        logical,
+                    )
                 }
                 allRefs.filter { it !in vertices }.forEach {
-                    sink.error("MANTRA-ALL-UNKNOWN", "all.$it does not name a dimensioned line", formula.location, logical)
+                    sink.error(
+                        "MANTRA-ALL-UNKNOWN",
+                        "all.$it does not name a dimensioned line",
+                        formula.location,
+                        logical,
+                    )
                 }
                 val rootNames = roots.mapNotNull { root ->
                     val node = if (root.startsWith("mantra_")) root.removePrefix("mantra_") else root
@@ -515,7 +670,10 @@ internal class Planner(private val sink: DiagnosticSink) {
                 CompiledFormula(
                     formula = formula,
                     expression = expression,
-                    namedSources = (schema.functions + case.functions).associate { it.name to NamedSource(it.source, it.location) },
+                    namedSources = (schema.functions + case.functions).associate {
+                        it.name to
+                            NamedSource(it.source, it.location)
+                    },
                     dims = dims,
                     nodeRefs = rootNames.values.toSet(),
                     rootNames = rootNames,
@@ -559,7 +717,11 @@ internal class Planner(private val sink: DiagnosticSink) {
                     vertex.decl.parentDimension?.let(deps::add)
                     vertex.decl.fromTable?.let { table ->
                         if (inputDecls[table]?.type != ValueType.TABLE) {
-                            sink.error("MANTRA-DIMENSION-TABLE", "Dimension ${vertex.id} draws members from `$table`, which is not a table input", vertex.location)
+                            sink.error(
+                                "MANTRA-DIMENSION-TABLE",
+                                "Dimension ${vertex.id} draws members from `$table`, which is not a table input",
+                                vertex.location,
+                            )
                         } else {
                             deps += table
                         }
@@ -575,14 +737,24 @@ internal class Planner(private val sink: DiagnosticSink) {
                     addFormula(vertex.ownCondition)
                     when (vertex) {
                         is LineVertex -> addFormula(vertex.compiled)
-                        is ChoiceVertex -> vertex.options.forEach { addFormula(it.formula); addFormula(it.condition) }
+                        is ChoiceVertex -> vertex.options.forEach {
+                            addFormula(it.formula)
+                            addFormula(it.condition)
+                        }
                         is TotalVertex -> deps += vertex.components.map { it.vertexId }
                         is ParamVertex, is InputVertex -> Unit
                     }
                 }
             }
             deps.remove(vertex.id).let { selfReference ->
-                if (selfReference) sink.error("MANTRA-CYCLE", "`${vertex.id}` refers to itself", vertex.location, vertex.id)
+                if (selfReference) {
+                    sink.error(
+                        "MANTRA-CYCLE",
+                        "`${vertex.id}` refers to itself",
+                        vertex.location,
+                        vertex.id,
+                    )
+                }
             }
         }
         if (sink.hasErrors) return null
@@ -594,7 +766,12 @@ internal class Planner(private val sink: DiagnosticSink) {
                 2 -> return true
                 1 -> {
                     val cycle = stack.dropWhile { it != id } + id
-                    sink.error("MANTRA-CYCLE", "Circular dependency: ${cycle.joinToString(" → ")}", vertices[id]?.location, id)
+                    sink.error(
+                        "MANTRA-CYCLE",
+                        "Circular dependency: ${cycle.joinToString(" → ")}",
+                        vertices[id]?.location,
+                        id,
+                    )
                     return false
                 }
             }
@@ -639,7 +816,9 @@ internal object Qualified {
                     form.kind == DslFormAtomKind.SYMBOL &&
                     form.sourceText.startsWith("mantra/") &&
                     form.sourceText.getOrNull(7)?.isLetter() == true
-                ) slashes += form.span.startOffset + 6
+                ) {
+                    slashes += form.span.startOffset + 6
+                }
                 is DslForm.Sequence -> form.values.forEach(::visit)
                 is DslForm.Postfix -> {
                     visit(form.target)
@@ -660,19 +839,34 @@ internal object Qualified {
         var escaped = false
         for (index in source.indices) {
             val c = source[index]
-            if (comment) { if (c == '\n') comment = false; continue }
-            if (quoted) {
-                if (escaped) escaped = false
-                else if (c == '\\') escaped = true
-                else if (c == '"') quoted = false
+            if (comment) {
+                if (c == '\n') comment = false
                 continue
             }
-            if (c == ';') { comment = true; continue }
-            if (c == '"') { quoted = true; continue }
+            if (quoted) {
+                if (escaped) {
+                    escaped = false
+                } else if (c == '\\') {
+                    escaped = true
+                } else if (c == '"') {
+                    quoted = false
+                }
+                continue
+            }
+            if (c == ';') {
+                comment = true
+                continue
+            }
+            if (c == '"') {
+                quoted = true
+                continue
+            }
             if (source.startsWith("mantra/", index) &&
                 (index == 0 || source[index - 1].isWhitespace() || source[index - 1] in "([{'") &&
                 source.getOrNull(index + 7)?.isLetter() == true
-            ) chars[index + 6] = '_'
+            ) {
+                chars[index + 6] = '_'
+            }
         }
         return chars.concatToString()
     }

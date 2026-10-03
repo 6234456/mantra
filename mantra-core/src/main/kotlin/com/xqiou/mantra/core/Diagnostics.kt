@@ -33,8 +33,7 @@ data class Diagnostic(
     }
 }
 
-class MantraException(val diagnostics: List<Diagnostic>) :
-    RuntimeException(diagnostics.joinToString("\n"))
+class MantraException(val diagnostics: List<Diagnostic>) : RuntimeException(diagnostics.joinToString("\n"))
 
 /** Collects diagnostics while a document or plan is processed. */
 class DiagnosticSink {
@@ -43,11 +42,23 @@ class DiagnosticSink {
     val all: List<Diagnostic> get() = items.toList()
     val hasErrors: Boolean get() = items.any { it.severity == Severity.ERROR }
 
-    fun error(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null, coord: List<String> = emptyList()) {
+    fun error(
+        code: String,
+        message: String,
+        location: SourceLocation? = null,
+        nodeId: String? = null,
+        coord: List<String> = emptyList(),
+    ) {
         items += Diagnostic(Severity.ERROR, code, message, location, nodeId, coord)
     }
 
-    fun warning(code: String, message: String, location: SourceLocation? = null, nodeId: String? = null, coord: List<String> = emptyList()) {
+    fun warning(
+        code: String,
+        message: String,
+        location: SourceLocation? = null,
+        nodeId: String? = null,
+        coord: List<String> = emptyList(),
+    ) {
         items += Diagnostic(Severity.WARNING, code, message, location, nodeId, coord)
     }
 

@@ -27,11 +27,7 @@ enum class ValueType(val keyword: String) {
  * An embedded Normein expression. [source] is the exact author text of [form]; [location] is the
  * position of its first character in the Mantra document, passed to the kernel as hostPosition.
  */
-data class Formula(
-    val source: String,
-    val location: SourceLocation,
-    val form: DslForm,
-)
+data class Formula(val source: String, val location: SourceLocation, val form: DslForm)
 
 /** Contribution of an item to the running sum of its enclosing section. */
 enum class Op(val sign: Int, val keyword: String) {
@@ -69,11 +65,7 @@ data class Presentation(
     val classes: List<String> = emptyList(),
 )
 
-data class SchemaMeta(
-    val id: String,
-    val title: String,
-    val attributes: Map<String, Value>,
-) {
+data class SchemaMeta(val id: String, val title: String, val attributes: Map<String, Value>) {
     fun text(key: String): String? = (attributes[key] as? Value.Text)?.value
 }
 

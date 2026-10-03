@@ -27,13 +27,19 @@ object BoundSources {
             val name = (binding.options["path"] as? Value.Text)?.value
                 ?: invalid(binding, "Source :path must be text")
             val file = base.resolve(name).toAbsolutePath().normalize()
-            if (!file.startsWith(root) || !Files.isRegularFile(file) || !file.toRealPath().startsWith(root))
+            if (!file.startsWith(root) || !Files.isRegularFile(file) || !file.toRealPath().startsWith(root)) {
                 invalid(binding, "Source path is missing or outside the workspace")
-            if (Files.size(file) > 10 * 1024 * 1024)
+            }
+            if (Files.size(file) > 10 * 1024 * 1024) {
                 throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import file exceeds 10 MiB")
+            }
             file
         }
-        if (files.distinct().size != files.size) invalid(case.sources.first(), "The same source file is bound more than once")
+        if (files.distinct().size !=
+            files.size
+        ) {
+            invalid(case.sources.first(), "The same source file is bound more than once")
+        }
         val sink = DiagnosticSink()
         val readValues = linkedMapOf<Path, Map<String, Value>>()
         val sources = case.sources.zip(files).map { (binding, file) ->
@@ -49,7 +55,13 @@ object BoundSources {
             }
         }
         val effective = DataSources.apply(case, schema, sources, sink)
-        if (sink.hasErrors) throw WorkspaceException(WorkspaceProblem.INVALID, "Data source could not be read", sink.all)
+        if (sink.hasErrors) {
+            throw WorkspaceException(
+                WorkspaceProblem.INVALID,
+                "Data source could not be read",
+                sink.all,
+            )
+        }
         fun coordinates(value: Value, prefix: String = ""): Set<String> = when (value) {
             is Value.MapV -> value.entries.flatMap { (key, child) ->
                 val member = (key as? Value.Kw)?.name ?: (key as? Value.Text)?.value ?: return@flatMap emptyList()
@@ -60,14 +72,19 @@ object BoundSources {
         val overridden = files.map { file ->
             readValues[file].orEmpty().flatMap { (id, value) ->
                 val manual = case.inputs[id] ?: return@flatMap emptyList()
-                (coordinates(value) intersect coordinates(manual)).map { coord -> if (coord.isEmpty()) id else "$id@$coord" }
+                (coordinates(value) intersect coordinates(manual)).map { coord ->
+                    if (coord.isEmpty()) id else "$id@$coord"
+                }
             }.sorted()
         }
         return Loaded(effective, files, overridden)
     }
 
     private fun invalid(binding: SourceBinding, message: String): Nothing = throw WorkspaceException(
-        WorkspaceProblem.INVALID, message, listOf(Diagnostic(Severity.ERROR, "MANTRA-CASE-SOURCE", message, binding.location)))
+        WorkspaceProblem.INVALID,
+        message,
+        listOf(Diagnostic(Severity.ERROR, "MANTRA-CASE-SOURCE", message, binding.location)),
+    )
 
     private fun create(binding: SourceBinding, file: Path): DataSource {
         fun string(key: String): String? = when (val value = binding.options[key]) {
@@ -79,22 +96,48 @@ object BoundSources {
         fun mapping(key: String): Map<String, String> = when (val value = binding.options[key]) {
             null -> emptyMap()
             is Value.MapV -> value.entries.map { (from, to) ->
-                val left = when (from) { is Value.Text -> from.value; is Value.Kw -> from.name; else -> invalid(binding, "Source mapping key must be text") }
-                val right = when (to) { is Value.Text -> to.value; is Value.Kw -> to.name; else -> invalid(binding, "Source mapping target must be text") }
+                val left = when (from) {
+                    is Value.Text -> from.value
+                    is Value.Kw -> from.name
+                    else -> invalid(binding, "Source mapping key must be text")
+                }
+                val right = when (to) {
+                    is Value.Text -> to.value
+                    is Value.Kw -> to.name
+                    else -> invalid(binding, "Source mapping target must be text")
+                }
                 left to right
             }.toMap()
             else -> invalid(binding, "Source :$key must be a map")
         }
-        fun character(key: String, default: Char): Char = string(key)?.singleOrNull() ?: if (binding.options.containsKey(key))
-            invalid(binding, "Source :$key must be one character") else default
+        fun character(key: String, default: Char): Char =
+            string(key)?.singleOrNull() ?: if (binding.options.containsKey(key)) {
+                invalid(binding, "Source :$key must be one character")
+            } else {
+                default
+            }
         return when (binding.kind) {
-            "csv" -> CsvSource(file, input = string("input"), delimiter = character("delimiter", ';'),
-                decimal = character("decimal", ','), grouping = when (val selected = string("grouping")) {
+            "csv" -> CsvSource(
+                file,
+                input = string("input"),
+                delimiter = character("delimiter", ';'),
+                decimal = character("decimal", ','),
+                grouping = when (val selected = string("grouping")) {
                     null -> '.'
                     "" -> null
-                    else -> selected.singleOrNull() ?: invalid(binding, "Source :grouping must be one character or empty")
-                }.also { if (it == character("decimal", ',')) invalid(binding, "Decimal and grouping separators must differ") },
-                columns = mapping("columns"), mode = string("mode") ?: "pairs", memberColumn = string("member-column"))
+                    else -> selected.singleOrNull()
+                        ?: invalid(binding, "Source :grouping must be one character or empty")
+                }.also {
+                    if (it ==
+                        character("decimal", ',')
+                    ) {
+                        invalid(binding, "Decimal and grouping separators must differ")
+                    }
+                },
+                columns = mapping("columns"),
+                mode = string("mode") ?: "pairs",
+                memberColumn = string("member-column"),
+            )
             "json" -> JsonSource(file, root = string("root"), mapping = mapping("mapping"))
             "xlsx" -> XlsxSource(file)
             else -> invalid(binding, "Unsupported source ${binding.kind}")

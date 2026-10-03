@@ -16,13 +16,14 @@ schema + case + parameters ─▶ mantra-core ─▶ calculation values and trac
 
 ## Quick start
 
-Requirements: JDK 21, Git, and Node.js 22.12 or newer for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
+Requirements: JDK 21, Git, and Node.js 22.13 or newer for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
 
 Create the pinned Normein checkout. The default bootstrap source is SSH; HTTPS or an existing local clone can be selected explicitly:
 
 ```bash
 NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
-./gradlew test
+npm --prefix workbench-ui ci
+./gradlew --no-daemon check
 ./gradlew :mantra-cli:installDist
 ```
 
@@ -32,7 +33,7 @@ Render the impairment demonstration as an HTML working paper:
 
 ```bash
 mantra-cli/build/install/mantra/bin/mantra run apps/ifrs-impairment/schema.mantra \
-  --case apps/ifrs-impairment/case-ie8.mantra \
+  --case apps/ifrs-impairment/case-demo.mantra \
   --layout apps/ifrs-impairment/layout.mantra --format html --out out/ias36.html
 ```
 
@@ -120,10 +121,10 @@ Applications depend only on public library APIs and are not published as library
 ## Verification and sources
 
 - [Income tax](apps/de-est/README.md): statute-based tariff formulas and an independent recomputation script; fictional case data.
-- [Impairment](apps/ifrs-impairment/README.md): IAS 36 Illustrative Example 8 figures, plus an independently computed custom-weight case. The largest-remainder allocation differs from the printed B-unit split: 11/31 rather than 12/30. This is documented rather than hidden.
+- [Impairment](apps/ifrs-impairment/README.md): independently authored fictional unit/shared-asset data, with custom weighting and a zero-loss boundary case; Fraction arithmetic verifies the allocation and loss totals.
 - [Cost accounting](apps/cost-accounting/README.md): fictional cost data with an independent source/order/product reconciliation.
 
-IFRS source material retains its owners' rights. See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses, source attribution and the remaining IFRS publication review.
+IFRS source material retains its owners' rights. See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses, source attribution and the completed demonstration source review.
 
 Frontend verification:
 
@@ -140,6 +141,7 @@ Browser tests use an installed Chrome-compatible executable with a task-specific
 ## Documentation and community
 
 - [Architecture](docs/architecture.md) and [engine/application boundary](docs/engine-application-boundary.md)
+- [Performance baseline](docs/performance-baseline.md) and [kernel publication plan](docs/normein-publication.md)
 - [DSL reference](docs/dsl-reference.md) and [Normein RFCs](docs/rfc/)
 - [Workbench contract](docs/workbench/contract.md), [UI specification](docs/workbench/ui-spec.md) and [work packages](docs/workbench/work-packages.md)
 - [Long-term roadmap and R1–R10 decisions](docs/roadmap.md)

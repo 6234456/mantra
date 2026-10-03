@@ -14,7 +14,10 @@ import kotlin.test.assertTrue
 
 class StructureTest {
     private val dir = Path.of("apps/de-est")
-    private val view = Mantra.inspect(Mantra.loadSchema(dir.resolve("schema.mantra")), Mantra.loadCase(dir.resolve("case-mustermann.mantra")))
+    private val view = Mantra.inspect(
+        Mantra.loadSchema(dir.resolve("schema.mantra")),
+        Mantra.loadCase(dir.resolve("case-mustermann.mantra")),
+    )
     private val map = view.structure
 
     @Test
@@ -33,7 +36,8 @@ class StructureTest {
         // Branch panels import context values from the mainline (Spendenhöchstbetrag needs the GdE).
         assertTrue(sonderausgaben.imports.any { it.fromNode == "gesamtbetrag-der-einkuenfte" && it.fromPanel == "zve" })
         // The child-allowance comparison feeds three mainline steps.
-        assertEquals(listOf(1, 2, 3), map.panel("kinder-pruefung").entries.map { it.step }) // zvE, ESt and Soli/KiSt base
+        // zvE, ESt and Soli/KiSt base
+        assertEquals(listOf(1, 2, 3), map.panel("kinder-pruefung").entries.map { it.step })
         assertEquals(
             listOf("mainline", "1 Ermittlung des zu versteuernden Einkommens", "Sonderausgaben", "Sonderausgaben"),
             sonderausgaben.breadcrumb.map { it.label },
@@ -51,7 +55,12 @@ class StructureTest {
 
     @Test
     fun `structure is exported as JSON for UI clients`() {
-        val view = CalculationView.of(Mantra.calculate(Mantra.loadSchema(dir.resolve("schema.mantra")), Mantra.loadCase(dir.resolve("case-mustermann.mantra"))))
+        val view = CalculationView.of(
+            Mantra.calculate(
+                Mantra.loadSchema(dir.resolve("schema.mantra")),
+                Mantra.loadCase(dir.resolve("case-mustermann.mantra")),
+            ),
+        )
         val structure = WorkbenchDocuments.structure(view)
         val json = WorkbenchJson.write(structure)
         Files.createDirectories(Path.of("apps/de-est/build/out"))

@@ -61,22 +61,31 @@ import kotlin.test.assertTrue
 class NormeinRfcContractTest {
     private val environment = MantraKernel.environment
 
-    private fun name(raw: String, category: DslNameCategory) = (DslNames.normalize(raw, category) as DslNameResult.Valid).name
+    private fun name(raw: String, category: DslNameCategory) =
+        (DslNames.normalize(raw, category) as DslNameResult.Valid).name
 
-    private val rowTypeId = DslTypeId(name("contract", DslNameCategory.TYPE_COMPONENT), name("row", DslNameCategory.TYPE_COMPONENT))
+    private val rowTypeId =
+        DslTypeId(name("contract", DslNameCategory.TYPE_COMPONENT), name("row", DslNameCategory.TYPE_COMPONENT))
     private val rowType = DslTypeDefinition(
         rowTypeId,
         DslTypes.objectType(
             listOf(
                 DslObjectField(name("key", DslNameCategory.FIELD), DslType.Keyword, DslFieldPresence.REQUIRED),
                 DslObjectField(name("n", DslNameCategory.FIELD), DslType.Integer, DslFieldPresence.REQUIRED),
-                DslObjectField(name("amount", DslNameCategory.FIELD), DslTypes.nullable(DslType.Decimal), DslFieldPresence.OPTIONAL),
+                DslObjectField(
+                    name("amount", DslNameCategory.FIELD),
+                    DslTypes.nullable(DslType.Decimal),
+                    DslFieldPresence.OPTIONAL,
+                ),
             ),
         ),
     )
     private val typeSchema = (DslTypeSchema.create(listOf(rowType)) as DslTypeSchemaResult.Success).schema
 
-    private fun scope(vararg roots: Pair<String, DslType>, presence: DslFieldPresence = DslFieldPresence.OPTIONAL): DslAnalysisScope {
+    private fun scope(
+        vararg roots: Pair<String, DslType>,
+        presence: DslFieldPresence = DslFieldPresence.OPTIONAL,
+    ): DslAnalysisScope {
         val builder = DslAnalysisScopeBuilder.create("mantra.rfc-contract", "1").type(rowType)
         roots.forEach { (root, type) -> builder.root(DslRootDeclaration(root, type, presence)) }
         return assertIs<DslAnalysisScopeBuildResult.Success>(builder.build()).scope
@@ -89,31 +98,46 @@ class NormeinRfcContractTest {
         logicalLocation: String? = null,
         expected: DslType = DslType.Any,
     ): DslCompileResult = DslSemanticCompiler().compile(
-        DslCompileRequest(source, namedDefinitions = definitions, expectedType = expected, logicalLocation = logicalLocation),
+        DslCompileRequest(
+            source,
+            namedDefinitions = definitions,
+            expectedType = expected,
+            logicalLocation = logicalLocation,
+        ),
         environment,
         scope,
     )
 
-    private fun compiled(result: DslCompileResult): DslCompiledExpression = assertIs<DslCompileResult.Success>(result, result.toString()).expression
+    private fun compiled(result: DslCompileResult): DslCompiledExpression =
+        assertIs<DslCompileResult.Success>(result, result.toString()).expression
 
-    private fun codes(result: DslCompileResult): List<String> = assertIs<DslCompileResult.Failure>(result, "expected a compile failure").diagnostics.map { it.code }
+    private fun codes(result: DslCompileResult): List<String> =
+        assertIs<DslCompileResult.Failure>(result, "expected a compile failure").diagnostics.map {
+            it.code
+        }
 
-    private fun evaluate(expression: DslCompiledExpression, roots: Map<String, DslValue>, trace: DslTracePolicy = DslTracePolicy.NONE) =
-        DslEvaluationEngine().evaluate(
-            DslEvaluationRequest(
-                expression,
-                environment,
-                DslEvaluationInput(
-                    roots = roots.map { (root, value) -> DslInputRootCandidate(root, DslInputCandidate.ControlledValue(value)) },
-                    bindings = emptyList(),
-                    inputIdentity = MantraKernel.inputIdentity("rfc-contract", "rfc-contract"),
-                    tracePolicy = trace,
-                ),
-                kernelArtifact = MantraKernel.kernelArtifact,
+    private fun evaluate(
+        expression: DslCompiledExpression,
+        roots: Map<String, DslValue>,
+        trace: DslTracePolicy = DslTracePolicy.NONE,
+    ) = DslEvaluationEngine().evaluate(
+        DslEvaluationRequest(
+            expression,
+            environment,
+            DslEvaluationInput(
+                roots = roots.map { (root, value) ->
+                    DslInputRootCandidate(root, DslInputCandidate.ControlledValue(value))
+                },
+                bindings = emptyList(),
+                inputIdentity = MantraKernel.inputIdentity("rfc-contract", "rfc-contract"),
+                tracePolicy = trace,
             ),
-        )
+            kernelArtifact = MantraKernel.kernelArtifact,
+        ),
+    )
 
-    private fun value(outcome: DslEvaluationOutcome<DslValue>): DslValue = assertIs<DslEvaluationOutcome.Success<DslValue>>(outcome, outcome.toString()).value
+    private fun value(outcome: DslEvaluationOutcome<DslValue>): DslValue =
+        assertIs<DslEvaluationOutcome.Success<DslValue>>(outcome, outcome.toString()).value
 
     private fun dec(v: String) = DslValues.decimal(BigDecimal(v))
 
@@ -133,7 +157,11 @@ class NormeinRfcContractTest {
     fun `pin - kernel versions and public reader grammar`() {
         assertEquals(
             DslLanguageVersions(
-                languageSemantics = "25", reader = "3", parser = "7", evaluator = "descriptor-kernel-7", standardLibrary = "33",
+                languageSemantics = "25",
+                reader = "3",
+                parser = "7",
+                evaluator = "descriptor-kernel-7",
+                standardLibrary = "33",
                 normalizedAstApi = "3", canonicalization = "3", typeSystem = "7", artifactSchema = "1",
             ),
             NormeinStandardLibraries.language.versions,
@@ -150,7 +178,11 @@ class NormeinRfcContractTest {
         assertEquals(2 to 1, forms.document.forms[1].span.line to forms.document.forms[1].span.column)
         val failure = assertIs<DslFormReadResult.Failure>(DslFormReader().readDocument("(schema s)\n(case c)", "doc"))
         val diagnostic = failure.diagnostics.single()
-        assertEquals("DSL-PARSE-TRAILING-TOKEN", diagnostic.code, "RFC 0001 A: multi-form reading changed; see migration A")
+        assertEquals(
+            "DSL-PARSE-TRAILING-TOKEN",
+            diagnostic.code,
+            "RFC 0001 A: multi-form reading changed; see migration A",
+        )
         assertEquals(2 to 1, diagnostic.span!!.line to diagnostic.span!!.column)
         assertFailsWith<IllegalArgumentException> { DslFormReaderLimits(maxTokens = 8_193) }
         assertFailsWith<IllegalArgumentException> { DslFormReaderLimits(maxSourceLength = 65_537) }
@@ -172,18 +204,27 @@ class NormeinRfcContractTest {
 
     @Test
     fun `B - diagnostics of an embedded expression are relative to that expression`() {
-        val failure = assertIs<DslCompileResult.Failure>(compile("(+ a\n     zzz)", scope("a" to DslType.Decimal), logicalLocation = "line.zve"))
+        val failure =
+            assertIs<DslCompileResult.Failure>(
+                compile("(+ a\n     zzz)", scope("a" to DslType.Decimal), logicalLocation = "line.zve"),
+            )
         val unknown = failure.diagnostics.first { it.code == "DSL-REF-UNKNOWN-SYMBOL" }
-        assertEquals(2 to 6, unknown.span!!.line to unknown.span!!.column, "RFC 0001 B: spans are no longer relative; remove Mantra's re-anchoring (migration B)")
+        assertEquals(
+            2 to 6,
+            unknown.span!!.line to unknown.span!!.column,
+            "RFC 0001 B: spans are no longer relative; remove Mantra's re-anchoring (migration B)",
+        )
         assertEquals("line.zve", unknown.logicalLocation)
 
         val source = "(+ a\n     zzz)"
         val position = DslSourcePosition(41, 22, 1830, 1830 + source.length)
-        val hosted = assertIs<DslCompileResult.Failure>(DslSemanticCompiler().compile(
-            DslCompileRequest(source, logicalLocation = "line.zve", hostPosition = position),
-            environment,
-            scope("a" to DslType.Decimal),
-        ))
+        val hosted = assertIs<DslCompileResult.Failure>(
+            DslSemanticCompiler().compile(
+                DslCompileRequest(source, logicalLocation = "line.zve", hostPosition = position),
+                environment,
+                scope("a" to DslType.Decimal),
+            ),
+        )
         val hostedUnknown = hosted.diagnostics.first { it.code == "DSL-REF-UNKNOWN-SYMBOL" }
         assertEquals(42 to 6, hostedUnknown.span!!.line to hostedUnknown.span!!.column)
         assertEquals(1830 + unknown.span!!.startOffset, hostedUnknown.span!!.startOffset)
@@ -195,18 +236,43 @@ class NormeinRfcContractTest {
         val base = compiled(compile("(+ a 1)", scope, logicalLocation = "x"))
         val moved = compiled(compile("(+ a 1)", scope, logicalLocation = "y"))
         val spaced = compiled(compile("(+  a   1)", scope, logicalLocation = "x"))
-        val unused = compiled(compile("(+ a 1)", scope, listOf(DslNamedDefinition("unused", "(defn unused [^Decimal v] (* v 2))", "defn.unused")), "x"))
+        val unused =
+            compiled(
+                compile(
+                    "(+ a 1)",
+                    scope,
+                    listOf(DslNamedDefinition("unused", "(defn unused [^Decimal v] (* v 2))", "defn.unused")),
+                    "x",
+                ),
+            )
         listOf(moved, unused).forEach { other ->
             assertEquals(base.sourceFingerprint, other.sourceFingerprint)
             assertEquals(base.canonicalAstHash, other.canonicalAstHash)
             assertEquals(base.executionFingerprint, other.executionFingerprint)
         }
-        assertFalse(base.sourceFingerprint == spaced.sourceFingerprint, "the source fingerprint covers the exact author text")
+        assertFalse(
+            base.sourceFingerprint == spaced.sourceFingerprint,
+            "the source fingerprint covers the exact author text",
+        )
         assertEquals(base.canonicalAstHash, spaced.canonicalAstHash)
         assertEquals(base.executionFingerprint, spaced.executionFingerprint)
 
-        val twice = compiled(compile("(twice a)", scope, listOf(DslNamedDefinition("twice", "(defn twice [^Decimal v] (* v 2))", "defn.twice"))))
-        val thrice = compiled(compile("(twice a)", scope, listOf(DslNamedDefinition("twice", "(defn twice [^Decimal v] (* v 3))", "defn.twice"))))
+        val twice =
+            compiled(
+                compile(
+                    "(twice a)",
+                    scope,
+                    listOf(DslNamedDefinition("twice", "(defn twice [^Decimal v] (* v 2))", "defn.twice")),
+                ),
+            )
+        val thrice =
+            compiled(
+                compile(
+                    "(twice a)",
+                    scope,
+                    listOf(DslNamedDefinition("twice", "(defn twice [^Decimal v] (* v 3))", "defn.twice")),
+                ),
+            )
         assertFalse(twice.sourceFingerprint == thrice.sourceFingerprint)
         assertFalse(twice.executionFingerprint == thrice.executionFingerprint)
     }
@@ -215,26 +281,49 @@ class NormeinRfcContractTest {
     fun `C - records need a declared type and structural failures identify the field`() {
         val scope = scope("row" to DslTypes.ref(rowTypeId))
         val map = DslValues.map(listOf(kw("key") to kw("A"), kw("n") to DslValues.integer(BigInteger.ONE)))
-        val rejected = assertIs<DslEvaluationOutcome.Failure>(evaluate(compiled(compile("row.n", scope)), mapOf("row" to map)))
+        val rejected =
+            assertIs<DslEvaluationOutcome.Failure>(evaluate(compiled(compile("row.n", scope)), mapOf("row" to map)))
         assertTrue(rejected.diagnostics.all { it.code == "DSL-INPUT-ROOT-TYPE" }, rejected.diagnostics.toString())
 
-        val integral = DslValues.importStructuredHost(mapOf("key" to kw("A"), "n" to dec("1")), DslTypes.ref(rowTypeId), typeSchema)
+        val integral = DslValues.importStructuredHost(
+            mapOf("key" to kw("A"), "n" to dec("1")),
+            DslTypes.ref(rowTypeId),
+            typeSchema,
+        )
         val violation = assertIs<DslValueConstructionResult.Failure>(integral).violation
         assertEquals("DSL-VALUE-STRUCTURAL-TYPE", violation.code)
         assertEquals("$.n", violation.path, "Structural failures name the field")
 
-        val record = DslValues.importStructuredHost(mapOf("key" to kw("A"), "n" to DslValues.integer(BigInteger.ONE)), DslTypes.ref(rowTypeId), typeSchema)
+        val record = DslValues.importStructuredHost(
+            mapOf("key" to kw("A"), "n" to DslValues.integer(BigInteger.ONE)),
+            DslTypes.ref(rowTypeId),
+            typeSchema,
+        )
         val imported = assertIs<DslValueConstructionResult.Success>(record).value
-        assertEquals(BigInteger.ONE, (value(evaluate(compiled(compile("row.n", scope)), mapOf("row" to imported))) as DslValue.IntegerValue).value)
+        assertEquals(
+            BigInteger.ONE,
+            (
+                value(
+                    evaluate(compiled(compile("row.n", scope)), mapOf("row" to imported)),
+                ) as DslValue.IntegerValue
+                ).value,
+        )
     }
 
     @Test
     fun `C - value limits count every nested item`() {
         // Each record costs 1 + 2 x fields items against the 10,000-item limit: 1,428 rows of 3 fields.
-        fun rows(count: Int) = List(count) { i -> mapOf("key" to kw("k$i"), "n" to DslValues.integer(i.toBigInteger()), "amount" to dec("1.5")) }
+        fun rows(count: Int) = List(count) { i ->
+            mapOf(
+                "key" to kw("k$i"),
+                "n" to DslValues.integer(i.toBigInteger()),
+                "amount" to dec("1.5"),
+            )
+        }
         val table = DslTypes.vector(DslTypes.ref(rowTypeId))
         assertIs<DslValueConstructionResult.Success>(DslValues.importStructuredHost(rows(1_428), table, typeSchema))
-        val over = assertIs<DslValueConstructionResult.Failure>(DslValues.importStructuredHost(rows(1_429), table, typeSchema))
+        val over =
+            assertIs<DslValueConstructionResult.Failure>(DslValues.importStructuredHost(rows(1_429), table, typeSchema))
         assertEquals("DSL-VALUE-ITEM-LIMIT", over.violation.code)
 
         DslValues.vector(List(5_000) { dec("1") })
@@ -260,9 +349,18 @@ class NormeinRfcContractTest {
         val missing = absent.diagnostics.single()
         assertEquals("DSL-RUNTIME-MISSING-ROOT", missing.code, "RFC 0001 E changed; see migration E")
         assertEquals(1 to 11, missing.span!!.line to missing.span!!.column)
-        assertEquals(BigInteger.ZERO, (value(evaluate(optional, mapOf("x" to DslValue.Nil))) as DslValue.IntegerValue).value)
+        assertEquals(
+            BigInteger.ZERO,
+            (value(evaluate(optional, mapOf("x" to DslValue.Nil))) as DslValue.IntegerValue).value,
+        )
 
-        val required = compiled(compile("(if (nil? x) 0 x)", scope("x" to DslTypes.nullable(DslType.Decimal), presence = DslFieldPresence.REQUIRED)))
+        val required =
+            compiled(
+                compile(
+                    "(if (nil? x) 0 x)",
+                    scope("x" to DslTypes.nullable(DslType.Decimal), presence = DslFieldPresence.REQUIRED),
+                ),
+            )
         val rejected = assertIs<DslEvaluationOutcome.Failure>(evaluate(required, emptyMap()))
         assertEquals(listOf("DSL-INPUT-MISSING-ROOT"), rejected.diagnostics.map { it.code })
     }
@@ -271,7 +369,16 @@ class NormeinRfcContractTest {
     fun `F - a full trace renders scalar node results by canonical node path`() {
         val scope = scope("x" to DslType.Decimal, "handwerker" to DslType.Decimal)
         val expression = compiled(compile("(if (> x 10) (min (* 0.2 handwerker) 4000) 0)", scope))
-        val outcome = assertIs<DslEvaluationOutcome.Success<DslValue>>(evaluate(expression, mapOf("x" to dec("1200"), "handwerker" to dec("1200")), DslTracePolicy.FULL))
+        val outcome = assertIs<DslEvaluationOutcome.Success<DslValue>>(
+            evaluate(
+                expression,
+                mapOf(
+                    "x" to dec("1200"),
+                    "handwerker" to dec("1200"),
+                ),
+                DslTracePolicy.FULL,
+            ),
+        )
         val nodes = astNodes(outcome.trace!!)
         assertEquals("240.0", nodes.getValue("0").resultSummary?.rendered)
         assertEquals("true", nodes.getValue("0.0").resultSummary?.rendered)
@@ -281,14 +388,36 @@ class NormeinRfcContractTest {
         assertEquals(0 to 45, expression.normalizedAst.span.startOffset to expression.normalizedAst.span.endOffset)
 
         val collection = compiled(compile("(if (> x 10) :high {:a 1 :b 2})", scope))
-        val collectionTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(evaluate(collection, mapOf("x" to dec("1"), "handwerker" to dec("0")), DslTracePolicy.FULL)).trace!!
+        val collectionTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(
+            evaluate(collection, mapOf("x" to dec("1"), "handwerker" to dec("0")), DslTracePolicy.FULL),
+        ).trace!!
         val root = astNodes(collectionTrace).getValue("0").resultSummary!!
         assertEquals("{:a 1, :b 2}", root.rendered)
         assertEquals(2L, root.itemCount)
 
-        val capped = compiled(compile("(cap (* 0.2 handwerker))", scope, listOf(DslNamedDefinition("cap", "(defn cap [^Decimal v] (min v 4000))", "defn.cap"))))
-        val cappedTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(evaluate(capped, mapOf("x" to dec("1"), "handwerker" to dec("30000")), DslTracePolicy.FULL)).trace!!
-        assertEquals("4000", astNodes(cappedTrace).getValue("0.0.0").resultSummary?.rendered, "definition bodies are traced below the callable node")
+        val capped =
+            compiled(
+                compile(
+                    "(cap (* 0.2 handwerker))",
+                    scope,
+                    listOf(DslNamedDefinition("cap", "(defn cap [^Decimal v] (min v 4000))", "defn.cap")),
+                ),
+            )
+        val cappedTrace = assertIs<DslEvaluationOutcome.Success<DslValue>>(
+            evaluate(
+                capped,
+                mapOf(
+                    "x" to dec("1"),
+                    "handwerker" to dec("30000"),
+                ),
+                DslTracePolicy.FULL,
+            ),
+        ).trace!!
+        assertEquals(
+            "4000",
+            astNodes(cappedTrace).getValue("0.0.0").resultSummary?.rendered,
+            "definition bodies are traced below the callable node",
+        )
         assertTrue(capped.sourceIndex.isNotEmpty(), "Trace node paths have a public source index")
     }
 
@@ -301,20 +430,42 @@ class NormeinRfcContractTest {
             "(reduce (fn [a x] (if (> a 10) (reduced a) (+ a x))) 0 (range 100))",
         ).forEach { source -> assertTrue("DSL-FUNCTION-UNKNOWN" in codes(compile(source, scope)), source) }
 
-        val grossUp = compiled(compile("(reduce (fn [g _] (decimal/round (+ net (* rate g)) 2)) net (range 60))", scope))
+        val grossUp =
+            compiled(compile("(reduce (fn [g _] (decimal/round (+ net (* rate g)) 2)) net (range 60))", scope))
         val grossed = value(evaluate(grossUp, mapOf("net" to dec("1000"), "rate" to dec("0.25"))))
         assertEquals(BigDecimal("1333.33"), (grossed as DslValue.DecimalValue).value)
 
         val inputs = mapOf("net" to dec("0"), "rate" to dec("0"))
-        assertEquals(BigInteger("449985000"), (value(evaluate(compiled(compile("(reduce + 0 (range 30000))", scope)), inputs)) as DslValue.IntegerValue).value)
-        val exhausted = assertIs<DslEvaluationOutcome.Failure>(evaluate(compiled(compile("(reduce + 0 (range 100001))", scope)), inputs))
+        assertEquals(
+            BigInteger("449985000"),
+            (
+                value(
+                    evaluate(compiled(compile("(reduce + 0 (range 30000))", scope)), inputs),
+                ) as DslValue.IntegerValue
+                ).value,
+        )
+        val exhausted =
+            assertIs<DslEvaluationOutcome.Failure>(
+                evaluate(compiled(compile("(reduce + 0 (range 100001))", scope)), inputs),
+            )
         assertEquals(listOf("DSL-LIMIT-NUMERIC-OPERATIONS"), exhausted.diagnostics.map { it.code })
     }
 
     @Test
     fun `H - the authoring service works with a host analysis scope`() {
-        val service = DslAuthoringService(environment, scope("bruttolohn" to DslType.Decimal, "werbungskosten" to DslType.Decimal))
-        assertEquals(listOf("bruttolohn"), service.complete(DslCompletionRequest("(- brutto", 9)).items.map { it.label })
+        val service = DslAuthoringService(
+            environment,
+            scope(
+                "bruttolohn" to DslType.Decimal,
+                "werbungskosten" to DslType.Decimal,
+            ),
+        )
+        assertEquals(
+            listOf("bruttolohn"),
+            service.complete(DslCompletionRequest("(- brutto", 9)).items.map {
+                it.label
+            },
+        )
         assertEquals("alloc/pro-rata", service.hover("(alloc/pro-rata 1 {})", 3)?.symbol)
     }
 

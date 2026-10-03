@@ -8,32 +8,45 @@ import com.xqiou.mantra.render.layout.ColumnContent
 import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.render.layout.NegativeStyle
 import com.xqiou.mantra.render.layout.Presets
-import com.xqiou.mantra.render.layout.TableStyle
+import com.xqiou.mantra.render.layout.StyleFill
 import com.xqiou.mantra.render.layout.StyleTone
 import com.xqiou.mantra.render.layout.StyleWeight
-import com.xqiou.mantra.render.layout.StyleFill
+import com.xqiou.mantra.render.layout.TableStyle
 import com.xqiou.mantra.render.paper.PaperTable
 import com.xqiou.mantra.render.paper.RowFlag
 import com.xqiou.mantra.render.paper.RowKind
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WorkingPaperBuilderTest {
     @Test
     fun `sign labels headline and input grouping are generic presentation hints`() {
-        val hinted = Mantra.loadSchema(SourceText("hints.mantra", """
+        val hinted = Mantra.loadSchema(
+            SourceText(
+                "hints.mantra",
+                """
             (schema t/hints {:headline balance :group-titles {:facts "Facts"} :mainline [result]}
               (input base-amount :decimal {:group :facts})
               (section result "Result" {:display :schedule}
                 (line balance "Balance" (+ base-amount 0)
                   {:sign-labels {:positive "Surplus" :negative "Deficit" :zero "Even"}})))
-        """.trimIndent()), SourceResolver { _, _ -> null })
-        val layout = LayoutReader.read(SourceText("hints-layout.mantra", "(layout t/hints-paper {:preset :ifrs-schedule})"))
-        fun paper(amount: Long) = Render.paper(Mantra.calculate(hinted,
-            Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base-amount $amount}))"))), layout)
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
+        val layout = LayoutReader.read(
+            SourceText("hints-layout.mantra", "(layout t/hints-paper {:preset :ifrs-schedule})"),
+        )
+        fun paper(amount: Long) = Render.paper(
+            Mantra.calculate(
+                hinted,
+                Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base-amount $amount}))")),
+            ),
+            layout,
+        )
         listOf(2L to "Surplus", -2L to "Deficit", 0L to "Even").forEach { (amount, label) ->
             val result = paper(amount)
             assertEquals(label, result.headline?.label)
@@ -74,7 +87,9 @@ class WorkingPaperBuilderTest {
     )
     private val result = Mantra.calculate(
         schema,
-        Mantra.loadCase(SourceText("c.mantra", "(case c (inputs {:lohn {:A 50000 :B 20000} :wk-ist {:A 2000} :spende 400}))")),
+        Mantra.loadCase(
+            SourceText("c.mantra", "(case c (inputs {:lohn {:A 50000 :B 20000} :wk-ist {:A 2000} :spende 400}))"),
+        ),
     )
 
     private fun table(paperTables: List<PaperTable>, id: String) = paperTables.single { it.id == id }
@@ -84,20 +99,28 @@ class WorkingPaperBuilderTest {
     @Test
     fun `core metadata and application attributes render through separate columns`() {
         val application = Mantra.loadSchema(
-            SourceText("metadata.mantra", """
+            SourceText(
+                "metadata.mantra",
+                """
                 (schema t/metadata {}
                   (section result "Result"
                     (line amount "Amount" 5 {:reference "IAS 36.104" :note "checked" :source "ledger"
                                              :kz "110" :zeile "7"})))
-            """.trimIndent()),
+                """.trimIndent(),
+            ),
             SourceResolver { _, _ -> null },
         )
-        val layout = LayoutReader.read(SourceText("metadata-layout.mantra", """
+        val layout = LayoutReader.read(
+            SourceText(
+                "metadata-layout.mantra",
+                """
             (layout t/metadata-paper {:preset :ifrs-schedule}
               (columns :tiered :label (attribute :kz {:header "Kz."}) (attribute :zeile {:header "Zeile"})
                        :reference :note :source :value)
               (table result))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val paper = Render.paper(Mantra.calculate(application), layout).tables.single()
         val cells = paper.rows.single { it.nodeId == "amount" }.cells
         assertEquals(listOf("Amount", "110", "7", "IAS 36.104", "checked", "ledger", "5"), cells)
@@ -107,16 +130,24 @@ class WorkingPaperBuilderTest {
     @Test
     fun `schema classes combine default and named layout styles without changing calculation`() {
         val styledSchema = Mantra.loadSchema(
-            SourceText("styled.mantra", "(schema t/styled {} (section result \"Result\" (line amount \"Amount\" (+ 2 3) {:class [:strong :accent]})))"),
+            SourceText(
+                "styled.mantra",
+                "(schema t/styled {} (section result \"Result\" (line amount \"Amount\" (+ 2 3) {:class [:strong :accent]})))",
+            ),
             SourceResolver { _, _ -> null },
         )
         val calculated = Mantra.calculate(styledSchema)
-        val layout = LayoutReader.read(SourceText("styled-layout.mantra", """
+        val layout = LayoutReader.read(
+            SourceText(
+                "styled-layout.mantra",
+                """
             (layout t/styled-paper {:preset :ifrs-schedule}
               (style {:all true} {:tone :muted})
               (style {:class :strong} {:weight :bold})
               (style {:class :accent} {:tone :accent}))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val styled = Render.paper(calculated, layout).tables.flatMap { it.rows }.single { it.nodeId == "amount" }
         assertEquals(listOf("strong", "accent"), styled.classes)
         assertEquals(StyleWeight.BOLD, styled.style.weight)
@@ -128,7 +159,9 @@ class WorkingPaperBuilderTest {
     @Test
     fun `style selectors resolve section level row parity and row number cells`() {
         val styledSchema = Mantra.loadSchema(
-            SourceText("selector-schema.mantra", """
+            SourceText(
+                "selector-schema.mantra",
+                """
                 (schema t/selectors {}
                   (section root "Root"
                     (line first "First" 1)
@@ -137,11 +170,15 @@ class WorkingPaperBuilderTest {
                       (line third "Third" 3)
                       (section deeper "Deeper"
                         (line fourth "Fourth" 4)))))
-            """.trimIndent()),
+                """.trimIndent(),
+            ),
             SourceResolver { _, _ -> null },
         )
         val calculated = Mantra.calculate(styledSchema)
-        val layout = LayoutReader.read(SourceText("selector-layout.mantra", """
+        val layout = LayoutReader.read(
+            SourceText(
+                "selector-layout.mantra",
+                """
             (layout t/selectors-paper {:preset :de-staffel-4 :row-numbers :table}
               (columns :tiered :label :value)
               (style {:section nested :depth 2 :indent 1 :kind :value} {:weight :bold})
@@ -149,7 +186,9 @@ class WorkingPaperBuilderTest {
               (style {:nth-child :even :kind :value} {:fill :subtle})
               (style {:has-row-number true :column :row-number} {:tone :accent})
               (table root))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val paper = Render.paper(calculated, layout).tables.single()
         val number = paper.columns.indexOfFirst { it.content == ColumnContent.RowNumber }
         val value = paper.columns.indexOfFirst { it.content == ColumnContent.Value }
@@ -189,13 +228,20 @@ class WorkingPaperBuilderTest {
     @Test
     fun `style requires a selector map followed by a declaration map`() {
         assertFailsWith<MantraException> {
-            LayoutReader.read(SourceText("old-style.mantra", "(layout t/old {:preset :ifrs-schedule} (style :default {:fill :none}))"))
+            LayoutReader.read(
+                SourceText(
+                    "old-style.mantra",
+                    "(layout t/old {:preset :ifrs-schedule} (style :default {:fill :none}))",
+                ),
+            )
         }
     }
 
     @Test
     fun `row number mode adds the column and controls numbering across tables`() {
-        val globalLayout = LayoutReader.read(SourceText("global-numbers.mantra", "(layout t/global {:preset :de-staffel-4 :row-numbers :global})"))
+        val globalLayout = LayoutReader.read(
+            SourceText("global-numbers.mantra", "(layout t/global {:preset :de-staffel-4 :row-numbers :global})"),
+        )
         val global = Render.paper(result, globalLayout)
         val globalNumbers = global.tables.flatMap { t ->
             val index = column(t, ColumnContent.RowNumber)
@@ -204,11 +250,16 @@ class WorkingPaperBuilderTest {
         assertTrue(global.tables.size > 1)
         assertEquals((1..globalNumbers.size).toList(), globalNumbers)
 
-        val localLayout = LayoutReader.read(SourceText("numbered.mantra", """
+        val localLayout = LayoutReader.read(
+            SourceText(
+                "numbered.mantra",
+                """
             (layout t/numbered {:preset :ifrs-schedule :row-numbers :table}
               (columns :tiered :label :value)
               (table haupt))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val local = Render.paper(result, localLayout).tables.single()
         assertEquals(ColumnContent.RowNumber, local.columns.first().content)
         assertEquals("1", local.rows.first { it.nodeId != null }.cells.first())
@@ -250,7 +301,11 @@ class WorkingPaperBuilderTest {
         val paper = Render.paper(result, Presets.DE_STAFFEL_4)
         val haupt = table(paper.tables, "haupt")
         assertFalse(haupt.rows.any { r -> r.cells.any { it.startsWith("Nie relevant") } })
-        assertTrue(haupt.rows.any { r -> r.cells.any { it.startsWith("Freigrenze") } && RowFlag.EXPLAINS_ZERO in r.flags })
+        assertTrue(
+            haupt.rows.any { r ->
+                r.cells.any { it.startsWith("Freigrenze") } && RowFlag.EXPLAINS_ZERO in r.flags
+            },
+        )
     }
 
     @Test
@@ -258,7 +313,13 @@ class WorkingPaperBuilderTest {
         val paper = Render.paper(result, Presets.DE_STAFFEL_4)
         val einkuenfte = table(paper.tables, "einkuenfte")
         assertEquals(TableStyle.MATRIX, einkuenfte.style)
-        assertEquals(listOf("Person A", "Person B", "Gesamt"), einkuenfte.columns.filter { it.content is ColumnContent.Member || it.content == ColumnContent.CrossTotal }.map { it.header })
+        assertEquals(
+            listOf("Person A", "Person B", "Gesamt"),
+            einkuenfte.columns.filter {
+                it.content is ColumnContent.Member ||
+                    it.content == ColumnContent.CrossTotal
+            }.map { it.header },
+        )
         val nsa = row(einkuenfte, "Einkünfte Arbeit")
         assertEquals(listOf("48.000,00", "18.770,00", "66.770,00"), nsa.cells.filter { it.contains(',') })
     }
@@ -281,7 +342,12 @@ class WorkingPaperBuilderTest {
         assertEquals(listOf("haupt"), paper.tables.map { it.id })
         val main = paper.tables.single()
         assertEquals("Main", main.title)
-        assertEquals(listOf("Description", "EUR"), main.columns.map { it.header }) // label header falls back to the preset caption
+        assertEquals(
+            listOf("Description", "EUR"),
+            main.columns.map {
+                it.header
+            },
+        ) // label header falls back to the preset caption
         assertEquals("(100.0)", row(main, "Abzüge gesamt").cells[1])
     }
 

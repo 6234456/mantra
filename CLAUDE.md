@@ -36,7 +36,8 @@ changing engine semantics and `docs/roadmap.md` for the accepted R1–R10 decisi
 
 - Pinned checkout: `scripts/bootstrap-normein.sh`; `NORMEIN_SOURCE` selects a remote or local clone.
   A separate clean checkout can be used with `NORMEIN_BUILD_PATH` or `-PnormeinBuildPath=<dir>`.
-- Kotlin and application verification: `./gradlew test`.
+- Verification: `npm --prefix workbench-ui ci` then `./gradlew --no-daemon check` (JVM,
+  Kotlin format/style, source size, boundaries and frontend format/lint/type checks).
 - CLI: `./gradlew :mantra-cli:installDist`, then
   `mantra-cli/build/install/mantra/bin/mantra run|check|catalog|fixtures|diff|explain|serve`.
 - Application outputs: `apps/<application>/build/out/`.

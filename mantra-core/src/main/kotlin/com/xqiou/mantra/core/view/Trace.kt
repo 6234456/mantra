@@ -27,8 +27,10 @@ data class TraceOption(val key: String, val label: String, val value: Value, val
 
 /** Bounded source-level details captured for one requested node coordinate. */
 data class ExplainStep(val text: String, val value: Value, val location: com.xqiou.mantra.core.SourceLocation)
+
 /** One source-level conditional branch and whether evaluation selected it. */
 data class ExplainBranch(val text: String, val selected: Boolean, val location: com.xqiou.mantra.core.SourceLocation)
+
 /** Bounded source-level trace; [truncated] signals that the collection budget was reached. */
 data class ExplainTrace(val steps: List<ExplainStep>, val branches: List<ExplainBranch>, val truncated: Boolean)
 
@@ -37,18 +39,32 @@ sealed interface NodeTrace {
     /** Input origin and an optional external data-source name. */
     data class Input(val origin: InputOrigin, val source: String? = null) : NodeTrace {
         /** Stable lowercase source label used by audit renderers. */
-        fun label(): String = if (origin == InputOrigin.SOURCE && source != null) "source:$source" else origin.name.lowercase()
+        fun label(): String = if (origin == InputOrigin.SOURCE &&
+            source != null
+        ) {
+            "source:$source"
+        } else {
+            origin.name.lowercase()
+        }
     }
+
     /** Winning schema, parameter-set or case layer. */
     data class Param(val source: String) : NodeTrace
+
     /** Formula references, unrounded outcome and applied rounding rule. */
-    data class Computed(val references: List<TraceRef>, val raw: Value, val rounding: Rounding?, val spread: Boolean) : NodeTrace
+    data class Computed(val references: List<TraceRef>, val raw: Value, val rounding: Rounding?, val spread: Boolean) :
+        NodeTrace
+
     /** Signed total components in calculation order. */
     data class Sum(val parts: List<TracePart>) : NodeTrace
+
     /** All evaluated alternatives and the selected option key. */
-    data class Choice(val options: List<TraceOption>, val selected: String?, val raw: Value, val rounding: Rounding?) : NodeTrace
+    data class Choice(val options: List<TraceOption>, val selected: String?, val raw: Value, val rounding: Rounding?) :
+        NodeTrace
+
     /** A condition excluded this coordinate from the calculation. */
     data class Inactive(val reason: String) : NodeTrace
+
     /** Evaluation failed and the diagnostic message explains why. */
     data class Failed(val message: String) : NodeTrace
 }

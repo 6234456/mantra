@@ -29,7 +29,11 @@ object CaseReader {
         val document = Document.read(source, sink) ?: return null
         val root = document.root as? DslForm.Sequence
         if (root == null || root.listHead != "case") {
-            sink.error("MANTRA-CASE-ROOT", "A case document must start with (case <id> ...)", document.location(document.root))
+            sink.error(
+                "MANTRA-CASE-ROOT",
+                "A case document must start with (case <id> ...)",
+                document.location(document.root),
+            )
             return null
         }
         val id = root.values.getOrNull(1)?.let { it.symbol ?: it.string } ?: run {
@@ -62,9 +66,16 @@ object CaseReader {
                     val source = declaration as? DslForm.Sequence
                     val kind = source?.listHead
                     val options = source?.values?.getOrNull(1)
-                    if (source == null || kind == null || kind !in setOf("csv", "json", "xlsx") || source.values.size != 2 || options == null ||
-                        !options.isSequence(DslFormSequenceKind.MAP)) {
-                        sink.error("MANTRA-CASE-SOURCE", "Expected (csv|json|xlsx {options})", document.location(declaration))
+                    if (source == null || kind == null || kind !in setOf("csv", "json", "xlsx") ||
+                        source.values.size != 2 ||
+                        options == null ||
+                        !options.isSequence(DslFormSequenceKind.MAP)
+                    ) {
+                        sink.error(
+                            "MANTRA-CASE-SOURCE",
+                            "Expected (csv|json|xlsx {options})",
+                            document.location(declaration),
+                        )
                     } else {
                         val values = document.options(options, sink, "$kind source").mapNotNull { (key, value) ->
                             document.literal(value, sink, "$kind source :$key")?.let { key to it }
@@ -75,12 +86,22 @@ object CaseReader {
                 "extend" -> {
                     val slot = list.values.getOrNull(1)?.symbol
                     if (slot == null) {
-                        sink.error("MANTRA-CASE-EXTEND", "(extend <slot-id> item...) requires a slot id", document.location(list))
+                        sink.error(
+                            "MANTRA-CASE-EXTEND",
+                            "(extend <slot-id> item...) requires a slot id",
+                            document.location(list),
+                        )
                     } else {
                         val declaredInputs = mutableListOf<InputDecl>()
-                        val items = list.values.drop(2).mapNotNull { ItemReader(document, sink, userDefined = true, declaredInputs).read(it) }
+                        val items = list.values.drop(2).mapNotNull {
+                            ItemReader(document, sink, userDefined = true, declaredInputs).read(it)
+                        }
                         if (declaredInputs.isNotEmpty()) {
-                            sink.error("MANTRA-CASE-EXTEND", "User extensions cannot declare (field ...) inputs; use (line ...) with a value", document.location(list))
+                            sink.error(
+                                "MANTRA-CASE-EXTEND",
+                                "User extensions cannot declare (field ...) inputs; use (line ...) with a value",
+                                document.location(list),
+                            )
                         }
                         extensions.getOrPut(slot) { mutableListOf() } += items
                     }
@@ -89,9 +110,17 @@ object CaseReader {
                     val slot = list.values.getOrNull(1)?.symbol
                     val formula = list.values.getOrNull(2)
                     if (slot == null || formula == null || list.values.size != 3) {
-                        sink.error("MANTRA-CASE-BIND", "(bind <formula-slot-id> <formula>) requires exactly two arguments", document.location(list))
+                        sink.error(
+                            "MANTRA-CASE-BIND",
+                            "(bind <formula-slot-id> <formula>) requires exactly two arguments",
+                            document.location(list),
+                        )
                     } else if (formulaBindings.putIfAbsent(slot, document.formula(formula)) != null) {
-                        sink.error("MANTRA-CASE-BIND-DUPLICATE", "Formula slot $slot is bound twice", document.location(list))
+                        sink.error(
+                            "MANTRA-CASE-BIND-DUPLICATE",
+                            "Formula slot $slot is bound twice",
+                            document.location(list),
+                        )
                     }
                 }
                 "defn" -> {
@@ -102,16 +131,28 @@ object CaseReader {
                         functions += FunctionDecl(name, document.slice(list), document.location(list))
                     }
                 }
-                else -> sink.error("MANTRA-CASE-FORM", "Unknown case form `${document.slice(form).take(60)}`", document.location(form))
+                else -> sink.error(
+                    "MANTRA-CASE-FORM",
+                    "Unknown case form `${document.slice(form).take(60)}`",
+                    document.location(form),
+                )
             }
         }
         val schemaId = (meta["schema"] as? Value.Text)?.value
-        return CaseData(id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
-            inputLocations, paramLocations, sources = sources)
+        return CaseData(
+            id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
+            inputLocations, paramLocations, sources = sources,
+        )
     }
 
-    private fun readValues(document: Document, list: DslForm.Sequence, sink: DiagnosticSink, what: String,
-                           target: MutableMap<String, Value>, locations: MutableMap<String, SourceLocation>) {
+    private fun readValues(
+        document: Document,
+        list: DslForm.Sequence,
+        sink: DiagnosticSink,
+        what: String,
+        target: MutableMap<String, Value>,
+        locations: MutableMap<String, SourceLocation>,
+    ) {
         list.values.drop(1).forEach { mapForm ->
             document.options(mapForm, sink, what).forEach { (key, form) ->
                 document.literal(form, sink, "$what :$key")?.let { value ->

@@ -16,11 +16,7 @@ enum class StyleWeight { NORMAL, BOLD }
 enum class StyleTone { DEFAULT, MUTED, ACCENT }
 enum class StyleFill { NONE, SUBTLE, ACCENT }
 
-data class StyleSpec(
-    val weight: StyleWeight? = null,
-    val tone: StyleTone? = null,
-    val fill: StyleFill? = null,
-) {
+data class StyleSpec(val weight: StyleWeight? = null, val tone: StyleTone? = null, val fill: StyleFill? = null) {
     fun merge(override: StyleSpec) = StyleSpec(
         weight = override.weight ?: weight,
         tone = override.tone ?: tone,
@@ -72,16 +68,15 @@ data class StyleSelector(
             hasRowNumber == null && column == null && rowKind == null &&
             (all || klass?.let { it in classes } == true)
 
-    fun matches(context: StyleContext): Boolean =
-        (section == null || section in context.sectionPath) &&
-            (depth == null || depth == context.depth) &&
-            (height == null || height == context.height) &&
-            (indent == null || indent == context.indent) &&
-            (nthChild == null || (context.rowIndex % 2 == 1) == (nthChild == RowParity.ODD)) &&
-            (hasRowNumber == null || hasRowNumber == context.hasRowNumber) &&
-            (column == null || column == context.columnId || column == context.columnRole) &&
-            (klass == null || klass in context.classes) &&
-            (rowKind == null || rowKind == context.rowKind)
+    fun matches(context: StyleContext): Boolean = (section == null || section in context.sectionPath) &&
+        (depth == null || depth == context.depth) &&
+        (height == null || height == context.height) &&
+        (indent == null || indent == context.indent) &&
+        (nthChild == null || (context.rowIndex % 2 == 1) == (nthChild == RowParity.ODD)) &&
+        (hasRowNumber == null || hasRowNumber == context.hasRowNumber) &&
+        (column == null || column == context.columnId || column == context.columnRole) &&
+        (klass == null || klass in context.classes) &&
+        (rowKind == null || rowKind == context.rowKind)
 }
 
 data class StyleRule(val selector: StyleSelector, val style: StyleSpec)
@@ -99,6 +94,7 @@ sealed interface ColumnContent {
     data object Reference : ColumnContent
     data object Note : ColumnContent
     data object Source : ColumnContent
+
     /** Application-defined metadata, such as a tax form code or form line. */
     data class Attribute(val name: String) : ColumnContent
     data object Status : ColumnContent
@@ -106,22 +102,34 @@ sealed interface ColumnContent {
     data object Explain : ColumnContent
 
     /** The row value in its own context (scalar value, or cross-total of a dimensioned row). */
-    data object Value : ColumnContent { override val numeric = true }
+    data object Value : ColumnContent {
+        override val numeric = true
+    }
 
     /** Tiered lead column: components of nested computations. */
-    data object Pre : ColumnContent { override val numeric = true }
+    data object Pre : ColumnContent {
+        override val numeric = true
+    }
 
     /** Tiered main column: items and checkpoints of the table's own running sum. */
-    data object Main : ColumnContent { override val numeric = true }
+    data object Main : ColumnContent {
+        override val numeric = true
+    }
 
     /** Sum over the members of the table's member dimension (cross-footing column). */
-    data object CrossTotal : ColumnContent { override val numeric = true }
+    data object CrossTotal : ColumnContent {
+        override val numeric = true
+    }
 
     /** Value for a single member of a dimension. */
-    data class Member(val dimension: String, val key: String) : ColumnContent { override val numeric = true }
+    data class Member(val dimension: String, val key: String) : ColumnContent {
+        override val numeric = true
+    }
 
     /** Expands into one [Member] column per active member of the dimension. */
-    data class Members(val dimension: String) : ColumnContent { override val numeric = true }
+    data class Members(val dimension: String) : ColumnContent {
+        override val numeric = true
+    }
 
     companion object {
         fun of(keyword: String): ColumnContent? = when (keyword) {
@@ -229,13 +237,26 @@ data class Texts(
     companion object {
         val DE = Texts(
             language = "de",
-            pre = "Vorspalte", main = "Hauptspalte", total = "Gesamt", label = "Bezeichnung", reference = "Rechtsgrundlage",
+            pre = "Vorspalte",
+            main = "Hauptspalte",
+            total = "Gesamt",
+            label = "Bezeichnung",
+            reference = "Rechtsgrundlage",
             row = "Zeile", status = "", formula = "Formel", explain = "Rechenweg", audit = "Berechnungsnachweis",
-            auditIntro = "Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, eingesetzte Werte und Ergebnis.",
+            auditIntro = "Nachweis jeder berechneten Zeile: " +
+                "Formel des Berechnungsschemas, eingesetzte Werte und Ergebnis.",
             result = "Ergebnis", notApplicable = "entfällt", selected = "gewählte Alternative (Günstigerprüfung)",
             userDefined = "benutzerdefinierte Zeile", footed = "Summe geprüft (Fußung)", legend = "Prüfzeichen",
-            diagnostics = "Hinweise", schedule = "Nebenrechnung", table = "Tabelle", carriedFrom = "Übertrag aus", subject = "Mandant",
-            period = "Zeitraum", schema = "Berechnungsschema", preparedBy = "Erstellt", reviewedBy = "Geprüft", date = "Datum",
+            diagnostics = "Hinweise",
+            schedule = "Nebenrechnung",
+            table = "Tabelle",
+            carriedFrom = "Übertrag aus",
+            subject = "Mandant",
+            period = "Zeitraum",
+            schema = "Berechnungsschema",
+            preparedBy = "Erstellt",
+            reviewedBy = "Geprüft",
+            date = "Datum",
             index = "Index", page = "Seite", mainline = "Hauptlinie", branch = "Nebenrechnung",
             auxiliary = "Nebeninformation", structure = "Aufbau der Berechnung", feeds = "fließt ein in",
         )
@@ -244,11 +265,21 @@ data class Texts(
             pre = "Detail", main = "Amount", total = "Total", label = "Description", reference = "Reference",
             row = "Line", status = "", formula = "Formula", explain = "Working", audit = "Audit trail",
             auditIntro = "Evidence for every calculated line: schema formula, substituted values and result.",
-            result = "Result", notApplicable = "n/a", selected = "selected alternative", userDefined = "user-defined line",
-            footed = "footed / cross-footed", legend = "Tick marks", diagnostics = "Findings", schedule = "Schedule", table = "Table",
+            result = "Result",
+            notApplicable = "n/a",
+            selected = "selected alternative",
+            userDefined = "user-defined line",
+            footed = "footed / cross-footed",
+            legend = "Tick marks",
+            diagnostics = "Findings",
+            schedule = "Schedule",
+            table = "Table",
             carriedFrom = "carried from", subject = "Entity", period = "Period", schema = "Calculation schema",
             preparedBy = "Prepared by", reviewedBy = "Reviewed by", date = "Date", index = "WP ref.", page = "Page",
-            mainline = "Mainline", branch = "Supporting schedule", auxiliary = "Supplementary", structure = "Structure of the calculation",
+            mainline = "Mainline",
+            branch = "Supporting schedule",
+            auxiliary = "Supplementary",
+            structure = "Structure of the calculation",
             feeds = "feeds",
         )
     }
@@ -302,7 +333,8 @@ data class LayoutSpec(
 
 /** Built-in presets: common presentation settings, free of any domain logic. */
 object Presets {
-    private fun col(id: String, content: ColumnContent, header: String? = null, width: Int? = null) = ColumnSpec(id, header, content, width)
+    private fun col(id: String, content: ColumnContent, header: String? = null, width: Int? = null) =
+        ColumnSpec(id, header, content, width)
 
     private val deOperators = Operators(plus = "", minus = "./.", total = "=", info = "")
     private val enOperators = Operators(plus = "", minus = "less", total = "=", info = "")

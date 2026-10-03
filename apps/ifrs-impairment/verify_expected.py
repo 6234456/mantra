@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Independent arithmetic for the demonstration (Fraction/Decimal; no Mantra dependencies).
-IE8 inputs are attributed in README.md. Largest remainders intentionally give B's split 11/31.
+Inputs are independently authored fictional facts, documented in README.md.
 """
 import argparse
 from decimal import Decimal
@@ -21,10 +21,10 @@ def allocate(total, weights):
 
 
 def expected(case):
-    carrying = [100, 150, 200]
-    weights = [100, 600, 800] if case == 'custom-weight' else [100, 300, 400]
-    recoverable = [1000, 1000, 1000] if case == 'no-impairment' else [199, 164, 271]
-    shares = allocate(150, weights)
+    carrying = [120, 180, 260]
+    weights = [4320, 25920, 84240] if case == 'custom-weight' else [120, 360, 780]
+    recoverable = [1000, 1000, 1000] if case == 'no-impairment' else [180, 210, 300]
+    shares = allocate(211, weights)
     losses = [max(0, own + share - ra) for own, share, ra in zip(carrying, shares, recoverable)]
     values = {}
     for member, own, share, ra, loss in zip('ABC', carrying, shares, recoverable, losses):
@@ -33,8 +33,8 @@ def expected(case):
             values[f'{name}@{member}'] = value
         split = allocate(loss, [share, own])
         values[f'loss-to-corporate@{member}'], values[f'loss-to-own-assets@{member}'] = split
-    values['group-before'] = 650
-    values['group-carrying-amount'] = 650 - sum(losses)
+    values['group-before'] = 844
+    values['group-carrying-amount'] = 844 - sum(losses)
     values['group-loss'] = 0
     values['total-impairment'] = sum(losses)
     return values
@@ -42,7 +42,7 @@ def expected(case):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--case', choices=['ie8', 'custom-weight', 'no-impairment'], default='ie8')
+    parser.add_argument('--case', choices=['demo', 'custom-weight', 'no-impairment'], default='demo')
     parser.add_argument('--verify', type=Path)
     args = parser.parse_args()
     values = expected(args.case)

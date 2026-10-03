@@ -40,8 +40,7 @@ sealed interface Value {
 
     /** Ordered map; keys are values themselves (usually keywords or numbers). */
     data class MapV(val entries: Map<Value, Value>) : Value {
-        override fun toString(): String =
-            entries.entries.joinToString(" ", "{", "}") { (k, v) -> "$k $v" }
+        override fun toString(): String = entries.entries.joinToString(" ", "{", "}") { (k, v) -> "$k $v" }
     }
 
     companion object {

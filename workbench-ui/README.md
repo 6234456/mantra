@@ -7,6 +7,7 @@ React, TypeScript, and Vite frontend for the read-only workbench. All displayed 
 ```sh
 cd workbench-ui
 npm ci
+npm run check
 npm run dev
 npm run build
 npm test
@@ -41,6 +42,13 @@ is generated and ignored by Git. Its `index.json` has this shape:
 Each document file is the full contract envelope (`contract`, `revision`, `engine`, `data`). The optional `explains` keys use `addressToPath` from `src/address.ts`. Fixture synchronization also discovers tracked Compare golden files and lists their variant parameter sets in the copied manifest. WP3 supplies the three golden case sets; Explain fixtures are added with WP4.
 
 `npm run types:generate` derives `src/generated/contract.ts` from the checked-in JSON Schemas. The generated file is committed, and `npm test`, `npm run typecheck`, and `npm run build` fail if it is stale. `src/types.ts` uses those wire types and refines the schema's intentionally open presentation objects for UI components.
+
+`npm run check` runs the pinned Prettier, ESLint and TypeScript checks. `npm run format` applies the
+formatter to UI source and scripts; generated contracts use the same formatter when regenerated.
+ESLint checks recommended JavaScript/TypeScript rules and React hook dependencies, with a 1200
+nonblank-line file limit and 120-column code limit (long string and template literals are exempt).
+Parameters and variables intentionally unused by fixture adapters use an underscore prefix.
+The root `./gradlew check` also runs these frontend checks, so install `npm ci` before invoking it.
 
 `npm test` exercises all three tracked golden cases through the full React fixture adapter in jsdom. `npm run test:e2e` starts Vite and the already-installed system Chrome with a separate task-specific temporary profile, then checks overview → panel → addressed Paper cell → export → worksheet in all three cases. It stops both processes and removes the profile on success or failure. Set `MANTRA_TEST_CHROME` to another installed Chrome-compatible executable if needed; the script never downloads a browser.
 

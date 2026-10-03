@@ -2,10 +2,10 @@ package com.xqiou.mantra.core.data
 
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.FieldItem
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SectionItem
-import com.xqiou.mantra.core.model.FieldItem
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import java.math.BigDecimal
@@ -46,15 +46,28 @@ object DataSources {
     private fun mark(origins: MutableMap<String, String>, value: Value, source: String?, path: String = "") {
         if (value is Value.MapV) {
             value.entries.forEach { (key, nested) ->
-                val member = when (key) { is Value.Kw -> key.name; is Value.Text -> key.value; else -> return@forEach }
+                val member = when (key) {
+                    is Value.Kw -> key.name
+                    is Value.Text -> key.value
+                    else -> return@forEach
+                }
                 mark(origins, nested, source, if (path.isEmpty()) member else "$path/$member")
             }
-        } else if (source == null) origins.remove(path) else origins[path] = source
+        } else if (source == null) {
+            origins.remove(path)
+        } else {
+            origins[path] = source
+        }
     }
 
     /** Per-member maps merge member by member so different sources can supply different members. */
-    private fun mergeValue(old: Value?, new: Value): Value =
-        if (old is Value.MapV && new is Value.MapV) Value.MapV(LinkedHashMap(old.entries).apply { putAll(new.entries) }) else new
+    private fun mergeValue(old: Value?, new: Value): Value = if (old is Value.MapV &&
+        new is Value.MapV
+    ) {
+        Value.MapV(LinkedHashMap(old.entries).apply { putAll(new.entries) })
+    } else {
+        new
+    }
 
     fun inputs(schema: Schema): Map<String, InputDecl> = schema.inputs.associateBy { it.id }
 
@@ -62,11 +75,13 @@ object DataSources {
         val result = schema.inputs.associate { it.id to (it.per ?: emptyList()) }.toMutableMap()
         fun walk(section: SectionItem, inherited: List<String>) {
             val dims = section.per ?: inherited
-            section.children.forEach { item -> when (item) {
-                is SectionItem -> walk(item, dims)
-                is FieldItem -> result[item.id] = schema.inputs.firstOrNull { it.id == item.id }?.per ?: dims
-                else -> Unit
-            } }
+            section.children.forEach { item ->
+                when (item) {
+                    is SectionItem -> walk(item, dims)
+                    is FieldItem -> result[item.id] = schema.inputs.firstOrNull { it.id == item.id }?.per ?: dims
+                    else -> Unit
+                }
+            }
         }
         walk(schema.root, emptyList())
         return result
@@ -95,7 +110,11 @@ class JsonSource(
         val inputs = DataSources.inputs(schema)
         if (mapping.isNotEmpty()) {
             return mapping.mapNotNull { (id, dotted) ->
-                if (id !in inputs) sink.error("MANTRA-DATA-UNKNOWN-INPUT", "${path.fileName}: mapping targets unknown input $id")
+                if (id !in
+                    inputs
+                ) {
+                    sink.error("MANTRA-DATA-UNKNOWN-INPUT", "${path.fileName}: mapping targets unknown input $id")
+                }
                 navigate(document, dotted)?.let { id to it } ?: run {
                     sink.warning("MANTRA-DATA-PATH", "${path.fileName}: path $dotted not found")
                     null
@@ -153,18 +172,35 @@ class CsvSource(
     override val description: String = "csv:${path.fileName}"
 
     override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> {
-        val rows = parseRows(Files.readString(path).removePrefix("﻿"), delimiter)
+        val rows = parseRows(Files.readString(path).removePrefix(""), delimiter)
         if (rows.isEmpty()) return emptyMap()
         val header = rows.first().map { it.trim() }
         val inputs = DataSources.inputs(schema)
         if (mode == "wide") {
             val dimensions = DataSources.inputDimensions(schema)
             val memberIndex = memberColumn?.let(header::indexOf)?.takeIf { it >= 0 }
-            if (memberColumn != null && memberIndex == null) sink.error("MANTRA-DATA-CSV", "${path.fileName}: member column '$memberColumn' not found")
+            if (memberColumn != null &&
+                memberIndex == null
+            ) {
+                sink.error("MANTRA-DATA-CSV", "${path.fileName}: member column '$memberColumn' not found")
+            }
             val targets = header.mapIndexed { index, name ->
-                if (index == memberIndex) null else (columns[name] ?: if (columns.isEmpty()) normalize(name) else null)?.also { id ->
-                    if (id !in inputs) sink.warning("MANTRA-DATA-UNKNOWN-INPUT", "${path.fileName}: column '$name' targets unknown input $id")
-                }?.takeIf { it in inputs }
+                if (index ==
+                    memberIndex
+                ) {
+                    null
+                } else {
+                    (columns[name] ?: if (columns.isEmpty()) normalize(name) else null)?.also { id ->
+                        if (id !in
+                            inputs
+                        ) {
+                            sink.warning(
+                                "MANTRA-DATA-UNKNOWN-INPUT",
+                                "${path.fileName}: column '$name' targets unknown input $id",
+                            )
+                        }
+                    }?.takeIf { it in inputs }
+                }
             }
             val result = linkedMapOf<String, Value>()
             rows.drop(1).filter { row -> row.any(String::isNotBlank) }.forEach { row ->
@@ -179,8 +215,15 @@ class CsvSource(
                         return@forEachIndexed
                     }
                     val value = convert(raw, inputs.getValue(id).type)
-                    result[id] = if (dims.isEmpty()) value else Value.MapV(
-                        LinkedHashMap((result[id] as? Value.MapV)?.entries ?: emptyMap()).apply { put(Value.Kw(member!!), value) })
+                    result[id] = if (dims.isEmpty()) {
+                        value
+                    } else {
+                        Value.MapV(
+                            LinkedHashMap((result[id] as? Value.MapV)?.entries ?: emptyMap()).apply {
+                                put(Value.Kw(member!!), value)
+                            },
+                        )
+                    }
                 }
             }
             return result
@@ -197,7 +240,10 @@ class CsvSource(
             }
             val columnFor = header.map { name ->
                 columns[name] ?: decl.columns.firstOrNull { it.name == normalize(name) }?.name ?: run {
-                    sink.warning("MANTRA-DATA-CSV", "${path.fileName}: column '$name' does not match a column of $input")
+                    sink.warning(
+                        "MANTRA-DATA-CSV",
+                        "${path.fileName}: column '$name' does not match a column of $input",
+                    )
                     null
                 }
             }
@@ -215,8 +261,12 @@ class CsvSource(
             return mapOf(input to Value.Vec(records))
         }
         val idIndex = header.indexOfFirst { normalize(it) in setOf("input", "eingabe", "id") }.takeIf { it >= 0 } ?: 0
-        val memberIndex = header.indexOfFirst { normalize(it) in setOf("member", "mitglied", "person") }.takeIf { it >= 0 }
-        val valueIndex = header.indexOfFirst { normalize(it) in setOf("value", "wert") }.takeIf { it >= 0 } ?: (header.size - 1)
+        val memberIndex = header.indexOfFirst { normalize(it) in setOf("member", "mitglied", "person") }.takeIf {
+            it >=
+                0
+        }
+        val valueIndex =
+            header.indexOfFirst { normalize(it) in setOf("value", "wert") }.takeIf { it >= 0 } ?: (header.size - 1)
         val result = linkedMapOf<String, Value>()
         rows.drop(1).filter { row -> row.any { it.isNotBlank() } }.forEach { row ->
             val id = row.getOrElse(idIndex) { "" }.trim()
@@ -229,7 +279,11 @@ class CsvSource(
             result[id] = if (member == null) {
                 value
             } else {
-                Value.MapV(LinkedHashMap((result[id] as? Value.MapV)?.entries ?: emptyMap()).apply { put(Value.Kw(member.removePrefix(":")), value) })
+                Value.MapV(
+                    LinkedHashMap((result[id] as? Value.MapV)?.entries ?: emptyMap()).apply {
+                        put(Value.Kw(member.removePrefix(":")), value)
+                    },
+                )
             }
         }
         return result
@@ -248,7 +302,9 @@ class CsvSource(
                 else -> Value.Text(text)
             }
             ValueType.KEYWORD -> Value.Kw(text.removePrefix(":"))
-            ValueType.DATE -> Regex("""(\d{1,2})\.(\d{1,2})\.(\d{4})""").matchEntire(text)?.destructured?.let { (d, m, y) ->
+            ValueType.DATE -> Regex(
+                """(\d{1,2})\.(\d{1,2})\.(\d{4})""",
+            ).matchEntire(text)?.destructured?.let { (d, m, y) ->
                 Value.Text("%s-%02d-%02d".format(y, m.toInt(), d.toInt()))
             } ?: Value.Text(text)
             else -> Value.Text(text)
@@ -265,43 +321,43 @@ class CsvSource(
     }
 
     companion object {
-      /** Same CSV quoting rules for import inspection and actual calculation. */
-      fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
-        val rows = mutableListOf<List<String>>()
-        var row = mutableListOf<String>()
-        val cell = StringBuilder()
-        var quoted = false
-        var i = 0
-        while (i < content.length) {
-            val ch = content[i]
-            when {
-                quoted && ch == '"' && content.getOrNull(i + 1) == '"' -> {
-                    cell.append('"')
-                    i++
+        /** Same CSV quoting rules for import inspection and actual calculation. */
+        fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
+            val rows = mutableListOf<List<String>>()
+            var row = mutableListOf<String>()
+            val cell = StringBuilder()
+            var quoted = false
+            var i = 0
+            while (i < content.length) {
+                val ch = content[i]
+                when {
+                    quoted && ch == '"' && content.getOrNull(i + 1) == '"' -> {
+                        cell.append('"')
+                        i++
+                    }
+                    ch == '"' -> quoted = !quoted
+                    !quoted && ch == delimiter -> {
+                        row += cell.toString()
+                        cell.clear()
+                    }
+                    !quoted && (ch == '\n' || ch == '\r') -> {
+                        if (ch == '\r' && content.getOrNull(i + 1) == '\n') i++
+                        row += cell.toString()
+                        cell.clear()
+                        rows += row
+                        if (rows.size >= maxRows) return rows
+                        row = mutableListOf()
+                    }
+                    else -> cell.append(ch)
                 }
-                ch == '"' -> quoted = !quoted
-                !quoted && ch == delimiter -> {
-                    row += cell.toString()
-                    cell.clear()
-                }
-                !quoted && (ch == '\n' || ch == '\r') -> {
-                    if (ch == '\r' && content.getOrNull(i + 1) == '\n') i++
-                    row += cell.toString()
-                    cell.clear()
-                    rows += row
-                    if (rows.size >= maxRows) return rows
-                    row = mutableListOf()
-                }
-                else -> cell.append(ch)
+                i++
             }
-            i++
+            require(!quoted) { "Unclosed quoted CSV field" }
+            if (cell.isNotEmpty() || row.isNotEmpty()) {
+                row += cell.toString()
+                rows += row
+            }
+            return rows
         }
-        require(!quoted) { "Unclosed quoted CSV field" }
-        if (cell.isNotEmpty() || row.isNotEmpty()) {
-            row += cell.toString()
-            rows += row
-        }
-        return rows
-      }
     }
 }

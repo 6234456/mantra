@@ -27,7 +27,9 @@ data class CalculationComparison(
 /** Compares values from the same schema without rounding through a renderer or JSON number. */
 object CalculationCompare {
     fun between(base: CalculationView, variant: CalculationView): CalculationComparison {
-        require(base.schema.id == variant.schema.id) { "Cannot compare different schemas: ${base.schema.id} and ${variant.schema.id}" }
+        require(base.schema.id == variant.schema.id) {
+            "Cannot compare different schemas: ${base.schema.id} and ${variant.schema.id}"
+        }
         val allIds = (base.nodes.keys + variant.nodes.keys).distinct()
         val differences = allIds.associateWith { id ->
             val left = base.nodes[id]
@@ -38,15 +40,31 @@ object CalculationCompare {
                 val bPresent = right?.values?.containsKey(coord) == true
                 val a = left?.values?.get(coord)
                 val b = right?.values?.get(coord)
-                if (aPresent == bPresent && equivalent(a, b)) null
-                else ValueChange(id, coord.toList(), a, b, aPresent, bPresent,
-                    if (aPresent && bPresent && a is Value.Num && b is Value.Num) b.value - a.value else null)
+                if (aPresent == bPresent && equivalent(a, b)) {
+                    null
+                } else {
+                    ValueChange(
+                        id,
+                        coord.toList(),
+                        a,
+                        b,
+                        aPresent,
+                        bPresent,
+                        if (aPresent && bPresent && a is Value.Num && b is Value.Num) b.value - a.value else null,
+                    )
+                }
             }
         }
-        val params = allIds.filter { base.nodes[it]?.kind == NodeKind.PARAM || variant.nodes[it]?.kind == NodeKind.PARAM }
+        val params = allIds.filter {
+            base.nodes[it]?.kind == NodeKind.PARAM || variant.nodes[it]?.kind == NodeKind.PARAM
+        }
         val parameterChanges = params.flatMap { id ->
             differences.getValue(id).map { change ->
-                ParameterChange(change, base.nodes[id]?.parameterSource ?: "absent", variant.nodes[id]?.parameterSource ?: "absent")
+                ParameterChange(
+                    change,
+                    base.nodes[id]?.parameterSource ?: "absent",
+                    variant.nodes[id]?.parameterSource ?: "absent",
+                )
             }
         }
         val mainline = base.structure.mainline.flatMapIndexed { index, panelId ->
@@ -59,12 +77,18 @@ object CalculationCompare {
             val items = differences.getValue(id)
             if (items.isNotEmpty()) groups.getOrPut(panel?.id) { mutableListOf() }.addAll(items)
         }
-        val ordered = groups.entries.sortedWith(compareBy<Map.Entry<String?, MutableList<ValueChange>>> { entry ->
-            panel(base, variant, entry.key)?.position?.step ?: Int.MAX_VALUE
-        }.thenBy { entry -> panel(base, variant, entry.key)?.order ?: Int.MAX_VALUE })
-        return CalculationComparison(mainline, ordered.map { (id, items) ->
-            PanelChanges(panel(base, variant, id)?.position?.step, id, items)
-        }, parameterChanges)
+        val ordered = groups.entries.sortedWith(
+            compareBy<Map.Entry<String?, MutableList<ValueChange>>> { entry ->
+                panel(base, variant, entry.key)?.position?.step ?: Int.MAX_VALUE
+            }.thenBy { entry -> panel(base, variant, entry.key)?.order ?: Int.MAX_VALUE },
+        )
+        return CalculationComparison(
+            mainline,
+            ordered.map { (id, items) ->
+                PanelChanges(panel(base, variant, id)?.position?.step, id, items)
+            },
+            parameterChanges,
+        )
     }
 
     private fun panel(base: CalculationView, variant: CalculationView, id: String?): Panel? =

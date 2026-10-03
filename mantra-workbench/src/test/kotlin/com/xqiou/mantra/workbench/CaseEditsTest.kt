@@ -17,12 +17,14 @@ class CaseEditsTest {
     private fun copyExample(name: String): Pair<Path, String> {
         val source = Path.of("apps/$name")
         val dir = Files.createDirectories(temp.resolve(name))
-        Files.list(source).use { stream -> stream.filter { it.toString().endsWith(".mantra") }.forEach {
-            Files.copy(it, dir.resolve(it.fileName))
-        } }
+        Files.list(source).use { stream ->
+            stream.filter { it.toString().endsWith(".mantra") }.forEach {
+                Files.copy(it, dir.resolve(it.fileName))
+            }
+        }
         val case = when (name) {
             "de-est" -> "case-mustermann.mantra"
-            "ifrs-impairment" -> "case-ie8.mantra"
+            "ifrs-impairment" -> "case-demo.mantra"
             else -> "case-demo.mantra"
         }
         return dir to case
@@ -30,14 +32,20 @@ class CaseEditsTest {
 
     @Test fun `date input text uses the documented German format`() {
         val dir = Files.createDirectories(temp.resolve("dates"))
-        Files.writeString(dir.resolve("schema.mantra"), """
+        Files.writeString(
+            dir.resolve("schema.mantra"),
+            """
             (schema test/date {:title "Date" :mainline [main]}
               (input report-date :date {:optional true})
               (section main "Main" {:panel true} (field report-date "Report date") (total sum "Sum")))
-        """.trimIndent())
+            """.trimIndent(),
+        )
         Files.writeString(dir.resolve("case.mantra"), "(case sample {:schema \"test/date\"})")
         val catalog = WorkspaceCatalog(dir)
-        assertEquals(Value.Date(LocalDate.of(2025, 12, 31)), catalog.parseEditText("case.mantra", "report-date", false, "31.12.2025"))
+        assertEquals(
+            Value.Date(LocalDate.of(2025, 12, 31)),
+            catalog.parseEditText("case.mantra", "report-date", false, "31.12.2025"),
+        )
         assertFailsWith<WorkspaceException> { catalog.parseEditText("case.mantra", "report-date", false, "31.02.2025") }
     }
 
@@ -74,10 +82,14 @@ class CaseEditsTest {
         val original = Files.readAllBytes(file)
         val revision = catalog.document(case, "run").revision
         val error = assertFailsWith<WorkspaceException> {
-            catalog.commitEdits(case, revision, listOf(
-                CaseTextEditor.Operation.SetInput("spenden", Value.num("451")),
-                CaseTextEditor.Operation.SetInput("kinder", Value.Text("invalid")),
-            ))
+            catalog.commitEdits(
+                case,
+                revision,
+                listOf(
+                    CaseTextEditor.Operation.SetInput("spenden", Value.num("451")),
+                    CaseTextEditor.Operation.SetInput("kinder", Value.Text("invalid")),
+                ),
+            )
         }
         assertEquals(WorkspaceProblem.INVALID, error.problem)
         assertTrue(original.contentEquals(Files.readAllBytes(file)))
@@ -91,12 +103,24 @@ class CaseEditsTest {
             val catalog = WorkspaceCatalog(dir)
             val original = Files.readAllBytes(dir.resolve(case))
             val revision = catalog.document(case, "run").revision
-            val candidate = if (table == "cgus") Value.MapV(mapOf(
-                Value.Kw("id") to Value.Kw("D"), Value.Kw("name") to Value.Text("D"),
-                Value.Kw("carrying-amount") to Value.num("10"), Value.Kw("remaining-life") to Value.num("10"),
-                Value.Kw("value-in-use") to Value.num("11"),
-            )) else Value.MapV(mapOf(Value.Kw("id") to Value.Kw("C"), Value.Kw("name") to Value.Text("Product C")))
-            val preview = catalog.previewEdits(case, revision, listOf(CaseTextEditor.Operation.InsertRow(table, candidate)))
+            val candidate = if (table == "cgus") {
+                Value.MapV(
+                    mapOf(
+                        Value.Kw("id") to Value.Kw("D"),
+                        Value.Kw("name") to Value.Text("D"),
+                        Value.Kw("carrying-amount") to Value.num("10"),
+                        Value.Kw("remaining-life") to Value.num("10"),
+                        Value.Kw("value-in-use") to Value.num("11"),
+                    ),
+                )
+            } else {
+                Value.MapV(mapOf(Value.Kw("id") to Value.Kw("C"), Value.Kw("name") to Value.Text("Product C")))
+            }
+            val preview = catalog.previewEdits(
+                case,
+                revision,
+                listOf(CaseTextEditor.Operation.InsertRow(table, candidate)),
+            )
             assertTrue(preview.data.containsKey("difference"))
             assertTrue(original.contentEquals(Files.readAllBytes(dir.resolve(case))))
         }
@@ -106,7 +130,10 @@ class CaseEditsTest {
     fun `batch validates a retained member against the final view`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val change = listOf(
@@ -124,7 +151,10 @@ class CaseEditsTest {
     fun `temporary unknown formula input and parameter edits do not block a valid batch`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val operations = listOf(
@@ -148,14 +178,23 @@ class CaseEditsTest {
     fun `retained inactive member is rejected but a later clear can remove it`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val setB = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B"))
         val problem = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(setB)) }
         assertEquals(WorkspaceProblem.INVALID, problem.problem)
-        val cleared = catalog.previewEdits(case, revision, listOf(setB,
-            CaseTextEditor.Operation.ClearInput("bruttoarbeitslohn", listOf("B"))))
+        val cleared = catalog.previewEdits(
+            case,
+            revision,
+            listOf(
+                setB,
+                CaseTextEditor.Operation.ClearInput("bruttoarbeitslohn", listOf("B")),
+            ),
+        )
         assertTrue(cleared.data["preview"] == true)
     }
 
@@ -172,9 +211,17 @@ class CaseEditsTest {
         assertContains(rejected.diagnostics.single().message, "member maps")
         assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(scalar)) }
         assertEquals(original, Files.readString(file))
-        val repaired = catalog.previewEdits(case, revision, listOf(scalar,
-            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
-                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        val repaired = catalog.previewEdits(
+            case,
+            revision,
+            listOf(
+                scalar,
+                CaseTextEditor.Operation.SetInput(
+                    "bruttoarbeitslohn",
+                    Value.MapV(mapOf(Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))),
+                ),
+            ),
+        )
         assertTrue(repaired.data["preview"] == true)
     }
 
@@ -185,8 +232,10 @@ class CaseEditsTest {
         val original = Files.readString(file)
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
-        val unknownMember = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
-            Value.Kw("Z") to Value.num("40000"))))
+        val unknownMember = CaseTextEditor.Operation.SetInput(
+            "bruttoarbeitslohn",
+            Value.MapV(mapOf(Value.Kw("Z") to Value.num("40000"))),
+        )
         val rejected = assertFailsWith<WorkspaceException> {
             catalog.previewEdits(case, revision, listOf(unknownMember))
         }
@@ -195,9 +244,17 @@ class CaseEditsTest {
         assertFailsWith<WorkspaceException> { catalog.commitEdits(case, revision, listOf(unknownMember)) }
         assertEquals(original, Files.readString(file))
 
-        val repaired = catalog.previewEdits(case, revision, listOf(unknownMember,
-            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.MapV(mapOf(
-                Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))))))
+        val repaired = catalog.previewEdits(
+            case,
+            revision,
+            listOf(
+                unknownMember,
+                CaseTextEditor.Operation.SetInput(
+                    "bruttoarbeitslohn",
+                    Value.MapV(mapOf(Value.Kw("A") to Value.num("40000"), Value.Kw("B") to Value.num("32000"))),
+                ),
+            ),
+        )
         assertTrue(repaired.data["preview"] == true)
     }
 
@@ -225,15 +282,22 @@ class CaseEditsTest {
     fun `member coordinate validation can ignore transient invalid layout`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
-        val result = catalog.previewEdits(case, revision, listOf(
-            CaseTextEditor.Operation.SetBindings(null, "missing/layout"),
-            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
-            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
-            CaseTextEditor.Operation.SetBindings(null, "de.est/steuerberechnung"),
-        ))
+        val result = catalog.previewEdits(
+            case,
+            revision,
+            listOf(
+                CaseTextEditor.Operation.SetBindings(null, "missing/layout"),
+                CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+                CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+                CaseTextEditor.Operation.SetBindings(null, "de.est/steuerberechnung"),
+            ),
+        )
         assertTrue(result.data["preview"] == true)
     }
 
@@ -241,7 +305,10 @@ class CaseEditsTest {
     fun `member coordinate validation can ignore transient missing parameter set`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val operations = listOf(
@@ -262,16 +329,23 @@ class CaseEditsTest {
     fun `member coordinate validation can ignore transient invalid parameter document`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
+        )
         Files.writeString(dir.resolve("temp-invalid.mantra"), "(parameters temp/invalid (bad))")
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
-        val preview = catalog.previewEdits(case, revision, listOf(
-            CaseTextEditor.Operation.SetBindings(listOf("temp/invalid"), null),
-            CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
-            CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
-            CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
-        ))
+        val preview = catalog.previewEdits(
+            case,
+            revision,
+            listOf(
+                CaseTextEditor.Operation.SetBindings(listOf("temp/invalid"), null),
+                CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
+                CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B")),
+                CaseTextEditor.Operation.SetBindings(listOf("de.est/params-2026"), null),
+            ),
+        )
         assertTrue(preview.data["preview"] == true)
     }
 
@@ -297,14 +371,22 @@ class CaseEditsTest {
     fun `external parameter edit before final replace changes full revision and blocks case write`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        Files.writeString(file, Files.readString(file).replace(":layout \"de.est/steuerberechnung\"",
-            ":layout \"de.est/steuerberechnung\"\n   :parameters [\"de.est/params-2026\"]"))
+        Files.writeString(
+            file,
+            Files.readString(file).replace(
+                ":layout \"de.est/steuerberechnung\"",
+                ":layout \"de.est/steuerberechnung\"\n   :parameters [\"de.est/params-2026\"]",
+            ),
+        )
         val catalog = WorkspaceCatalog(dir)
         val original = Files.readString(file)
         val revision = catalog.document(case, "run").revision
         val parameterFile = dir.resolve("params-2026.mantra")
         catalog.beforeWriteCheck = {
-            Files.writeString(parameterFile, Files.readString(parameterFile).replace("tarif-gfb 12348", "tarif-gfb 12349"))
+            Files.writeString(
+                parameterFile,
+                Files.readString(parameterFile).replace("tarif-gfb 12348", "tarif-gfb 12349"),
+            )
         }
         val conflict = assertFailsWith<WorkspaceException> {
             catalog.commitEdits(case, revision, listOf(CaseTextEditor.Operation.SetInput("spenden", Value.num("451"))))

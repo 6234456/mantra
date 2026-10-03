@@ -69,7 +69,13 @@ internal object MantraKernel {
         val safeId = caseId.replace(Regex("[^A-Za-z0-9._-]"), "-").take(64).ifEmpty { "case" }
         val locator = when (val result = DslInputLocators.create("mantra", "case", safeId)) {
             is DslInputLocatorResult.Success -> result.locator
-            is DslInputLocatorResult.Failure -> (DslInputLocators.create("mantra", "case", "case") as DslInputLocatorResult.Success).locator
+            is DslInputLocatorResult.Failure -> (
+                DslInputLocators.create(
+                    "mantra",
+                    "case",
+                    "case",
+                ) as DslInputLocatorResult.Success
+                ).locator
         }
         return DslInputIdentity(
             locator = locator,
@@ -81,7 +87,9 @@ internal object MantraKernel {
     }
 
     fun sha256(text: String): String =
-        MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
+        MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") {
+            "%02x".format(it)
+        }
 }
 
 internal object Names {
@@ -129,11 +137,16 @@ internal object Types {
         is Value.Kw -> DslType.Keyword
         is Value.Text -> DslType.Text
         is Value.Date -> DslType.Date
-        is Value.Vec -> DslTypes.vector(if (value.items.isEmpty()) DslType.Any else DslTypes.union(value.items.map(::infer)))
+        is Value.Vec -> DslTypes.vector(
+            if (value.items.isEmpty()) DslType.Any else DslTypes.union(value.items.map(::infer)),
+        )
         is Value.MapV -> if (value.entries.isEmpty()) {
             DslTypes.map(DslType.Any, DslType.Any)
         } else {
-            DslTypes.map(DslTypes.union(value.entries.keys.map(::infer)), DslTypes.union(value.entries.values.map(::infer)))
+            DslTypes.map(
+                DslTypes.union(value.entries.keys.map(::infer)),
+                DslTypes.union(value.entries.values.map(::infer)),
+            )
         }
     }
 }
@@ -158,7 +171,13 @@ internal object Values {
 
     fun keyword(name: String): DslValue.KeywordValue {
         val slash = name.indexOf('/')
-        return if (slash > 0) DslValues.keyword(name.substring(0, slash), name.substring(slash + 1)) else DslValues.keyword(null, name)
+        return if (slash >
+            0
+        ) {
+            DslValues.keyword(name.substring(0, slash), name.substring(slash + 1))
+        } else {
+            DslValues.keyword(null, name)
+        }
     }
 
     fun fromDsl(value: DslValue): Value = when (value) {

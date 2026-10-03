@@ -2,12 +2,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LiveData } from './data'
 
-afterEach(() => { vi.unstubAllGlobals(); document.head.innerHTML = '' })
+afterEach(() => {
+  vi.unstubAllGlobals()
+  document.head.innerHTML = ''
+})
 
 describe('live comparison transport', () => {
   it('sends the selected parameter ids with the server session token', async () => {
     document.head.innerHTML = '<meta name="mantra-session-token" content="secret">'
-    const response = { contract: 'mantra.workbench/1', revision: '1234567890abcdef', engine: { mantra: 'test', normein: 'test' }, data: { variant: { parameters: ['next'] }, mainline: [], changes: [], parameterChanges: [] } }
+    const response = {
+      contract: 'mantra.workbench/1',
+      revision: '1234567890abcdef',
+      engine: { mantra: 'test', normein: 'test' },
+      data: { variant: { parameters: ['next'] }, mainline: [], changes: [], parameterChanges: [] },
+    }
     const fetch = vi.fn(async (_url: string, _request: RequestInit) => ({ ok: true, json: async () => response }))
     vi.stubGlobal('fetch', fetch)
     expect((await new LiveData().compare('sample/case.mantra', ['next'])).data.variant.parameters).toEqual(['next'])

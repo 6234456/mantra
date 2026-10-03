@@ -1,16 +1,16 @@
 package com.xqiou.mantra.core
 
-import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.ParameterSetReader
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.structure.SchemaMaps
 import com.xqiou.mantra.core.structure.StructureJson
+import com.xqiou.mantra.core.view.NodeTrace
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -26,11 +26,14 @@ class EngineTest {
 
     @Test
     fun `core reference and application attributes remain distinct in public projections`() {
-        val application = schema("""
+        val application =
+            schema(
+                """
             (schema app/metadata {}
               (input amount :decimal {:reference "IAS 36.104" :source "ledger" :kz "110" :zeile "7"})
               (section result "Result" (line total "Total" 5)))
-        """.trimIndent())
+                """.trimIndent(),
+            )
         val input = application.inputs.single()
         assertEquals("IAS 36.104", input.presentation.reference)
         assertEquals(Value.Text("110"), input.presentation.attributes["kz"])
@@ -41,17 +44,27 @@ class EngineTest {
         assertTrue("\"attributes\"" in structure && "\"kz\": \"110\"" in structure)
 
         val sink = DiagnosticSink()
-        val parameters = ParameterSetReader.read(SourceText("parameters.mantra", """
+        val parameters = ParameterSetReader.read(
+            SourceText(
+                "parameters.mantra",
+                """
             (parameters app/params {:for "app/metadata"} (value amount 5 {:reference "IAS 36.104"}))
-        """.trimIndent()), sink)
+                """.trimIndent(),
+            ),
+            sink,
+        )
         assertTrue(sink.all.isEmpty(), sink.all.toString())
         assertEquals("IAS 36.104", parameters?.references?.get("amount"))
     }
 
     @Test
     fun `table layout names use the English core vocabulary`() {
-        val valid = schema("(schema app/tiered {} (section result \"Result\" {:layout :tiered} (line amount \"Amount\" 5)))")
-        assertEquals("tiered", valid.root.children.filterIsInstance<com.xqiou.mantra.core.model.SectionItem>().single().layout)
+        val valid =
+            schema("(schema app/tiered {} (section result \"Result\" {:layout :tiered} (line amount \"Amount\" 5)))")
+        assertEquals(
+            "tiered",
+            valid.root.children.filterIsInstance<com.xqiou.mantra.core.model.SectionItem>().single().layout,
+        )
         assertFailsWith<MantraException> {
             schema("(schema app/old {} (section result \"Result\" {:layout :staffel} (line amount \"Amount\" 5)))")
         }
@@ -68,7 +81,10 @@ class EngineTest {
               (section result "Result" (line amount "Amount" (sum (map (fn [row] row.amount) facts)))))
             """.trimIndent(),
         )
-        val valid = Mantra.calculate(application, case("(case c (inputs {:facts [{:target :A :amount 2} {:amount 3}]}))"))
+        val valid = Mantra.calculate(
+            application,
+            case("(case c (inputs {:facts [{:target :A :amount 2} {:amount 3}]}))"),
+        )
         assertTrue(valid.succeeded, valid.diagnostics.toString())
         assertDecimal("5", valid.decimal("amount"))
         val structure = StructureJson.write(SchemaMaps.of(valid.plan), valid.plan, valid)
@@ -112,7 +128,10 @@ class EngineTest {
                 (line result "Result" (+ weight 1))))
             """.trimIndent(),
         )
-        val defaults = Mantra.calculate(application, case("(case c {:schema \"app/weights\"} (inputs {:base {:A 2 :B 3}}))"))
+        val defaults = Mantra.calculate(
+            application,
+            case("(case c {:schema \"app/weights\"} (inputs {:base {:A 2 :B 3}}))"),
+        )
         assertTrue(defaults.succeeded, defaults.diagnostics.toString())
         assertDecimal("4", defaults.decimal("weight", "A"))
         assertDecimal("7", defaults.decimal("result", "B"))
@@ -147,7 +166,10 @@ class EngineTest {
             """.trimIndent(),
         )
         val forbidden = assertFailsWith<MantraException> {
-            Mantra.calculate(restricted, case("(case c (inputs {:base 2 :unrelated 3}) (bind weight (+ base unrelated)))"))
+            Mantra.calculate(
+                restricted,
+                case("(case c (inputs {:base 2 :unrelated 3}) (bind weight (+ base unrelated)))"),
+            )
         }
         assertTrue(forbidden.diagnostics.any { it.code == "MANTRA-FORMULA-SLOT-REFERENCE" })
     }
@@ -209,7 +231,10 @@ class EngineTest {
         assertDecimal("60000", result.decimal("max-person"))
         assertDecimal("8", result.decimal("label-len", "B"))
 
-        val single = Mantra.calculate(result.schema, case("(case c (inputs {:zusammen false :lohn {:A 60000 :B 40000}}))"))
+        val single = Mantra.calculate(
+            result.schema,
+            case("(case c (inputs {:zusammen false :lohn {:A 60000 :B 40000}}))"),
+        )
         assertEquals(listOf("A"), single.members.getValue("person").map { it.key })
         assertDecimal("60000", single.decimal("gesamt"))
     }
@@ -298,7 +323,12 @@ class EngineTest {
             ),
         )
         assertTrue(result.succeeded, result.diagnostics.toString())
-        assertEquals(listOf("19", "56", "75"), listOf("A", "B", "C").map { result.decimal("share", it).toPlainString() })
+        assertEquals(
+            listOf("19", "56", "75"),
+            listOf("A", "B", "C").map {
+                result.decimal("share", it).toPlainString()
+            },
+        )
         assertDecimal("206", result.decimal("after", "B"))
         assertDecimal("42", result.decimal("loss", "B"))
         assertDecimal("280", result.decimal("ra", "C"))
@@ -316,13 +346,23 @@ class EngineTest {
         val cycle = runCatching {
             Mantra.plan(schema("(schema t/c {} (line a \"A\" (+ b 1)) (line b \"B\" (* a 2)))"))
         }.exceptionOrNull() as? MantraException ?: fail("expected a cycle diagnostic")
-        assertTrue(cycle.diagnostics.any { it.code == "MANTRA-CYCLE" && "a → b → a" in it.message || "b → a → b" in it.message }, cycle.diagnostics.toString())
+        assertTrue(
+            cycle.diagnostics.any {
+                it.code == "MANTRA-CYCLE" && "a → b → a" in it.message ||
+                    "b → a → b" in it.message
+            },
+            cycle.diagnostics.toString(),
+        )
 
-        val unknown = runCatching { Mantra.plan(schema("(schema t/u {}\n  (line a \"A\"\n    (+ missing 1)))")) }.exceptionOrNull() as MantraException
+        val unknown = runCatching {
+            Mantra.plan(schema("(schema t/u {}\n  (line a \"A\"\n    (+ missing 1)))"))
+        }.exceptionOrNull() as MantraException
         val diagnostic = unknown.diagnostics.first { it.code == "MANTRA-FORMULA" }
         assertEquals(3, diagnostic.location?.line, diagnostic.toString())
 
-        val reserved = runCatching { Mantra.plan(schema("(schema t/r {} (line if \"S\" 1))")) }.exceptionOrNull() as MantraException
+        val reserved = runCatching {
+            Mantra.plan(schema("(schema t/r {} (line if \"S\" 1))"))
+        }.exceptionOrNull() as MantraException
         assertTrue(reserved.diagnostics.any { it.code == "MANTRA-ID-RESERVED" })
     }
 
@@ -339,7 +379,12 @@ class EngineTest {
             ),
         )
         assertTrue(result.succeeded, result.diagnostics.toString())
-        assertEquals(setOf("amount", "sum"), result.diagnostics.filter { it.code == "MANTRA-ID-SHADOWED" }.mapNotNull { it.nodeId }.toSet())
+        assertEquals(
+            setOf("amount", "sum"),
+            result.diagnostics.filter {
+                it.code == "MANTRA-ID-SHADOWED"
+            }.mapNotNull { it.nodeId }.toSet(),
+        )
         assertDecimal("42", result.decimal("sum"))
         assertDecimal("1332.50", result.decimal("both"))
     }
@@ -362,7 +407,10 @@ class EngineTest {
 
     @Test
     fun `input findings point to the supplied case value with exact offsets`() {
-        val application = schema("(schema t/locations {} (input amount :integer {:min 0}) (section result \"Result\" (field amount \"Amount\")))")
+        val application =
+            schema(
+                "(schema t/locations {} (input amount :integer {:min 0}) (section result \"Result\" (field amount \"Amount\")))",
+            )
         val source = "(case c\n  (inputs {:amount -1}))"
         val result = Mantra.calculate(application, case(source))
         val finding = result.diagnostics.single { it.code == "MANTRA-INPUT-RANGE" }
@@ -390,9 +438,11 @@ class EngineTest {
 
         val oversized = "0." + "0".repeat(1_000) + "1"
         val failure = assertFailsWith<MantraException> { case("(case c (inputs {:principal $oversized}))") }
-        assertTrue(failure.diagnostics.any {
-            it.code == "MANTRA-READ-LITERAL" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
-        })
+        assertTrue(
+            failure.diagnostics.any {
+                it.code == "MANTRA-READ-LITERAL" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
+            },
+        )
     }
 
     @Test
@@ -401,8 +451,11 @@ class EngineTest {
         val supplied = case("(case c)").copy(inputs = mapOf("principal" to Value.Num(BigDecimal("1E-1001"))))
         val result = Mantra.calculate(application, supplied)
         assertFalse(result.succeeded)
-        assertTrue(result.diagnostics.any {
-            it.code == "MANTRA-VALUE-LIMIT" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
-        }, result.diagnostics.toString())
+        assertTrue(
+            result.diagnostics.any {
+                it.code == "MANTRA-VALUE-LIMIT" && "DSL-VALUE-NUMERIC-SCALE-LIMIT" in it.message
+            },
+            result.diagnostics.toString(),
+        )
     }
 }

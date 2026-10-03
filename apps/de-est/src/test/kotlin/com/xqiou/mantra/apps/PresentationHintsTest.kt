@@ -34,7 +34,10 @@ class PresentationHintsTest {
         assertEquals("Nachzahlung", paper.headline?.label)
         assertTrue(paper.inputGroups.any { it.key == "assessment" && "veranlagungsart" in it.inputs })
         val resultRow = paper.tables.flatMap { it.rows }.single { it.nodeId == "abrechnungsergebnis" }
-        val labelIndex = paper.tables.first { resultRow in it.rows }.columns.indexOfFirst { it.content == ColumnContent.Label }
+        val labelIndex = paper.tables.first { resultRow in it.rows }.columns.indexOfFirst {
+            it.content ==
+                ColumnContent.Label
+        }
         assertEquals("Nachzahlung", resultRow.cells[labelIndex])
         val json = StructureJson.write(positive)
         assertTrue("\"headline\": \"abrechnungsergebnis\"" in json)
@@ -50,15 +53,17 @@ class PresentationHintsTest {
         val workbook = ExcelExport.workbook(Mantra.calculate(schema, original), layout)
         val formulaCells = workbook.workbook.sheetIterator().asSequence().flatMap { sheet ->
             sheet.rowIterator().asSequence().flatMap { row -> row.cellIterator().asSequence() }
-        }.filter { it.cellType == CellType.FORMULA && "Nachzahlung" in it.cellFormula && "Erstattung" in it.cellFormula }.toList()
+        }.filter {
+            it.cellType == CellType.FORMULA && "Nachzahlung" in it.cellFormula && "Erstattung" in it.cellFormula
+        }.toList()
         assertTrue(formulaCells.size >= 2, "the table label and overview headline should both recalculate")
         val inputRef = CellReference(workbook.address("vorauszahlungen")!!)
-        workbook.workbook.getSheet(inputRef.sheetName).getRow(inputRef.row).getCell(inputRef.col.toInt()).setCellValue(10000.0)
+        workbook.workbook.getSheet(
+            inputRef.sheetName,
+        ).getRow(inputRef.row).getCell(inputRef.col.toInt()).setCellValue(10000.0)
         val evaluator = workbook.workbook.creationHelper.createFormulaEvaluator()
         evaluator.clearAllCachedResultValues()
         assertTrue(formulaCells.all { evaluator.evaluate(it).stringValue == "Erstattung" })
         workbook.workbook.close()
     }
-
-
 }

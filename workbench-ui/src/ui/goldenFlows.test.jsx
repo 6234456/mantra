@@ -20,18 +20,42 @@ for (const item of manifest.cases) {
 }
 
 const scenarios = [
-  { id: 'de-est/case-mustermann.mantra', heading: 'Einkommensteuer 2025', result: '1.462,24', panel: 'zve', cell: '112.380,00', address: { node: 'summe-einkuenfte' } },
-  { id: 'ifrs-impairment/case-ie8.mantra', heading: 'IAS 36 – Impairment test with corporate assets', result: '46', panel: 'step-1', cell: '100', address: { node: 'carrying-amount', coord: ['A'] } },
-  { id: 'cost-accounting/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: { node: 'direct-primary-total' } },
+  {
+    id: 'de-est/case-mustermann.mantra',
+    heading: 'Einkommensteuer 2025',
+    result: '1.462,24',
+    panel: 'zve',
+    cell: '112.380,00',
+    address: { node: 'summe-einkuenfte' },
+  },
+  {
+    id: 'ifrs-impairment/case-demo.mantra',
+    heading: 'IAS 36 – Impairment test with corporate assets',
+    result: '121',
+    panel: 'step-1',
+    cell: '120',
+    address: { node: 'carrying-amount', coord: ['A'] },
+  },
+  {
+    id: 'cost-accounting/case-demo.mantra',
+    heading: 'Product cost by manufacturing order',
+    result: '1,140.00',
+    panel: 'cost-sources',
+    cell: '12,400.00',
+    address: { node: 'direct-primary-total' },
+  },
 ]
 
 function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
   const available = { ...files, '/fixtures/index.json': fixtureManifest, ...extraFiles }
-  vi.stubGlobal('fetch', vi.fn(async input => {
-    const document = available[input]
-    if (!document) return { ok: false, status: 404, statusText: 'Not Found' }
-    return { ok: true, json: async () => document }
-  }))
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input) => {
+      const document = available[input]
+      if (!document) return { ok: false, status: 404, statusText: 'Not Found' }
+      return { ok: true, json: async () => document }
+    }),
+  )
 }
 
 afterEach(() => {
@@ -45,7 +69,7 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
   it('shows real Explain steps from the ESt golden on the provenance route', async () => {
     const id = 'de-est/case-mustermann.mantra'
     const address = { node: 'ermaessigung-35a' }
-    const entry = manifest.cases.find(item => item.id === id)
+    const entry = manifest.cases.find((item) => item.id === id)
     const goldenExplain = files[entry.files.explains[addressToPath(address)]].data
     serveGolden()
     history.replaceState(null, '', `${casePath(id)}/provenance/${encodeURIComponent(addressToPath(address))}`)
@@ -53,13 +77,13 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(await screen.findByRole('heading', { name: goldenExplain.label, level: 1 })).toBeTruthy()
     expect(goldenExplain.steps.length).toBeGreaterThan(0)
     expect((await screen.findAllByText(goldenExplain.steps[0].text)).length).toBeGreaterThan(0)
-    const missing = goldenExplain.references.find(ref => !entry.files.explains[addressToPath(ref.address)])
+    const missing = goldenExplain.references.find((ref) => !entry.files.explains[addressToPath(ref.address)])
     expect(missing).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: new RegExp(missing.address.node) }))
     expect(await screen.findByText('Für diese Ansicht liegen noch keine Daten vor.')).toBeTruthy()
   })
 
-  it.each(scenarios)('$id', async scenario => {
+  it.each(scenarios)('$id', async (scenario) => {
     serveGolden()
     history.replaceState(null, '', `${casePath(scenario.id)}/overview`)
     render(<App />)
@@ -72,7 +96,9 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(link).toBeTruthy()
     fireEvent.click(link)
     const table = await screen.findByRole('table')
-    const cell = within(table).getAllByRole('button').find(button => button.textContent === scenario.cell)
+    const cell = within(table)
+      .getAllByRole('button')
+      .find((button) => button.textContent === scenario.cell)
     expect(cell).toBeTruthy()
     fireEvent.click(cell)
     expect(location.pathname).toBe(panelUrl)
@@ -80,11 +106,11 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(cell?.classList.contains('selected')).toBe(true)
   })
 
-  it.each(scenarios)('$id export uses workbook sheets and fidelity reported by Excel', async scenario => {
+  it.each(scenarios)('$id export uses workbook sheets and fidelity reported by Excel', async (scenario) => {
     serveGolden()
     history.replaceState(null, '', `${casePath(scenario.id)}/export`)
     render(<App />)
-    const entry = manifest.cases.find(item => item.id === scenario.id)
+    const entry = manifest.cases.find((item) => item.id === scenario.id)
     const first = files[entry.files['export-preview']].data
     expect(await screen.findByRole('heading', { name: `${first.sheets.length} Blätter` })).toBeTruthy()
     expect(screen.getByText(first.report.formulaCells.toString(), { selector: '.export-metrics strong' })).toBeTruthy()
@@ -93,7 +119,9 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     fireEvent.click(screen.getByRole('button', { name: new RegExp(second.name) }))
     expect(await screen.findByRole('heading', { name: second.name, level: 2 })).toBeTruthy()
     const selected = files[entry.files[`export-preview:${second.name}`]].data
-    expect(document.querySelector('.export-formula .mono')?.textContent).toBe(selected.preview.cells.find(cell => cell.formula)?.address ?? selected.preview.cells[0]?.address ?? '—')
+    expect(document.querySelector('.export-formula .mono')?.textContent).toBe(
+      selected.preview.cells.find((cell) => cell.formula)?.address ?? selected.preview.cells[0]?.address ?? '—',
+    )
     expect(screen.getByRole('button', { name: 'Herunterladen' }).hasAttribute('disabled')).toBe(true)
   })
 
@@ -104,7 +132,7 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect(compare.data.changes.length).toBeGreaterThan(0)
     const indexed = JSON.parse(JSON.stringify(manifest))
     indexed.parameters = [{ id: 'de.est/params-2026', path: '' }]
-    indexed.cases.find(item => item.id === id).files.compares = { '["de.est/params-2026"]': path }
+    indexed.cases.find((item) => item.id === id).files.compares = { '["de.est/params-2026"]': path }
     serveGolden({ [path]: compare }, indexed)
     history.replaceState(null, '', `${casePath(id)}/parameters?compare=de.est%2Fparams-2026`)
     render(<App />)
@@ -112,12 +140,16 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
     expect((await screen.findAllByText('83.217,90 → 83.061,90')).length).toBeGreaterThan(0)
     expect(screen.getByLabelText('Vergleichen mit').value).toBe('de.est/params-2026')
     expect(document.querySelectorAll('.comparison-group').length).toBe(compare.data.changes.length)
-    expect(document.querySelectorAll('.comparison-group .comparison-row').length)
-      .toBe(compare.data.changes.reduce((count, group) => count + group.items.length, 0))
+    expect(document.querySelectorAll('.comparison-group .comparison-row').length).toBe(
+      compare.data.changes.reduce((count, group) => count + group.items.length, 0),
+    )
     for (const group of compare.data.changes) {
       for (const change of group.items) {
-        expect([...document.querySelectorAll('.comparison-group .comparison-row small')]
-          .some(label => label.textContent?.startsWith(change.node))).toBe(true)
+        expect(
+          [...document.querySelectorAll('.comparison-group .comparison-row small')].some((label) =>
+            label.textContent?.startsWith(change.node),
+          ),
+        ).toBe(true)
       }
     }
   })

@@ -12,14 +12,14 @@ import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.workbench.BoundSources
 import com.xqiou.mantra.workbench.WorkspaceCatalog
 import com.xqiou.mantra.workbench.json.WorkbenchJson
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.util.CellReference
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import org.apache.poi.ss.util.CellReference
-import org.apache.poi.ss.usermodel.CellType
 
 /** The same format, workbook and workbench contracts apply to every application and every case. */
 class ApplicationAcceptanceTest {
@@ -52,12 +52,16 @@ class ApplicationAcceptanceTest {
                 val amounts = result.nodes.values.flatMap { node ->
                     node.values.mapNotNull { (coord, value) ->
                         (value as? Value.Num)?.let {
-                            (node.id + if (coord.isEmpty()) "" else "@" + coord.joinToString("/")) to it.value.toPlainString()
+                            (node.id + if (coord.isEmpty()) "" else "@" + coord.joinToString("/")) to
+                                it.value.toPlainString()
                         }
                     }
                 }.toMap()
                 Files.writeString(out.resolve("$name-values.json"), WorkbenchJson.write(amounts))
-                val outputs = mapOf("txt" to Render.text(result, layout, includeAudit = true), "html" to Render.html(result, layout))
+                val outputs = mapOf(
+                    "txt" to Render.text(result, layout, includeAudit = true),
+                    "html" to Render.html(result, layout),
+                )
                 outputs.forEach { (format, content) ->
                     Files.writeString(out.resolve("$name.$format"), content)
                     val golden = directory.resolve("src/test/resources/golden/$name.$format")
@@ -79,14 +83,19 @@ class ApplicationAcceptanceTest {
                         val actual = evaluator.evaluate(cell)
                         assertTrue(actual?.cellType != CellType.ERROR, "$name $context: workbook error $actual")
                         val equal = when (value) {
-                            is Value.Num -> actual?.cellType == CellType.NUMERIC && abs(actual.numberValue - value.value.toDouble()) <=
-                                maxOf(1e-6, abs(value.value.toDouble()) * 1e-12)
+                            is Value.Num ->
+                                actual?.cellType == CellType.NUMERIC &&
+                                    abs(actual.numberValue - value.value.toDouble()) <=
+                                    maxOf(1e-6, abs(value.value.toDouble()) * 1e-12)
                             is Value.Bool -> actual?.cellType == CellType.BOOLEAN && actual.booleanValue == value.value
                             is Value.Text -> actual?.cellType == CellType.STRING && actual.stringValue == value.value
                             is Value.Kw -> actual?.cellType == CellType.STRING && actual.stringValue == value.name
-                            is Value.Date -> actual?.cellType == CellType.STRING && actual.stringValue == value.value.toString()
-                            Value.Nil -> actual == null || actual.cellType == CellType.BLANK ||
-                                (actual.cellType == CellType.STRING && actual.stringValue.isEmpty())
+                            is Value.Date ->
+                                actual?.cellType == CellType.STRING &&
+                                    actual.stringValue == value.value.toString()
+                            Value.Nil ->
+                                actual == null || actual.cellType == CellType.BLANK ||
+                                    (actual.cellType == CellType.STRING && actual.stringValue.isEmpty())
                             else -> error("unsupported scalar: $value")
                         }
                         assertTrue(equal, "$name $context: engine=$value workbook=$actual")
@@ -96,10 +105,16 @@ class ApplicationAcceptanceTest {
                         node.values.forEach { (coord, value) ->
                             if (value is Value.Vec) {
                                 value.items.forEachIndexed { rowIndex, row ->
-                                    require(row is Value.MapV) { "Only table vectors have workbook records: ${node.id}" }
+                                    require(row is Value.MapV) {
+                                        "Only table vectors have workbook records: ${node.id}"
+                                    }
                                     row.entries.forEach { (key, entry) ->
                                         val column = (key as Value.Kw).name
-                                        compare(export.tableAddress(node.id, rowIndex, column), entry, "${node.id}[$rowIndex].$column")
+                                        compare(
+                                            export.tableAddress(node.id, rowIndex, column),
+                                            entry,
+                                            "${node.id}[$rowIndex].$column",
+                                        )
                                     }
                                 }
                             } else {
@@ -122,16 +137,20 @@ class ApplicationAcceptanceTest {
             files.filter { it.fileName.toString().startsWith("case-") && it.toString().endsWith(".mantra") }
                 .sorted().findFirst().orElseThrow()
         }
-        Files.list(directory.resolve("import-templates")).use { files -> files.sorted().forEach { template ->
-            val fields = (Json.parse(Files.readString(template)) as Value.MapV).entries
-            val name = (fields.getValue(Value.Kw("name")) as Value.Text).value
-            val options = (fields.getValue(Value.Kw("options")) as Value.MapV).entries
-                .mapKeys { (key, _) -> (key as Value.Kw).name } + ("path" to Value.Text("data/$name.csv"))
-            val supplied = CaseData.empty().copy(sources = listOf(SourceBinding("csv", options, SourceLocation(name, 1, 1))))
-            val loaded = BoundSources.load(supplied, schema, caseFile, directory)
-            assertTrue(loaded.case.inputs.isNotEmpty(), "$name must import sample data")
-            assertEquals(1, loaded.files.size)
-        } }
+        Files.list(directory.resolve("import-templates")).use { files ->
+            files.sorted().forEach { template ->
+                val fields = (Json.parse(Files.readString(template)) as Value.MapV).entries
+                val name = (fields.getValue(Value.Kw("name")) as Value.Text).value
+                val options = (fields.getValue(Value.Kw("options")) as Value.MapV).entries
+                    .mapKeys { (key, _) -> (key as Value.Kw).name } + ("path" to Value.Text("data/$name.csv"))
+                val supplied = CaseData.empty().copy(
+                    sources = listOf(SourceBinding("csv", options, SourceLocation(name, 1, 1))),
+                )
+                val loaded = BoundSources.load(supplied, schema, caseFile, directory)
+                assertTrue(loaded.case.inputs.isNotEmpty(), "$name must import sample data")
+                assertEquals(1, loaded.files.size)
+            }
+        }
     }
 
     @Test

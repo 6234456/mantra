@@ -1,22 +1,22 @@
 package com.xqiou.mantra.core
 
-import com.xqiou.mantra.core.view.NodeTrace
-import com.xqiou.mantra.core.view.InputOrigin
-import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.SourceBinding
+import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
-import com.xqiou.mantra.core.structure.StructureJson
 import com.xqiou.mantra.core.structure.SchemaMap
+import com.xqiou.mantra.core.structure.StructureJson
 import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.InputOrigin
 import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.NodeTrace
 import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class CalculationViewTest {
@@ -24,14 +24,20 @@ class CalculationViewTest {
 
     @Test
     fun `view preserves calculated coordinates metadata and traces without exposing plan`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema app/view {:version "1" :period "P"}
               (input base :decimal {:per member :default 0 :min 0 :reference "R"})
               (dimension member {:members [:A :B]})
               (section root "Root"
                 (section panel "Panel" {:per member :panel true}
                   (line doubled "Doubled" base {:op :plus}))))
-        """.trimIndent()), noIncludes)
+                """.trimIndent(),
+            ),
+            noIncludes,
+        )
         val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base {:A 3 :B 4}}))"))
         val result = Mantra.calculate(schema, case)
         val view = CalculationView.of(result)
@@ -53,7 +59,8 @@ class CalculationViewTest {
         assertEquals(0, BigDecimal("7").compareTo(view.node("doubled").crossTotal()))
         assertTrue(view.structure.panels.any { it.id == "panel" })
         assertEquals(StructureJson.write(view), StructureJson.write(view.structure, result.plan, result))
-        val filtered = SchemaMap("filtered", "Filtered", emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        val filtered =
+            SchemaMap("filtered", "Filtered", emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
         val filteredJson = StructureJson.write(filtered, result.plan, result)
         assertTrue("\"schema\": \"filtered\"" in filteredJson)
         assertTrue("\"panels\": []" in filteredJson)
@@ -79,18 +86,29 @@ class CalculationViewTest {
 
     @Test
     fun `view identifies formula slots and user extensions with their owning slot`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema app/hooks {}
               (input base :decimal)
               (section root "Root"
                 (formula-slot adjustable "Adjustable" base {:uses [base]})
                 (slot additions "Additions")
                 (total total "Total")))
-        """.trimIndent()), noIncludes)
-        val case = Mantra.loadCase(SourceText("case.mantra", """
+                """.trimIndent(),
+            ),
+            noIncludes,
+        )
+        val case = Mantra.loadCase(
+            SourceText(
+                "case.mantra",
+                """
             (case c (inputs {:base 2})
               (extend additions (line extra "Extra" 3)))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val view = CalculationView.of(Mantra.calculate(schema, case))
         assertEquals(NodeKind.FORMULA_SLOT, view.node("adjustable").kind)
         assertEquals(NodeKind.EXTENSION, view.node("extra").kind)
@@ -99,9 +117,14 @@ class CalculationViewTest {
         assertEquals(NodeKind.TOTAL, view.node("total").kind)
         assertEquals(0, BigDecimal("5").compareTo(view.node("total").crossTotal()))
 
-        val bound = Mantra.loadCase(SourceText("bound.mantra", """
+        val bound = Mantra.loadCase(
+            SourceText(
+                "bound.mantra",
+                """
             (case c (inputs {:base 2}) (bind adjustable (+ base 1)))
-        """.trimIndent()))
+                """.trimIndent(),
+            ),
+        )
         val boundView = CalculationView.of(Mantra.calculate(schema, bound))
         assertEquals(NodeKind.FORMULA_SLOT, boundView.node("adjustable").kind)
         assertTrue(boundView.node("adjustable").userDefined)
@@ -109,11 +132,17 @@ class CalculationViewTest {
 
     @Test
     fun `view does not change when source collections are mutated`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema app/snapshot {:title "Snapshot"}
               (input base :decimal)
               (section root "Root" (line result "Result" base)))
-        """.trimIndent()), noIncludes)
+                """.trimIndent(),
+            ),
+            noIncludes,
+        )
         val inputs = linkedMapOf<String, Value>("base" to Value.Num(BigDecimal("2")))
         val inputLocations = linkedMapOf("base" to SourceLocation("case.mantra", 1, 24, 23, 24))
         val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base 2}))"))
@@ -131,24 +160,40 @@ class CalculationViewTest {
             (view.case.inputLocations as MutableMap)["base"] = SourceLocation("other.mantra", 2, 1)
         }
     }
+
     @Test
     fun `result captures source documents and provenance before the first view access`() {
-        val parsed = Mantra.loadSchema(SourceText("schema.mantra", """
+        val parsed = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema app/detached {}
               (input base :decimal)
               (section root "Root" (line result "Result" base)))
-        """.trimIndent()), noIncludes)
+                """.trimIndent(),
+            ),
+            noIncludes,
+        )
         val attributes = linkedMapOf<String, Value>("note" to Value.Text("original"))
         val classes = mutableListOf("original")
-        val schemaInputs = mutableListOf(parsed.inputs.single().copy(
-            presentation = parsed.inputs.single().presentation.copy(classes = classes)))
+        val schemaInputs =
+            mutableListOf(
+                parsed.inputs.single().copy(presentation = parsed.inputs.single().presentation.copy(classes = classes)),
+            )
         val children = parsed.root.children.toMutableList()
         val schemaSources = mutableListOf("schema.mantra")
-        val schema = parsed.copy(meta = parsed.meta.copy(attributes = attributes),
-            inputs = schemaInputs, root = parsed.root.copy(children = children), sources = schemaSources)
+        val schema = parsed.copy(
+            meta = parsed.meta.copy(attributes = attributes),
+            inputs = schemaInputs,
+            root = parsed.root.copy(children = children),
+            sources = schemaSources,
+        )
         val inputs = linkedMapOf<String, Value>("base" to Value.Num(BigDecimal("2")))
         val columns = mutableListOf<Value>(Value.Text("base"))
-        val sourceOptions = linkedMapOf<String, Value>("path" to Value.Text("original.csv"), "columns" to Value.Vec(columns))
+        val sourceOptions = linkedMapOf<String, Value>(
+            "path" to Value.Text("original.csv"),
+            "columns" to Value.Vec(columns),
+        )
         val sources = mutableListOf(SourceBinding("csv", sourceOptions, SourceLocation("case.mantra", 1, 1)))
         val origins = linkedMapOf("" to "original-source")
         val inputOrigins = linkedMapOf<String, Map<String, String>>("base" to origins)
@@ -183,7 +228,8 @@ class CalculationViewTest {
         assertFailsWith<UnsupportedOperationException> { (result.schema.inputs as MutableList).clear() }
         assertFailsWith<UnsupportedOperationException> { (view.case.sources as MutableList).clear() }
         assertFailsWith<UnsupportedOperationException> { (view.case.sources.single().options as MutableMap).clear() }
-        assertFailsWith<UnsupportedOperationException> { (view.case.inputOrigins.getValue("base") as MutableMap).clear() }
+        assertFailsWith<UnsupportedOperationException> {
+            (view.case.inputOrigins.getValue("base") as MutableMap).clear()
+        }
     }
-
 }

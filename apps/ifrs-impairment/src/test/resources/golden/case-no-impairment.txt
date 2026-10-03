@@ -1,39 +1,39 @@
 IAS 36 impairment test – corporate assets
 Working paper: allocation of corporate assets, CGU tests and group test
 =========================================
-Entity: Entity M
-Period: End of 20X0
+Entity: Demo Facilities Ltd
+Period: 2025-12-31
 Calculation schema: IAS 36 – Impairment test with corporate assets v0.1 [ifrs.ias36/corporate-assets]
-Prepared by: Mantra acceptance example
-WP ref.: IAS 36 IE69–IE79
+Prepared by: Mantra acceptance demonstration
+WP ref.: Project-authored fictional data
 Total impairment loss: –
 
 Structure of the calculation
-  Mainline 1: Step 1 – Allocation of the headquarters building to the CGUs [1]  600
+  Mainline 1: Step 1 – Shared-facility allocation [1]  771
   Mainline 2: Step 2 – Impairment test of each CGU [2]
   Mainline 3: Step 3 – Allocation of the impairment losses within the CGUs [3]  –
-  Mainline 4: Step 4 – Impairment test of the smallest group of CGUs (entity M) [4]  650
+  Mainline 4: Step 4 – Combined recovery check [4]  844
   Mainline 5: Summary of impairment losses recognised [5]  –
 
 [1] Schedule 1 – Allocation of the headquarters building
-    Mainline › 1 Step 1 – Allocation of the headquarters building to the CGUs
-                                        |      A |      B |      C |   Total |   | IAS 36
-----------------------------------------+--------+--------+--------+---------+---+-----------------
-Carrying amount of the CGU              |    100 |    150 |    200 |     450 |   |
-Remaining useful life (years)           |     10 |     20 |     20 |         |   |
-Weighting based on useful life          |      1 |      2 |      2 |         |   |
-Carrying amount after weighting         |    100 |    300 |    400 |     800 |   |
-Pro-rata allocation factor              | 12.5 % | 37.5 % | 50.0 % | 100.0 % |   |
-Allocation of the headquarters building |     19 |     56 |     75 |     150 |   | IAS 36.102(a)(i)
-                                       -+--------+--------+--------+---------+- -+-
-Carrying amount after allocation        |    119 |    206 |    275 |     600 | Σ |
-                                       =+========+========+========+=========+= =+=
+    Mainline › 1 Step 1 – Shared-facility allocation
+                                 | North | Central |  South |   Total |   | IAS 36
+---------------------------------+-------+---------+--------+---------+---+-----------------
+Carrying amount of the CGU       |   120 |     180 |    260 |     560 |   |
+Remaining useful life (years)    |     6 |      12 |     18 |         |   |
+Weighting based on useful life   |     1 |       2 |      3 |         |   |
+Carrying amount after weighting  |   120 |     360 |    780 |   1,260 |   |
+Pro-rata allocation factor       | 9.5 % |  28.6 % | 61.9 % | 100.0 % |   |
+Allocated shared facilities      |    20 |      60 |    131 |     211 |   | IAS 36.102(a)(i)
+                                -+-------+---------+--------+---------+- -+-
+Carrying amount after allocation |   140 |     240 |    391 |     771 | Σ |
+                                =+=======+=========+========+=========+= =+=
 
 [2] Schedule 2 – Impairment test of CGUs A, B and C
     Mainline › 2 Step 2 – Impairment test of each CGU
-                                                                 |       A |       B |       C | Total |   | IAS 36
+                                                                 |   North | Central |   South | Total |   | IAS 36
 -----------------------------------------------------------------+---------+---------+---------+-------+---+---------------
-Carrying amount (including allocated corporate asset) (→ Table … |     119 |     206 |     275 |   600 |   |
+Carrying amount (including allocated corporate asset) (→ Table … |     140 |     240 |     391 |   771 |   |
 Recoverable amount (higher of value in use and FVLCD)            |   1,000 |   1,000 |   1,000 | 3,000 |   | IAS 36.18
   Value in use                                                   | 1,000 ✓ | 1,000 ✓ | 1,000 ✓ |       | ✓ | IAS 36.18
   Fair value less costs of disposal                              |     n/a |     n/a |     n/a |       |   | IAS 36.18
@@ -41,166 +41,166 @@ Impairment loss                                                  |       – |  
 
 [3] Schedule 3 – Allocation of the impairment losses
     Mainline › 3 Step 3 – Allocation of the impairment losses within the CGUs
-                                       | A | B | C | Total |   | IAS 36
----------------------------------------+---+---+---+-------+---+--------------
-To goodwill                            | – | – | – |     – |   | IAS 36.104(a)
-To the allocated headquarters building | – | – | – |     – |   | IAS 36.104(b)
-To the other assets of the CGU         | – | – | – |     – |   | IAS 36.104(b)
-                                      -+---+---+---+-------+- -+-
-Impairment loss allocated              | – | – | – |     – | Σ |
-                                      =+===+===+===+=======+= =+=
+                                   | North | Central | South | Total |   | IAS 36
+-----------------------------------+-------+---------+-------+-------+---+--------------
+To goodwill                        |     – |       – |     – |     – |   | IAS 36.104(a)
+Loss assigned to shared facilities |     – |       – |     – |     – |   | IAS 36.104(b)
+To the other assets of the CGU     |     – |       – |     – |     – |   | IAS 36.104(b)
+                                  -+-------+---------+-------+-------+- -+-
+Impairment loss allocated          |     – |       – |     – |     – | Σ |
+                                  =+=======+=========+=======+=======+= =+=
 
 [4] Schedule 4 – Impairment test of entity M (smallest group of CGUs)
-    Mainline › 4 Step 4 – Impairment test of the smallest group of CGUs (entity M)
+    Mainline › 4 Step 4 – Combined recovery check
                                           |    CU |   | Reference
 ------------------------------------------+-------+---+-------------------
-Carrying amount of the CGUs (A, B, C)     |   450 |   |
-Headquarters building                     |   150 |   |
-Research centre                           |    50 |   |
+Carrying amount of the CGUs (A, B, C)     |   560 |   |
+Shared facilities                         |   211 |   |
+Other shared assets                       |    73 |   |
                                          -+-------+- -+-
-Carrying amount before step-1 losses      |   650 | Σ |
+Carrying amount before step-1 losses      |   844 | Σ |
 Impairment losses recognised in steps 2–3 |     – |   |
                                          -+-------+- -+-
-Carrying amount of the group after step 1 |   650 | Σ |
+Carrying amount of the group after step 1 |   844 | Σ |
                                          =+=======+= =+=
 Recoverable amount of the group           | 1,000 |   | IAS 36.102(b)(iii)
 Impairment loss of the group              |     – |   |
 
 [5] Schedule 5 – Summary
     Mainline › 5 Summary of impairment losses recognised
-                                                                 | CU |
------------------------------------------------------------------+----+--
-Goodwill                                                         |  – |
-Other assets of the CGUs                                         |  – |
-Headquarters building                                            |  – |
-Additional loss at group level (research centre and other asset… |  – |
-                                                                -+----+-
-Total impairment loss                                            |  – | Σ
-                                                                =+====+=
+                                                           | CU |
+-----------------------------------------------------------+----+--
+Goodwill                                                   |  – |
+Other assets of the CGUs                                   |  – |
+Shared facilities                                          |  – |
+Additional loss at group level (shared assets) (→ Table 4) |  – |
+                                                          -+----+-
+Total impairment loss                                      |  – | Σ
+                                                          =+====+=
 
 Audit trail
 -----------
-1/3 Weighting based on useful life [A]
+1/3 Weighting based on useful life [North]
     Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
-    Working: if(true; decimal/divide(10; dim/min({:A 10; :B 20; :C 20}); 4); 1) = 1
-1/3 Weighting based on useful life [B]
+    Working: if(true; decimal/divide(6; dim/min({:A 6; :B 12; :C 18}); 4); 1) = 1
+1/3 Weighting based on useful life [Central]
     Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
-    Working: if(true; decimal/divide(20; dim/min({:A 10; :B 20; :C 20}); 4); 1) = 2
-1/3 Weighting based on useful life [C]
+    Working: if(true; decimal/divide(12; dim/min({:A 6; :B 12; :C 18}); 4); 1) = 2
+1/3 Weighting based on useful life [South]
     Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
-    Working: if(true; decimal/divide(20; dim/min({:A 10; :B 20; :C 20}); 4); 1) = 2
-1/4 Carrying amount after weighting [A]
+    Working: if(true; decimal/divide(18; dim/min({:A 6; :B 12; :C 18}); 4); 1) = 3
+1/4 Carrying amount after weighting [North]
     Formula: (* carrying-amount weighting)
-    Working: 100 × 1 = 100
-1/4 Carrying amount after weighting [B]
+    Working: 120 × 1 = 120
+1/4 Carrying amount after weighting [Central]
     Formula: (* carrying-amount weighting)
-    Working: 150 × 2 = 300
-1/4 Carrying amount after weighting [C]
+    Working: 180 × 2 = 360
+1/4 Carrying amount after weighting [South]
     Formula: (* carrying-amount weighting)
-    Working: 200 × 2 = 400
-1/5 Pro-rata allocation factor [A]
+    Working: 260 × 3 = 780
+1/5 Pro-rata allocation factor [North]
     Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
-    Working: decimal/divide(100; dim/sum({:A 100; :B 300; :C 400}); 6) = 12.5 %
-1/5 Pro-rata allocation factor [B]
+    Working: decimal/divide(120; dim/sum({:A 120; :B 360; :C 780}); 6) = 9.5 %
+1/5 Pro-rata allocation factor [Central]
     Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
-    Working: decimal/divide(300; dim/sum({:A 100; :B 300; :C 400}); 6) = 37.5 %
-1/5 Pro-rata allocation factor [C]
+    Working: decimal/divide(360; dim/sum({:A 120; :B 360; :C 780}); 6) = 28.6 %
+1/5 Pro-rata allocation factor [South]
     Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
-    Working: decimal/divide(400; dim/sum({:A 100; :B 300; :C 400}); 6) = 50.0 %
-1/6 Allocation of the headquarters building [A]
+    Working: decimal/divide(780; dim/sum({:A 120; :B 360; :C 780}); 6) = 61.9 %
+1/6 Allocated shared facilities [North]
     Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
-    Working: alloc/pro-rata(150; {:A 100; :B 300; :C 400}; 0) = 19
-1/6 Allocation of the headquarters building [B]
+    Working: alloc/pro-rata(211; {:A 120; :B 360; :C 780}; 0) = 20
+1/6 Allocated shared facilities [Central]
     Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
-    Working: alloc/pro-rata(150; {:A 100; :B 300; :C 400}; 0) = 56
-1/6 Allocation of the headquarters building [C]
+    Working: alloc/pro-rata(211; {:A 120; :B 360; :C 780}; 0) = 60
+1/6 Allocated shared facilities [South]
     Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
-    Working: alloc/pro-rata(150; {:A 100; :B 300; :C 400}; 0) = 75
-1/7 Carrying amount after allocation [A]
+    Working: alloc/pro-rata(211; {:A 120; :B 360; :C 780}; 0) = 131
+1/7 Carrying amount after allocation [North]
     Formula: carrying-amount + corporate-share
-    Working: 100 + 19 = 119
-1/7 Carrying amount after allocation [B]
+    Working: 120 + 20 = 140
+1/7 Carrying amount after allocation [Central]
     Formula: carrying-amount + corporate-share
-    Working: 150 + 56 = 206
-1/7 Carrying amount after allocation [C]
+    Working: 180 + 60 = 240
+1/7 Carrying amount after allocation [South]
     Formula: carrying-amount + corporate-share
-    Working: 200 + 75 = 275
-2/2 Recoverable amount (higher of value in use and FVLCD) [A]
+    Working: 260 + 131 = 391
+2/2 Recoverable amount (higher of value in use and FVLCD) [North]
     Formula: max(cgu.value-in-use; cgu.fvlcd)
     Working: max(Value in use 1,000; Fair value less costs of disposal n/a) → Value in use = 1,000
-2/2 Recoverable amount (higher of value in use and FVLCD) [B]
+2/2 Recoverable amount (higher of value in use and FVLCD) [Central]
     Formula: max(cgu.value-in-use; cgu.fvlcd)
     Working: max(Value in use 1,000; Fair value less costs of disposal n/a) → Value in use = 1,000
-2/2 Recoverable amount (higher of value in use and FVLCD) [C]
+2/2 Recoverable amount (higher of value in use and FVLCD) [South]
     Formula: max(cgu.value-in-use; cgu.fvlcd)
     Working: max(Value in use 1,000; Fair value less costs of disposal n/a) → Value in use = 1,000
-2/3 Impairment loss [A]
+2/3 Impairment loss [North]
     Formula: (max 0 (- tested-amount recoverable-amount))
-    Working: max(0; 119 − 1,000) = –
-2/3 Impairment loss [B]
+    Working: max(0; 140 − 1,000) = –
+2/3 Impairment loss [Central]
     Formula: (max 0 (- tested-amount recoverable-amount))
-    Working: max(0; 206 − 1,000) = –
-2/3 Impairment loss [C]
+    Working: max(0; 240 − 1,000) = –
+2/3 Impairment loss [South]
     Formula: (max 0 (- tested-amount recoverable-amount))
-    Working: max(0; 275 − 1,000) = –
-3/1 To goodwill [A]
+    Working: max(0; 391 − 1,000) = –
+3/1 To goodwill [North]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: min(0; or(nil; 0)) = –
-3/1 To goodwill [B]
+3/1 To goodwill [Central]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: min(0; or(nil; 0)) = –
-3/1 To goodwill [C]
+3/1 To goodwill [South]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: min(0; or(nil; 0)) = –
-3/2 To the allocated headquarters building [A]
+3/2 Loss assigned to shared facilities [North]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
-    Working: get(alloc/pro-rata(0 − 0; {:corporate 19; :own 100 − or(nil; 0)}; 0); :corporate) = –
-3/2 To the allocated headquarters building [B]
+    Working: get(alloc/pro-rata(0 − 0; {:corporate 20; :own 120 − or(nil; 0)}; 0); :corporate) = –
+3/2 Loss assigned to shared facilities [Central]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
-    Working: get(alloc/pro-rata(0 − 0; {:corporate 56; :own 150 − or(nil; 0)}; 0); :corporate) = –
-3/2 To the allocated headquarters building [C]
+    Working: get(alloc/pro-rata(0 − 0; {:corporate 60; :own 180 − or(nil; 0)}; 0); :corporate) = –
+3/2 Loss assigned to shared facilities [South]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
-    Working: get(alloc/pro-rata(0 − 0; {:corporate 75; :own 200 − or(nil; 0)}; 0); :corporate) = –
-3/3 To the other assets of the CGU [A]
+    Working: get(alloc/pro-rata(0 − 0; {:corporate 131; :own 260 − or(nil; 0)}; 0); :corporate) = –
+3/3 To the other assets of the CGU [North]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: 0 − 0 − 0 = –
-3/3 To the other assets of the CGU [B]
+3/3 To the other assets of the CGU [Central]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: 0 − 0 − 0 = –
-3/3 To the other assets of the CGU [C]
+3/3 To the other assets of the CGU [South]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: 0 − 0 − 0 = –
-3/4 Impairment loss allocated [A]
+3/4 Impairment loss allocated [North]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 0 + 0 = –
-3/4 Impairment loss allocated [B]
+3/4 Impairment loss allocated [Central]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 0 + 0 = –
-3/4 Impairment loss allocated [C]
+3/4 Impairment loss allocated [South]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 0 + 0 = –
 4/1 Carrying amount of the CGUs (A, B, C)
     Formula: (dim/sum carrying-amount)
-    Working: dim/sum({:A 100; :B 150; :C 200}) = 450
+    Working: dim/sum({:A 120; :B 180; :C 260}) = 560
 4/4 Carrying amount before step-1 losses
     Formula: group-cgu-assets + group-building + group-research
-    Working: 450 + 150 + 50 = 650
+    Working: 560 + 211 + 73 = 844
 4/5 Impairment losses recognised in steps 2–3
     Formula: (dim/sum loss-allocated)
     Working: dim/sum({:A 0; :B 0; :C 0}) = –
 4/6 Carrying amount of the group after step 1
     Formula: group-before − group-step1-losses
-    Working: 650 − 0 = 650
+    Working: 844 − 0 = 844
 4/8 Impairment loss of the group
     Formula: (max 0 (- group-carrying-amount group-ra))
-    Working: max(0; 650 − 1,000) = –
+    Working: max(0; 844 − 1,000) = –
 5/1 Goodwill
     Formula: (dim/sum loss-to-goodwill)
     Working: dim/sum({:A 0; :B 0; :C 0}) = –
 5/2 Other assets of the CGUs
     Formula: (dim/sum loss-to-own-assets)
     Working: dim/sum({:A 0; :B 0; :C 0}) = –
-5/3 Headquarters building
+5/3 Shared facilities
     Formula: (dim/sum loss-to-corporate)
     Working: dim/sum({:A 0; :B 0; :C 0}) = –
 5/5 Total impairment loss

@@ -11,8 +11,8 @@ import org.apache.poi.ss.util.CellReference
 import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /** Every kernel construct the translator supports must evaluate in Excel exactly like in the engine. */
 class ExcelTranslationTest {
@@ -54,7 +54,9 @@ class ExcelTranslationTest {
     )
     private val result: CalculationResult = Mantra.calculate(
         schema,
-        Mantra.loadCase(SourceText("c.mantra", "(case c (inputs {:units [{:id :a :w 1 :cap 5} {:id :b :w 1} {:id :c :w 1}]}))")),
+        Mantra.loadCase(
+            SourceText("c.mantra", "(case c (inputs {:units [{:id :a :w 1 :cap 5} {:id :b :w 1} {:id :c :w 1}]}))"),
+        ),
     )
 
     @Test
@@ -62,9 +64,17 @@ class ExcelTranslationTest {
         ExcelExport.workbook(result, Presets.DE_STAFFEL_4).use { export ->
             val descriptions = export.report.sheets.map { name -> requireNotNull(export.describe(name)) }
             assertEquals(export.report.sheets, descriptions.first().sheets.map { it.name })
-            assertTrue(descriptions.any { it.preview.cells.any { cell -> cell.kind == "formula" && cell.formula != null } })
+            assertTrue(
+                descriptions.any {
+                    it.preview.cells.any { cell -> cell.kind == "formula" && cell.formula != null }
+                },
+            )
             assertEquals(export.report.names, descriptions.first().names.size)
-            assertTrue(descriptions.all { it.preview.cells.all { cell -> cell.address.matches(Regex("[A-Z]+[1-9][0-9]*")) } })
+            assertTrue(
+                descriptions.all {
+                    it.preview.cells.all { cell -> cell.address.matches(Regex("[A-Z]+[1-9][0-9]*")) }
+                },
+            )
             assertEquals(null, export.describe("missing"))
         }
     }
@@ -148,7 +158,10 @@ class ExcelTranslationTest {
 
     @Test
     fun `empty table dimensions retain zero totals and empty member map semantics in Excel`() {
-        val tableSchema = Mantra.loadSchema(SourceText("records.mantra", """
+        val tableSchema = Mantra.loadSchema(
+            SourceText(
+                "records.mantra",
+                """
             (schema test/memberless {}
               (input records :table {:columns {:id :keyword :amount :decimal}})
               (dimension entry {:from records :key :id})
@@ -163,27 +176,49 @@ class ExcelTranslationTest {
                 (line absent-value "Missing member" (get all.entry-amount :absent 7) {:op :info})
                 (line allocation-count "Allocation count"
                   (count (alloc/pro-rata 10 all.entry-amount 2)) {:op :info})))
-        """.trimIndent()), SourceResolver { _, _ -> null })
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
         val cases = listOf(
-            "[]" to mapOf("ledger-total" to 0.0, "explicit-total" to 0.0, "values-total" to 0.0,
-                "member-count" to 0.0, "absent-value" to 7.0, "allocation-count" to 0.0),
+            "[]" to mapOf(
+                "ledger-total" to 0.0,
+                "explicit-total" to 0.0,
+                "values-total" to 0.0,
+                "member-count" to 0.0,
+                "absent-value" to 7.0,
+                "allocation-count" to 0.0,
+            ),
             "[{:id :a :amount 2} {:id :b :amount 3}]" to mapOf(
-                "ledger-total" to 5.0, "explicit-total" to 5.0, "values-total" to 5.0,
-                "member-count" to 2.0, "absent-value" to 7.0, "allocation-count" to 2.0),
+                "ledger-total" to 5.0,
+                "explicit-total" to 5.0,
+                "values-total" to 5.0,
+                "member-count" to 2.0,
+                "absent-value" to 7.0,
+                "allocation-count" to 2.0,
+            ),
         )
         cases.forEach { (records, expected) ->
-            val calculated = Mantra.calculate(tableSchema,
-                Mantra.loadCase(SourceText("records-case.mantra", "(case test (inputs {:records $records}))")))
+            val calculated = Mantra.calculate(
+                tableSchema,
+                Mantra.loadCase(SourceText("records-case.mantra", "(case test (inputs {:records $records}))")),
+            )
             assertTrue(calculated.succeeded, calculated.diagnostics.toString())
             listOf(true, false).forEach { useNames ->
-                ExcelExport.workbook(calculated, Presets.DE_STAFFEL_4, ExcelOptions(useNames = useNames)).use { workbook ->
+                ExcelExport.workbook(
+                    calculated,
+                    Presets.DE_STAFFEL_4,
+                    ExcelOptions(useNames = useNames),
+                ).use { workbook ->
                     assertEquals(emptyList(), workbook.report.fallbacks)
                     assertEquals(emptyList(), workbook.report.evaluationErrors)
                     expected.forEach { (id, amount) ->
                         assertEquals(amount, calculated.decimal(id).toDouble(), "$id engine for $records")
                         assertEquals(amount, value(workbook, id), "$id workbook for $records with names=$useNames")
                         val address = CellReference(requireNotNull(workbook.address(id)))
-                        val cell = workbook.workbook.getSheet(address.sheetName).getRow(address.row).getCell(address.col.toInt())
+                        val cell = workbook.workbook.getSheet(
+                            address.sheetName,
+                        ).getRow(address.row).getCell(address.col.toInt())
                         assertEquals(CellType.FORMULA, cell.cellType, "$id must remain a formula")
                     }
                 }
@@ -193,29 +228,41 @@ class ExcelTranslationTest {
 
     @Test
     fun `inactive boolean formulas preserve nil rather than inventing false`() {
-        val guardedSchema = Mantra.loadSchema(SourceText("boolean.mantra", """
+        val guardedSchema = Mantra.loadSchema(
+            SourceText(
+                "boolean.mantra",
+                """
             (schema test/inactive-boolean {}
               (input enabled :boolean)
               (line flag "Flag" true {:type :boolean :when enabled :op :info})
               (line chosen "Chosen" (if flag 10 20) {:op :info})
               (line any-flag "Any flag" (or flag false) {:type :boolean :op :info}))
-        """.trimIndent()), SourceResolver { _, _ -> null })
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
         listOf(false, true).forEach { enabled ->
-            val calculated = Mantra.calculate(guardedSchema,
-                Mantra.loadCase(SourceText("boolean-case.mantra", "(case test (inputs {:enabled $enabled}))")))
+            val calculated = Mantra.calculate(
+                guardedSchema,
+                Mantra.loadCase(SourceText("boolean-case.mantra", "(case test (inputs {:enabled $enabled}))")),
+            )
             assertTrue(calculated.succeeded, calculated.diagnostics.toString())
             assertEquals(if (enabled) Value.Bool(true) else Value.Nil, calculated.value("flag"))
             ExcelExport.workbook(calculated, Presets.DE_STAFFEL_4).use { workbook ->
                 assertEquals(emptyList(), workbook.report.fallbacks)
                 assertEquals(emptyList(), workbook.report.evaluationErrors)
                 val address = CellReference(requireNotNull(workbook.address("flag")))
-                val cell = workbook.workbook.getSheet(address.sheetName).getRow(address.row).getCell(address.col.toInt())
+                val cell = workbook.workbook.getSheet(
+                    address.sheetName,
+                ).getRow(address.row).getCell(address.col.toInt())
                 val actual = workbook.workbook.creationHelper.createFormulaEvaluator().evaluate(cell)
                 assertEquals(CellType.FORMULA, cell.cellType)
                 if (enabled) assertTrue(actual.booleanValue) else assertEquals("", actual.stringValue)
                 assertEquals(if (enabled) 10.0 else 20.0, value(workbook, "chosen"))
                 val anyAddress = CellReference(requireNotNull(workbook.address("any-flag")))
-                val anyCell = workbook.workbook.getSheet(anyAddress.sheetName).getRow(anyAddress.row).getCell(anyAddress.col.toInt())
+                val anyCell = workbook.workbook.getSheet(
+                    anyAddress.sheetName,
+                ).getRow(anyAddress.row).getCell(anyAddress.col.toInt())
                 val anyValue = workbook.workbook.creationHelper.createFormulaEvaluator().evaluate(anyCell)
                 assertEquals(if (enabled) Value.Bool(true) else Value.Nil, calculated.value("any-flag"))
                 if (enabled) assertTrue(anyValue.booleanValue) else assertEquals("", anyValue.stringValue)

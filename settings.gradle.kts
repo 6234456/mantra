@@ -7,6 +7,7 @@ include(":mantra-excel")
 include(":mantra-cli")
 include(":mantra-workbench")
 include(":mantra-server")
+include(":benchmarks")
 
 // Complete domain demonstrations. Each owns its documents and acceptance tests and depends only
 // on library modules; applications are never published as Maven library artifacts.
@@ -23,7 +24,7 @@ include(":apps:de-est", ":apps:ifrs-impairment", ":apps:cost-accounting")
 // -PnormeinCandidate=true skips the commit and cleanliness checks so that an unreleased kernel can
 // be assessed against Mantra's tests (RFC 0001, acceptance contracts). Never release from such a build.
 
-private val NORMEIN_LOCK_FILE_NAME = "normein-build.lock"
+private val normeinLockFileName = "normein-build.lock"
 
 private fun readNormeinLock(lockFile: java.io.File): Map<String, String> {
     require(lockFile.isFile) { "Normein lock manifest is missing: ${lockFile.absolutePath}" }
@@ -52,7 +53,7 @@ private fun runNormeinGit(checkout: java.io.File, vararg arguments: String): Str
     return output
 }
 
-val normeinLock = readNormeinLock(file(NORMEIN_LOCK_FILE_NAME))
+val normeinLock = readNormeinLock(file(normeinLockFileName))
 val expectedNormeinCommit = normeinLock["normeinCommit"] ?: error("normein-build.lock must define normeinCommit")
 val normeinBuild = file(
     providers.gradleProperty("normeinBuildPath").orNull
@@ -67,12 +68,12 @@ val normeinCandidate = providers.gradleProperty("normeinCandidate").orNull?.toBo
 if (normeinCandidate) {
     logger.warn(
         "Mantra: using an UNPINNED Normein candidate at ${normeinBuild.absolutePath}; " +
-            "$NORMEIN_LOCK_FILE_NAME ($expectedNormeinCommit) is not enforced.",
+            "$normeinLockFileName ($expectedNormeinCommit) is not enforced.",
     )
 } else {
     val actualNormeinCommit = runNormeinGit(normeinBuild, "rev-parse", "--verify", "HEAD^{commit}")
     check(actualNormeinCommit == expectedNormeinCommit) {
-        "Normein checkout ${normeinBuild.absolutePath} is at $actualNormeinCommit but $NORMEIN_LOCK_FILE_NAME " +
+        "Normein checkout ${normeinBuild.absolutePath} is at $actualNormeinCommit but $normeinLockFileName " +
             "requires $expectedNormeinCommit."
     }
     val normeinDirtyFiles = runNormeinGit(normeinBuild, "status", "--porcelain", "--untracked-files=no")

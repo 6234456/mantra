@@ -1,5 +1,5 @@
 ;; IAS 36 – impairment test of cash-generating units with corporate assets
-;; (IAS 36.100–108; structure follows Illustrative Example 8, IE69–IE79).
+;; Project-authored simplified calculation with paragraph references to IAS 36.100–108.
 ;;
 ;; Acceptance example for the Mantra engine. This file is domain content built only from generic
 ;; engine forms (dimension, section, line, choice, total) and kernel functions (alloc/pro-rata,
@@ -10,7 +10,7 @@
    :subtitle "Allocation of corporate assets to CGUs, impairment test per CGU and for the smallest group of CGUs"
    :version "0.1"
    :preset :ifrs-schedule
-   :basis "IAS 36.100–108, IE69–IE79"
+   :basis "IAS 36.100–108"
    :mainline [step-1 step-2 step-3 step-4 summary]}
 
   ;; ── Inputs ───────────────────────────────────────────────────────────────────────────────────
@@ -19,9 +19,9 @@
      :columns {:id :keyword :name :text :carrying-amount :decimal :goodwill :decimal?
                :remaining-life :decimal :value-in-use :decimal :fvlcd :decimal?}})
   (input allocable-corporate :decimal
-    {:label "Corporate assets allocable on a reasonable and consistent basis (headquarters building)"})
+    {:label "Shared facilities allocated to units"})
   (input unallocable-corporate :decimal
-    {:label "Corporate assets that cannot be allocated (research centre)"})
+    {:label "Other shared assets tested at group level"})
   (input group-recoverable-amount :decimal
     {:label "Recoverable amount of the smallest group of CGUs"})
   (input weight-by-life :boolean {:default true})
@@ -29,9 +29,9 @@
 
   (dimension cgu {:label "CGU" :from cgus :key :id :title :name :total-label "Total"})
 
-  ;; ── Step 1: allocate the allocable corporate asset (IAS 36.102(a), IE70) ────────────────────
-  (section step-1 "Step 1 – Allocation of the headquarters building to the CGUs"
-    {:per cgu :display :schedule :reference "IAS 36.102(a), IE70"}
+  ;; ── Step 1: allocate the allocable corporate asset (IAS 36.102(a)) ────────────────────
+  (section step-1 "Step 1 – Shared-facility allocation"
+    {:per cgu :display :schedule :reference "IAS 36.102(a)"}
     (line carrying-amount "Carrying amount of the CGU" cgu.carrying-amount)
     (line remaining-life "Remaining useful life (years)" cgu.remaining-life
       {:op :info :format :integer :aggregate false})
@@ -42,7 +42,7 @@
     (line allocation-key "Pro-rata allocation factor"
       (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
       {:op :info :format :percent :precision 1})
-    (line corporate-share "Allocation of the headquarters building"
+    (line corporate-share "Allocated shared facilities"
       (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
       {:spread true :reference "IAS 36.102(a)(i)"})
     (total carrying-amount-allocated "Carrying amount after allocation"))
@@ -62,7 +62,7 @@
   (section step-3 "Step 3 – Allocation of the impairment losses within the CGUs"
     {:per cgu :display :schedule :reference "IAS 36.104"}
     (line loss-to-goodwill "To goodwill" (min impairment-loss (or cgu.goodwill 0)) {:reference "IAS 36.104(a)"})
-    (line loss-to-corporate "To the allocated headquarters building"
+    (line loss-to-corporate "Loss assigned to shared facilities"
       (get (alloc/pro-rata (- impairment-loss loss-to-goodwill)
                            {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))}
                            rounding)
@@ -73,12 +73,12 @@
       {:reference "IAS 36.104(b)"})
     (total loss-allocated "Impairment loss allocated"))
 
-  ;; ── Step 4: smallest group of CGUs including the research centre (IAS 36.102(b)) ────────────
-  (section step-4 "Step 4 – Impairment test of the smallest group of CGUs (entity M)"
+  ;; ── Step 4: smallest group of CGUs including other shared assets (IAS 36.102(b)) ────────────
+  (section step-4 "Step 4 – Combined recovery check"
     {:display :schedule :reference "IAS 36.102(b)"}
     (line group-cgu-assets "Carrying amount of the CGUs (A, B, C)" (dim/sum carrying-amount))
-    (line group-building "Headquarters building" allocable-corporate)
-    (line group-research "Research centre" unallocable-corporate)
+    (line group-building "Shared facilities" allocable-corporate)
+    (line group-research "Other shared assets" unallocable-corporate)
     (total group-before "Carrying amount before step-1 losses")
     (line group-step1-losses "Impairment losses recognised in steps 2–3" (dim/sum loss-allocated) {:op :minus})
     (total group-carrying-amount "Carrying amount of the group after step 1")
@@ -89,8 +89,8 @@
   (section summary "Summary of impairment losses recognised" {:display :schedule}
     (line summary-goodwill "Goodwill" (dim/sum loss-to-goodwill))
     (line summary-own "Other assets of the CGUs" (dim/sum loss-to-own-assets))
-    (line summary-corporate "Headquarters building" (dim/sum loss-to-corporate))
-    (line summary-group "Additional loss at group level (research centre and other assets)" group-loss)
+    (line summary-corporate "Shared facilities" (dim/sum loss-to-corporate))
+    (line summary-group "Additional loss at group level (shared assets)" group-loss)
     (total total-impairment "Total impairment loss")))
 
 ;; Simplification: recoverable amounts are supplied; no full valuation or complete IAS 36 rule set.

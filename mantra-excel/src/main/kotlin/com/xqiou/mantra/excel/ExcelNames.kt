@@ -19,12 +19,14 @@ object ExcelNames {
             }
         }.joinToString("")
         if (name.isEmpty() || !(name[0].isLetter() || name[0] == '_')) name = "_$name"
-        val looksLikeCell = Regex("[A-Za-z]{1,3}[0-9]{1,7}").matches(name) || Regex("[RrCc]|[Rr][0-9]*[Cc][0-9]*").matches(name)
+        val looksLikeCell =
+            Regex("[A-Za-z]{1,3}[0-9]{1,7}").matches(name) || Regex("[RrCc]|[Rr][0-9]*[Cc][0-9]*").matches(name)
         if (looksLikeCell || name.equals("true", true) || name.equals("false", true)) name = "${name}_"
         return name
     }
 
     fun member(id: String, key: String): String = sanitize(id) + SEPARATOR + sanitize(key)
 
-    fun record(table: String, key: String, column: String): String = sanitize(table) + SEPARATOR + sanitize(key) + SEPARATOR + sanitize(column)
+    fun record(table: String, key: String, column: String): String =
+        sanitize(table) + SEPARATOR + sanitize(key) + SEPARATOR + sanitize(column)
 }

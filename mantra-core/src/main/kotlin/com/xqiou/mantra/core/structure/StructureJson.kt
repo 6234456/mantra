@@ -16,8 +16,17 @@ import com.xqiou.mantra.core.view.signLabels
  * on the mainline from `breadcrumb` and `entries`.
  */
 object StructureJson {
-    internal fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String =
-        write(map, if (result == null) CalculationView.of(plan) else CalculationView.of(result), result != null)
+    internal fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String = write(
+        map,
+        if (result ==
+            null
+        ) {
+            CalculationView.of(plan)
+        } else {
+            CalculationView.of(result)
+        },
+        result != null,
+    )
 
     fun write(view: CalculationView): String = write(view.structure, view, true)
 
@@ -28,11 +37,20 @@ object StructureJson {
             "headline" to view.headlineId,
             "groupTitles" to view.schema.attributes["group-titles"]?.let(::plain),
             "signLabels" to view.nodes.mapNotNull { (id, node) ->
-                node.signLabels?.let { id to linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero) }
+                node.signLabels?.let {
+                    id to
+                        linkedMapOf("positive" to it.positive, "negative" to it.negative, "zero" to it.zero)
+                }
             }.toMap().takeIf { it.isNotEmpty() },
             "mainline" to map.mainline.map { id ->
                 val panel = map.panel(id)
-                linkedMapOf("step" to panel.step, "panel" to id, "title" to panel.title, "result" to panel.resultId, "value" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) })
+                linkedMapOf(
+                    "step" to panel.step,
+                    "panel" to id,
+                    "title" to panel.title,
+                    "result" to panel.resultId,
+                    "value" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) },
+                )
             },
             "panels" to map.panels.map { panel ->
                 linkedMapOf(
@@ -44,8 +62,24 @@ object StructureJson {
                     "dims" to panel.dims,
                     "result" to panel.resultId,
                     "resultValue" to panel.resultId?.takeIf { includeValues }?.let { value(view, it) },
-                    "breadcrumb" to panel.breadcrumb.map { linkedMapOf("panel" to it.panelId, "label" to it.label, "node" to it.nodeId) },
-                    "entries" to panel.entries.map { linkedMapOf("step" to it.step, "panel" to it.stepPanel, "via" to it.viaNode, "viaLabel" to it.viaLabel, "path" to it.path) },
+                    "breadcrumb" to
+                        panel.breadcrumb.map {
+                            linkedMapOf(
+                                "panel" to it.panelId,
+                                "label" to it.label,
+                                "node" to it.nodeId,
+                            )
+                        },
+                    "entries" to
+                        panel.entries.map {
+                            linkedMapOf(
+                                "step" to it.step,
+                                "panel" to it.stepPanel,
+                                "via" to it.viaNode,
+                                "viaLabel" to it.viaLabel,
+                                "path" to it.path,
+                            )
+                        },
                     "fields" to panel.fields.map { field(view, it, includeValues) },
                     "nodes" to panel.nodes,
                     "imports" to panel.imports.map(::flow),
@@ -55,15 +89,28 @@ object StructureJson {
             "generalInputs" to map.generalInputs.map { field(view, it, includeValues) },
             "params" to map.params.map { id ->
                 val node = view.node(id)
-                linkedMapOf("id" to id, "label" to node.label, "value" to node.parameterValue?.let(::plain), "source" to node.parameterSource,
+                linkedMapOf(
+                    "id" to id,
+                    "label" to node.label,
+                    "value" to node.parameterValue?.let(::plain),
+                    "source" to node.parameterSource,
                     "reference" to node.presentation.reference,
-                    "attributes" to node.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() })
+                    "attributes" to
+                        node.presentation.attributes.mapValues { (_, value) ->
+                            plain(value)
+                        }.takeIf { it.isNotEmpty() },
+                )
             },
         )
         return buildString { emit(root, 0) }
     }
 
-    private fun flow(flow: Flow) = linkedMapOf("fromPanel" to flow.fromPanel, "fromNode" to flow.fromNode, "toPanel" to flow.toPanel, "toNode" to flow.toNode)
+    private fun flow(flow: Flow) = linkedMapOf(
+        "fromPanel" to flow.fromPanel,
+        "fromNode" to flow.fromNode,
+        "toPanel" to flow.toPanel,
+        "toNode" to flow.toNode,
+    )
 
     private fun field(view: CalculationView, id: String, includeValues: Boolean): Map<String, Any?> {
         val input = view.nodes[id]?.takeIf { it.kind == NodeKind.INPUT } ?: return linkedMapOf("id" to id)
@@ -76,15 +123,26 @@ object StructureJson {
             "optional" to decl.optional,
             "default" to decl.default?.let(::plain),
             "options" to decl.options.takeIf { it.isNotEmpty() },
-            "columns" to decl.columns.takeIf { it.isNotEmpty() }?.map { linkedMapOf("name" to it.name, "type" to it.type.keyword, "optional" to it.optional) },
+            "columns" to
+                decl.columns.takeIf { it.isNotEmpty() }?.map {
+                    linkedMapOf(
+                        "name" to it.name,
+                        "type" to it.type.keyword,
+                        "optional" to it.optional,
+                    )
+                },
             "references" to decl.references.takeIf { it.isNotEmpty() },
-            "constraints" to decl.presentation.attributes.filterKeys { it in CONSTRAINT_KEYS }.mapValues { (_, v) -> plain(v) }.takeIf { it.isNotEmpty() },
+            "constraints" to
+                decl.presentation.attributes.filterKeys {
+                    it in CONSTRAINT_KEYS
+                }.mapValues { (_, v) -> plain(v) }.takeIf { it.isNotEmpty() },
             "help" to (decl.presentation.attributes["help"] as? Value.Text)?.value,
             "unit" to (decl.presentation.attributes["unit"] as? Value.Kw)?.name,
             "reference" to decl.presentation.reference,
             "group" to input.groupKey,
             "groupTitle" to input.groupKey?.let(view::groupTitle),
-            "attributes" to decl.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() },
+            "attributes" to
+                decl.presentation.attributes.mapValues { (_, value) -> plain(value) }.takeIf { it.isNotEmpty() },
             "value" to if (includeValues) value(view, id) else null,
         )
     }

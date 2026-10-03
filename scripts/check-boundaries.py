@@ -8,6 +8,7 @@ LIBRARIES = {
     'mantra-core', 'mantra-render', 'mantra-excel', 'mantra-workbench',
     'mantra-server', 'mantra-cli',
 }
+PUBLIC_API_CONSUMERS = LIBRARIES | {'benchmarks'}
 DECLARATIONS = {
     'schema', 'section', 'param', 'input', 'dimension', 'line', 'total',
     'choice', 'slot', 'formula-slot',
@@ -60,7 +61,7 @@ def check(root: Path) -> list[str]:
     identifiers = application_identifiers(root)
     if not identifiers:
         problems.append('apps/: no application identifiers found; the boundary check must not pass vacuously')
-    for module in sorted(LIBRARIES):
+    for module in sorted(PUBLIC_API_CONSUMERS):
         base = root / module
         for path in sorted(base.rglob('*.kt')):
             if module != 'mantra-core' and 'build' not in path.relative_to(base).parts:
@@ -70,7 +71,9 @@ def check(root: Path) -> list[str]:
         build = base / 'build.gradle.kts'
         if build.exists():
             for dependency in PROJECT_DEPENDENCY.findall(without_comments(build.read_text())):
-                if dependency.startswith(':apps'):
+                if module == 'benchmarks' and dependency.removeprefix(':') not in LIBRARIES:
+                    problems.append(f'{build.relative_to(root)}: benchmarks depend on non-library {dependency}')
+                elif dependency.startswith(':apps'):
                     problems.append(f'{build.relative_to(root)}: library depends on application {dependency}')
     for app in sorted((root / 'apps').iterdir()):
         build = app / 'build.gradle.kts'
@@ -93,7 +96,7 @@ def check(root: Path) -> list[str]:
         for number, line in enumerate(without_comments(path.read_text()).splitlines(), 1):
             if 'com.xqiou.mantra.core.engine.' in line:
                 problems.append(f'{path.relative_to(root)}:{number}: shared acceptance code references internal core.engine API')
-    roots = [root / module / 'src/main' for module in sorted(LIBRARIES)] + [root / 'workbench-ui/src']
+    roots = [root / module / 'src/main' for module in sorted(PUBLIC_API_CONSUMERS)] + [root / 'workbench-ui/src']
     for directory in roots:
         for path in sorted(production_sources(directory)):
             for number, line in enumerate(without_comments(path.read_text()).splitlines(), 1):

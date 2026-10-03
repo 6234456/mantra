@@ -16,12 +16,18 @@ import kotlin.test.assertTrue
 class PublicApiTest {
     @Test
     fun `inspection compiles a schema without evaluating its formulas`() {
-        val schema = Mantra.loadSchema(SourceText("schema.mantra", """
+        val schema = Mantra.loadSchema(
+            SourceText(
+                "schema.mantra",
+                """
             (schema test/inspection {}
               (input denominator :decimal {:default 0})
               (section body "Body"
                 (line quotient "Quotient" (/ 1 denominator))))
-        """.trimIndent()), SourceResolver { _, _ -> null })
+                """.trimIndent(),
+            ),
+            SourceResolver { _, _ -> null },
+        )
         val inspected = Mantra.inspect(schema)
         assertTrue(inspected.succeeded)
         assertEquals(NodeKind.LINE, inspected.node("quotient").kind)

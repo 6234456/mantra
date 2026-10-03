@@ -134,7 +134,7 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 
 **发布节奏（R10）**
 
-- M0 完成后公开仓库：许可证、CI 和文档到位。
+- 仓库已按维护者 2026-10-03 的确认设为公开；M0 完成时须有许可证、绿色 CI 和完整文档。
 - 首个 Maven Central 版本与对应的 `normein-dsl` 制品一起发布，最早在 M1 之后。
 - 此后每个里程碑发布一个 0.x 版本。1.0 之前允许破坏性变化，但须写入变更记录（C8）。
 
@@ -171,9 +171,9 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 **建议顺序**：远端与 CI → monorepo 迁移 → 公开 API 收口与边界检查 → 其余各项并行。
 
 - **远端与 CI**
-  - 建立远端并推送；按 R10，M0 完成前保持私有。
+  - 建立远端并推送。维护者已于 2026-10-03 确认使用公开仓库，覆盖 R10 原定的公开时点；其余发布条件不变。
   - Normein 的锁定提交已在其远端 `origin/main` 上。`bootstrap-normein.sh` 默认使用 SSH 地址；CI 可经 `NORMEIN_SOURCE` 改用 HTTPS 地址，私有库另需访问令牌。
-  - CI 任务：`./gradlew test`；在 `workbench-ui` 中执行 `npm ci`、`npm test`、`npm run build` 和 `npm run test:e2e`（无头浏览器）。
+  - CI 任务：先安装前端依赖，再运行 `./gradlew --no-daemon check`；在 `workbench-ui` 中执行 `npm ci`、`npm test`、`npm run build` 和 `npm run test:e2e`（无头浏览器）。
 - **Monorepo（R3）**
   - `examples/` 迁为 `apps/<应用>`，每个应用是一个 Gradle 子项目（如 `:apps:de-est`），只依赖库模块；库模块保持在根目录。
   - SAP CO 风格样例改用中性的目录名与方案 id（如 `apps/cost-accounting`），说明中保留“SAP CO 风格”的描述。
@@ -368,8 +368,8 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 | 主线 | 持续要求 | 各里程碑重点 |
 | --- | --- | --- |
 | T1 工程与质量 | CI 全绿；每个模块有测试下限；单文件与单行长度受检查 | M0 建立；M2 起 XLSX 覆盖随新原语扩展，包括增删表格行的动态范围与更多高阶函数；M4 增加 API 兼容检查 |
-| T2 性能与规模 | 每个里程碑与基线对比，退化须说明原因 | M0 建立基线；M2 无审计的计算改走 Normein 执行计划与会话（VALUE_ONLY），只有审计与 Explain 使用 FULL trace；M2 起编辑后按依赖图增量重算；M3 运行级预算；M4 编译复用、批量计算与大表策略 |
-| T3 Normein 协同（R4） | 两个项目同步推进：每个里程碑开工时把内核需求写入 RFC（从 0002 起编号），Normein 并行实现并发布；Mantra 在里程碑内经契约测试接入已发布的提交，不修改内核（C6） | M0 确定 `normein-dsl` 的制品发布方式；M1 起每个里程碑配一个 Normein 版本；C 项整数策略随下一个 Normein 版本确定；对外发布时两边制品同时发布 |
+| T2 性能与规模 | 每个里程碑与基线对比，退化须说明原因 | M0 [合成性能基线](performance-baseline.md)；M2 无审计的计算改走 Normein 执行计划与会话（VALUE_ONLY），只有审计与 Explain 使用 FULL trace；M2 起编辑后按依赖图增量重算；M3 运行级预算；M4 编译复用、批量计算与大表策略 |
+| T3 Normein 协同（R4） | 两个项目同步推进：每个里程碑开工时把内核需求写入 RFC（从 0002 起编号），Normein 并行实现并发布；Mantra 在里程碑内经契约测试接入已发布的提交，不修改内核（C6） | M0 确定 [`normein-dsl` 制品发布方式](normein-publication.md)；M1 起每个里程碑配一个 Normein 版本；C 项整数策略随下一个 Normein 版本确定；对外发布时两边制品同时发布 |
 | T4 文档与开发者体验 | 语义以架构文档为准；目录类文档由代码生成，或由测试核对；公开文档用英文（R8） | M0 目录一致性测试与英文 README；M1 诊断代码目录；M5 文档站点与展示库；M6 语言规范 v1 |
 | T5 安全与合规 | 只监听回环地址；文件访问限于工作区；案例数据保持虚构 | M0 建立依赖更新机制（POI、Jackson 等）；M3 校验链接路径；M4 校验方案包来源；1.0 前审查导入解析（超大 CSV、XLSX 解压炸弹） |
 | T6 发布与社区 | 语义版本；每个版本附变更记录；弃用先标记、再移除；`apps/` 不发布为库制品 | M0 社区文件，M0 完成后公开仓库；首个制品随 `normein-dsl` 发布（最早在 M1 之后）；M6 发布 1.0 |
@@ -389,7 +389,7 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 | 领域 | 应用目录（建议） | 里程碑 | 考验的能力 | 核对来源 |
 | --- | --- | --- | --- | --- |
 | ESt（§ 2、§ 32a EStG） | `apps/de-est` | 已有；M3 跨年结转 | Staffel、人员维度、择优、分段、扩展槽 | § 32a 公式；`verify_expected.py` |
-| IAS 36 总部资产 | `apps/ifrs-impairment` | 已有；M2 补使用价值 | 分摊、择优、带上限分摊、现金流 × 期间 | IE Example 8 |
+| IAS 36 总部资产 | `apps/ifrs-impairment` | 已有；M2 补使用价值 | 分摊、择优、带上限分摊、现金流 × 期间 | 独立虚构事实；`verify_expected.py` Fraction 复算 |
 | SAP CO 风格成本 | `apps/cost-accounting` | 已有；M1 | 表格、关系汇总、比率度量、校验与对账 | 独立对账 |
 | IAS 12 税率调节与递延税 | `apps/ifrs-income-taxes` | M1；M2 递延税变动 | 对账、比率、按项目的表格 | 公开示例或独立复算 |
 | 资产变动表（IAS 16、HGB） | `apps/fixed-assets` | M2 | 连续期间、每期期末、存量与流量、转置矩阵 | 独立复算 |
@@ -417,7 +417,7 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 | R7 | 方案升级后的旧案例 | 旧版本并存，迁移显式且可审阅 | M4 |
 | R8 | 公开文档的语言 | README、教程、DSL 参考、API 文档和应用说明用英文；架构、契约等设计文档暂留中文，逐步翻译 | M0、M5、T4 |
 | R9 | 许可证 | Apache-2.0，与 Normein、POI、Jackson 一致，并含专利授权条款 | M0 |
-| R10 | 公开时机 | M0 完成后公开仓库；首个制品随 `normein-dsl` 发布 | §3 发布节奏、T6 |
+| R10 | 公开时机 | 维护者 2026-10-03 确认仓库直接公开；首个制品仍随 `normein-dsl` 发布 | §3 发布节奏、T6 |
 
 ## 8. 风险
 

@@ -3,9 +3,9 @@ package com.xqiou.mantra.render.paper
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.render.layout.Align
 import com.xqiou.mantra.render.layout.ColumnContent
-import com.xqiou.mantra.render.layout.TableStyle
-import com.xqiou.mantra.render.layout.StyleSpec
 import com.xqiou.mantra.render.layout.StyleContext
+import com.xqiou.mantra.render.layout.StyleSpec
+import com.xqiou.mantra.render.layout.TableStyle
 import com.xqiou.mantra.render.layout.Texts
 
 /**
@@ -58,13 +58,7 @@ class PaperTable(
     val rows: List<PaperRow>,
 )
 
-class PaperColumn(
-    val id: String,
-    val header: String,
-    val content: ColumnContent,
-    val align: Align,
-    val width: Int?,
-)
+class PaperColumn(val id: String, val header: String, val content: ColumnContent, val align: Align, val width: Int?)
 
 enum class RowKind {
     HEADING,
@@ -85,8 +79,10 @@ enum class RowFlag {
     FOOTED,
     INFO,
     GRAND,
+
     /** Displayed as a deduction (signed layouts show the positive value negatively). */
     NEGATED,
+
     /** A non-zero input was reduced to zero by a rule, so the row remains visible. */
     EXPLAINS_ZERO,
 }
