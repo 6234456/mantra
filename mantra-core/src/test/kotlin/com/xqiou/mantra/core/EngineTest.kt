@@ -1,6 +1,6 @@
 package com.xqiou.mantra.core
 
-import com.xqiou.mantra.core.engine.NodeTrace
+import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.ParameterSetReader
 import com.xqiou.mantra.core.read.SourceText
@@ -308,7 +308,7 @@ class EngineTest {
         assertFalse(result.node("half").isActive(listOf("A")))
         assertDecimal("21", result.decimal("half", "B"))
         assertDecimal("274.5", result.decimal("extras"))
-        assertTrue(result.tree.children.any { it is com.xqiou.mantra.core.engine.ResolvedSection && it.id == "extra" })
+        assertTrue(result.tree.children.any { it is com.xqiou.mantra.core.view.ViewSection && it.id == "extra" })
     }
 
     @Test

@@ -13,15 +13,15 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CaseTextEditorTest {
-    private fun source(name: String) = Files.readString(Path.of("examples/$name"))
+    private fun source(name: String) = Files.readString(Path.of("apps/$name"))
     private fun read(text: String) = Mantra.loadCase(SourceText("case.mantra", text))
 
     @Test
     fun `input replacement preserves every byte outside its value across three domains`() {
         val cases = listOf(
-            Triple("de-est-2025/case-mustermann.mantra", "spenden", "450"),
-            Triple("ifrs-ias36-corporate-assets/case-ie8.mantra", "allocable-corporate", "150"),
-            Triple("sap-co-product-cost/case-demo.mantra", "primary-postings", "4000"),
+            Triple("de-est/case-mustermann.mantra", "spenden", "450"),
+            Triple("ifrs-impairment/case-ie8.mantra", "allocable-corporate", "150"),
+            Triple("cost-accounting/case-demo.mantra", "primary-postings", "4000"),
         )
         for ((name, input, original) in cases) {
             val text = source(name)
@@ -45,7 +45,7 @@ class CaseTextEditorTest {
 
     @Test
     fun `member maps and decimal scale round trip while comments stay intact`() {
-        val text = source("de-est-2025/case-mustermann.mantra")
+        val text = source("de-est/case-mustermann.mantra")
         val changed = CaseTextEditor.apply(text, listOf(
             CaseTextEditor.Operation.SetInput("rv-beitraege", Value.Num(BigDecimal("12742.00")), listOf("A")),
             CaseTextEditor.Operation.SetInput("spenden", Value.num("451.50")),
@@ -61,7 +61,7 @@ class CaseTextEditorTest {
 
     @Test
     fun `table cell address updates only selected column`() {
-        val original = source("de-est-2025/case-mustermann.mantra")
+        val original = source("de-est/case-mustermann.mantra")
         val changed = CaseTextEditor.apply(original, listOf(
             CaseTextEditor.Operation.SetCell("vermietungsobjekte", "leipzig", "mieten", Value.num("9700.00"), "id"),
         ))
@@ -73,7 +73,7 @@ class CaseTextEditorTest {
 
     @Test
     fun `parameters metadata extensions and bindings round trip`() {
-        val original = source("de-est-2025/case-mustermann.mantra")
+        val original = source("de-est/case-mustermann.mantra")
         val edited = CaseTextEditor.apply(original, listOf(
             CaseTextEditor.Operation.SetParam("tarif-gfb", Value.num("12348")),
             CaseTextEditor.Operation.SetMeta("reviewed-by", "A \"B\"\\C"),
@@ -118,7 +118,7 @@ class CaseTextEditorTest {
     @Test
     fun `seeded edit sequences preserve existing comments and read back exact inputs`() {
         val random = Random(71)
-        val initial = source("de-est-2025/case-mustermann.mantra")
+        val initial = source("de-est/case-mustermann.mantra")
         repeat(25) {
             var text = initial
             var expected = read(initial).inputs.toMutableMap()

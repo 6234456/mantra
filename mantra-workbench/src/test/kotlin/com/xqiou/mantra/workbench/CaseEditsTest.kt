@@ -15,14 +15,14 @@ import kotlin.test.assertTrue
 class CaseEditsTest {
     @TempDir lateinit var temp: Path
     private fun copyExample(name: String): Pair<Path, String> {
-        val source = Path.of("examples/$name")
+        val source = Path.of("apps/$name")
         val dir = Files.createDirectories(temp.resolve(name))
         Files.list(source).use { stream -> stream.filter { it.toString().endsWith(".mantra") }.forEach {
             Files.copy(it, dir.resolve(it.fileName))
         } }
         val case = when (name) {
-            "de-est-2025" -> "case-mustermann.mantra"
-            "ifrs-ias36-corporate-assets" -> "case-ie8.mantra"
+            "de-est" -> "case-mustermann.mantra"
+            "ifrs-impairment" -> "case-ie8.mantra"
             else -> "case-demo.mantra"
         }
         return dir to case
@@ -43,7 +43,7 @@ class CaseEditsTest {
 
     @Test
     fun `preview leaves bytes intact and commit undo redo check revisions`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val catalog = WorkspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readAllBytes(file)
@@ -68,7 +68,7 @@ class CaseEditsTest {
 
     @Test
     fun `invalid second edit rejects whole batch without changing file`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val catalog = WorkspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readAllBytes(file)
@@ -86,7 +86,7 @@ class CaseEditsTest {
 
     @Test
     fun `IAS and SAP cases preview table edits without writing`() {
-        for ((domain, table) in listOf("ifrs-ias36-corporate-assets" to "cgus", "sap-co-product-cost" to "products")) {
+        for ((domain, table) in listOf("ifrs-impairment" to "cgus", "cost-accounting" to "products")) {
             val (dir, case) = copyExample(domain)
             val catalog = WorkspaceCatalog(dir)
             val original = Files.readAllBytes(dir.resolve(case))
@@ -104,7 +104,7 @@ class CaseEditsTest {
 
     @Test
     fun `batch validates a retained member against the final view`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         val catalog = WorkspaceCatalog(dir)
@@ -122,7 +122,7 @@ class CaseEditsTest {
 
     @Test
     fun `temporary unknown formula input and parameter edits do not block a valid batch`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         val catalog = WorkspaceCatalog(dir)
@@ -146,7 +146,7 @@ class CaseEditsTest {
 
     @Test
     fun `retained inactive member is rejected but a later clear can remove it`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         val catalog = WorkspaceCatalog(dir)
@@ -161,7 +161,7 @@ class CaseEditsTest {
 
     @Test
     fun `dimensioned input cannot be replaced by scalar without a member coordinate`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         val original = Files.readString(file)
         val catalog = WorkspaceCatalog(dir)
@@ -180,7 +180,7 @@ class CaseEditsTest {
 
     @Test
     fun `whole dimensioned input replacement rejects unknown member keys`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         val original = Files.readString(file)
         val catalog = WorkspaceCatalog(dir)
@@ -203,7 +203,7 @@ class CaseEditsTest {
 
     @Test
     fun `batch may repair an intermediate invalid layout before final validation`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val catalog = WorkspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readString(file)
@@ -223,7 +223,7 @@ class CaseEditsTest {
 
     @Test
     fun `member coordinate validation can ignore transient invalid layout`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         val catalog = WorkspaceCatalog(dir)
@@ -239,7 +239,7 @@ class CaseEditsTest {
 
     @Test
     fun `member coordinate validation can ignore transient missing parameter set`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         val catalog = WorkspaceCatalog(dir)
@@ -260,7 +260,7 @@ class CaseEditsTest {
 
     @Test
     fun `member coordinate validation can ignore transient invalid parameter document`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"))
         Files.writeString(dir.resolve("temp-invalid.mantra"), "(parameters temp/invalid (bad))")
@@ -277,7 +277,7 @@ class CaseEditsTest {
 
     @Test
     fun `external case edit before final replace returns conflict without overwriting it`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         val catalog = WorkspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
@@ -295,7 +295,7 @@ class CaseEditsTest {
 
     @Test
     fun `external parameter edit before final replace changes full revision and blocks case write`() {
-        val (dir, case) = copyExample("de-est-2025")
+        val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         Files.writeString(file, Files.readString(file).replace(":layout \"de.est/steuerberechnung\"",
             ":layout \"de.est/steuerberechnung\"\n   :parameters [\"de.est/params-2026\"]"))

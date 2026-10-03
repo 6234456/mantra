@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| Status | Draft for review, revised with per-item acceptance contracts |
-| Date | 2026-09-26 |
+| Status | Adopted baseline; remaining integer policy, documentation and paper-audit migration tracked in the roadmap |
+| Date | 2026-09-26; implementation status synchronized 2026-10-03 |
 | Consumer | Mantra calculation-schema engine (`mantra-core`, `mantra-render`, `mantra-excel`) |
 | Kernel baseline | `normein-dsl` 0.3.0 at `0a3ae1de844c92635fbbc03406a13cb0e8920c03`: language semantics 25, stdlib 33, reader 3, parser 7, type system 7, canonicalization 3 |
 | Previous baseline | `be7648b57c019a8d0efe6ae8b2a8a5695078c475`: language semantics 14, stdlib 21, parser 3, type system 3, canonicalization 2 |
@@ -15,12 +15,16 @@
 Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定发布的提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。
 
 - **新内核已实现**：A 的多形式读取、B 的宿主绝对位置、C 的结构错误字段路径、D 的静态结果类型、F 的源码索引和非标量 trace、I 的公开字面量分类。Mantra 已使用 B 与 I，并通过锁定内核的完整测试。
-- **仍需在 Mantra 完成**：Explain 渲染、案例编辑回写、数据接入与导入导出工作包。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
+- **Mantra 已实现**：Explain 逐步渲染、案例编辑回写、公式编辑、数据接入与导入导出工作包。纸面与 XLSX 审计附录仍使用根值代入，统一 trace 的迁移归入 M1。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
 - **应由领域层实现**：E（OPTIONAL 根缺省时不按 nil 处理；Mantra 显式传 nil 本就是正确契约，内核只需补文档）、G（有界迭代可以用 `reduce` + `range`，或写一个通过 `invokeCallable` 调用回调的领域库函数，都受内核预算约束）、H（`DslAuthoringService` 已经接受宿主提供的分析作用域）、J（`mantra/` 限定名继续由 Mantra 做等长改写），以及资源上限带来的领域层义务。
 
-WP1 接入分支同时修复了三个 Mantra 侧缺陷：数据字面量委托内核分类（I）；超出内核值上限时返回诊断；限定名只改写符号，不改写字符串或关键字（J）。这些修复尚未合入主分支。
+WP1 已合入，并同时修复了三个 Mantra 侧缺陷：数据字面量委托内核分类（I）；超出内核值上限时返回诊断；限定名只改写符号，不改写字符串或关键字（J）。工作台与 CLI 的 Explain 已消费 F 项逐步 trace；纸面及 XLSX 的审计附录迁移列入 M1。内核侧剩余工作为 C 项整数策略与 E 项文档，见[路线图](../roadmap.md)。
 
 ## Context
+
+The original requests and candidate assessments below preserve their historical comparison: “pin”
+in an old comparison means the **previous baseline** listed above, while the assessed candidate is
+now the adopted `0a3ae1de` baseline. The summary and executable tests record the current integration.
 
 Mantra models tax and accounting calculation schemas (German income tax per R 2 EStR, IAS 36 impairment tests, SAP CO style cost roll-ups, working papers) as documents made of host forms such as `(section …)`, `(line id "Label" <expr> {opts})` and `(total …)`. Host forms are read with the public `DslFormReader`; every embedded expression is compiled with `DslSemanticCompiler` against a Mantra-built `DslAnalysisScope` (one scope per dimension context) and evaluated with `DslEvaluationEngine`. Domain functions (`alloc/pro-rata`, `calc/stepwise`, `dim/sum`, `fin/npv`, …) are an ordinary `DslLibraryDescriptor` composed next to the standard libraries.
 
@@ -32,7 +36,7 @@ This integration works without kernel changes. The items below remove workaround
 
 **Problem.** `DslFormReader.readDocument` accepts exactly one root form (`DSL-PARSE-TRAILING-TOKEN` otherwise) and caps a document at 65,536 UTF-16 units, 8,192 tokens and nesting 128. Consumers may lower these limits but not raise them. A schema document is naturally a sequence of top-level declarations.
 
-**Measured headroom.** A typical `(line …)` form costs 16 tokens, so one document holds 511 line forms. The largest Mantra example (`de-est-2025/schema.mantra`) uses 1,491 tokens (18 %). The one-root rule is therefore an ergonomic issue, not a capacity problem, and the priority is lowered from high to low.
+**Measured headroom.** A typical `(line …)` form costs 16 tokens, so one document holds 511 line forms. The largest Mantra example (`apps/de-est/schema.mantra`) uses 1,491 tokens (18 %). The one-root rule is therefore an ergonomic issue, not a capacity problem, and the priority is lowered from high to low.
 
 **Workaround in Mantra.** Every document is wrapped in one root form (`(schema …)`, `(fragment …)`, `(case …)`, `(layout …)`, `(parameters …)`), and large schemas are split with `(include "fragment.mantra")` (`mantra-core/.../read/SchemaReader.kt`).
 
@@ -365,9 +369,9 @@ Assessment of 2026-09-27 (locked commit `0a3ae1de`, language 25 / stdlib 33): th
 | D1 | Types: `apply` | Candidate implemented | – | `dim/min`, `dim/max` |
 | D2 | Types: `decimal/*` nullability | Candidate implemented | Medium | Precise expected types |
 | E | Runtime: absent OPTIONAL roots | Documentation only | Low | Explicit `nil` |
-| F | Trace: source index, non-scalar rendering | Candidate implemented | High (audit) | Root-value substitution until WP4 |
+| F | Trace: source index, non-scalar rendering | Adopted kernel implemented | High (audit) | Explain implemented (WP4); paper/XLSX root-value substitution remains until M1 |
 | G | Bounded iteration | Kernel already supports; domain layer for helpers | – | Kotlin library functions |
-| H | Authoring for embedded expressions | Domain layer (withdrawn; needs B) | – | None yet |
+| H | Authoring for embedded expressions | Domain layer (withdrawn; needs B) | – | Formula completion, hover and checking implemented (WP9); LSP planned for M5 |
 | I | Reader: literal classification | Candidate implemented and Mantra adapted | Medium | `DslFormLiterals` |
 | J | Qualified node references | Domain layer (not requested) | – | Form-aware equal-length rewrite |
 

@@ -50,7 +50,7 @@ import java.security.MessageDigest
  * | `dim/rollup` | sum source members into one declared parent member |
  * | `fin/df`, `fin/npv` | discounting |
  */
-object MantraLibrary {
+internal object MantraLibrary {
     const val LIBRARY_ID: String = "mantra.calc"
     const val SEMANTICS_VERSION: String = "1"
     const val PROVIDER_ID: String = "mantra.calc.provider"

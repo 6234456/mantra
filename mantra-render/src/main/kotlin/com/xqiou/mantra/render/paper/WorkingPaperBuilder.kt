@@ -1,9 +1,9 @@
 package com.xqiou.mantra.render.paper
 
 import com.xqiou.mantra.core.view.CalculationView
-import com.xqiou.mantra.core.engine.Coord
+import com.xqiou.mantra.core.view.Coord
 import com.xqiou.mantra.core.view.ViewNode
-import com.xqiou.mantra.core.engine.NodeTrace
+import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.view.ViewItem
 import com.xqiou.mantra.core.view.ViewTreeNode
 import com.xqiou.mantra.core.view.ViewNote
@@ -13,7 +13,7 @@ import com.xqiou.mantra.core.view.displayLabel
 import com.xqiou.mantra.core.view.groupKey
 import com.xqiou.mantra.core.view.groupTitle
 import com.xqiou.mantra.core.view.headlineId
-import com.xqiou.mantra.core.engine.TraceRef
+import com.xqiou.mantra.core.view.TraceRef
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.Op
@@ -568,7 +568,7 @@ class WorkingPaperBuilder(
             }
         }
 
-        private fun optionText(node: ViewNode, outcome: com.xqiou.mantra.core.engine.TraceOption?, selected: Boolean): String {
+        private fun optionText(node: ViewNode, outcome: com.xqiou.mantra.core.view.TraceOption?, selected: Boolean): String {
             if (outcome == null) return ""
             if (!outcome.available) return texts.notApplicable
             return format(node, outcome.value) + if (selected) " ✓" else ""

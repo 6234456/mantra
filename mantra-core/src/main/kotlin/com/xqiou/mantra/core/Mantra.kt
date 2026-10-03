@@ -1,9 +1,8 @@
 package com.xqiou.mantra.core
 
+import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.engine.CalculationPlan
-import com.xqiou.mantra.core.engine.CalculationResult
 import com.xqiou.mantra.core.engine.Evaluator
-import com.xqiou.mantra.core.engine.Coord
 import com.xqiou.mantra.core.engine.Planner
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Schema
@@ -13,6 +12,8 @@ import com.xqiou.mantra.core.read.ParameterSetReader
 import com.xqiou.mantra.core.read.SchemaReader
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
+import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.view.Coord
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -52,12 +53,16 @@ object Mantra {
     }
 
     /** Compiles and orders the calculation; throws [MantraException] with all findings on error. */
-    fun plan(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationPlan {
+    internal fun plan(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationPlan {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
         return checkNotNull(plan)
     }
+
+    /** Compiles a schema without evaluating it and returns its read-only structure and metadata. */
+    fun inspect(schema: Schema, case: CaseData = CaseData.empty(), parameters: List<ParameterSet> = emptyList()): CalculationView =
+        CalculationView.of(plan(schema, case, parameters))
 
     /**
      * Evaluates the schema for a case. Parameter values come from the schema, then the given
@@ -71,7 +76,7 @@ object Mantra {
         return Evaluator(checkNotNull(plan), sink).run()
     }
 
-    fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).run()
+    internal fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).run()
 
     /** Recalculates one case while collecting a bounded FULL trace only for the requested value. */
     fun calculateForExplain(schema: Schema, case: CaseData, parameters: List<ParameterSet>, node: String,

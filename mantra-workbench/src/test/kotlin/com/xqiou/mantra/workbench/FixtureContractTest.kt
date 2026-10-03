@@ -23,9 +23,9 @@ import kotlin.test.assertTrue
 
 class FixtureContractTest {
     private val examples = listOf(
-        "de-est-2025" to "case-mustermann.mantra",
-        "ifrs-ias36-corporate-assets" to "case-ie8.mantra",
-        "sap-co-product-cost" to "case-demo.mantra",
+        "de-est" to "case-mustermann.mantra",
+        "ifrs-impairment" to "case-ie8.mantra",
+        "cost-accounting" to "case-demo.mantra",
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
@@ -72,7 +72,7 @@ class FixtureContractTest {
 
     @Test
     fun `presentation hints project as stable structure and paper fields`() {
-        val directory = Path.of("examples/de-est-2025")
+        val directory = Path.of("apps/de-est")
         val view = CalculationView.of(Mantra.calculate(
             Mantra.loadSchema(directory.resolve("schema.mantra")),
             Mantra.loadCase(directory.resolve("case-mustermann.mantra")),
@@ -95,18 +95,25 @@ class FixtureContractTest {
     fun `three acceptance cases generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
-            val cases = examples.map { (directory, case) -> Path.of("examples", directory, case) }
+            val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
             val entries = Fixtures.writeMany(cases, temp, explainAddresses = mapOf(
-                "de-est-2025/case-mustermann.mantra" to listOf(ExplainAddress("ermaessigung-35a"),
+                "de-est/case-mustermann.mantra" to listOf(ExplainAddress("ermaessigung-35a"),
                     ExplainAddress("zu-versteuerndes-einkommen"), ExplainAddress("tarifliche-est")),
-                "ifrs-ias36-corporate-assets/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B")),
+                "ifrs-impairment/case-ie8.mantra" to listOf(ExplainAddress("recoverable-amount", listOf("B")),
                     ExplainAddress("allocation-key", listOf("B")), ExplainAddress("all.weighted-amount"),
                     ExplainAddress("weighted-amount", listOf("A")), ExplainAddress("weighted-amount", listOf("B")),
                     ExplainAddress("weighted-amount", listOf("C"))),
-                "sap-co-product-cost/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
+                "cost-accounting/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
             ))
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
             assertEquals("Eheleute Erika und Max Mustermann", entries.first().title)
+            if (System.getenv("MANTRA_UPDATE_GOLDEN") == "1") {
+                Files.walk(temp).use { files -> files.filter(Files::isRegularFile).forEach { path ->
+                    val destination = golden.resolve(temp.relativize(path))
+                    Files.createDirectories(destination.parent)
+                    Files.copy(path, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                } }
+            }
             assertEquals(Files.readString(golden.resolve("index.json")), Files.readString(temp.resolve("index.json")))
             val schemas = Files.list(schemaDirectory).use { stream ->
                 stream.filter { it.fileName.toString().endsWith(".schema.json") }.toList()
@@ -177,7 +184,7 @@ class FixtureContractTest {
 
     @Test
     fun `panel paper is generated when an explicit layout omits that panel`() {
-        val directory = Path.of("examples/ifrs-ias36-corporate-assets")
+        val directory = Path.of("apps/ifrs-impairment")
         val result = Mantra.calculate(
             Mantra.loadSchema(directory.resolve("schema.mantra")),
             Mantra.loadCase(directory.resolve("case-ie8.mantra")),
@@ -193,7 +200,7 @@ class FixtureContractTest {
 
     @Test
     fun `bound formula slot exposes original formula and current binding separately`() {
-        val directory = Path.of("examples/ifrs-ias36-corporate-assets")
+        val directory = Path.of("apps/ifrs-impairment")
         val result = Mantra.calculate(
             Mantra.loadSchema(directory.resolve("schema.mantra")),
             Mantra.loadCase(directory.resolve("case-custom-weight.mantra")),

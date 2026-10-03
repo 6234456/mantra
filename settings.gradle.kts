@@ -8,10 +8,9 @@ include(":mantra-cli")
 include(":mantra-workbench")
 include(":mantra-server")
 
-// Acceptance examples: domain schemas that exercise the engine. Not part of the library;
-// they are candidates for separate domain applications in a later monorepo.
-include(":mantra-examples")
-project(":mantra-examples").projectDir = file("examples")
+// Complete domain demonstrations. Each owns its documents and acceptance tests and depends only
+// on library modules; applications are never published as Maven library artifacts.
+include(":apps:de-est", ":apps:ifrs-impairment", ":apps:cost-accounting")
 
 // ── Normein DSL kernel (pinned composite build) ─────────────────────────────
 //

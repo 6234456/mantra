@@ -1,8 +1,9 @@
 package com.xqiou.mantra.core
 
-import com.xqiou.mantra.core.engine.NodeTrace
-import com.xqiou.mantra.core.engine.InputOrigin
+import com.xqiou.mantra.core.view.NodeTrace
+import com.xqiou.mantra.core.view.InputOrigin
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.core.model.SourceBinding
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.structure.StructureJson
@@ -130,4 +131,59 @@ class CalculationViewTest {
             (view.case.inputLocations as MutableMap)["base"] = SourceLocation("other.mantra", 2, 1)
         }
     }
+    @Test
+    fun `result captures source documents and provenance before the first view access`() {
+        val parsed = Mantra.loadSchema(SourceText("schema.mantra", """
+            (schema app/detached {}
+              (input base :decimal)
+              (section root "Root" (line result "Result" base)))
+        """.trimIndent()), noIncludes)
+        val attributes = linkedMapOf<String, Value>("note" to Value.Text("original"))
+        val classes = mutableListOf("original")
+        val schemaInputs = mutableListOf(parsed.inputs.single().copy(
+            presentation = parsed.inputs.single().presentation.copy(classes = classes)))
+        val children = parsed.root.children.toMutableList()
+        val schemaSources = mutableListOf("schema.mantra")
+        val schema = parsed.copy(meta = parsed.meta.copy(attributes = attributes),
+            inputs = schemaInputs, root = parsed.root.copy(children = children), sources = schemaSources)
+        val inputs = linkedMapOf<String, Value>("base" to Value.Num(BigDecimal("2")))
+        val columns = mutableListOf<Value>(Value.Text("base"))
+        val sourceOptions = linkedMapOf<String, Value>("path" to Value.Text("original.csv"), "columns" to Value.Vec(columns))
+        val sources = mutableListOf(SourceBinding("csv", sourceOptions, SourceLocation("case.mantra", 1, 1)))
+        val origins = linkedMapOf("" to "original-source")
+        val inputOrigins = linkedMapOf<String, Map<String, String>>("base" to origins)
+        val case = Mantra.loadCase(SourceText("case.mantra", "(case c (inputs {:base 2}))"))
+            .copy(inputs = inputs, sources = sources, inputOrigins = inputOrigins)
+        val result = Mantra.calculate(schema, case)
+
+        // No result getter or view factory is called before caller-owned collections change.
+        attributes["note"] = Value.Text("changed")
+        classes += "changed"
+        schemaInputs.clear()
+        children.clear()
+        schemaSources.clear()
+        inputs["base"] = Value.Num(BigDecimal("99"))
+        sourceOptions["path"] = Value.Text("changed.csv")
+        columns += Value.Text("changed")
+        sources.clear()
+        origins[""] = "changed-source"
+        inputOrigins.clear()
+
+        val view = CalculationView.of(result)
+        assertEquals(Value.Text("original"), result.schema.meta.attributes["note"])
+        assertEquals(1, result.schema.inputs.size)
+        assertEquals(1, result.schema.root.children.size)
+        assertEquals(listOf("schema.mantra"), result.schema.sources)
+        assertEquals(listOf("original"), view.node("base").presentation.classes)
+        assertEquals(Value.Num(BigDecimal("2")), view.case.inputs["base"])
+        assertEquals(Value.Text("original.csv"), view.case.sources.single().options["path"])
+        assertEquals(Value.Vec(listOf(Value.Text("base"))), view.case.sources.single().options["columns"])
+        assertEquals("original-source", view.case.inputOrigins.getValue("base")[""])
+        assertEquals(NodeTrace.Input(InputOrigin.SOURCE, "original-source"), view.node("base").trace())
+        assertFailsWith<UnsupportedOperationException> { (result.schema.inputs as MutableList).clear() }
+        assertFailsWith<UnsupportedOperationException> { (view.case.sources as MutableList).clear() }
+        assertFailsWith<UnsupportedOperationException> { (view.case.sources.single().options as MutableMap).clear() }
+        assertFailsWith<UnsupportedOperationException> { (view.case.inputOrigins.getValue("base") as MutableMap).clear() }
+    }
+
 }

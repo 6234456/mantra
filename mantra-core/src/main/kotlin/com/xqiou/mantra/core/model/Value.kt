@@ -21,7 +21,7 @@ sealed interface Value {
         override fun toString(): String = value.toString()
     }
 
-    /** A namespace-free keyword such as `:zusammen`; [name] excludes the colon. */
+    /** A namespace-free keyword such as `:combined`; [name] excludes the colon. */
     data class Kw(val name: String) : Value {
         override fun toString(): String = ":$name"
     }

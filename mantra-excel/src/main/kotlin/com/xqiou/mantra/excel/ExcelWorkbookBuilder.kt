@@ -3,7 +3,7 @@ package com.xqiou.mantra.excel
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.view.ViewCondition
-import com.xqiou.mantra.core.engine.Coord
+import com.xqiou.mantra.core.view.Coord
 import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.displayLabel
 import com.xqiou.mantra.core.view.groupKey
@@ -789,8 +789,13 @@ internal class ExcelWorkbookBuilder(
         }
         val parameterValue = vertex.parameterValue
         if (vertex.kind == NodeKind.PARAM && (parameterValue is Value.Vec || parameterValue is Value.MapV)) return literal(parameterValue)
-        val slots = nodeSlots[nodeId] ?: throw Untranslatable("$nodeId has no cell")
         val extra = vertex.dims.filter { it !in contextDims }
+        // A memberless dimension has no worksheet range. Preserve its empty-map shape for
+        // count/get/vals, while aggregation consumes it as the additive identity.
+        if (extra.isNotEmpty() && vertex.dims.any { members[it].isNullOrEmpty() }) {
+            return X.MapX(emptyList(), emptyList())
+        }
+        val slots = nodeSlots[nodeId] ?: throw Untranslatable("$nodeId has no cell")
         if (extra.isEmpty()) {
             val coord = vertex.dims.map { contextCoord[contextDims.indexOf(it)] }
             return slots[coord]?.let { ref(it, kindOf(vertex)) } ?: throw Untranslatable("$nodeId has no cell for $coord")
@@ -845,7 +850,6 @@ internal class ExcelWorkbookBuilder(
 
     private fun neutral(vertex: ViewNode): X.Scalar = when {
         vertex.type.isNumeric -> Ex.ZERO
-        vertex.type == ValueType.BOOLEAN -> Ex.FALSE
         else -> Ex.EMPTY
     }
 
@@ -855,6 +859,7 @@ internal class ExcelWorkbookBuilder(
         return when (val x = reference(nodeId, emptyList(), emptyList())) {
             is X.Scalar -> x
             is X.Range -> if (vertex.type.isNumeric) Ex.fn("SUM", Ex.atom(x.text)) else null
+            is X.MapX -> if (vertex.type.isNumeric) sumMap(x) else null
             else -> null
         }
     }
@@ -919,11 +924,15 @@ internal class ExcelWorkbookBuilder(
         return guarded(vertex, coord, rounded)
     }
 
+    private fun sumMap(values: X.MapX): X.Scalar =
+        Ex.fn("SUM", values.values.map(translator::toScalar).ifEmpty { listOf(Ex.ZERO) })
+
     private fun totalFormula(vertex: ViewNode, coord: Coord): X.Scalar {
         val terms = vertex.components.map { component ->
             val value = when (val x = reference(component.vertexId, vertex.dims, coord)) {
                 is X.Scalar -> x
                 is X.Range -> Ex.fn("SUM", Ex.atom(x.text))
+                is X.MapX -> sumMap(x)
                 else -> throw Untranslatable("component ${component.vertexId}")
             }
             component.sign to value

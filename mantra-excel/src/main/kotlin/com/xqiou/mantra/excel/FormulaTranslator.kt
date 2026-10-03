@@ -1,6 +1,6 @@
 package com.xqiou.mantra.excel
 
-import com.xqiou.mantra.core.engine.Coord
+import com.xqiou.mantra.core.view.Coord
 import com.xqiou.mantra.core.model.FunctionDecl
 import com.xqiou.mantra.core.read.keyword
 import com.xqiou.mantra.core.read.listHead
@@ -19,8 +19,8 @@ import java.math.RoundingMode
 interface ExcelResolver {
     /**
      * Reference to [nodeId] seen from a context: the aligned cell when the node's dimensions are all
-     * fixed by the context, otherwise the node's member cells as an [X.Range]. Literal parameters
-     * (vectors, maps) are returned as values.
+     * fixed by the context, otherwise the node's member cells as an [X.Range], or an empty [X.MapX]
+     * when no members exist. Literal parameters (vectors, maps) are returned as values.
      */
     fun reference(nodeId: String, contextDims: List<String>, contextCoord: Coord): X?
 
@@ -286,14 +286,11 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     }
 
     /** Clojure truthiness: only nil and false are falsey. */
-    fun truthy(x: X.Scalar): X.Scalar = if (x.kind == XKind.BOOL) x else Ex.cmp("<>", x, Ex.EMPTY)
+    fun truthy(x: X.Scalar): X.Scalar = if (x.kind == XKind.BOOL)
+        Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x) else Ex.cmp("<>", x, Ex.EMPTY)
 
     private fun or(items: List<X.Scalar>): X.Scalar =
-        if (items.all { it.kind == XKind.BOOL }) {
-            Ex.fn("OR", items, kind = XKind.BOOL)
-        } else {
-            items.dropLast(1).foldRight(items.last()) { item, acc -> Ex.iff(truthy(item), item, acc) }
-        }
+        items.foldRight(Ex.EMPTY) { item, acc -> Ex.iff(truthy(item), item, acc) }
 
     private fun comparison(op: String, items: List<X.Scalar>): X.Scalar {
         val excel = when (op) {
@@ -374,6 +371,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
      */
     private fun proRata(amount: X.Scalar, weights: X, scale: X.Scalar): X {
         val (keys, w) = keyedValues(weights, "alloc/pro-rata")
+        if (keys.isEmpty()) return X.MapX(emptyList(), emptyList())
         if (keys.size > 12) throw Untranslatable("alloc/pro-rata with more than 12 members")
         val total = if (weights is X.Range) Ex.fn("SUM", Ex.atom(weights.text)) else Ex.chain("+", w, Ex.ADD)
         val factor = Ex.pow10(scale)

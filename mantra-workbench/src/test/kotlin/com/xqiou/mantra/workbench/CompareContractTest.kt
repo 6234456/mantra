@@ -19,8 +19,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class CompareContractTest {
-    private val directory = Path.of("examples/de-est-2025")
-    private val golden = Path.of("mantra-workbench/src/test/resources/golden/de-est-2025-case-mustermann-b598e71c/compare-2026.json")
+    private val directory = Path.of("apps/de-est")
+    private val golden = Path.of("mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json")
 
     private fun registry(): SchemaRegistry {
         val schemas = Files.list(Path.of("docs/workbench/schema")).use { stream ->

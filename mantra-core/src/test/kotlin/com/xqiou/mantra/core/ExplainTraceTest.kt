@@ -25,7 +25,7 @@ class ExplainTraceTest {
     }
 
     @Test fun `one selected ESt value captures bounded source steps without changing its result`() {
-        val directory = Path.of("examples/de-est-2025")
+        val directory = Path.of("apps/de-est")
         val schema = Mantra.loadSchema(directory.resolve("schema.mantra"))
         val case = Mantra.loadCase(directory.resolve("case-mustermann.mantra"))
         val ordinary = Mantra.calculate(schema, case)
@@ -44,7 +44,7 @@ class ExplainTraceTest {
     }
 
     @Test fun `named tariff function reports the executed cond branch and child first steps`() {
-        val directory = Path.of("examples/de-est-2025")
+        val directory = Path.of("apps/de-est")
         val result = Mantra.calculateForExplain(Mantra.loadSchema(directory.resolve("schema.mantra")),
             Mantra.loadCase(directory.resolve("case-mustermann.mantra")), emptyList(), "tarifliche-est")
         val trace = assertNotNull(result.explainTrace)

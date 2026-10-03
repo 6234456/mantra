@@ -16,7 +16,7 @@ import com.xqiou.normein.dsl.form.DslFormSequenceKind
  * Reads a case document — the user-controlled part of a calculation:
  *
  * ```
- * (case <id> {:schema de.est/2025 :title "..." ...}?
+ * (case <id> {:schema test/example :title "..." ...}?
  *   (inputs {<input-id> <literal> ...})
  *   (params {<param-id> <literal> ...})     ; overrides of template parameters
  *   (extend <slot-id> <item>*)              ; user-defined lines in declared slots

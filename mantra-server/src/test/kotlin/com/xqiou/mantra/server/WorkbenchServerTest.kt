@@ -285,7 +285,7 @@ class WorkbenchServerTest {
         val root = temp.resolve("table-workspace")
         val target = root.resolve("sample")
         Files.createDirectories(target)
-        Files.list(Path.of("examples/de-est-2025")).use { stream ->
+        Files.list(Path.of("apps/de-est")).use { stream ->
             stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, target.resolve(it.fileName)) }
         }
         val ui = temp.resolve("table-ui")
@@ -311,7 +311,7 @@ class WorkbenchServerTest {
         val root = temp.resolve("authoring-workspace")
         val sample = root.resolve("sample")
         Files.createDirectories(sample)
-        Files.list(Path.of("examples/ifrs-ias36-corporate-assets")).use { stream ->
+        Files.list(Path.of("apps/ifrs-impairment")).use { stream ->
             stream.filter { it.fileName.toString().endsWith(".mantra") }.forEach { Files.copy(it, sample.resolve(it.fileName)) }
         }
         val ui = temp.resolve("authoring-ui")
@@ -462,12 +462,12 @@ class WorkbenchServerTest {
     }
 
     @Test fun `all three acceptance workspaces can be read through HTTP`() {
-        WorkbenchServer(Path.of("examples"), 0).use { server ->
+        WorkbenchServer(Path.of("apps"), 0).use { server ->
             server.start()
             for (id in listOf(
-                "de-est-2025/case-mustermann.mantra",
-                "ifrs-ias36-corporate-assets/case-ie8.mantra",
-                "sap-co-product-cost/case-demo.mantra",
+                "de-est/case-mustermann.mantra",
+                "ifrs-impairment/case-ie8.mantra",
+                "cost-accounting/case-demo.mantra",
             )) {
                 val encoded = id.replace("/", "%2F")
                 val structure = request(server.localPort, "/api/v1/cases/$encoded/structure")
@@ -482,9 +482,9 @@ class WorkbenchServerTest {
     }
 
     @Test fun `explain returns a bounded source trace through the address route`() {
-        WorkbenchServer(Path.of("examples"), 0).use { server ->
+        WorkbenchServer(Path.of("apps"), 0).use { server ->
             server.start()
-            val path = "/api/v1/cases/de-est-2025%2Fcase-mustermann.mantra/explain"
+            val path = "/api/v1/cases/de-est%2Fcase-mustermann.mantra/explain"
             val response = request(server.localPort, "$path?address=ermaessigung-35a")
             assertEquals(200, response.status, response.body)
             validate("explain", response.body)
@@ -503,9 +503,9 @@ class WorkbenchServerTest {
     }
 
     @Test fun `explain resolves a dimensioned choice and its option difference`() {
-        WorkbenchServer(Path.of("examples"), 0).use { server ->
+        WorkbenchServer(Path.of("apps"), 0).use { server ->
             server.start()
-            val path = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=recoverable-amount%40B"
+            val path = "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=recoverable-amount%40B"
             val response = request(server.localPort, path)
             assertEquals(200, response.status, response.body)
             validate("explain", response.body)
@@ -515,13 +515,13 @@ class WorkbenchServerTest {
             val nested = request(server.localPort, "$path&depth=2")
             assertEquals(200, nested.status, nested.body)
             validate("explain", nested.body)
-            val mapPath = "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=allocation-key%40B&depth=2"
+            val mapPath = "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=allocation-key%40B&depth=2"
             val mapReference = request(server.localPort, mapPath)
             assertEquals(200, mapReference.status, mapReference.body)
             validate("explain", mapReference.body)
             assertContains(mapReference.body, "\"node\":\"all.weighted-amount\"")
             val directMap = request(server.localPort,
-                "/api/v1/cases/ifrs-ias36-corporate-assets%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
+                "/api/v1/cases/ifrs-impairment%2Fcase-ie8.mantra/explain?address=all.weighted-amount")
             assertEquals(200, directMap.status, directMap.body)
             validate("explain", directMap.body)
             val mapper = ObjectMapper()

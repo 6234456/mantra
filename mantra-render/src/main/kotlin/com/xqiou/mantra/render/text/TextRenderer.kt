@@ -22,12 +22,12 @@ object TextRenderer {
             appendLine()
             appendLine(paper.texts.structure)
             paper.overview.forEach { step ->
-                appendLine("  ${paper.texts.mainline} ${step.step}: ${step.panel.title}${step.panel.tableRef?.let { " [$it]" }.orEmpty()}  ${step.panel.value}")
+                appendLine("  ${paper.texts.mainline} ${step.step}: ${step.panel.title}${step.panel.tableRef?.let { " [$it]" }.orEmpty()}  ${step.panel.value}".trimEnd())
                 step.branches.forEach { branch ->
-                    appendLine("      ↳ ${branch.title}${branch.tableRef?.let { " [$it]" }.orEmpty()}  ${branch.value}  ${branch.entry.orEmpty()}")
+                    appendLine("      ↳ ${branch.title}${branch.tableRef?.let { " [$it]" }.orEmpty()}  ${branch.value}  ${branch.entry.orEmpty()}".trimEnd())
                 }
             }
-            paper.auxiliary.forEach { aux -> appendLine("  ${paper.texts.auxiliary}: ${aux.title}${aux.tableRef?.let { " [$it]" }.orEmpty()}  ${aux.value}") }
+            paper.auxiliary.forEach { aux -> appendLine("  ${paper.texts.auxiliary}: ${aux.title}${aux.tableRef?.let { " [$it]" }.orEmpty()}  ${aux.value}".trimEnd()) }
         }
         paper.tables.forEach { table ->
             appendLine()

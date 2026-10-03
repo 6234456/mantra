@@ -1,0 +1,200 @@
+Manufacturing cost collection and product unit cost
+Primary and secondary cost elements · actual versus standard
+===================================================
+Entity: Demo manufacturing company
+Period: 2026-01
+Calculation schema: Product cost by manufacturing order v0.1 [cost.accounting/product-cost]
+Prepared by: Mantra acceptance example
+WP ref.: CO-DEMO/01
+Favourable variance: (1,560.00)
+
+Structure of the calculation
+  Mainline 1: Cost element collection [1]  12,400.00
+  Mainline 2: Actual and standard cost by manufacturing order [2]  12,400.00
+  Mainline 3: Quantity-weighted product costs [3]  12,400.00
+  Mainline 4: Cost flow reconciliation [4]
+
+[1] 1 · Cost element collection
+    Mainline › 1 Cost element collection
+                                        |        CU |
+----------------------------------------+-----------+--
+Primary costs posted directly to orders | 12,400.00 |
+Primary expense accounts to allocate    |         – |
+Secondary cost elements to allocate     |         – |
+                                       -+-----------+-
+Total actual costs to assign            | 12,400.00 | Σ
+                                       =+===========+=
+
+[2] 2 · Manufacturing orders
+    Mainline › 2 Actual and standard cost by manufacturing order
+Order cost                           | Order O100 · Product A | Order O101 · Product A | Order O200 · Product B |      Total |
+-------------------------------------+------------------------+------------------------+------------------------+------------+--
+Allocation base                      |                     10 |                     30 |                     20 |         60 |
+Direct primary cost elements         |               5,000.00 |               3,000.00 |               4,400.00 |  12,400.00 |
+Allocated primary expense accounts   |                      – |                      – |                      – |          – |
+Allocated secondary cost elements    |                      – |                      – |                      – |          – |
+                                    -+------------------------+------------------------+------------------------+------------+-
+Actual order cost                    |               5,000.00 |               3,000.00 |               4,400.00 |  12,400.00 | Σ
+                                    =+========================+========================+========================+============+=
+Completed quantity                   |                    100 |                     50 |                     80 |        230 |
+Actual cost per completed unit       |                50.0000 |                60.0000 |                55.0000 |            |
+Standard cost per unit               |                58.0000 |                64.0000 |                62.0000 |            |
+Standard cost for completed quantity |               5,800.00 |               3,200.00 |               4,960.00 |  13,960.00 |
+Actual less standard cost            |               (800.00) |               (200.00) |               (560.00) | (1,560.00) |
+
+[3] 3 · Weighted product costs
+    Mainline › 3 Quantity-weighted product costs
+Product cost                        |  Product A | Product B |      Total |
+------------------------------------+------------+-----------+------------+--
+Completed quantity                  |        150 |        80 |        230 |
+Actual cost of product orders       |   8,000.00 |  4,400.00 |  12,400.00 |
+                                   -+------------+-----------+------------+-
+Total actual product cost           |   8,000.00 |  4,400.00 |  12,400.00 | Σ
+                                   =+============+===========+============+=
+Standard cost of product orders     |   9,000.00 |  4,960.00 |  13,960.00 |
+Weighted average actual unit cost   |    53.3333 |   55.0000 |            |
+Weighted average standard unit cost |    60.0000 |   62.0000 |            |
+Actual less standard cost           | (1,000.00) |  (560.00) | (1,560.00) |
+
+[4] 4 · Reconciliation
+    Mainline › 4 Cost flow reconciliation
+                                       |         CU
+---------------------------------------+-----------
+Actual cost assigned to orders         |  12,400.00
+Actual cost aggregated to products     |  12,400.00
+Source costs less assigned order costs |          –
+Order costs less product costs         |          –
+Standard cost for completed output     |  13,960.00
+Favourable variance                    | (1,560.00)
+
+Audit trail
+-----------
+1/1 Primary costs posted directly to orders
+    Formula: (sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings))
+    Working: sum(map(fn([posting]; if(posting.mode = :direct; posting.amount; 0)); [{:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O101; :amount 600}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O200; :amount 3,600}; {:cost-element "510100"; :expe… = 12,400.00
+1/2 Primary expense accounts to allocate
+    Formula: (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings))
+    Working: sum(map(fn([posting]; if(posting.mode = :pool; posting.amount; 0)); [{:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O101; :amount 600}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O200; :amount 3,600}; {:cost-element "510100"; :expens… = –
+1/3 Secondary cost elements to allocate
+    Formula: (sum (map (fn [posting] posting.amount) secondary-postings))
+    Working: sum(map(fn([posting]; posting.amount); [{:cost-element "940100"; :source-cost-center "MACHINE"; :amount 0}; {:cost-element "950100"; :source-cost-center "OVERHEAD"; :amount 0}])) = –
+1/4 Total actual costs to assign
+    Formula: direct-primary-total + primary-pool + secondary-pool
+    Working: 12,400 + 0 + 0 = 12,400.00
+2/2 Direct primary cost elements [Order O100 · Product A]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O100); posting.amount; 0)); [{:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O101; :amount 600}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O200; :amount 3,600};… = 5,000.00
+2/2 Direct primary cost elements [Order O101 · Product A]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O101); posting.amount; 0)); [{:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O101; :amount 600}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O200; :amount 3,600};… = 3,000.00
+2/2 Direct primary cost elements [Order O200 · Product B]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O200); posting.amount; 0)); [{:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element "510100"; :expense-account "510100"; :mode :direct; :order-id :O101; :amount 600}; {:cost-element "500100"; :expense-account "500100"; :mode :direct; :order-id :O200; :amount 3,600};… = 4,400.00
+2/3 Allocated primary expense accounts [Order O100 · Product A]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/3 Allocated primary expense accounts [Order O101 · Product A]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/3 Allocated primary expense accounts [Order O200 · Product B]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/4 Allocated secondary cost elements [Order O100 · Product A]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/4 Allocated secondary cost elements [Order O101 · Product A]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/4 Allocated secondary cost elements [Order O200 · Product B]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: alloc/pro-rata(0; {:O100 10; :O101 30; :O200 20}; 2) = –
+2/5 Actual order cost [Order O100 · Product A]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 5,000 + 0 + 0 = 5,000.00
+2/5 Actual order cost [Order O101 · Product A]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 3,000 + 0 + 0 = 3,000.00
+2/5 Actual order cost [Order O200 · Product B]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 4,400 + 0 + 0 = 4,400.00
+2/7 Actual cost per completed unit [Order O100 · Product A]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: decimal/divide(5,000; 100; 4) = 50.0000
+2/7 Actual cost per completed unit [Order O101 · Product A]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: decimal/divide(3,000; 50; 4) = 60.0000
+2/7 Actual cost per completed unit [Order O200 · Product B]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: decimal/divide(4,400; 80; 4) = 55.0000
+2/9 Standard cost for completed quantity [Order O100 · Product A]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: 100 × 58 = 5,800.00
+2/9 Standard cost for completed quantity [Order O101 · Product A]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: 50 × 64 = 3,200.00
+2/9 Standard cost for completed quantity [Order O200 · Product B]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: 80 × 62 = 4,960.00
+2/10 Actual less standard cost [Order O100 · Product A]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: 5,000 − 5,800 = (800.00)
+2/10 Actual less standard cost [Order O101 · Product A]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: 3,000 − 3,200 = (200.00)
+2/10 Actual less standard cost [Order O200 · Product B]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: 4,400 − 4,960 = (560.00)
+3/1 Completed quantity [Product A]
+    Formula: (dim/rollup all.produced-quantity relation_order product.key)
+    Working: dim/rollup({:O100 100; :O101 50; :O200 80}; {:O100 :A; :O101 :A; :O200 :B}; :A) = 150
+3/1 Completed quantity [Product B]
+    Formula: (dim/rollup all.produced-quantity relation_order product.key)
+    Working: dim/rollup({:O100 100; :O101 50; :O200 80}; {:O100 :A; :O101 :A; :O200 :B}; :B) = 80
+3/2 Actual cost of product orders [Product A]
+    Formula: (dim/rollup all.actual-order-cost relation_order product.key)
+    Working: dim/rollup({:O100 5,000; :O101 3,000; :O200 4,400}; {:O100 :A; :O101 :A; :O200 :B}; :A) = 8,000.00
+3/2 Actual cost of product orders [Product B]
+    Formula: (dim/rollup all.actual-order-cost relation_order product.key)
+    Working: dim/rollup({:O100 5,000; :O101 3,000; :O200 4,400}; {:O100 :A; :O101 :A; :O200 :B}; :B) = 4,400.00
+3/4 Standard cost of product orders [Product A]
+    Formula: (dim/rollup all.standard-order-cost relation_order product.key)
+    Working: dim/rollup({:O100 5,800; :O101 3,200; :O200 4,960}; {:O100 :A; :O101 :A; :O200 :B}; :A) = 9,000.00
+3/4 Standard cost of product orders [Product B]
+    Formula: (dim/rollup all.standard-order-cost relation_order product.key)
+    Working: dim/rollup({:O100 5,800; :O101 3,200; :O200 4,960}; {:O100 :A; :O101 :A; :O200 :B}; :B) = 4,960.00
+3/5 Weighted average actual unit cost [Product A]
+    Formula: (decimal/divide product-actual-cost product-quantity unit-scale)
+    Working: decimal/divide(8,000; 150; 4) = 53.3333
+3/5 Weighted average actual unit cost [Product B]
+    Formula: (decimal/divide product-actual-cost product-quantity unit-scale)
+    Working: decimal/divide(4,400; 80; 4) = 55.0000
+3/6 Weighted average standard unit cost [Product A]
+    Formula: (decimal/divide product-standard-cost product-quantity unit-scale)
+    Working: decimal/divide(9,000; 150; 4) = 60.0000
+3/6 Weighted average standard unit cost [Product B]
+    Formula: (decimal/divide product-standard-cost product-quantity unit-scale)
+    Working: decimal/divide(4,960; 80; 4) = 62.0000
+3/7 Actual less standard cost [Product A]
+    Formula: (- product-actual-cost product-standard-cost)
+    Working: 8,000 − 9,000 = (1,000.00)
+3/7 Actual less standard cost [Product B]
+    Formula: (- product-actual-cost product-standard-cost)
+    Working: 4,400 − 4,960 = (560.00)
+4/1 Actual cost assigned to orders
+    Formula: (dim/sum all.actual-order-cost)
+    Working: dim/sum({:O100 5,000; :O101 3,000; :O200 4,400}) = 12,400.00
+4/2 Actual cost aggregated to products
+    Formula: (dim/sum all.product-actual-cost)
+    Working: dim/sum({:A 8,000; :B 4,400}) = 12,400.00
+4/3 Source costs less assigned order costs
+    Formula: (- source-cost-total all-order-cost)
+    Working: 12,400 − 12,400 = –
+4/4 Order costs less product costs
+    Formula: (- all-order-cost all-product-cost)
+    Working: 12,400 − 12,400 = –
+4/5 Standard cost for completed output
+    Formula: (dim/sum all.product-standard-cost)
+    Working: dim/sum({:A 9,000; :B 4,960}) = 13,960.00
+4/6 Actual less standard cost
+    Formula: (- all-product-cost all-standard-cost)
+    Working: 12,400 − 13,960 = (1,560.00)

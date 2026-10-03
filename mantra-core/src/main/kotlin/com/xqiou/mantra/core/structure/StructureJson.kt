@@ -1,7 +1,7 @@
 package com.xqiou.mantra.core.structure
 
+import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.engine.CalculationPlan
-import com.xqiou.mantra.core.engine.CalculationResult
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.NodeKind
@@ -16,7 +16,7 @@ import com.xqiou.mantra.core.view.signLabels
  * on the mainline from `breadcrumb` and `entries`.
  */
 object StructureJson {
-    fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String =
+    internal fun write(map: SchemaMap, plan: CalculationPlan, result: CalculationResult? = null): String =
         write(map, if (result == null) CalculationView.of(plan) else CalculationView.of(result), result != null)
 
     fun write(view: CalculationView): String = write(view.structure, view, true)

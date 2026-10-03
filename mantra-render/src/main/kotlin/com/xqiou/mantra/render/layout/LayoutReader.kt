@@ -30,7 +30,7 @@ import java.util.Locale
  *   (columns :matrix  :label (members person) :cross-total)
  *   (style {:all true} {:tone :default :fill :none})
  *   (style {:class :variance} {:weight :bold :tone :accent})
- *   (style {:section product-costs :nth-child :even :kind :value} {:fill :subtle})
+ *   (style {:section costs :nth-child :even :kind :value} {:fill :subtle})
  *   (table <section-id> {:title "..." :style :matrix :expand-members true} (col ...) ...)
  *   (schedule <section-id> ...) (inline <section-id> ...) (hide <item-id> ...))
  * ```

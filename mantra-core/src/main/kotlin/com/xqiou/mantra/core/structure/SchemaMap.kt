@@ -87,7 +87,7 @@ class SchemaMap(
 object SchemaMaps {
     const val GENERAL: String = "general"
 
-    fun of(plan: CalculationPlan): SchemaMap {
+    internal fun of(plan: CalculationPlan): SchemaMap {
         val schema = plan.schema
         data class RawPanel(val section: ResolvedSection, val parent: String?, val order: Int, val topLevel: Boolean)
 

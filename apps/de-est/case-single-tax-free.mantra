@@ -1,0 +1,7 @@
+;; Synthetic boundary case: single assessment, no children, income below the basic allowance.
+(case single-tax-free
+  {:schema "de.est/2025" :layout "de.est/steuerberechnung"
+   :title "Single assessment below the basic allowance"}
+  (inputs {:veranlagungsart :einzel :kinder 0
+           :bruttoarbeitslohn {:A 12096}
+           :vermietungsobjekte []}))

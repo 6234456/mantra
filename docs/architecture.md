@@ -1,6 +1,6 @@
 # Mantra 架构设计：财税计算方案（Berechnungsschema）的内核
 
-> 状态：v0.1 基线实现 · 2026-09-26
+> 状态：v0.1 基线、工作台 v1 与 M0 monorepo/API 边界 · 2026-10-03
 > 相关文档：[引擎与应用职责契约](engine-application-boundary.md) · [DSL 参考](dsl-reference.md) · [RFC 0001：Normein DSL 内核扩展需求](rfc/0001-normein-dsl-kernel-extensions.md) · [工作台契约](workbench/contract.md)
 
 ## 1. 目标与边界
@@ -14,10 +14,10 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 | 层 | 归属 | 内容 | 不包含 |
 | --- | --- | --- | --- |
 | Normein DSL 内核 | `6234456/normein`（固定 commit 引用） | 表达式语言、类型系统、BigDecimal 精确计算、运行时预算 | Mantra 不修改它；需求写入 RFC |
-| Mantra 引擎库 | 本仓库 `mantra-core`、`mantra-render`、`mantra-cli` | 通用计算组件、通用表格组件、常用预设 | **任何具体业务逻辑**（税法条文、准则步骤） |
-| 领域应用 | `examples/`（将来迁往 monorepo 的独立应用） | ESt 2025、IAS 36、SAP CO 风格成本归集等具体计算方案、案例与版式 | 引擎代码 |
+| Mantra 引擎库与工具 | 本仓库 `mantra-core`、`mantra-render`、`mantra-excel`、`mantra-cli`、`mantra-workbench`、`mantra-server` | 通用计算组件、通用表格组件、常用预设与参考工具 | **任何具体业务逻辑**（税法条文、准则步骤） |
+| 领域展示应用 | `apps/`，每个应用是独立 Gradle 子项目 `:apps:<名称>` | ESt 2025、IAS 36、SAP CO 风格成本归集等具体方案、参数集、案例、版式和独立核对 | 引擎内部代码 |
 
-`examples/` 中的三个方案只是**验收样例**：证明引擎的通用能力足以覆盖不同领域，它们不属于引擎库，也不随库发布。
+`apps/de-est`、`apps/ifrs-impairment`、`apps/cost-accounting` 是 **monorepo 中的展示应用**：证明引擎的通用能力足以覆盖不同领域，只依赖公开 API，不作为库制品发布。它们仅供展示，不是生产用的税务或会计软件；完整度以[路线图 §2.4](roadmap.md#24-展示应用完整度标准)为准。后续领域直接建在 `apps/` 下（R3）。
 
 ## 2. 模式抽取：计算方案的本质内核
 
@@ -33,8 +33,8 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 | P6 | **分段 / 累进** | zumutbare Belastung 分段计算、累进税率 | `calc/stepwise`、`cond` |
 | P7 | **择优 / 比较计算（Günstigerprüfung, higher-of）** | Kindergeld vs Kinderfreibeträge；可收回金额 = max(FVLCD, VIU) | `choice {:rule :min/:max}` |
 | P8 | **维度复制与横向合计（cross-footing）** | 夫妻两人、多个 CGU、多个出租物业 | `dimension`、`:per`、自动横向合计、`all.<id>` |
-| P9 | **分摊（Umlage / allocation）**：按键分配且精确合计 | 总部资产分摊；损失按账面价值比例回分 | `alloc/pro-rata`（最大余数法）、`alloc/capped`（带上限的注水分配）、`:spread` |
-| P10 | **货币时间价值** | VIU 的 DCF | `fin/df`、`fin/npv` |
+| P9 | **分摊（Umlage / allocation）**：按键分配且精确合计 | 总部资产分摊；损失按账面价值比例回分 | `alloc/pro-rata`（最大余数法）、`alloc/capped`（带上限的注水分配）、`alloc/waterfall`（按优先级消耗容量）、`:spread` |
+| P10 | **货币时间价值** | VIU 的 DCF、等额期末付款 | `fin/df`、`fin/npv`、`fin/pmt` |
 | P11 | **适用条件（Anwendungsvoraussetzungen）** | 仅单独申报的单亲；仅 LuF 收入为正 | `:when`（行级、节级、选项级、维度成员级） |
 | P12 | **舍入约定** | zvE 与税额向下取整到欧元；Soli 舍去分以下 | `:round [scale :mode]`、`decimal/floor` |
 | P13 | **规范出处** | § 10b Abs. 1 EStG；IAS 36.104(b) | 核心 `:reference`、`:source`；应用自定义属性如 `:kz`、`:zeile` |
@@ -45,9 +45,15 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 
 ## 3. 分层架构
 
-工作台的只读入口现由 `mantra-workbench` 从工作区文档构建 Structure、Run、Paper、Diagnostics，
-`mantra-server` 将其暴露在回环地址的 HTTP 接口并可托管前端构建产物。
-服务每次从文档重建结果，不持有独立的计算事实；编辑、Explain 和 SSE 属于后续工作包。
+工作台 v1（WP0–WP13）已实现。`mantra-workbench` 从工作区文档构建 Structure、Run、Paper、Diagnostics，
+并提供 Explain、Compare、参数分层、案例编辑与撤销/重做、公式编辑、数据来源和导出预览。
+`mantra-server` 在回环地址提供 HTTP/JSON、SSE 与前端资源。文档是唯一事实来源；缓存和会话
+不持有独立的计算事实，案例编辑回写文档，外部变化经 SSE 通知。接口见[工作台契约](workbench/contract.md)。
+
+公开计算契约位于 `com.xqiou.mantra.core.api`，输出端的只读结果与 trace 位于 `core.view`。
+`CalculationResult.view` 提供 `CalculationView`，规划器、编译表达式和执行缓存留在 `core.engine`；
+`mantra-core` 外的库、工具与应用不得导入 `core.engine`。公开文档模型、诊断、结构和数据适配器
+仍可经各自包使用。M0 的架构与领域标识符检查约束这条边界。
 
 ```text
 应用 schema + 用户 case
@@ -166,16 +172,16 @@ Staffel 的栏位规则：表根节自身的项与检查点、以及直接子节
 
 以 IAS 36 总部资产分摊为例，引擎提供 `line`、`dimension`、`alloc/pro-rata` 等原语及维度对齐、条件继承、精确分摊、横向合计与追溯；IAS 36 应用定义减值测试流程及 CGU、总部资产等输入；用户用 DSL 表达应用开放的资产价值加权方法，提供具体参数和事实数据，并选择底稿样式。加权方法属于领域应用或用户表达式，不固化在引擎中。
 
-SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产品维度、分摊、跨维度引用、合计及追溯；领域方案在 [schema.mantra](../examples/sap-co-product-cost/schema.mantra) 中定义费用分类、分配基数、工单归集、产品加权口径和标准成本差异。用户提供成本流水、工单数量、标准成本和允许调整的参数。工单到产品的关系由应用输入契约表达，成员对齐与计算依赖由引擎处理，用户不需要配置条件的跨维度生效方式。
+SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产品维度、分摊、跨维度引用、合计及追溯；领域方案在 [schema.mantra](../apps/cost-accounting/schema.mantra) 中定义费用分类、分配基数、工单归集、产品加权口径和标准成本差异。用户提供成本流水、工单数量、标准成本和允许调整的参数。工单到产品的关系由应用输入契约表达，成员对齐与计算依赖由引擎处理，用户不需要配置条件的跨维度生效方式。
 
 `slot` 用于追加计算项；`formula-slot` 用于替换应用开放的计算公式。IAS 36 的 `weighting` 现已声明为公式扩展点；案例中的 `(bind weighting …)` 在原行维度下编译，继承结果类型、舍入规则、依赖检查和应用声明的 `:uses` 引用范围。应用仍决定哪些行可替换。
 
 ## 7. 与 Normein 的集成
 
 * 以 composite build 引用固定 commit（`normein-build.lock`，与 invoice-parser 的做法一致），只替换 `com.xqiou:normein-dsl`。
-* Mantra 自己的函数库 `mantra.calc@1`（`alloc/*`、`calc/stepwise`、`dim/*`、`fin/*`）作为普通领域库通过 `DslLibraryDescriptor` 组合到标准环境中；Normein 内核不做任何修改。
+* Mantra 自己的函数库 `mantra.calc@1`（`alloc/*`、`calc/stepwise`、`table/band`、`dim/*`、`fin/*`）作为普通领域库通过 `DslLibraryDescriptor` 组合到标准环境中；Normein 内核不做任何修改。
 * 使用中发现的内核层需求记录在 [RFC 0001](rfc/0001-normein-dsl-kernel-extensions.md)。
-* WP1 接入分支锁定已发布的 `0a3ae1de`，用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。
+* 已合入的 WP1 锁定已发布的 `0a3ae1de`（language 25 / stdlib 33），用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。
 
 ## 8. 覆盖情况与迭代路线
 
@@ -194,19 +200,14 @@ SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产�
 | DCF / 年度维度 | – | VIU 计算 | – | 🟡 函数已提供，二维呈现待做 |
 | 多期结转、有界迭代 | Verlustvortrag § 10d Abs. 2 | – | – | ⏳ |
 
-迭代计划：
-
-1. **v0.2 时间维度**：年度维度与二维矩阵（CGU × 年），IAS 36 VIU 由现金流计算；AfA/资产变动表（期初 + 增加 − 减少 − 折旧 = 期末，即时间方向的 Staffel）；IFRS 16 租赁表。
-2. **v0.3 企业税**：KSt/GewSt（Hinzurechnungen/Kürzungen、Freibetrag、Hebesatz）、IAS 12 递延税（逐项暂时性差异 × 税率）、税率调节表（Überleitungsrechnung）。
-3. **v0.4 状态与迭代**：多期状态与结转、受控的定点迭代（领域库函数，基于 `reduce` 或 `invokeCallable`，见 RFC 0001 验收契约 G）、扩大 XLSX 公式覆盖范围、编辑器支持（基于现有 `DslAuthoringService`，位置映射依赖 RFC 0001-B）。
-4. **monorepo**：把 `examples/` 中的方案迁为独立领域应用（如 `apps/de-est`、`apps/ifrs-impairment`），引擎作为共享库。
+迭代计划见[长期路线图](roadmap.md)。原计划的对应关系：v0.2 时间维度 → M2（连续期间）；v0.3 企业税 → M1 的 IAS 12 与 M3 的 GewSt、§ 10d；v0.4 状态与迭代 → M3 与 M5；monorepo → M0（`apps/` 作为完整展示）。
 
 ## 9. 已知限制（v0.1）
 
 * 每个顶点、每个成员单独调用 Normein 求值（完整 receipt 路径）；对数百行的方案足够快，大批量场景应改用 Normein 的 execution plan / session（VALUE_ONLY）。
 * 渲染器目前只支持一个成员维度作为列；其他维度在合计列中横向合计。
 * 案例文本中显式提供的输入值，其类型、范围及表格引用诊断指向案例值并带起止偏移；表格行内的精确单元位置仍待补充。未提供的输入仍指向方案声明。
-* 候选内核已提供 trace 的源码索引与非标量值渲染；Mantra 当前审计轨迹仍只替换根引用的值，逐步解释由 WP4 接入（见 RFC 0001-F）。
+* 已锁定的内核提供 trace 的源码索引与非标量值渲染，工作台和 CLI 的 Explain 已由 WP4 接入逐步解释。Text/HTML/XLSX 的审计附录仍由 `FormulaExplainer` 替换根引用的值，M1 将它们迁到同一内核 trace（见 RFC 0001-F）。
 * SAP CO 风格案例的工单→产品汇总使用 `dim/rollup`，XLSX 可随工单的产品归属变化重算。公式翻译器还支持当前案例使用的单参数 `map(fn [row] …)`；费用流水的金额变化会传导到工单、产品与对账行。更广泛的高阶函数及增删表格行的动态公式范围尚未定义。
 * `:aggregate false` 已成为引擎中的不可加总规则，结构化结果的 `crossTotal()` 返回 `null`，底稿和 XLSX 同步留空。跨成员单位成本由应用显式写成总成本除以总数量；通用的分子/分母比率聚合规则仍可进一步设计。
 * SAP 案例已用维度父键检查工单所属产品，并用表格 `:references` 检查非空费用工单编号是否存在。条件性必填和基数校验仍待细化，例如直接费用必须填工单、成本池非零时分配基数之和必须为正。具体 SAP 科目分类仍由领域应用定义。

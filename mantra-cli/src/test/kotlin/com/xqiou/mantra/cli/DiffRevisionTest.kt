@@ -44,7 +44,7 @@ class DiffRevisionTest {
 
     @Test
     fun `CLI revision matches the ESt Compare golden`() {
-        val directory = Path.of("examples/de-est-2025")
+        val directory = Path.of("apps/de-est")
         val schemaPath = directory.resolve("schema.mantra")
         val schema = Mantra.loadSchema(schemaPath)
         val revision = DiffRevision.calculate(
@@ -52,7 +52,7 @@ class DiffRevisionTest {
             directory.resolve("case-mustermann.mantra"), null,
             directory.resolve("layout.mantra"), emptyList(), listOf(directory.resolve("params-2026.mantra")),
         )
-        val goldenPath = Path.of("mantra-workbench/src/test/resources/golden/de-est-2025-case-mustermann-b598e71c/compare-2026.json")
+        val goldenPath = Path.of("mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json")
         val golden = Json.parse(Files.readString(goldenPath)) as Value.MapV
         assertEquals(revision, (golden.entries.getValue(Value.Kw("revision")) as Value.Text).value)
     }

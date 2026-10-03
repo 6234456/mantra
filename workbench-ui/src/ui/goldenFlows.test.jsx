@@ -20,9 +20,9 @@ for (const item of manifest.cases) {
 }
 
 const scenarios = [
-  { id: 'de-est-2025/case-mustermann.mantra', heading: 'Einkommensteuer 2025', result: '1.462,24', panel: 'zve', cell: '112.380,00', address: { node: 'summe-einkuenfte' } },
-  { id: 'ifrs-ias36-corporate-assets/case-ie8.mantra', heading: 'IAS 36 – Impairment test with corporate assets', result: '46', panel: 'step-1', cell: '100', address: { node: 'carrying-amount', coord: ['A'] } },
-  { id: 'sap-co-product-cost/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: { node: 'direct-primary-total' } },
+  { id: 'de-est/case-mustermann.mantra', heading: 'Einkommensteuer 2025', result: '1.462,24', panel: 'zve', cell: '112.380,00', address: { node: 'summe-einkuenfte' } },
+  { id: 'ifrs-impairment/case-ie8.mantra', heading: 'IAS 36 – Impairment test with corporate assets', result: '46', panel: 'step-1', cell: '100', address: { node: 'carrying-amount', coord: ['A'] } },
+  { id: 'cost-accounting/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: { node: 'direct-primary-total' } },
 ]
 
 function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
@@ -43,7 +43,7 @@ afterEach(() => {
 
 describe('the three tracked golden cases, from overview to a selected Paper cell', () => {
   it('shows real Explain steps from the ESt golden on the provenance route', async () => {
-    const id = 'de-est-2025/case-mustermann.mantra'
+    const id = 'de-est/case-mustermann.mantra'
     const address = { node: 'ermaessigung-35a' }
     const entry = manifest.cases.find(item => item.id === id)
     const goldenExplain = files[entry.files.explains[addressToPath(address)]].data
@@ -98,8 +98,8 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
   })
 
   it('renders every panel and node change from the tracked 2026 Compare golden on a deep link', async () => {
-    const id = 'de-est-2025/case-mustermann.mantra'
-    const path = '/fixtures/de-est-2025-case-mustermann-b598e71c/compare-2026.json'
+    const id = 'de-est/case-mustermann.mantra'
+    const path = '/fixtures/de-est-case-mustermann-552b3ca5/compare-2026.json'
     const compare = JSON.parse(readFileSync(resolve(golden, path.replace('/fixtures/', '')), 'utf8'))
     expect(compare.data.changes.length).toBeGreaterThan(0)
     const indexed = JSON.parse(JSON.stringify(manifest))

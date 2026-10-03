@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read pinned kernel revision
+        id: normein
+        run: echo "commit=$(sed -n 's/^normeinCommit=//p' normein-build.lock)" >> "$GITHUB_OUTPUT"
+      # Normein is currently private. This dedicated deploy key grants read-only access to that
+      # repository; credentials are removed by checkout and never enter Gradle caches/artifacts.
+      - name: Checkout pinned Normein kernel
+        uses: actions/checkout@v4
+        with:
+          repository: 6234456/normein
+          ref: ${{ steps.normein.outputs.commit }}
+          path: .deps/normein
+          ssh-key: ${{ secrets.NORMEIN_DEPLOY_KEY }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: workbench-ui/package-lock.json
+      - name: Architecture gate regression tests
+        run: python3 -m unittest discover -s scripts/tests
+      - name: JVM tests and application rendering
+        run: ./gradlew --no-daemon check :mantra-cli:installDist
+      - name: All CLI commands
+        run: scripts/smoke-cli.sh
+      - name: Independent demonstration calculations
+        run: |
+          python3 apps/de-est/verify_expected.py --verify-values apps/de-est/build/out/case-mustermann-values.json
+          python3 apps/de-est/verify_expected.py --year 2026 --verify-values apps/de-est/build/out/case-mustermann-params-2026-values.json
+          python3 apps/de-est/verify_expected.py --verify-tax-free apps/de-est/build/out/case-single-tax-free-values.json
+          python3 apps/de-est/verify_expected.py --verify-tax-free apps/de-est/build/out/case-single-tax-free-params-2026-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --verify apps/ifrs-impairment/build/out/case-ie8-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case custom-weight --verify apps/ifrs-impairment/build/out/case-custom-weight-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case no-impairment --verify apps/ifrs-impairment/build/out/case-no-impairment-values.json
+          python3 apps/cost-accounting/verify_expected.py --verify apps/cost-accounting/build/out/case-demo-values.json
+          python3 apps/cost-accounting/verify_expected.py --zero-pools --verify apps/cost-accounting/build/out/case-zero-pools-values.json
+      - name: Frontend dependencies
+        working-directory: workbench-ui
+        run: npm ci
+      - name: Frontend tests
+        working-directory: workbench-ui
+        run: npm test
+      - name: Frontend build
+        working-directory: workbench-ui
+        run: npm run build
+      - name: Browser flows using the runner's installed Chrome
+        working-directory: workbench-ui
+        env:
+          MANTRA_TEST_CHROME: /usr/bin/google-chrome
+        run: npm run test:e2e
+      - name: Test reports and demonstration papers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-results
+          path: |
+            mantra-*/build/reports/tests/
+            apps/*/build/reports/tests/
+            apps/*/build/out/
+          if-no-files-found: ignore

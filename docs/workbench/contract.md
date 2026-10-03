@@ -46,12 +46,12 @@ Normein（固定 commit）
 
 | 模块 | 状态 | 职责 | 不包含 |
 | --- | --- | --- | --- |
-| `mantra-core` | 现有 | 计算；新增只读结果视图（§5） | HTTP、会话、文件监视 |
-| `mantra-render` | 现有 | 版式 → `WorkingPaper`；新增按板块取表和 JSON 投影 | 交互状态 |
-| `mantra-excel` | 现有 | XLSX 导出、按命名单元格回读 | — |
-| `mantra-workbench` | 新增 | §4–§8 的全部服务；可被 CLI 复用（如 `mantra explain`、`mantra diff`） | 领域名词、HTTP |
-| `mantra-server` | 新增 | §9 的接口 | 计算与业务规则 |
-| `workbench-ui` | 新增 | 外壳、导航、绘制、编辑交互 | 数值运算、领域分支 |
+| `mantra-core` | 已实现 | 计算与只读结果视图（§5） | HTTP、会话、文件监视 |
+| `mantra-render` | 已实现 | 版式 → `WorkingPaper`；按板块取表和 JSON 投影 | 交互状态 |
+| `mantra-excel` | 已实现 | XLSX 导出、按命名单元格回读 | — |
+| `mantra-workbench` | 已实现 | §4–§8 的全部服务；可被 CLI 复用（如 `mantra explain`、`mantra diff`） | 领域名词、HTTP |
+| `mantra-server` | 已实现 | §9 的接口 | 计算与业务规则 |
+| `workbench-ui` | 已实现 | 外壳、导航、绘制、编辑交互 | 数值运算、领域分支 |
 
 依赖只能向下。`mantra-workbench` 和 `mantra-server` 与引擎库一样，不含业务逻辑。
 
@@ -69,7 +69,7 @@ Normein（固定 commit）
 
 | 对象 | 标识 | 例 |
 | --- | --- | --- |
-| 案例 | 工作区相对路径（URL 中编码） | `de-est-2025/case-mustermann.mantra` |
+| 案例 | 工作区相对路径（URL 中编码） | `de-est/case-mustermann.mantra`（工作区根为 `apps/`） |
 | 方案 | 方案 id + `:version` | `de.est/2025` · `2025.1` |
 | 板块 | 节 id，即 `SchemaMap.panels[].id`，也等于 `PaperTable.id` | `einkuenfte` |
 | 节点 | 顶点 id | `bruttoarbeitslohn` |
@@ -117,11 +117,11 @@ URL 中使用字符串形式 `节点[@成员/成员…][#行.列]`，例如 `bru
 
 ## 5. 只读结果视图（mantra-core）
 
-对应[边界文档](../engine-application-boundary.md)“下一步”第 5 项。
+对应[边界文档](../engine-application-boundary.md)第 5 项。M0 收口后，`core.api.CalculationResult`
+经 `view` 提供 `core.view.CalculationView`。规划器、执行计划和编译表达式是 `core.engine`
+内部实现；坐标、节点追溯、Explain 追溯与参数层属于公开 `core.view`。
 
-现状：`CalculationResult` 直接暴露 `CalculationPlan`，渲染、XLSX 和 `StructureJson` 都读取具体的顶点类型。
-
-v1 定义一个只读视图（暂名 `CalculationView`），包含：
+只读视图 `CalculationView` 包含：
 
 - **方案元数据**：id、版本、标题、期间、主线声明。
 - **结构**：`SchemaMap`，即板块、角色、流、主线入口、面包屑、通用输入和参数。
@@ -133,7 +133,7 @@ v1 定义一个只读视图（暂名 `CalculationView`），包含：
 - **输入约束**：类型、默认值、`:min` / `:max` / `:options` / `:columns` / `:references`、`:help`、`:unit`。
 - **每次计算的结果**：活动成员、每个坐标的值、是否适用、`NodeTrace`，以及诊断。
 
-`mantra-render`、`mantra-excel` 和工作台只依赖这个视图；`Planner`、编译表达式和执行缓存留在引擎内部。验收方式：用测试检查这三个模块不再导入 `engine` 包中的顶点类型。
+`mantra-render`、`mantra-excel`、工作台、CLI 与 `apps/` 通过公开 API 或此视图读取计算结果；`Planner`、编译表达式和执行缓存留在引擎内部。验收方式：检查 `mantra-core` 外所有主代码及应用测试不再导入 `core.engine`。
 
 ## 6. 数据文档
 
@@ -143,7 +143,7 @@ v1 定义一个只读视图（暂名 `CalculationView`），包含：
 {
   "contract": "mantra.workbench/1",
   "revision": "3f6c0e1a9b2d4c75",
-  "engine": {"mantra": "0.1.0-SNAPSHOT", "normein": "be7648b5"},
+  "engine": {"mantra": "0.1.0-SNAPSHOT", "normein": "0a3ae1de"},
   "data": {}
 }
 ```
@@ -161,13 +161,13 @@ v1 定义一个只读视图（暂名 `CalculationView`），包含：
 | `Vec` | `[…]` |
 | `MapV` | `{"map": [[键, 值], …]}`：保持顺序 |
 
-值中不出现 JSON 数字。现有 `StructureJson` 把 `BigDecimal` 写成 JSON 数字（例如 `"value": 17996.0`），JavaScript 读入后会变成浮点数，v1 要改成上表的编码。
+工作台契约中的引擎数值不出现 JSON 数字，统一按上表编码；行号、步骤序号、坐标偏移等结构元数据仍可用 JSON 整数。旧 `StructureJson` 的原始输出不是工作台响应，前端使用带版本的工作台文档。
 
 需要显示的地方同时给出 `display`。它由服务端按当前版式的区域、精度、负数样式和零值规则格式化，与纸面使用同一套 `Formatting`。
 
 ### 6.2 Structure（结构）
 
-在现有 [StructureJson](../../mantra-core/src/main/kotlin/com/xqiou/mantra/core/structure/StructureJson.kt) 的基础上扩展；当前输出样例见 `examples/build/out/est-2025-structure.json`（运行 `./gradlew test` 生成）。
+在现有 [StructureJson](../../mantra-core/src/main/kotlin/com/xqiou/mantra/core/structure/StructureJson.kt) 的基础上扩展；当前输出样例见 `apps/de-est/build/out/est-2025-structure.json`（运行 `./gradlew test` 生成）。
 
 保留的字段：
 - `schema`、`title`、`mainline[]`、`generalInputs`、`params`；
@@ -236,7 +236,7 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 
 ### 6.5 Explain（一个值的计算过程）
 
-请求：地址，外加可选的深度。响应示例（节选，ESt 样例 [schema.mantra:153](../../examples/de-est-2025/schema.mantra)）：
+请求：地址，外加可选的深度。响应示例（节选，ESt 样例 [schema.mantra:153](../../apps/de-est/schema.mantra)）：
 
 HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`node[@成员/成员…][#行.列]`。每个节点、成员、行、列分别做百分号编码，再将整个字符串编码为查询参数；服务端先解查询参数、再解各段。成员顺序须与节点声明的维度顺序一致；表格单元的行是从 0 开始的索引，列是记录键。`all.<node>` 表示有维度节点的完整成员映射；部分固定维度时使用 `all.<node>@维度=成员/…`，绑定按节点的维度顺序排列，且至少留一个未固定维度。成员映射不接受单元格，其 Explain 将剩余维度的成员地址列为 `references`（最多 63 项，超出标记 `truncated`）。`depth` 为 1–5 的整数，省略时为 1。深度大于 1 时，引用项的 `explanation` 递归承载下一层；每次请求最多展开 64 个值，超出返回 413。不存在的节点、坐标或单元格返回 404，格式错误返回 400。响应仍使用 §6.1 的结构化 `address` 对象。
 
@@ -247,7 +247,7 @@ HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`nod
   "kind": "line",
   "formula": {
     "text": "(min (max 0 (- tarifliche-est ermaessigung-35)) (+ (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) (min (* 0.2 handwerkerleistungen) 1200)))",
-    "location": {"document": "de-est-2025/schema.mantra", "line": 154, "column": 7}
+    "location": {"document": "de-est/schema.mantra", "line": 154, "column": 7}
   },
   "result": {"value": {"n": "740.0"}, "display": "740,00", "rounding": null},
   "status": "active",
@@ -305,7 +305,7 @@ HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`nod
 ### 6.6.1 只读测试数据清单
 
 `mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]` 在输出目录下写出 `index.json` 和每个案例的
-`structure.json`、`run.json`、`paper.json`、`diagnostics.json`、`parameters.json`。五份文档都使用 §6 的
+`structure.json`、`run.json`、`paper.json`、`diagnostics.json`、`parameters.json`、`export-preview.json`，以及可选 Explain 与各表的导出预览文件。各文档都使用 §6 的
 `contract`/`revision`/`engine`/`data` 外层。清单本身只用于静态文件分发，不是 HTTP API 响应：
 
 ```json
@@ -318,14 +318,14 @@ HTTP 查询中的 `address` 使用与前端路由相同的字符串形式：`nod
 
 `fixtures` 命令针对仓库中的独立验收方案：案例文件旁须有 `schema.mantra`。
 若案例声明 `:layout`，须有同目录 `layout.mantra` 且其 id 与绑定一致；未声明时使用默认版式，
-与工作区服务一致。此命令仍不按案例绑定解析工作区中任意路径的方案、参数集或数据文件。
-完整的案例绑定与所有参与文件的修订计算由后续工作区服务实现（WP7、WP11）。
+与工作区服务一致。此命令仍不按案例绑定解析工作区中任意路径的方案或参数集；数据来源按工作区边界加载。
+来源绑定由 `BoundSources` 加载，来源文件也进入 fixture 修订。工作区服务（WP7、WP11）已实现完整的工作区绑定解析；fixture 命令仍保留同目录方案和版式的上述限制。
 
 ### 6.7 Compare（两次计算的差异）
 
 请求包含基准（当前案例）和一个变体。变体可以是另一组参数集、另一份案例，或一组尚未写入的编辑（§7.1 的预演）。
 
-`POST /cases/{case}/compare` 的 JSON 请求为 `{"variant":{"parameters":["参数集 id"],"case":"工作区相对案例路径"}}`。`variant` 必填，`parameters` 与 `case` 至少提供一个；两者均可单独使用。基准使用 URL 中案例绑定的参数集和版式；变体案例的版式不参与比较。提供 `parameters` 时，有序列表**替换**变体案例自身的参数集绑定（空数组表示不使用参数集）；省略时沿用变体案例的绑定。省略 `case` 时使用 URL 中的案例。另一案例必须使用相同方案 id；不存在的案例返回 404，未能解析的参数集返回 422，错误类型、非规范案例路径、重复 JSON 键及额外字段返回 400。请求不写文档，因此不使用 `baseRevision`。未写入的编辑预演在 WP6 接入之前返回 501。
+`POST /cases/{case}/compare` 的 JSON 请求为 `{"variant":{"parameters":["参数集 id"],"case":"工作区相对案例路径"}}`。`variant` 必填，`parameters` 与 `case` 至少提供一个；两者均可单独使用。基准使用 URL 中案例绑定的参数集和版式；变体案例的版式不参与比较。提供 `parameters` 时，有序列表**替换**变体案例自身的参数集绑定（空数组表示不使用参数集）；省略时沿用变体案例的绑定。省略 `case` 时使用 URL 中的案例。另一案例必须使用相同方案 id；不存在的案例返回 404，未能解析的参数集返回 422，错误类型、非规范案例路径、重复 JSON 键及额外字段返回 400。请求不写文档，因此不使用 `baseRevision`。未写入的编辑预演使用已实现的 `POST …/preview`（§7.1），不在此 Compare 请求中混入编辑操作。
 
 ```json
 {
@@ -435,7 +435,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **往返不变式**（用性质测试检查）：
   - `read(write(doc, ops))` 在语义上等于 `apply(read(doc), ops)`；
   - 编辑区间以外的文本逐字节相同。
-- **依赖**：需要每个子形式的起止偏移。候选内核的 `readForms` 和 `DslSourcePosition(startOffset, endOffset)` 满足这一要求（WP1）。
+- **依赖**：需要每个子形式的起止偏移。已锁定内核的 `readForms` 和 `DslSourcePosition(startOffset, endOffset)` 满足这一要求（WP1）。
 
 ### 7.3 并发、撤销与响应
 
@@ -471,7 +471,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   - 补全：当前 slot 可见的输入、行和参数（`formula-slot` 受 `:uses` 限制），以及 Normein 标准函数和 `mantra.calc@1`；
   - 悬停：签名、说明、当前计算中的值；
   - 诊断：带起止位置。
-- **位置换算**：使用内核的 `hostPosition`。采用后删除 Mantra 目前的二次坐标重锚（WP1）。
+- **位置换算**：已使用内核的 `hostPosition`；WP1 已移除重复的二次坐标重锚。
 - **预览**：通过 `…/preview`（§7.1）返回该行的值和差异，对应设计稿中的 “540,00 ▲”。
 - **上限**：公式原文受内核读取器上限约束；补全最多返回 200 项。
 
@@ -673,3 +673,4 @@ WP13 的具体声明与解析规则：方案元数据用 `:headline <节点符�
 | 2026-09-27 | WP5 修正 | CLI diff 修订哈希改用稳定逻辑角色与有序参数索引，不包含检出目录绝对路径 |
 | 2026-09-27 | WP7 接入 WP5 | GET 参数分层接入工作区绑定，POST Compare 保留 501 待请求解析 |
 | 2026-09-27 | WP7 Compare | POST Compare 接入工作区解析与请求校验，支持有序参数集、另一案例及只读修订 |
+| 2026-10-03 | M0 文档同步 | 展示应用迁至 `apps/`；公开结果契约移至 `core.api` / `core.view`；修正内核版本及 v1 已实现能力的旧描述 |

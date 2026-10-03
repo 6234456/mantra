@@ -11,7 +11,7 @@ val normeinVersion: String = java.util.Properties().apply {
     file("normein-build.lock").inputStream().use { load(it) }
 }.getProperty("normeinVersion") ?: error("normein-build.lock must declare normeinVersion")
 
-subprojects {
+configure(subprojects.filter { it.path != ":apps" }) {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     group = rootProject.group
@@ -23,6 +23,11 @@ subprojects {
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
+        if (project.path.startsWith(":apps:")) {
+            sourceSets.named("test") {
+                kotlin.srcDir(rootProject.file("build-support/app-acceptance"))
+            }
+        }
     }
 
     extra["normeinVersion"] = normeinVersion
@@ -36,9 +41,50 @@ subprojects {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
         workingDir = rootProject.projectDir
+        inputs.files(rootProject.fileTree("apps") {
+            include("**/*.mantra", "**/data/*.csv", "**/import-templates/*.json")
+            exclude("**/build/**")
+        }).withPropertyName("applicationDocuments")
+        inputs.property("updateGolden", System.getenv("MANTRA_UPDATE_GOLDEN") ?: "0")
+        if (project.path.startsWith(":apps:")) {
+            systemProperty("mantra.appDir", project.projectDir.absolutePath)
+        }
         testLogging {
             events("failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
     }
+}
+
+val checkBoundaries by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Checks public API imports, domain identifiers and one-way application dependencies."
+    commandLine("python3", "scripts/check-boundaries.py")
+    doFirst {
+        val libraryPaths = subprojects.filter { it.path.startsWith(":mantra-") }.map { it.path }.toSet()
+        subprojects.forEach { consumer ->
+            consumer.configurations.forEach { configuration ->
+                configuration.dependencies.withType<ProjectDependency>().forEach { dependency ->
+                    val target = dependency.path
+                    check(!consumer.path.startsWith(":mantra-") || !target.startsWith(":apps")) {
+                        "${consumer.path}:${configuration.name} must not depend on application $target"
+                    }
+                    check(!consumer.path.startsWith(":apps:") || target in libraryPaths) {
+                        "${consumer.path}:${configuration.name} may depend only on library modules, found $target"
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.register("check") {
+    group = "verification"
+    dependsOn(checkBoundaries)
+    dependsOn(subprojects.filter { it.path != ":apps" }.map { it.tasks.named("check") })
+}
+
+subprojects.filter { it.path != ":apps" }.forEach { project ->
+    project.tasks.named("check") { dependsOn(checkBoundaries) }
+    project.tasks.named("test") { dependsOn(checkBoundaries) }
 }

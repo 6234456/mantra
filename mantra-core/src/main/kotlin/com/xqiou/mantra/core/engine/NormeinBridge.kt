@@ -25,7 +25,7 @@ import java.math.BigDecimal
 import java.security.MessageDigest
 
 /** The single Normein environment used by Mantra: standard libraries + [MantraLibrary]. */
-object MantraKernel {
+internal object MantraKernel {
     const val ENVIRONMENT_ID: String = "mantra.calc"
     const val ENVIRONMENT_VERSION: String = "1"
 

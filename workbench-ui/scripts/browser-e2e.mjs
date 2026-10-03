@@ -11,9 +11,9 @@ const chrome = process.env.MANTRA_TEST_CHROME ?? '/Applications/Google Chrome.ap
 if (!existsSync(chrome)) throw new Error(`System Chrome not found: ${chrome}. Set MANTRA_TEST_CHROME to an installed browser executable.`)
 
 const scenarios = [
-  { id: 'de-est-2025/case-mustermann.mantra', heading: 'Einkommensteuer 2025', result: '1.462,24', panel: 'zve', cell: '112.380,00', address: 'summe-einkuenfte' },
-  { id: 'ifrs-ias36-corporate-assets/case-ie8.mantra', heading: 'IAS 36 – Impairment test with corporate assets', result: '46', panel: 'step-1', cell: '100', address: 'carrying-amount@A' },
-  { id: 'sap-co-product-cost/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: 'direct-primary-total' },
+  { id: 'de-est/case-mustermann.mantra', heading: 'Einkommensteuer 2025', result: '1.462,24', panel: 'zve', cell: '112.380,00', address: 'summe-einkuenfte' },
+  { id: 'ifrs-impairment/case-ie8.mantra', heading: 'IAS 36 – Impairment test with corporate assets', result: '46', panel: 'step-1', cell: '100', address: 'carrying-amount@A' },
+  { id: 'cost-accounting/case-demo.mantra', heading: 'Product cost by manufacturing order', result: '1,140.00', panel: 'cost-sources', cell: '12,400.00', address: 'direct-primary-total' },
 ]
 
 async function freePort() {
@@ -85,7 +85,12 @@ async function connect(url) {
 let vite, browser, session, directory
 let interrupted = false
 function start(command, args) {
-  const child = spawn(command, args, { detached: true, stdio: 'ignore' })
+  const child = spawn(command, args, {
+    detached: true,
+    stdio: 'ignore',
+    env: { ...process.env, XDG_CACHE_HOME: join(directory, 'cache'), XDG_CONFIG_HOME: join(directory, 'config'),
+      CHROME_LOG_FILE: join(directory, 'chrome.log'), TMPDIR: directory },
+  })
   child.on('error', error => { child.startError = error })
   return child
 }
@@ -104,7 +109,8 @@ try {
   await until(async () => (await fetch(`http://127.0.0.1:${port}/`)).ok, 'Vite')
   browser = start(chrome, [
     '--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
-    '--remote-debugging-port=0', `--user-data-dir=${join(directory, 'profile')}`, 'about:blank',
+    '--remote-debugging-port=0', `--user-data-dir=${join(directory, 'profile')}`,
+    `--disk-cache-dir=${join(directory, 'cache')}`, 'about:blank',
   ])
   const debugPort = await until(async () => {
     const value = await readFile(join(directory, 'profile', 'DevToolsActivePort'), 'utf8')

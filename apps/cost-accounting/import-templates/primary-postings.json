@@ -1,0 +1,9 @@
+{
+  "name": "primary-postings",
+  "format": "csv",
+  "options": {
+    "input": "primary-postings",
+    "delimiter": ";",
+    "decimal": ","
+  }
+}

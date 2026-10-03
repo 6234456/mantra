@@ -17,17 +17,15 @@ import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
+import com.xqiou.mantra.core.view.ParameterLayer
 import com.xqiou.normein.dsl.compiler.DslCompiledExpression
 import com.xqiou.normein.dsl.compiler.DslNamedDefinition
 import com.xqiou.normein.dsl.type.DslTypeSchema
 
-/** Member coordinates of one value of a dimensioned node, in the node's canonical dimension order. */
-typealias Coord = List<String>
-
-data class NamedSource(val source: String, val location: SourceLocation)
+internal data class NamedSource(val source: String, val location: SourceLocation)
 
 /** A formula compiled by the Normein kernel for one evaluation context. */
-class CompiledFormula(
+internal class CompiledFormula(
     val formula: Formula,
     val expression: DslCompiledExpression,
     val namedSources: Map<String, NamedSource>,
@@ -45,22 +43,22 @@ class CompiledFormula(
     val relationRefs: Map<String, String>,
 )
 
-sealed class Vertex(val id: String, val location: SourceLocation) {
+internal sealed class Vertex(val id: String, val location: SourceLocation) {
     val dependencies: MutableSet<String> = linkedSetOf()
 }
 
 /** Resolves the active members of a dimension. */
-class DimensionVertex(val decl: DimensionDecl) : Vertex(decl.id, decl.location) {
+internal class DimensionVertex(val decl: DimensionDecl) : Vertex(decl.id, decl.location) {
     val memberConditions: MutableMap<String, CompiledFormula> = linkedMapOf()
 }
 
 /** The `:when` guard of a section, evaluated in the section's own dimension context. */
-class ConditionVertex(id: String, val sectionId: String, val dims: List<String>, val formula: Formula) :
+internal class ConditionVertex(id: String, val sectionId: String, val dims: List<String>, val formula: Formula) :
     Vertex(id, formula.location) {
     var compiled: CompiledFormula? = null
 }
 
-sealed class ValueVertex(id: String, location: SourceLocation) : Vertex(id, location) {
+internal sealed class ValueVertex(id: String, location: SourceLocation) : Vertex(id, location) {
     abstract val dims: List<String>
     abstract val type: ValueType
     abstract val label: String
@@ -70,12 +68,8 @@ sealed class ValueVertex(id: String, location: SourceLocation) : Vertex(id, loca
     var ownCondition: CompiledFormula? = null
 }
 
-/** One declared value of a parameter, retained even when a later layer overrides it. */
-data class ParameterLayer(val layer: String, val value: Value?, val set: String? = null,
-    val reference: String? = null, val declared: Boolean = true)
-
 /** A parameter; [source] is `schema`, the id of the parameter set that supplied it, or `case`. */
-class ParamVertex(val decl: ParamDecl, val value: Value, val source: String, val layers: List<ParameterLayer>) : ValueVertex(decl.id, decl.location) {
+internal class ParamVertex(val decl: ParamDecl, val value: Value, val source: String, val layers: List<ParameterLayer>) : ValueVertex(decl.id, decl.location) {
     val overridden: Boolean get() = source != "schema"
     override val dims: List<String> = emptyList()
     override val type: ValueType = when (value) {
@@ -89,38 +83,38 @@ class ParamVertex(val decl: ParamDecl, val value: Value, val source: String, val
     override val label: String = decl.label ?: decl.id
 }
 
-class InputVertex(val decl: InputDecl, override val dims: List<String>) : ValueVertex(decl.id, decl.location) {
+internal class InputVertex(val decl: InputDecl, override val dims: List<String>) : ValueVertex(decl.id, decl.location) {
     override val type: ValueType = decl.type
     override val label: String = decl.label ?: decl.id
 }
 
-class LineVertex(val item: LineItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
+internal class LineVertex(val item: LineItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
     override val type: ValueType = item.type
     override val label: String = item.label
     var compiled: CompiledFormula? = null
 }
 
-data class Component(val vertexId: String, val sign: Int)
+internal data class Component(val vertexId: String, val sign: Int)
 
-class TotalVertex(val item: TotalItem, override val dims: List<String>, val components: List<Component>) :
+internal class TotalVertex(val item: TotalItem, override val dims: List<String>, val components: List<Component>) :
     ValueVertex(item.id, item.location) {
     override val type: ValueType = ValueType.DECIMAL
     override val label: String = item.label
 }
 
-class ChoiceVertex(val item: ChoiceItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
+internal class ChoiceVertex(val item: ChoiceItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
     override val type: ValueType = ValueType.DECIMAL
     override val label: String = item.label
     val options: MutableList<CompiledOption> = mutableListOf()
 }
 
-class CompiledOption(val option: ChoiceOption, val formula: CompiledFormula, val condition: CompiledFormula?)
+internal class CompiledOption(val option: ChoiceOption, val formula: CompiledFormula, val condition: CompiledFormula?)
 
 // ── Resolved presentation tree ─────────────────────────────────────────────────────────────────
 
-sealed interface ResolvedItem
+internal sealed interface ResolvedItem
 
-class ResolvedSection(
+internal class ResolvedSection(
     val item: SectionItem,
     val dims: List<String>,
     val children: List<ResolvedItem>,
@@ -132,14 +126,14 @@ class ResolvedSection(
     val label: String get() = item.label
 }
 
-class ResolvedNode(val item: NodeItem, val dims: List<String>, val op: Int) : ResolvedItem {
+internal class ResolvedNode(val item: NodeItem, val dims: List<String>, val op: Int) : ResolvedItem {
     val id: String get() = item.id
 }
 
-class ResolvedNote(val item: NoteItem) : ResolvedItem
+internal class ResolvedNote(val item: NoteItem) : ResolvedItem
 
 /** Everything needed to evaluate a schema for one case; produced by [Planner]. */
-class CalculationPlan(
+internal class CalculationPlan(
     val schema: Schema,
     val case: CaseData,
     val parameterSets: List<com.xqiou.mantra.core.read.ParameterSet>,

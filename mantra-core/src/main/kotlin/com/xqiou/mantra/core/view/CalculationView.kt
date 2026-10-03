@@ -2,18 +2,13 @@ package com.xqiou.mantra.core.view
 
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
-import com.xqiou.mantra.core.engine.CalculationResult
+import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.engine.ChoiceVertex
 import com.xqiou.mantra.core.engine.ConditionVertex
-import com.xqiou.mantra.core.engine.Coord
-import com.xqiou.mantra.core.engine.GuardAlignment
 import com.xqiou.mantra.core.engine.InputVertex
 import com.xqiou.mantra.core.engine.LineVertex
-import com.xqiou.mantra.core.engine.Member
-import com.xqiou.mantra.core.engine.NodeTrace
 import com.xqiou.mantra.core.engine.NodeResult
 import com.xqiou.mantra.core.engine.ParamVertex
-import com.xqiou.mantra.core.engine.ParameterLayer
 import com.xqiou.mantra.core.engine.ResolvedItem
 import com.xqiou.mantra.core.engine.ResolvedNode
 import com.xqiou.mantra.core.engine.ResolvedNote
@@ -46,8 +41,10 @@ import java.math.BigDecimal
 /** Stable, presentation-facing classification. No planner vertex types cross this boundary. */
 enum class NodeKind { INPUT, PARAM, LINE, TOTAL, CHOICE, FORMULA_SLOT, EXTENSION }
 
+/** One section, calculation row or note in the resolved presentation tree. */
 sealed interface ViewItem
 
+/** A resolved section whose children preserve schema order and case extensions. */
 class ViewSection(
     val item: SectionItem,
     val dims: List<String>,
@@ -58,13 +55,17 @@ class ViewSection(
     val label: String get() = item.label
 }
 
+/** Placement of a node in the presentation tree, with its signed contribution. */
 class ViewTreeNode(val item: NodeItem, val dims: List<String>, val op: Int) : ViewItem {
     val id: String get() = item.id
 }
 
+/** A descriptive note placed in the presentation tree. */
 class ViewNote(val item: NoteItem) : ViewItem
 
+/** Source formula and dimension context of an inherited section condition. */
 data class ViewCondition(val id: String, val sectionId: String, val dims: List<String>, val formula: Formula)
+/** A referenced node and its sign in a running total. */
 data class ViewComponent(val vertexId: String, val sign: Int)
 
 /** One calculated node with the metadata needed by paper, workbook and workbench readers. */
@@ -121,6 +122,8 @@ class CalculationView private constructor(
     /** Original formulas of application-declared hooks, before case bindings are applied. */
     val formulaSlotDefaults: Map<String, Formula>,
     val diagnostics: List<Diagnostic>,
+    /** Total number of directed dependencies in the compiled calculation graph. */
+    val dependencyCount: Int,
 ) {
     val succeeded: Boolean get() = diagnostics.none { it.severity == com.xqiou.mantra.core.Severity.ERROR }
     fun node(id: String): ViewNode = nodes[id] ?: throw NoSuchElementException("No calculated node `$id`")
@@ -139,7 +142,7 @@ class CalculationView private constructor(
     }
 
     companion object {
-        fun of(plan: com.xqiou.mantra.core.engine.CalculationPlan): CalculationView = of(
+        internal fun of(plan: com.xqiou.mantra.core.engine.CalculationPlan): CalculationView = of(
             CalculationResult(
                 plan, emptyMap(),
                 plan.valueVertices.mapValues { (_, vertex) -> NodeResult(vertex, emptyMap(), emptyMap(), emptyMap()) },
@@ -147,7 +150,10 @@ class CalculationView private constructor(
             )
         )
 
-        fun of(result: CalculationResult): CalculationView {
+        /** Returns the read-only snapshot owned by [result]. */
+        fun of(result: CalculationResult): CalculationView = result.view
+
+        internal fun fromResult(result: CalculationResult): CalculationView {
             val plan = result.plan
             val formulaSlotDefaults = linkedMapOf<String, Formula>()
             fun collectFormulaSlots(item: com.xqiou.mantra.core.model.Item) {
@@ -181,7 +187,7 @@ class CalculationView private constructor(
                 is ResolvedNode -> ViewTreeNode(item.item.snapshot() as NodeItem, frozenList(item.dims), item.op)
                 is ResolvedNote -> ViewNote(item.item.snapshot() as NoteItem)
             }
-            val nodes = result.nodes.mapValues { (_, calculated) ->
+            val nodes = result.rawNodes.mapValues { (_, calculated) ->
                 val vertex: ValueVertex = calculated.vertex
                 val line = vertex as? LineVertex
                 val choice = vertex as? ChoiceVertex
@@ -221,12 +227,13 @@ class CalculationView private constructor(
                 schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(), structure = SchemaMaps.of(plan).snapshot(),
                 tree = tree(plan.tree) as ViewSection,
                 dimensions = frozenMap(plan.dimensions.mapValues { (_, decl) -> decl.snapshot() }),
-                members = frozenMap(result.members.mapValues { (_, members) -> frozenList(members.map { it.snapshot() }) }),
+                members = frozenMap(result.rawMembers.mapValues { (_, members) -> frozenList(members.map { it.snapshot() }) }),
                 nodes = frozenMap(nodes),
                 conditions = frozenMap(plan.vertices.values.filterIsInstance<ConditionVertex>().associate { it.id to ViewCondition(it.id, it.sectionId, frozenList(it.dims), it.formula) }),
                 functions = frozenList(plan.schema.functions + plan.case.functions),
                 formulaSlotDefaults = frozenMap(formulaSlotDefaults),
                 diagnostics = frozenList(result.diagnostics),
+                dependencyCount = plan.vertices.values.sumOf { it.dependencies.size },
             )
         }
     }

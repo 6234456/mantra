@@ -1,115 +1,148 @@
 # Mantra
 
-财务与税务计算方案（Berechnungsschema）引擎。它把形式化、流程化的计算——德国所得税主线、IAS 36 总部资产分摊与减值测试、SAP CO 风格工单与产品成本归集——拆解为少量**内置的计算原语**与**内置的表格原语**，由用户用 [Normein DSL](https://github.com/6234456/normein) 组合表达，并生成 Staffel、矩阵或审计底稿式的计算表格与审计轨迹。
+Mantra is a general calculation-schema library built on the [Normein DSL](https://github.com/6234456/normein). It combines exact decimal evaluation, dependency graphs, allocation, dimensions, conditions and explicit rounding with working papers, audit information and formula-preserving Excel workbooks.
+
+This monorepo contains the engine and domain demonstration applications under `apps/`. Domain rules live in their schemas; the engine and reference workbench provide generic capabilities.
+
+**The applications are demonstrations only. They are not production tax or accounting software and do not provide tax or accounting advice.** Their simplifications and verification sources are documented in each application's README. Mantra is pre-1.0; APIs and DSL contracts may change with documented version changes. Library artifacts have not yet been published; coordinated publication with `normein-dsl` is planned in the [roadmap](docs/roadmap.md).
 
 ```text
-schema.mantra  ─┐
-case.mantra    ─┼─▶  mantra-core（依赖图 + Normein 精确求值）─▶ mantra-render（版式 DSL）─▶ HTML / Text
-layout.mantra  ─┘
+schema + case + parameters ─▶ mantra-core ─▶ calculation values and traces
+                                      │
+                               + layout ─▶ mantra-render ─▶ HTML / Text
+                                      └──▶ mantra-excel  ─▶ XLSX
+                                      └──▶ workbench    ─▶ HTTP / JSON / SSE
 ```
 
-## 边界
+## Quick start
 
-* **引擎库**（`mantra-core`、`mantra-render`、`mantra-excel`、`mantra-cli`）只提供通用能力：计算组件（section/line/field/total/choice/slot/formula-slot/dimension，分摊、关系式汇总、分段、折现、横向合计）、表格组件（table/columns/col 与列内容函数）以及常用预设。**不包含任何具体业务逻辑。**
-* **领域方案**（ESt 2025、IAS 36、SAP CO 风格成本归集等）由用户或领域应用定义；本仓库 `examples/` 中的三个方案只是验收样例，将来迁往 monorepo 作为独立应用。
-* **Normein DSL 内核**以固定 commit 引用、不做修改；对内核的扩展需求写在 [RFC 0001](docs/rfc/0001-normein-dsl-kernel-extensions.md)。
+Requirements: JDK 21, Git, and Node.js 22.12 or newer for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
 
-## 快速开始
-
-要求：JDK 21（Normein 以 17 为目标），Git。
-
-建立锁定的 Normein 依赖检出（完整 commit 见 `normein-build.lock`）：
+Create the pinned Normein checkout. The default bootstrap source is SSH; HTTPS or an existing local clone can be selected explicitly:
 
 ```bash
-scripts/bootstrap-normein.sh
-```
-
-本机已有 Normein 仓库时，也可使用 `NORMEIN_SOURCE=~/IdeaProjects/xrechnung scripts/bootstrap-normein.sh`。
-
-构建并运行全部测试：
-
-```bash
+NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
 ./gradlew test
-```
-
-安装命令行工具：
-
-```bash
 ./gradlew :mantra-cli:installDist
 ```
 
-计算 IAS 36 示例并输出 HTML 底稿：
+The full kernel commit is in [normein-build.lock](normein-build.lock): `0a3ae1de844c92635fbbc03406a13cb0e8920c03` (language semantics 25, standard library 33). To use a separate clean checkout at that commit, set `NORMEIN_BUILD_PATH` or pass `-PnormeinBuildPath=/path/to/checkout`. The build rejects a different commit or tracked modifications.
+
+Render the impairment demonstration as an HTML working paper:
 
 ```bash
-mantra-cli/build/install/mantra/bin/mantra run examples/ifrs-ias36-corporate-assets/schema.mantra --case examples/ifrs-ias36-corporate-assets/case-ie8.mantra --layout examples/ifrs-ias36-corporate-assets/layout.mantra --format html --out out/ias36.html
+mantra-cli/build/install/mantra/bin/mantra run apps/ifrs-impairment/schema.mantra \
+  --case apps/ifrs-impairment/case-ie8.mantra \
+  --layout apps/ifrs-impairment/layout.mantra --format html --out out/ias36.html
 ```
 
-计算所得税示例（终端文本，含审计轨迹）：
+Render the income-tax demonstration as text, including its audit appendix:
 
 ```bash
-mantra-cli/build/install/mantra/bin/mantra run examples/de-est-2025/schema.mantra --case examples/de-est-2025/case-mustermann.mantra --layout examples/de-est-2025/layout.mantra --audit
+mantra-cli/build/install/mantra/bin/mantra run apps/de-est/schema.mantra \
+  --case apps/de-est/case-mustermann.mantra --layout apps/de-est/layout.mantra --audit
 ```
 
-计算工单归集与产品加权成本示例：
+Export an editable cost workbook and inspect its formula coverage report:
 
 ```bash
-mantra-cli/build/install/mantra/bin/mantra run examples/sap-co-product-cost/schema.mantra --case examples/sap-co-product-cost/case-demo.mantra --layout examples/sap-co-product-cost/layout.mantra --audit
+mantra-cli/build/install/mantra/bin/mantra run apps/cost-accounting/schema.mantra \
+  --case apps/cost-accounting/case-demo.mantra \
+  --layout apps/cost-accounting/layout.mantra --format xlsx --out out/costs.xlsx
 ```
 
-查看内置原语目录：
+Application tests write generated papers and workbooks to `apps/<application>/build/out/`.
 
-```bash
-mantra-cli/build/install/mantra/bin/mantra catalog
-```
+## Reference workbench
 
-启动只读工作台服务（仅监听本机回环地址）：
-
-```bash
-mantra-cli/build/install/mantra/bin/mantra serve examples --port 8080
-```
-
-要同时打开前端页面，先构建 live 资源，再由服务托管：
+Build the frontend in live mode, then serve the applications locally:
 
 ```bash
 cd workbench-ui
 npm ci
 VITE_WORKBENCH_MODE=live npm run build
 cd ..
-mantra-cli/build/install/mantra/bin/mantra serve examples --port 8090 --ui workbench-ui/dist
+mantra-cli/build/install/mantra/bin/mantra serve apps --port 8090 --ui workbench-ui/dist
 ```
 
-服务提供 `/api/v1/workspace` 以及案例的 Structure、Run、Paper、Diagnostics、Parameters JSON。
-Compare POST、Explain、编辑与 SSE 等接口将在相应工作包完成后接入，当前返回 501。
+Open `http://127.0.0.1:8090/` in a browser. Workbench v1 implements structure, working-paper and diagnostic views, Explain, Compare, parameter layers, case editing with preview and undo/redo, formula authoring, data-source import, export previews and SSE updates. Edits are written to the case documents so that results remain reproducible outside the workbench. The service listens only on loopback and confines file access to the workspace; it is a local reference tool.
 
-## 一个最小方案
+Explain already uses the kernel's individual expression steps. The paper and XLSX audit appendices still use substituted root values; unifying them with Explain is planned for M1.
+
+## CLI
+
+After `installDist`, use `mantra-cli/build/install/mantra/bin/mantra`:
+
+| Command | Purpose |
+| --- | --- |
+| `run <schema> --case <case>` | Calculate and render Text, HTML or XLSX; add `--layout`, `--format`, `--out` or `--audit` |
+| `check <schema> [--case <case>]` | Read and compile the schema; inspect structure and dependencies |
+| `catalog` | List schema forms, calculation functions, column contents and layout presets |
+| `fixtures <case> [more cases...] --out <dir> [--workspace apps]` | Generate versioned workbench JSON fixtures |
+| `diff <schema> --case <case> --variant-parameters <file[,file...]>` | Compare parameter sets or another case (`--variant-case`); JSON or Text |
+| `explain <schema> --case <case> --address <node> [--coord <member[,member...]>]` | Explain one value with bounded source steps; JSON or Text |
+| `serve <workspace> [--port 8080] [--ui workbench-ui/dist]` | Start the local workbench service |
+
+Run `mantra help` for full options. XLSX exports report any formulas that fall back to values; they never silently promise full recalculation coverage.
+
+## A minimal schema
 
 ```clojure
-(schema demo/lohn {:title "Einkünfte aus nichtselbständiger Arbeit"}
-  (param an-pauschbetrag 1230 {:reference "§ 9a Satz 1 Nr. 1a EStG"})
-  (dimension person {:members [{:key :A :label "Person A"} {:key :B :label "Person B"}]})
-  (section nsa "Nichtselbständige Arbeit" {:per person}
-    (field lohn "Bruttoarbeitslohn" {:kz "110"})
-    (field wk-ist "Werbungskosten lt. Nachweis" {:op :info})
-    (line wk "Werbungskosten, mindestens Pauschbetrag" (max wk-ist an-pauschbetrag) {:op :minus})
-    (total einkuenfte "Einkünfte")))
+(schema demo/allocation {:title "Shared costs"}
+  (input pool :decimal {:default 1200})
+  (dimension team {:members [{:key :A :label "Team A"}
+                            {:key :B :label "Team B"}]})
+  (section costs "Costs by team" {:per team}
+    (field weight "Allocation weight" {:default 1 :op :info})
+    (line share "Allocated costs" (alloc/pro-rata pool all.weight 2) {:spread true})
+    (total total-cost "Total costs")))
 ```
 
-## 项目结构
+Schemas define input contracts and calculations. Cases provide inputs, parameter overrides and allowed extensions. Layouts arrange and format the same values without changing them. See the [DSL reference](docs/dsl-reference.md) for the host forms and `mantra.calc@1` functions.
 
-| 路径 | 内容 |
+## Repository structure
+
+| Path | Responsibility |
 | --- | --- |
-| `mantra-core` | 方案/案例读取、模型、依赖图、Normein 集成与 `mantra.calc` 函数库、求值与追溯 |
-| `mantra-render` | 版式 DSL、预设、WorkingPaper 网格模型、HTML/Text 渲染、公式解释器 |
-| `mantra-workbench` | 工作区扫描、修订与只读契约文档 |
-| `mantra-server` | 回环地址 HTTP 服务、安全检查与 live 前端静态文件 |
-| `mantra-cli` | `run`、`check`、`catalog`、`fixtures`、`diff`、`serve` |
-| `workbench-ui` | 工作台 React 前端 |
-| `examples/` | 验收样例（不属于引擎库）：`de-est-2025`、`ifrs-ias36-corporate-assets`、`sap-co-product-cost` |
-| `docs/` | [架构设计](docs/architecture.md)、[引擎与应用职责契约](docs/engine-application-boundary.md)、[DSL 参考](docs/dsl-reference.md)、[RFC](docs/rfc/) |
+| `mantra-core` | Document readers and models, exact evaluation, public `core.api` / `core.view` contracts, structure and trace; planner and execution internals stay in `core.engine` |
+| `mantra-render` | Layout DSL, presets, working-paper grid, HTML and Text rendering |
+| `mantra-excel` | Formula-preserving XLSX export, workbook descriptions and coverage reports |
+| `mantra-workbench` | Workspace catalog, revisions, Explain, Compare, edits, authoring and imports |
+| `mantra-server` | Loopback HTTP service, workspace safety, SSE and frontend hosting |
+| `mantra-cli` | The seven commands listed above |
+| `workbench-ui` | Generic React / TypeScript workbench frontend |
+| `apps/de-est` | German income-tax demonstration; Gradle project `:apps:de-est` |
+| `apps/ifrs-impairment` | IAS 36 impairment and allocation demonstration; `:apps:ifrs-impairment` |
+| `apps/cost-accounting` | Manufacturing-order and product costs in a SAP CO style; `:apps:cost-accounting` |
 
-## 验收样例的核对
+Applications depend only on public library APIs and are not published as library artifacts. Future domains are added directly under `apps/`.
 
-* **IAS 36 IE Example 8**：分摊 19/56/75、分摊后账面 119/206/275、减值 0/42/4、集团测试 650 → 604 vs 720、总减值 46 全部复现；B 单元损失回分按最大余数法为 11/31（准则示例印为 12/30，但 42 × 56/206 = 11,42，没有单一舍入规则能同时得到示例的 12/30 与 C 的 1/3），见测试注释。
-  资产权重是应用开放的 `formula-slot`；[自定义案例](examples/ifrs-ias36-corporate-assets/case-custom-weight.mantra)演示用户以 `(bind weighting …)` 提供加权公式。
-* **ESt 2025**：§ 32a 2025 年税率公式（与 BMF 官方 EStH 2025 一致）、合并申报 Splitting、Günstigerprüfung、Soli 免征额、教会税、结算；预期值见 `examples/src/test/.../EinkommensteuerTest.kt`。
-* **SAP CO 风格成本案例**：初级和次级成本分别归集并分配，工单实际与标准成本对比，按完工数量计算产品加权单位成本；来源、工单和产品三层金额对账。采用虚构数据，口径和边界见[案例说明](examples/sap-co-product-cost/README.md)。
+## Verification and sources
+
+- [Income tax](apps/de-est/README.md): statute-based tariff formulas and an independent recomputation script; fictional case data.
+- [Impairment](apps/ifrs-impairment/README.md): IAS 36 Illustrative Example 8 figures, plus an independently computed custom-weight case. The largest-remainder allocation differs from the printed B-unit split: 11/31 rather than 12/30. This is documented rather than hidden.
+- [Cost accounting](apps/cost-accounting/README.md): fictional cost data with an independent source/order/product reconciliation.
+
+IFRS source material retains its owners' rights. See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses, source attribution and the remaining IFRS publication review.
+
+Frontend verification:
+
+```bash
+cd workbench-ui
+npm ci
+npm test
+npm run build
+MANTRA_TEST_CHROME="/path/to/installed/chrome" npm run test:e2e
+```
+
+Browser tests use an installed Chrome-compatible executable with a task-specific temporary profile and clean up their processes and profile. They do not download a browser. For interactive checks, prefer the Codex built-in Browser. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete contribution and verification workflow.
+
+## Documentation and community
+
+- [Architecture](docs/architecture.md) and [engine/application boundary](docs/engine-application-boundary.md)
+- [DSL reference](docs/dsl-reference.md) and [Normein RFCs](docs/rfc/)
+- [Workbench contract](docs/workbench/contract.md), [UI specification](docs/workbench/ui-spec.md) and [work packages](docs/workbench/work-packages.md)
+- [Long-term roadmap and R1–R10 decisions](docs/roadmap.md)
+- [Contributing](CONTRIBUTING.md), [support](SUPPORT.md) and [security policy](SECURITY.md)
+
+Project-owned code is licensed under [Apache License 2.0](LICENSE). Dependency and third-party source rights are described in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

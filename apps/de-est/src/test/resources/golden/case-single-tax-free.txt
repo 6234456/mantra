@@ -1,0 +1,157 @@
+Einkommensteuer 2025 – Steuerberechnung
+Arbeitspapier: Ermittlung nach § 2 EStG / R 2 EStR mit Nebenrechnungen
+=======================================
+Mandant: Single assessment below the basic allowance
+Zeitraum: Veranlagungszeitraum 2025
+Berechnungsschema: Einkommensteuer 2025 v2025.1 [de.est/2025]
+Ausgeglichen: 0,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Ermittlung des zu versteuernden Einkommens [1]  10.830,00
+      ↳ Einkünfte aus den einzelnen Einkunftsarten [5]  10.866,00  → 1 · Summe der Einkünfte
+      ↳ Sonderausgaben [6]  36,00  → 1 · Sonderausgaben
+      ↳ Außergewöhnliche Belastungen [7]  0,00  → 1 · Außergewöhnliche Belastungen
+      ↳ Günstigerprüfung Kindergeld / Freibeträge für Kinder [8]    → 1 · Freibeträge für Kinder (soweit günstiger als Kindergeld), → 2 · Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen), → 3 · Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
+  Hauptlinie 2: Ermittlung der festzusetzenden Einkommensteuer [2]  0,00
+  Hauptlinie 3: Solidaritätszuschlag und Kirchensteuer [3]  0,00
+  Hauptlinie 4: Abrechnung [4]  0,00
+  Nebeninformation: Gesondert besteuerte Kapitalerträge (Abgeltungsteuer) [9]  0,00
+
+[1] Ermittlung des zu versteuernden Einkommens (R 2 Abs. 1 EStR)
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens
+Zeile |     | Bezeichnung                       | Hauptspalte EUR |   | Rechtsgrundlage
+------+-----+-----------------------------------+-----------------+---+----------------
+1     | +   | Summe der Einkünfte (→ Tabelle 5) |       10.866,00 |   | § 2 Abs. 2 EStG
+     -+-   -+-                                 -+-----------------+- -+-
+2     | =   | Gesamtbetrag der Einkünfte        |       10.866,00 | Σ | § 2 Abs. 3 EStG
+3     | ./. | Sonderausgaben (→ Tabelle 6)      |           36,00 |   | §§ 10–10c EStG
+     -+-   -+-                                 -+-----------------+- -+-
+4     | =   | Einkommen                         |       10.830,00 | Σ | § 2 Abs. 4 EStG
+     -+-   -+-                                 -+-----------------+- -+-
+5     | =   | Zu versteuerndes Einkommen        |       10.830,00 | Σ | § 2 Abs. 5 EStG
+     =+=   =+=                                 =+=================+= =+=
+
+[2] Ermittlung der festzusetzenden Einkommensteuer (R 2 Abs. 2 EStR)
+    Hauptlinie › 2 Ermittlung der festzusetzenden Einkommensteuer
+Zeile |   | Bezeichnung                    | Hauptspalte EUR |   | Rechtsgrundlage
+------+---+--------------------------------+-----------------+---+---------------------
+1     | + | Tarifliche Einkommensteuer     |            0,00 |   | § 32a Abs. 1, 5 EStG
+     -+- -+-                              -+-----------------+- -+-
+2     | = | Festzusetzende Einkommensteuer |            0,00 | Σ | § 2 Abs. 6 EStG
+     =+= =+=                              =+=================+= =+=
+
+[3] Solidaritätszuschlag und Kirchensteuer
+    Hauptlinie › 3 Solidaritätszuschlag und Kirchensteuer
+Zeile |   | Bezeichnung                                                      | Hauptspalte EUR |   | Rechtsgrundlage
+------+---+------------------------------------------------------------------+-----------------+---+-----------------------------------------
+1     |   | Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträg… |            0,00 |   | § 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG
+     -+- -+-                                                                -+-----------------+- -+-
+2     | = | Zuschlagsteuern                                                  |            0,00 | Σ |
+     =+= =+=                                                                =+=================+= =+=
+
+[4] Abrechnung
+    Hauptlinie › 4 Abrechnung
+Zeile |   | Bezeichnung          | Person A | Gesamt |
+------+---+----------------------+----------+--------+--
+     -+- -+-                    -+----------+--------+-
+1     | = | Festgesetzte Steuern |          |   0,00 | Σ
+     -+- -+-                    -+----------+--------+-
+2     | = | Ausgeglichen         |          |   0,00 | Σ
+     =+= =+=                    =+==========+========+=
+
+[5] Nebenrechnung: Einkünfte aus den Einkunftsarten
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Summe der Einkünfte“ › Einkünfte aus den einzelnen Einkunftsarten
+Zeile |     | Bezeichnung                                            |  Person A |    Gesamt |   | Rechtsgrundlage
+------+-----+--------------------------------------------------------+-----------+-----------+---+-----------------------------------------
+      |     | 4. Nichtselbständige Arbeit                            |           |           |   | § 19 EStG
+1     | +   |   Bruttoarbeitslohn                                    | 12.096,00 | 12.096,00 |   |
+2     | ./. |   Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag |  1.230,00 |  1.230,00 |   | § 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG
+     -+-   -+-                                                      -+-----------+-----------+- -+-
+3     | =   |   Einkünfte aus nichtselbständiger Arbeit              | 10.866,00 | 10.866,00 | Σ |
+     -+-   -+-                                                      -+-----------+-----------+- -+-
+4     | =   | Summe der Einkünfte                                    |           | 10.866,00 | Σ | § 2 Abs. 2 EStG
+     =+=   =+=                                                      =+===========+===========+= =+=
+
+[6] Nebenrechnung: Sonderausgaben
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Sonderausgaben“ › Sonderausgaben
+Zeile |   | Bezeichnung                                                      | Person A | Gesamt |   | Rechtsgrundlage
+------+---+------------------------------------------------------------------+----------+--------+---+-------------------------------
+      |   | Vorsorgeaufwendungen                                             |          |        |   | § 10 Abs. 1 Nr. 2, 3, 3a EStG
+1     |   |   Anspruch auf steuerfreie Zuschüsse zur Krankenversicherung     |        ✓ |        |   |
+     -+- -+-                                                                -+----------+--------+- -+-
+2     | = |   Abziehbare Vorsorgeaufwendungen                                |     0,00 |   0,00 | Σ |
+3     | + | Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Ei… |          |   0,00 |   | § 10b Abs. 1 Satz 1 Nr. 1 EStG
+4     | + | Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonde… |          |  36,00 |   | § 10c EStG
+     -+- -+-                                                                -+----------+--------+- -+-
+5     | = | Sonderausgaben insgesamt                                         |          |  36,00 | Σ |
+     =+= =+=                                                                =+==========+========+= =+=
+
+[7] Nebenrechnung: Außergewöhnliche Belastungen
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Außergewöhnliche Belastungen“ › Außergewöhnliche Belastungen
+Zeile |   | Bezeichnung                            | Hauptspalte EUR |
+------+---+----------------------------------------+-----------------+--
+     -+- -+-                                      -+-----------------+-
+1     | = | Außergewöhnliche Belastungen insgesamt |            0,00 | Σ
+     =+= =+=                                      =+=================+=
+
+[9] Nebenrechnung: Abgeltungsteuer
+    Hauptlinie › Gesondert besteuerte Kapitalerträge (Abgeltungsteuer)
+Zeile |   | Bezeichnung                  | Hauptspalte EUR |
+------+---+------------------------------+-----------------+--
+     -+- -+-                            -+-----------------+-
+1     | = | Durch Steuerabzug abgegolten |            0,00 | Σ
+     =+= =+=                            =+=================+=
+
+Berechnungsnachweis
+-------------------
+1/2 Gesamtbetrag der Einkünfte
+    Formel: summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug
+    Rechenweg: 10.866 − 0 − 0 − 0 = 10.866,00
+1/4 Einkommen
+    Formel: gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug
+    Rechenweg: 10.866 − 0 − 36 − 0 = 10.830,00
+1/5 Zu versteuerndes Einkommen
+    Formel: einkommen − freibetraege-kinder
+    Rechenweg: 10.830 − 0 = 10.830,00
+2/1 Tarifliche Einkommensteuer
+    Formel: (est-tarif zu-versteuerndes-einkommen zusammen)
+    Rechenweg: est-tarif(10.830; false) = 0,00
+2/2 Festzusetzende Einkommensteuer
+    Formel: tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung
+    Rechenweg: 0 − 0 − 0 + 0 = 0,00
+3/1 Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
+    Formel: (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))
+    Rechenweg: max(0; est-tarif(10.830 − if(nil; 0; 0); false) − 0 − 0) = 0,00
+3/2 Zuschlagsteuern
+    Formel: solidaritaetszuschlag + kirchensteuer
+    Rechenweg: 0 + 0 = 0,00
+4/1 Festgesetzte Steuern
+    Formel: abr-est + abr-soli + abr-kist
+    Rechenweg: 0 + 0 + 0 = 0,00
+4/2 Nachzahlung (+) / Erstattung (−)
+    Formel: festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen
+    Rechenweg: 0 − 0 − 0 − 0 − 0 = 0,00
+5/2 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person A]
+    Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
+    Rechenweg: if(0 > 1.230; 0; min(1.230; 12.096)) = 1.230,00
+5/3 Einkünfte aus nichtselbständiger Arbeit [Person A]
+    Formel: bruttoarbeitslohn − werbungskosten
+    Rechenweg: 12.096 − 1.230 = 10.866,00
+5/4 Summe der Einkünfte
+    Formel: einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige
+    Rechenweg: 0 + 0 + 0 + 10.866 + 0 + 0 + 0 = 10.866,00
+6/2 Abziehbare Vorsorgeaufwendungen [Person A]
+    Formel: altersvorsorge + sonstige-vorsorge
+    Rechenweg: 0 + 0 = 0,00
+6/3 Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Einkünfte)
+    Formel: (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))
+    Rechenweg: min(0; 0,2 × 10.866) = 0,00
+6/4 Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)
+    Formel: (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))
+    Rechenweg: max(0; if(false; 2 × 36; 36) − (0 + 0)) = 36,00
+6/5 Sonderausgaben insgesamt
+    Formel: vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag
+    Rechenweg: 0 + 0 + 0 + 36 = 36,00
+9/1 Durch Steuerabzug abgegolten
+    Formel: abgeltungsteuer + abgeltung-soli
+    Rechenweg: 0 + 0 = 0,00

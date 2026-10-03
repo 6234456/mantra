@@ -76,7 +76,7 @@ object DataSources {
 /**
  * JSON document with input ids as keys (optionally below [root], or below `"inputs"`), or any JSON
  * structure with an explicit [mapping] from input id to a dotted path such as `mandant.lohn.A`
- * or `objekte[0].miete`.
+ * or `records[0].amount`.
  */
 class JsonSource(
     private val path: Path,

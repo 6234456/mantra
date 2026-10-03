@@ -2,8 +2,11 @@ package com.xqiou.mantra.cli
 
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
-import com.xqiou.mantra.core.engine.MantraKernel
-import com.xqiou.mantra.core.engine.MantraLibrary
+import com.xqiou.mantra.core.api.FunctionCatalog
+import com.xqiou.mantra.core.view.NodeKind
+import com.xqiou.mantra.core.view.ViewSection
+import com.xqiou.mantra.core.view.ViewTreeNode
+import com.xqiou.mantra.core.view.ViewNote
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
@@ -41,7 +44,7 @@ Commands:
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
   fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra.
            A declared :layout resolves to sibling layout.mantra. --workspace sets the case-id root.
-  serve    Start the loopback-only, read-only workbench service. Other endpoints report 501 until implemented.
+  serve    Start the loopback-only workbench service with structured case editing, Explain and live updates.
   diff     Compare two evaluations of one schema (JSON by default).
   explain  Explain one calculated value with bounded source steps (JSON by default).
 """
@@ -291,30 +294,30 @@ private fun explain(options: Options) {
 
 private fun check(options: Options) {
     val (schema, case) = loadInputs(options)
-    val plan = Mantra.plan(schema, case)
-    val values = plan.valueVertices.values
+    val view = Mantra.inspect(schema, case)
+    val values = view.nodes.values
     println("Schema ${schema.id} – ${schema.meta.title}")
     println("  sources:     ${schema.sources.joinToString()}")
-    println("  dimensions:  ${plan.dimensions.keys.joinToString().ifEmpty { "–" }}")
-    println("  parameters:  ${values.count { it is com.xqiou.mantra.core.engine.ParamVertex }}")
-    println("  inputs:      ${values.count { it is com.xqiou.mantra.core.engine.InputVertex }}")
-    println("  lines:       ${values.count { it is com.xqiou.mantra.core.engine.LineVertex }}")
-    println("  totals:      ${values.count { it is com.xqiou.mantra.core.engine.TotalVertex }}")
-    println("  choices:     ${values.count { it is com.xqiou.mantra.core.engine.ChoiceVertex }}")
+    println("  dimensions:  ${view.dimensions.keys.joinToString().ifEmpty { "–" }}")
+    println("  parameters:  ${values.count { it.kind == NodeKind.PARAM }}")
+    println("  inputs:      ${values.count { it.kind == NodeKind.INPUT }}")
+    println("  lines:       ${values.count { it.line != null }}")
+    println("  totals:      ${values.count { it.kind == NodeKind.TOTAL }}")
+    println("  choices:     ${values.count { it.kind == NodeKind.CHOICE }}")
     println("  functions:   ${schema.functions.joinToString { it.name }.ifEmpty { "–" }}")
-    println("  dependency edges: ${plan.vertices.values.sumOf { it.dependencies.size }}")
+    println("  dependency edges: ${view.dependencyCount}")
     println()
-    fun tree(section: com.xqiou.mantra.core.engine.ResolvedSection, depth: Int) {
+    fun tree(section: ViewSection, depth: Int) {
         section.children.forEach { child ->
             val indent = "  ".repeat(depth)
             when (child) {
-                is com.xqiou.mantra.core.engine.ResolvedSection -> {
+                is ViewSection -> {
                     val dims = if (child.dims.isEmpty()) "" else " per ${child.dims.joinToString()}"
                     val kind = if (child.resultId != null) " → ${child.resultId}" else ""
                     println("$indent§ ${child.id} \"${child.label}\"$dims$kind")
                     tree(child, depth + 1)
                 }
-                is com.xqiou.mantra.core.engine.ResolvedNode -> {
+                is ViewTreeNode -> {
                     val sign = when {
                         child.item is com.xqiou.mantra.core.model.TotalItem -> "="
                         child.op > 0 -> "+"
@@ -323,11 +326,11 @@ private fun check(options: Options) {
                     }
                     println("$indent$sign ${child.id}")
                 }
-                is com.xqiou.mantra.core.engine.ResolvedNote -> Unit
+                is ViewNote -> Unit
             }
         }
     }
-    tree(plan.tree, 0)
+    tree(view.tree, 0)
 }
 
 private fun catalog() {
@@ -353,9 +356,9 @@ private fun catalog() {
     println("                :reference :note :source :format :precision :hidden :type :class")
     println("                application attributes (for example :kz or :zeile) pass through unchanged")
     println()
-    println("Kernel functions (${MantraLibrary.LIBRARY_ID}@${MantraLibrary.SEMANTICS_VERSION}, plus the Normein standard library)")
-    MantraLibrary.functions.forEach { println("  %-16s %s".format(it.name, it.documentation.summary)) }
-    println("  (${MantraKernel.environment.registry.functions.size} callables in total)")
+    println("Kernel functions (${FunctionCatalog.libraryId}@${FunctionCatalog.semanticsVersion}, plus the Normein standard library)")
+    FunctionCatalog.functions.forEach { println("  %-16s %s".format(it.name, it.summary)) }
+    println("  (${FunctionCatalog.callableCount} callables in total)")
     println()
     println("Layout forms (presentation layer)")
     println("  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)")

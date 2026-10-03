@@ -1,0 +1,13 @@
+{
+  "name": "payroll",
+  "format": "csv",
+  "options": {
+    "mode": "wide",
+    "member-column": "member",
+    "delimiter": ";",
+    "decimal": ",",
+    "columns": {
+      "bruttoarbeitslohn": "bruttoarbeitslohn"
+    }
+  }
+}

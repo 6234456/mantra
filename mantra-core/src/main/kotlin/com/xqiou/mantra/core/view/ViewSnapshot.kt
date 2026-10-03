@@ -1,8 +1,5 @@
 package com.xqiou.mantra.core.view
 
-import com.xqiou.mantra.core.engine.Coord
-import com.xqiou.mantra.core.engine.Member
-import com.xqiou.mantra.core.engine.NodeTrace
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.DimensionDecl
@@ -13,6 +10,7 @@ import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
 import com.xqiou.mantra.core.model.Presentation
+import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SchemaMeta
 import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
@@ -54,6 +52,25 @@ internal fun CaseData.snapshot(): CaseData = copy(
     functions = frozenList(functions),
     inputLocations = frozenMap(inputLocations),
     paramLocations = frozenMap(paramLocations),
+    sources = frozenList(sources.map { binding ->
+        binding.copy(options = frozenMap(binding.options.mapValues { (_, value) -> value.snapshot() }))
+    }),
+    inputOrigins = frozenMap(inputOrigins.mapValues { (_, origins) -> frozenMap(origins) }),
+)
+
+internal fun Schema.snapshot(): Schema = copy(
+    meta = meta.snapshot(),
+    params = frozenList(params.map { it.snapshot() }),
+    inputs = frozenList(inputs.map { it.snapshot() }),
+    dimensions = frozenList(dimensions.map { it.snapshot() }),
+    functions = frozenList(functions),
+    root = root.snapshot() as SectionItem,
+    sources = frozenList(sources),
+)
+
+internal fun ExplainTrace.snapshot(): ExplainTrace = copy(
+    steps = frozenList(steps.map { it.copy(value = it.value.snapshot()) }),
+    branches = frozenList(branches),
 )
 
 internal fun SchemaMeta.snapshot(): SchemaMeta = copy(attributes = frozenMap(attributes.mapValues { (_, value) -> value.snapshot() }))

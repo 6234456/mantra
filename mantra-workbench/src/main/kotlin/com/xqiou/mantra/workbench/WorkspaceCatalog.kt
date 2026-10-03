@@ -11,7 +11,7 @@ import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.NodeItem
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
-import com.xqiou.mantra.core.engine.ExplainTrace
+import com.xqiou.mantra.core.view.ExplainTrace
 import com.xqiou.mantra.core.read.Document
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.ParameterSet
@@ -19,7 +19,7 @@ import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.read.listHead
 import com.xqiou.mantra.core.read.symbol
 import com.xqiou.mantra.core.view.CalculationView
-import com.xqiou.mantra.core.engine.FormulaAuthoring
+import com.xqiou.mantra.core.api.FormulaAuthoring
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.render.layout.LayoutSpec

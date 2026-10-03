@@ -17,6 +17,7 @@ import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
 import com.xqiou.mantra.core.model.ValueType
+import com.xqiou.mantra.core.view.ParameterLayer
 import com.xqiou.normein.dsl.compiler.DslCompileRequest
 import com.xqiou.normein.dsl.compiler.DslCompileResult
 import com.xqiou.normein.dsl.compiler.DslNamedDefinition
@@ -43,7 +44,7 @@ import com.xqiou.normein.dsl.type.DslTypeSchemaResult
 import com.xqiou.normein.dsl.type.DslTypes
 
 /** Structural types registered for record-shaped roots (dimension members, table rows, `all`). */
-class PlanTypes(
+internal class PlanTypes(
     val dimensionRecord: Map<String, DslTypeId>,
     val tableRow: Map<String, DslTypeId>,
     val all: DslTypeId,
@@ -55,7 +56,7 @@ class PlanTypes(
  * dimensions and section totals, compiles every formula with the Normein kernel against a typed
  * analysis scope for its dimension context, and orders all vertices topologically.
  */
-class Planner(private val sink: DiagnosticSink) {
+internal class Planner(private val sink: DiagnosticSink) {
     private val compiler = DslSemanticCompiler()
     private val environment = MantraKernel.environment
 

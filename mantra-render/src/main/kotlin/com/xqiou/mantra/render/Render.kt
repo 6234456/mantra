@@ -1,6 +1,6 @@
 package com.xqiou.mantra.render
 
-import com.xqiou.mantra.core.engine.CalculationResult
+import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.render.html.HtmlRenderer

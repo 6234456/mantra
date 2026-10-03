@@ -24,9 +24,9 @@ data class ParameterSet(
 
 /**
  * ```
- * (parameters de.est/params-2026 {:for "de.est/2025" :label "…" :valid-from "2026-01-01"}
+ * (parameters test/params-2026 {:for "test/example" :label "…" :valid-from "2026-01-01"}
  *   (values {:grundfreibetrag 12348 …})
- *   (value kinderfreibetrag 3414 {:reference "§ 32 Abs. 6 Satz 1 EStG"}))
+ *   (value allowance 100 {:reference "Example policy"}))
  * ```
  */
 object ParameterSetReader {

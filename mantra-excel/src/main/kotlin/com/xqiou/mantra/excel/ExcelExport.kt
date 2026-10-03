@@ -1,6 +1,6 @@
 package com.xqiou.mantra.excel
 
-import com.xqiou.mantra.core.engine.CalculationResult
+import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.LayoutSpec

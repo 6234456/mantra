@@ -1,0 +1,9 @@
+{
+  "name": "cgus",
+  "format": "csv",
+  "options": {
+    "input": "cgus",
+    "delimiter": ";",
+    "decimal": ","
+  }
+}

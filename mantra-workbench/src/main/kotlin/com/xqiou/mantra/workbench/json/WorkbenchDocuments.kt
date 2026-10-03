@@ -2,9 +2,9 @@ package com.xqiou.mantra.workbench.json
 
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
-import com.xqiou.mantra.core.engine.NodeTrace
-import com.xqiou.mantra.core.engine.ExplainTrace
-import com.xqiou.mantra.core.engine.TraceRef
+import com.xqiou.mantra.core.view.NodeTrace
+import com.xqiou.mantra.core.view.ExplainTrace
+import com.xqiou.mantra.core.view.TraceRef
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationView
