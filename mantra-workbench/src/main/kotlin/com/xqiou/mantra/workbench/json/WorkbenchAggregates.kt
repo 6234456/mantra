@@ -1,5 +1,6 @@
 package com.xqiou.mantra.workbench.json
 
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
@@ -92,24 +93,30 @@ internal fun aggregateExplanation(
         String,
         String,
         >,
+    reader: CalculationReader? = null,
 ): Map<
     String,
     Any?,
     > {
+    if (reader == null) return view.openReader().use { aggregateExplanation(view, layout, nodeId, fixed, it) }
     val node = view.node(nodeId)
-    val reduction = view.reduce(nodeId, fixed)
-    if (reduction.trace !is RatioAggregateTrace) return reductionExplanation(view, layout, nodeId, fixed)
-    val trace = requireNotNull(
-        view.ratioTrace(
+    val reduction = reader.reduce(view, nodeId, fixed)
+    if (reduction.trace !is RatioAggregateTrace) {
+        return reductionExplanation(
+            view,
+            layout,
             nodeId,
             fixed,
-        ),
-    ) { "No engine evidence for the ratio aggregate" }
+            reader,
+            reduction,
+        )
+    }
+    val trace = reduction.trace as RatioAggregateTrace
     val formatter = NumberFormatter(layout.number)
     fun address(id: String, coord: List<String>) = linkedMapOf<
         String,
         Any?,
-        >("node" to id).apply {
+        >("case" to null, "node" to id).apply {
         if (coord.isNotEmpty()) {
             put(
                 "coord",
@@ -117,7 +124,8 @@ internal fun aggregateExplanation(
             )
         }
     }
-    val references = trace.members.filter { it.active }.flatMap { member ->
+    reader.chargeScans(trace.members.size.toLong())
+    val references = trace.members.asSequence().filter { it.active }.flatMap { member ->
         listOf(
             trace.numeratorId,
             trace.denominatorId,
@@ -146,7 +154,7 @@ internal fun aggregateExplanation(
                 "origin" to null,
             )
         }
-    }.take(63)
+    }.take(63).toList()
     return linkedMapOf(
         "address" to address(
             "aggregate.$nodeId",
@@ -192,7 +200,7 @@ internal fun aggregateExplanation(
         },
 
         "reason" to trace.undefinedReason,
-        "steps" to emptyList<Any>(),
+        "link" to null, "steps" to emptyList<Any>(),
         "branches" to emptyList<Any>(),
 
         "references" to references,

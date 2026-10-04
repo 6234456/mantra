@@ -316,5 +316,5 @@ Audit trail
     Working: 30 + 60.00 + 0.00 + 0.00 = 90
 
 Findings
-  error MANTRA-CHECK-FAILED at schema.mantra:139:5 [capped-capacity-sufficient]: Individual asset caps can absorb the requested loss
-  error MANTRA-RECONCILE-FAILED at schema.mantra:141:5 [capped-loss-crossfoot]: Requested loss agrees to the capped allocation: difference 45.00 exceeds tolerance 0.01
+  error MANTRA-CHECK-FAILED at ifrs-impairment/schema.mantra:139:5 [capped-capacity-sufficient]: Individual asset caps can absorb the requested loss
+  error MANTRA-RECONCILE-FAILED at ifrs-impairment/schema.mantra:141:5 [capped-loss-crossfoot]: Requested loss agrees to the capped allocation: difference 45.00 exceeds tolerance 0.01

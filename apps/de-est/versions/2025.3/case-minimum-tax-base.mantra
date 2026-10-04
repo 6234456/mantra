@@ -1,0 +1,13 @@
+;; Fictional facts copied from frozen loss/minimum-tax-base.json. Demonstration only.
+(case minimum-tax-base
+  {:schema "de.est/2025" :schema-version "2025.3"
+   :layout "de.est/steuerberechnung-2025.3"
+   :parameters ["de.est/params-2025.3"]
+   :title "Income tax 2025: minimum-tax-base"
+   :expected-business []}
+  (inputs {:veranlagungsart :einzel :kinder 0 :alleinerziehend false
+           :gewinn-selbstaendig {:A 2000000}
+           :vermietungsobjekte [] :guenstigerpruefung-kap false :kirchensteuersatz 0
+           :eligible-new-loss 0 :selected-carryback 0
+           :carryback-waived true
+           :verlustvortrag 3000000}))

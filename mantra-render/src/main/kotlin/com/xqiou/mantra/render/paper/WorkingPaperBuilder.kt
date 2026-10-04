@@ -1,5 +1,6 @@
 package com.xqiou.mantra.render.paper
 
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceRule
@@ -45,7 +46,16 @@ class WorkingPaperBuilder(
     private val result: CalculationView,
     private val layout: LayoutSpec,
     private val includeAll: Boolean = false,
+    reader: CalculationReader? = null,
 ) {
+    private val ownsReader = reader == null
+    private val reader = reader ?: result.openReader()
+    private fun crossTotal(node: ViewNode): BigDecimal? {
+        if (node.dims.isNotEmpty()) return (reader.reduce(result, node.id).value as? Value.Num)?.value
+        reader.chargeScans(node.values.size.toLong())
+        return node.crossTotal()
+    }
+
     private val numbers = NumberFormatter(layout.number)
     private val explainer = TraceExplainer(layout.texts.language)
     private val texts = layout.texts
@@ -73,7 +83,7 @@ class WorkingPaperBuilder(
 
     private fun overviewPanel(panel: com.xqiou.mantra.core.structure.Panel): OverviewPanel {
         val value = panel.resultId?.let { id ->
-            result.nodes[id]?.let { node -> node.crossTotal()?.let { format(node, Value.Num(it)) } }
+            result.nodes[id]?.let { node -> crossTotal(node)?.let { format(node, Value.Num(it)) } }
         }.orEmpty()
         val entry = panel.entries.takeIf {
             panel.role == PanelRole.BRANCH
@@ -98,7 +108,14 @@ class WorkingPaperBuilder(
         }
     }
 
-    fun build(): WorkingPaper {
+    fun build(): WorkingPaper = try {
+        reader.checkpoint()
+        buildControlled()
+    } finally {
+        if (ownsReader) reader.close()
+    }
+
+    private fun buildControlled(): WorkingPaper {
         val specs = planTables()
         specs.forEachIndexed { index, spec -> tableRefs[spec.sectionId] = (index + 1).toString() }
         specs.forEach { spec ->
@@ -113,12 +130,14 @@ class WorkingPaperBuilder(
             sections[spec.sectionId]?.let { visit(it, true) }
         }
         val tables = specs.mapNotNull(::buildTable)
+        val renderedRefs = tables.mapTo(mutableSetOf()) { it.ref }
+        tableRefs.entries.removeIf { it.value !in renderedRefs }
         val schema = result.schema
         val headline = result.headlineId?.let(result.nodes::get)?.let { node ->
             PaperHeadline(
                 node.id,
                 node.displayLabel(),
-                node.crossTotal()?.let {
+                crossTotal(node)?.let {
                     format(node, Value.Num(it))
                 }.orEmpty(),
             )
@@ -222,7 +241,7 @@ class WorkingPaperBuilder(
             return MultidimensionalPaperBuilder(
                 result, layout, spec, section,
                 tableRefs.getValue(section.id), breadcrumb(section.id), includeAll, ::recordAudit,
-                { (++documentRowNumber).toString() },
+                { (++documentRowNumber).toString() }, reader,
             ).build()
         }
         val dims = dimsIn(section)
@@ -254,7 +273,12 @@ class WorkingPaperBuilder(
         val hierarchy = visibleHierarchy(rows)
         val title =
             spec.title ?: section.item.title ?: if (section === result.tree) result.schema.title else section.label
-        val cells = rows.map { row -> columns.map { cell(it, row, context) } }
+        val cells = rows.map { row ->
+            columns.map {
+                reader.chargeScans()
+                cell(it, row, context)
+            }
+        }
         // Columns without any content are dropped (e.g. an unused lead column or reference column).
         val keep = columns.indices.filter { index ->
             val content = columns[index].content
@@ -483,6 +507,7 @@ class WorkingPaperBuilder(
         }
 
         private fun walkChildren(section: ViewSection, depth: Int, childLevel: Int, resultLevel: Int) {
+            reader.chargeScans()
             for (child in section.children) {
                 when (child) {
                     is ViewSection -> walkSection(child, depth, childLevel)
@@ -558,7 +583,7 @@ class WorkingPaperBuilder(
                 nodeId = section.resultId,
                 placement = if (level == 0) Placement.MAIN else Placement.PRE,
                 scalar = node?.let { n ->
-                    n.crossTotal()?.let {
+                    crossTotal(n)?.let {
                         format(
                             n,
                             signed(
@@ -570,7 +595,7 @@ class WorkingPaperBuilder(
                 }.orEmpty(),
                 members = node?.let { memberCells(it, layout.signedValues && section.item.op == Op.MINUS) }.orEmpty(),
                 crossTotal = node?.let { n ->
-                    n.crossTotal()?.let {
+                    crossTotal(n)?.let {
                         format(
                             n,
                             signed(
@@ -635,7 +660,7 @@ class WorkingPaperBuilder(
                 if (nodeResult.dims.isEmpty()) {
                     nodeResult.value()
                 } else {
-                    nodeResult.crossTotal()?.let(Value::Num)
+                    crossTotal(nodeResult)?.let(Value::Num)
                         ?: Value.Nil
                 },
                 negate,
@@ -644,7 +669,7 @@ class WorkingPaperBuilder(
                 !nodeResult.anyActive -> texts.notApplicable
                 nodeResult.check != null -> validationStatus(nodeResult)
                 nodeResult.dims.isEmpty() -> format(nodeResult, scalarValue)
-                nodeResult.type.isNumeric && nodeResult.crossTotal() != null -> format(nodeResult, scalarValue)
+                nodeResult.type.isNumeric && crossTotal(nodeResult) != null -> format(nodeResult, scalarValue)
                 nodeResult.line?.aggregate == AggregateRule.RATIO || nodeResult.total != null -> "undefined"
                 else -> ""
             }
@@ -762,7 +787,7 @@ class WorkingPaperBuilder(
                 ) {
                     node.value(listOf(member.key))
                 } else if (node.type.isNumeric) {
-                    result.reduce(node.id, mapOf(dim to member.key)).value
+                    reader.reduce(result, node.id, mapOf(dim to member.key)).value
                 } else {
                     coords.firstOrNull { node.isActive(it) }?.let(node::value)
                 }
@@ -942,7 +967,7 @@ class WorkingPaperBuilder(
         "(${rounding.scale} ${rounding.mode.name.lowercase().replace('_', '-')})"
 
     private fun recordAudit(node: ViewNode, citation: String, anchor: String) {
-        val aggregate = if (node.dims.isEmpty()) null else result.reduce(node.id).trace
+        val aggregate = if (node.dims.isEmpty()) null else reader.reduce(result, node.id).trace
         if (aggregate != null) {
             audit += AuditEntry(
                 anchor = "$anchor-aggregate",
@@ -978,6 +1003,7 @@ class WorkingPaperBuilder(
             return
         }
         node.values.keys.forEach { coord ->
+            reader.chargeScans()
             if (!node.isActive(coord)) return@forEach
             val working = explainText(node, coord)
             if (working.isEmpty()) return@forEach
@@ -1037,6 +1063,12 @@ class WorkingPaperBuilder(
                 "reference" -> meta("reference")?.let { texts.index to it }
                 else -> meta(key)?.let { key to it }
             }
+        } + case.linkInputs.entries.map { (input, link) ->
+            reader.chargeScans()
+            val title = (if (texts.language == "de") "Verknüpfter Eingang" else "Linked input") +
+                " ${input.nodeId}" + if (input.coord.isEmpty()) "" else "@${input.coord.joinToString("/")}"
+            title to "${link.caseKey}#${link.from.nodeId}@${link.from.coord.joinToString("/")} · " +
+                "${link.schema.id}@${link.schema.version} · ${link.revision}"
         }
     }
 

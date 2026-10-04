@@ -5,6 +5,8 @@ import type {
   EnvelopeDiagnostic,
   EnvelopeRatioAggregate,
   EnvelopeAggregate,
+  EnvelopeLink,
+  EnvelopeCaseGraph,
   ExportPreview as WireExportPreview,
   Paper as WirePaper,
   Run as WireRun,
@@ -114,6 +116,8 @@ export type Structure = Pick<WireStructure['data'], 'schema' | 'title'> & {
   slots?: ExtensionSlot[]
   formulaSlots?: FormulaSlot[]
 }
+export type LinkedValueSource = EnvelopeLink
+export type CaseGraph = EnvelopeCaseGraph
 export type RunValue = WireRun['data']['values'][string][string]
 export type Run = WireRun['data']
 export interface Cell {
@@ -173,6 +177,7 @@ export interface ExplainReference {
   display: string
   kind?: string
   origin?: string
+  revision?: string
 }
 export interface ExplainOption {
   label?: string
@@ -183,6 +188,8 @@ export interface ExplainOption {
   differenceDisplay?: string
 }
 export interface Explain {
+  link?: LinkedValueSource | null
+  revision?: string
   address: Address
   label: string
   kind: string

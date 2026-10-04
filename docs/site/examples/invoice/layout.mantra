@@ -1,0 +1,4 @@
+(layout tutorial.invoice/paper
+  {:preset :ifrs-schedule :language :en :precision 2 :hide-zero false
+   :title "Fictional charge" :explain :appendix}
+  (table assessment :label :value :status))

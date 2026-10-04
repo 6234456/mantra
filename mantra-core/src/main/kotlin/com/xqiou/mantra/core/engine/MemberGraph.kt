@@ -19,6 +19,8 @@ internal class MemberGraph(
     private val sink: DiagnosticSink,
     private val describe: (MemberTask) -> String,
     private val location: (MemberTask) -> SourceLocation?,
+    private val before: (MemberTask, Boolean) -> Unit = { _, _ -> },
+    private val executeTask: (MemberTask, () -> Unit) -> Unit = { _, action -> action() },
 ) {
     private val done = mutableSetOf<MemberTask>()
     private val stack = ArrayDeque<MemberTask>()
@@ -32,7 +34,10 @@ internal class MemberGraph(
             dependencies.getOrPut(consumer) { linkedSetOf() } += task
             users.getOrPut(task) { linkedSetOf() } += consumer
         }
-        if (task in done) return
+        if (task in done) {
+            before(task, true)
+            return
+        }
         if (task in stack) {
             val cycle = stack.dropWhile { it != task } + task
             sink.error(
@@ -42,9 +47,10 @@ internal class MemberGraph(
             )
             sink.throwIfStructuralErrors()
         }
+        before(task, false)
         stack.addLast(task)
         try {
-            sink.scoped(task, execute)
+            executeTask(task) { sink.scoped(task, execute) }
             done += task
             evaluations++
         } finally {

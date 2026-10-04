@@ -1,0 +1,15 @@
+{
+  "case": "bonus-profit-zero",
+  "domain": "bonus",
+  "currency": "EUR",
+  "base": "0",
+  "rate": "0.10",
+  "seed": "0",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "0",
+  "expected_money": "0",
+  "termination_certificate": "fixed-point",
+  "supported_domain": true
+}

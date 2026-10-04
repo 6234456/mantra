@@ -17,7 +17,9 @@ internal object IncrementalInvalidation {
                     PlanRebinding.raw(before, task.id, task.coord) != PlanRebinding.raw(after, task.id, task.coord) ||
                         before.inputLocations[task.id] != after.inputLocations[task.id] ||
                         before.inputCells[task.id] != after.inputCells[task.id] ||
-                        before.inputOrigins[task.id] != after.inputOrigins[task.id]
+                        before.inputOrigins[task.id] != after.inputOrigins[task.id] ||
+                        before.linkInputs[com.xqiou.mantra.core.model.InputAddress(task.id, task.coord)] !=
+                        after.linkInputs[com.xqiou.mantra.core.model.InputAddress(task.id, task.coord)]
                 }
                 else -> false
             }

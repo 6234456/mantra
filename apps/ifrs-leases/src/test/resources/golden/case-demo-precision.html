@@ -660,451 +660,451 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-nliability-opening-aggregate">
-<td class="left cite"><a href="#t2-nliability">2/1 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/1 Σ</a></td>
 <td class="left">Opening lease liability (Total)</td>
 <td class="left"><code class="formula">first(year)</code><div class="working">first(year): [lease=Office, year=P1] 27232.4803 included; [lease=Storage, year=P1] 18000.0000 included → 45232.4803</div></td>
 <td class="right num">45,232.48</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Office-P1">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 27232.4803</div></td>
 <td class="right num">27,232.48</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Office-P2">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 18594.1043</div></td>
 <td class="right num">18,594.10</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Office-P3">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 9523.8095</div></td>
 <td class="right num">9,523.81</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Storage-P1">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r11">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 18000.0000</div></td>
 <td class="right num">18,000.00</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Storage-P2">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r11">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 12000.0000</div></td>
 <td class="right num">12,000.00</td>
 </tr>
 <tr id="audit-t2-nliability-opening-Storage-P3">
-<td class="left cite"><a href="#t2-nliability">2/1</a></td>
+<td class="left cite"><a href="#t2-r11">2/1</a></td>
 <td class="left">Opening lease liability <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev liability-closing initial-liability)</code><div class="working">(prev liability-closing initial-liability) = 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-ninterest-aggregate">
-<td class="left cite"><a href="#t2-ninterest">2/2 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/2 Σ</a></td>
 <td class="left">Interest for the period (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [lease=Office, year=P1] 1361.6240 included; [lease=Office, year=P2] 929.7052 included; [lease=Office, year=P3] 476.1905 included; [lease=Storage, year=P1] 0.0000 included; [lease=Storage, year=P2] 0.0000 included; [lease=Storage, year=P3] 0.0000 included → 2767.5197</div></td>
 <td class="right num">2,767.52</td>
 </tr>
 <tr id="audit-t2-ninterest-Office-P1">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 1361.624015 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 1361.6240 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 1361.6240 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">1,361.62</td>
 </tr>
 <tr id="audit-t2-ninterest-Office-P2">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 929.705215 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 929.7052 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 929.7052 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">929.71</td>
 </tr>
 <tr id="audit-t2-ninterest-Storage-P1">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r12">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 0.0000 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 0.0000 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 0.0000 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-ninterest-Storage-P2">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r12">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 0.0000 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 0.0000 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 0.0000 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-ninterest-Office-P3">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 476.190475 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 476.1905 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 476.1905 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">476.19</td>
 </tr>
 <tr id="audit-t2-ninterest-Storage-P3">
-<td class="left cite"><a href="#t2-ninterest">2/2</a></td>
+<td class="left cite"><a href="#t2-r12">2/2</a></td>
 <td class="left">Interest for the period <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 0.0000 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 0.0000 → (if (&lt; year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 0.0000 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-npayment-aggregate">
-<td class="left cite"><a href="#t2-npayment">2/3 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/3 Σ</a></td>
 <td class="left">Supplied end-of-period payment (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [lease=Office, year=P1] 10000 included; [lease=Office, year=P2] 10000 included; [lease=Office, year=P3] 10000 included; [lease=Storage, year=P1] 6000 included; [lease=Storage, year=P2] 6000 included; [lease=Storage, year=P3] 6000 included → 48000</div></td>
 <td class="right num">48,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Office-P1">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 10000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 10000 → selected branch: entry.payment → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">10,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Office-P2">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 10000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 10000 → selected branch: 0 → selected branch: entry.payment → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">10,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Storage-P1">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r13">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 6000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 6000 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.payment → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Storage-P2">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r13">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 6000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 6000 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.payment → selected branch: 0</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Office-P3">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 10000 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 10000 → selected branch: 0 → selected branch: 0 → selected branch: entry.payment → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">10,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-Storage-P3">
-<td class="left cite"><a href="#t2-npayment">2/3</a></td>
+<td class="left cite"><a href="#t2-r13">2/3</a></td>
 <td class="left">Supplied end-of-period payment <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 6000 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 6000 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.payment</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Office-P1">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Office-P2">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Office-P3">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Storage-P1">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r14">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Storage-P2">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r14">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-npayment-nonnegative-Storage-P3">
-<td class="left cite"><a href="#t2-npayment">2/4</a></td>
+<td class="left cite"><a href="#t2-r14">2/4</a></td>
 <td class="left">Supplied payment is nonnegative <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(&gt;= payment 0)</code><div class="working">(&gt;= payment 0) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-nliability-closing-aggregate">
-<td class="left cite"><a href="#t2-nliability">2/5 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/5 Σ</a></td>
 <td class="left">Closing lease liability (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [lease=Office, year=P3] 0.0000 included; [lease=Storage, year=P3] 0.0000 included → 0.0000</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Office-P1">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">27232.4803 + 1361.6240 − 10000</div></td>
 <td class="right num">18,594.10</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Office-P2">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">18594.1043 + 929.7052 − 10000</div></td>
 <td class="right num">9,523.81</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Storage-P1">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r15">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">18000.0000 + 0.0000 − 6000</div></td>
 <td class="right num">12,000.00</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Storage-P2">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r15">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">12000.0000 + 0.0000 − 6000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Office-P3">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">9523.8095 + 476.1905 − 10000</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-closing-Storage-P3">
-<td class="left cite"><a href="#t2-nliability">2/5</a></td>
+<td class="left cite"><a href="#t2-r15">2/5</a></td>
 <td class="left">Closing lease liability <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">liability-opening + interest − payment</code><div class="working">6000.0000 + 0.0000 − 6000</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-aggregate">
-<td class="left cite"><a href="#t2-nprincipal">2/6 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/6 Σ</a></td>
 <td class="left">Payment less interest (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [lease=Office, year=P1] 8638.3760 included; [lease=Office, year=P2] 9070.2948 included; [lease=Office, year=P3] 9523.8095 included; [lease=Storage, year=P1] 6000.0000 included; [lease=Storage, year=P2] 6000.0000 included; [lease=Storage, year=P3] 6000.0000 included → 45232.4803</div></td>
 <td class="right num">45,232.48</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Office-P1">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 8638.3760</div></td>
 <td class="right num">8,638.38</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Office-P2">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 9070.2948</div></td>
 <td class="right num">9,070.29</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Office-P3">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 9523.8095</div></td>
 <td class="right num">9,523.81</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Storage-P1">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r16">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Storage-P2">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r16">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-nprincipal-reduction-Storage-P3">
-<td class="left cite"><a href="#t2-nprincipal">2/6</a></td>
+<td class="left cite"><a href="#t2-r16">2/6</a></td>
 <td class="left">Payment less interest <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(- payment interest)</code><div class="working">(- payment interest) = 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-aggregate">
-<td class="left cite"><a href="#t2-nreported">2/7 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/7 Σ</a></td>
 <td class="left">Reported closing lease liability (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [lease=Office, year=P3] 0 included; [lease=Storage, year=P3] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Office-P1">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 18594.10 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 18594.10 → selected branch: entry.liability-amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">18,594.10</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Office-P2">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 9523.81 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 9523.81 → selected branch: 0 → selected branch: entry.liability-amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">9,523.81</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Office-P3">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.liability-amount → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Storage-P1">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r17">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 12000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 12000 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.liability-amount → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">12,000.00</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Storage-P2">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r17">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 6000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 6000 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.liability-amount → selected branch: 0</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t2-nreported-liability-closing-Storage-P3">
-<td class="left cite"><a href="#t2-nreported">2/7</a></td>
+<td class="left cite"><a href="#t2-r17">2/7</a></td>
 <td class="left">Reported closing lease liability <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.liability-amount</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Office-P1">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 18594.1043; reported-liability-closing = 18594.10 → 18594.1043 − 18594.10 = 0.0043 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Office-P2">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 9523.8095; reported-liability-closing = 9523.81 → 9523.8095 − 9523.81 = -0.0005 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Office-P3">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 0.0000; reported-liability-closing = 0 → 0.0000 − 0 = 0.0000 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Storage-P1">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r18">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 12000.0000; reported-liability-closing = 12000 → 12000.0000 − 12000 = 0.0000 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Storage-P2">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r18">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 6000.0000; reported-liability-closing = 6000 → 6000.0000 − 6000 = 0.0000 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nliability-reconciliation-Storage-P3">
-<td class="left cite"><a href="#t2-nliability">2/8</a></td>
+<td class="left cite"><a href="#t2-r18">2/8</a></td>
 <td class="left">Computed and independently reported liability balances agree <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">liability-closing ≈ reported-liability-closing (± 0.01)</code><div class="working">liability-closing = 0.0000; reported-liability-closing = 0 → 0.0000 − 0 = 0.0000 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nrou-opening-aggregate">
-<td class="left cite"><a href="#t3-nrou">3/1 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/1 Σ</a></td>
 <td class="left">Opening right-of-use carrying amount (Total)</td>
 <td class="left"><code class="formula">first(year)</code><div class="working">first(year): [lease=Office, year=P1] 27232.4803 included; [lease=Storage, year=P1] 18000.0000 included → 45232.4803</div></td>
 <td class="right num">45,232.48</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Office-P1">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 27232.4803</div></td>
 <td class="right num">27,232.48</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Office-P2">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 18154.9869</div></td>
 <td class="right num">18,154.99</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Office-P3">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 9077.4935</div></td>
 <td class="right num">9,077.49</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Storage-P1">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 18000.0000</div></td>
 <td class="right num">18,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Storage-P2">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 12000.0000</div></td>
 <td class="right num">12,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-opening-Storage-P3">
-<td class="left cite"><a href="#t3-nrou">3/1</a></td>
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
 <td class="left">Opening right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev rou-closing initial-rou-cost)</code><div class="working">(prev rou-closing initial-rou-cost) = 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-aggregate">
-<td class="left cite"><a href="#t3-nrou">3/2 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/2 Σ</a></td>
 <td class="left">Right-of-use depreciation (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [lease=Office, year=P1] 9077.4934 included; [lease=Office, year=P2] 9077.4934 included; [lease=Office, year=P3] 9077.4935 included; [lease=Storage, year=P1] 6000.0000 included; [lease=Storage, year=P2] 6000.0000 included; [lease=Storage, year=P3] 6000.0000 included → 45232.4803</div></td>
 <td class="right num">45,232.48</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Office-P1">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 1 → (= (+ year.index 1) lease.term-years) = false → (decimal/divide initial-rou-cost lease.term-years currency-scale) = 9077.4934 → (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) = 9077.4934 → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 9077.4934 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 9077.4934 → selected branch: (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">9,077.49</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Office-P2">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 2 → (= (+ year.index 1) lease.term-years) = false → (decimal/divide initial-rou-cost lease.term-years currency-scale) = 9077.4934 → (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) = 9077.4934 → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 9077.4934 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 9077.4934 → selected branch: (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">9,077.49</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Storage-P1">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 1 → (= (+ year.index 1) lease.term-years) = false → (decimal/divide initial-rou-cost lease.term-years currency-scale) = 6000.0000 → (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) = 6000.0000 → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 6000.0000 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 6000.0000 → selected branch: (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Storage-P2">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 2 → (= (+ year.index 1) lease.term-years) = false → (decimal/divide initial-rou-cost lease.term-years currency-scale) = 6000.0000 → (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) = 6000.0000 → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 6000.0000 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 6000.0000 → selected branch: (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)) → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Office-P3">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 3 → (= (+ year.index 1) lease.term-years) = true → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 9077.4935 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 9077.4935 → selected branch: rou-opening → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">9,077.49</td>
 </tr>
 <tr id="audit-t3-nrou-depreciation-Storage-P3">
-<td class="left cite"><a href="#t3-nrou">3/2</a></td>
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
 <td class="left">Right-of-use depreciation <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)</code><div class="working">(&lt; year.index lease.term-years) = true → (+ year.index 1) = 3 → (= (+ year.index 1) lease.term-years) = true → (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) = 6000.0000 → (if (&lt; year.index lease.term-years) (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0) = 6000.0000 → selected branch: rou-opening → selected branch: (if (= (+ year.index 1) lease.term-years) rou-opening (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale)))</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-closing-aggregate">
-<td class="left cite"><a href="#t3-nrou">3/3 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/3 Σ</a></td>
 <td class="left">Closing right-of-use carrying amount (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [lease=Office, year=P3] 0.0000 included; [lease=Storage, year=P3] 0.0000 included → 0.0000</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Office-P1">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Office-space right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">27232.4803 − 9077.4934</div></td>
 <td class="right num">18,154.99</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Office-P2">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Office-space right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">18154.9869 − 9077.4934</div></td>
 <td class="right num">9,077.49</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Storage-P1">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">18000.0000 − 6000.0000</div></td>
 <td class="right num">12,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Storage-P2">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">12000.0000 − 6000.0000</div></td>
 <td class="right num">6,000.00</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Office-P3">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Office-space right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">9077.4935 − 9077.4935</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nrou-closing-Storage-P3">
-<td class="left cite"><a href="#t3-nrou">3/3</a></td>
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
 <td class="left">Closing right-of-use carrying amount <span class="member">Zero-interest storage right of use / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">rou-opening − rou-depreciation</code><div class="working">6000.0000 − 6000.0000</div></td>
 <td class="right num">–</td>
@@ -1306,7 +1306,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <footer class="wp-footer">
 <div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
 <div class="findings"><strong>Findings</strong><ul>
-<li class="warning"><code>MANTRA-AUDIT-TRUNCATED</code> Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly <span class="loc">schema.mantra:32:7</span></li>
+<li class="warning"><code>MANTRA-AUDIT-TRUNCATED</code> Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly <span class="loc">ifrs-leases/schema.mantra:32:7</span></li>
 </ul></div>
 <div class="engine">Mantra calculation engine · Normein DSL</div>
 </footer>

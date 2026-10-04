@@ -14,7 +14,10 @@
         "members",
         "values",
         "diagnostics",
-        "validationPassed"
+        "validationPassed",
+        "caseGraph",
+        "usage",
+        "failure"
       ],
       "properties": {
         "succeeded": {
@@ -50,7 +53,8 @@
               "required": [
                 "value",
                 "display",
-                "active"
+                "active",
+                "link"
               ],
               "properties": {
                 "value": {
@@ -77,6 +81,16 @@
                       "type": "null"
                     }
                   ]
+                },
+                "link": {
+                  "oneOf": [
+                    {
+                      "$ref": "envelope.schema.json#/$defs/link"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false
@@ -97,6 +111,36 @@
           "additionalProperties": {
             "$ref": "envelope.schema.json#/$defs/aggregate"
           }
+        },
+        "caseGraph": {
+          "oneOf": [
+            {
+              "$ref": "envelope.schema.json#/$defs/caseGraph"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usage": {
+          "oneOf": [
+            {
+              "$ref": "envelope.schema.json#/$defs/usage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failure": {
+          "oneOf": [
+            {
+              "$ref": "envelope.schema.json#/$defs/failure"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false

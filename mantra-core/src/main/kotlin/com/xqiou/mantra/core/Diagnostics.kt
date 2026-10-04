@@ -28,6 +28,9 @@ data class Diagnostic(
     /** Zero-based row index for a table input finding. */
     val rowIndex: Int? = null,
     val column: String? = null,
+    /** Canonical original case identity for an inherited finding. Null denotes this calculation. */
+    val caseKey: String? = null,
+    val caseRevision: String? = null,
 ) {
     override fun toString(): String = buildString {
         append(severity.name.lowercase())
@@ -40,7 +43,11 @@ data class Diagnostic(
     }
 }
 
-class MantraException(val diagnostics: List<Diagnostic>) : RuntimeException(diagnostics.joinToString("\n"))
+class MantraException(
+    val diagnostics: List<Diagnostic>,
+    val usage: com.xqiou.mantra.core.api.RunUsage? = null,
+    val runFailure: com.xqiou.mantra.core.api.RunFailure? = null,
+) : RuntimeException(diagnostics.joinToString("\n"))
 
 /** Collects diagnostics while a document or plan is processed. */
 class DiagnosticSink {

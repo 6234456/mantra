@@ -1,0 +1,16 @@
+;; Fictional facts copied from frozen loss/consumer-revised-2025.json. Demonstration only.
+(case consumer-revised-2025
+  {:schema "de.est/2025" :schema-version "2025.3"
+   :layout "de.est/steuerberechnung-2025.3"
+   :parameters ["de.est/params-2025.3"]
+   :title "Income tax 2025: consumer-revised-2025"
+   :expected-business []}
+  (inputs {:veranlagungsart :einzel :kinder 0 :alleinerziehend false
+           :gewinn-selbstaendig {:A 32000}
+           :vermietungsobjekte [] :guenstigerpruefung-kap false :kirchensteuersatz 0
+           :eligible-new-loss 0 :selected-carryback 0
+           :carryback-waived true})
+  (links {:path "../2024.1/case-source-revised-2024.mantra"
+          :schema "de.est-loss/2024" :schema-version "2024.1"
+          :mappings [{:from {:node :closing-loss :coord []}
+                      :to {:input :verlustvortrag :coord []}}]}))

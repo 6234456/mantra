@@ -7,6 +7,8 @@ import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.Document
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.read.listHead
+import com.xqiou.mantra.core.read.options
+import com.xqiou.mantra.core.read.string
 import com.xqiou.mantra.core.read.symbol
 import com.xqiou.mantra.workbench.WorkspaceCatalog.Indexed
 import com.xqiou.mantra.workbench.WorkspaceCatalog.Snapshot
@@ -30,7 +32,14 @@ internal fun WorkspaceCatalog.scan(): Snapshot = Snapshot(
         val form = document?.root as? DslForm.Sequence
         val kind = form?.listHead.orEmpty()
         val name = form?.values?.getOrNull(1)?.let { it.symbol ?: (it as? DslForm.Atom)?.value }
-        Indexed(file, relative(file), kind, name, diagnostics.all)
+        Indexed(
+            file,
+            relative(file),
+            kind,
+            name,
+            diagnostics.all,
+            form?.values?.getOrNull(2)?.let { document?.options(it, diagnostics, "metadata")?.get("version")?.string },
+        )
     },
 )
 

@@ -5,6 +5,10 @@
     "input": "lease-payments",
     "delimiter": ",",
     "decimal": ".",
-    "grouping": ""
-  }
+    "grouping": "",
+    "path": "data/payments.csv"
+  },
+  "case": "case-demo.mantra",
+  "schema": "ifrs.ifrs16/lessee-schedule",
+  "schema-version": "0.1"
 }

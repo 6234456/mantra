@@ -1,19 +1,17 @@
 package com.xqiou.mantra.workbench
 
-import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
-import com.xqiou.mantra.core.model.Schema
-import com.xqiou.mantra.core.model.Value
-import com.xqiou.mantra.core.read.SourceResolver
-import com.xqiou.mantra.core.read.SourceText
-import com.xqiou.mantra.core.view.CalculationView
+import com.xqiou.mantra.core.api.AuditOptions
+import com.xqiou.mantra.core.api.CanonicalCaseKey
+import com.xqiou.mantra.core.api.CaseExplainAddress
+import com.xqiou.mantra.core.api.CaseReference
+import com.xqiou.mantra.core.api.CaseRunRequest
+import com.xqiou.mantra.core.model.InputAddress
 import com.xqiou.mantra.render.Render
-import com.xqiou.mantra.render.layout.LayoutReader
 import com.xqiou.mantra.workbench.WorkspaceCatalog.Resolved
 import com.xqiou.mantra.workbench.WorkspaceCatalog.Snapshot
-import java.nio.file.Path
 
-/** Resolves a case and its declared dependencies into an immutable calculation view. */
+/** Root overrides never leak into source cases; the loader owns captured bytes for this request. */
 internal fun WorkspaceCatalog.resolve(
     caseId: String,
     snapshot: Snapshot,
@@ -24,108 +22,54 @@ internal fun WorkspaceCatalog.resolve(
     explain: ExplainAddress? = null,
     audit: Boolean = false,
 ): Resolved {
-    val casePath = path(caseId)
-    val entry = snapshot.kind("case").singleOrNull { it.path == casePath }
-        ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
-    if (entry.diagnostics.isNotEmpty()) {
-        throw WorkspaceException(
-            WorkspaceProblem.INVALID,
-            "Case document is invalid",
-            entry.diagnostics,
+    val casePath = path(caseId).toRealPath()
+    if (snapshot.kind("case").none { it.path.toRealPath() == casePath }) {
+        throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
+    }
+    val key = CanonicalCaseKey(relative(casePath))
+    val loader =
+        CasePackageLoader(
+            root,
+            CasePackageOverrides(key.value, caseText, parameterOverride, layoutOverride, includeLayout = includeLayout),
         )
-    }
-    val case = try {
-        if (caseText ==
-            null
-        ) {
-            loadCase(casePath)
-        } else {
-            Mantra.loadCase(SourceText(caseId, caseText, casePath.parent.toString()))
-        }
-    } catch (error: MantraException) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, "Case document is invalid", error.diagnostics)
-    }
-    val schemaId = case.schemaId ?: throw WorkspaceException(
-        WorkspaceProblem.INVALID,
-        "Case has no schema",
-        listOf(diagnostic("MANTRA-WORKBENCH-CASE-SCHEMA", "Case does not declare :schema")),
-    )
-    val matches = snapshot.kind("schema").filter { it.name == schemaId }
-    if (matches.size != 1) {
-        throw WorkspaceException(
-            WorkspaceProblem.INVALID,
-            "Schema cannot be resolved",
-            listOf(
-                diagnostic("MANTRA-WORKBENCH-CASE-SCHEMA", "Expected one schema for $schemaId, found ${matches.size}"),
+    val graph = try {
+        sessions.graph(
+            loader,
+            CaseRunRequest(
+                CaseReference(key.value),
+                audit = if (audit) AuditOptions() else null,
+                explain = explain?.let { address ->
+                    CaseExplainAddress(
+                        address.case?.let(::CanonicalCaseKey),
+                        InputAddress(address.node, address.coord),
+                        address.expectedRevision,
+                    )
+                },
             ),
         )
-    }
-    val schemaPath = matches.single().path
-    val schemaSources = linkedMapOf<String, String>()
-    val schema = try {
-        val primary = source(schemaPath).also { schemaSources[it.name] = it.text }
-        Mantra.loadSchema(
-            primary,
-            SourceResolver { name, relative ->
-                val base = relative?.base?.let(Path::of) ?: schemaPath.parent
-                runCatching { source(base.resolve(name)).also { schemaSources[it.name] = it.text } }.getOrNull()
-            },
-        )
     } catch (error: MantraException) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, "Schema document is invalid", error.diagnostics)
+        throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be resolved", error.diagnostics)
     }
-    val parameterBinding = case.meta["parameters"]
-    if (parameterOverride == null && parameterBinding != null && parameterBinding !is Value.Vec) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, ":parameters must be a list")
-    }
-    val parameterIds = parameterOverride ?: (parameterBinding as? Value.Vec)?.items?.map {
-        (it as? Value.Text)?.value
-            ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter id must be text")
-    }.orEmpty()
-    val parameterFiles = parameterIds.map { id ->
-        val matched = snapshot.kind("parameters").filter { it.name == id }
-        if (matched.size !=
-            1
-        ) {
-            throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter set $id cannot be resolved")
-        }
-        matched.single().path
-    }
-    val parameters = try {
-        parameterFiles.map(Mantra::loadParameters)
-    } catch (error: MantraException) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, "Parameter document is invalid", error.diagnostics)
-    }
-    val bound = BoundSources.load(case, schema, casePath, root)
-    val result = try {
-        if (explain == null) {
-            sessions.calculate(caseId, schemaFingerprint(schemaSources), schema, bound.case, parameters, audit)
-        } else {
-            Mantra.calculateForExplain(schema, bound.case, parameters, explain.node, explain.coord)
-        }
-    } catch (error: MantraException) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be calculated", error.diagnostics)
-    }
-    val view = CalculationView.of(result)
-    if (includeLayout && case.meta["layout"] != null && case.meta["layout"] !is Value.Text) {
-        throw WorkspaceException(WorkspaceProblem.INVALID, ":layout must be text")
-    }
-    val selectedLayout = if (includeLayout) layoutOverride ?: case.text("layout") else null
-    val layoutFile = selectedLayout?.let { id ->
-        val matched = snapshot.kind("layout").filter { it.name == id }
-        if (matched.size != 1) throw WorkspaceException(WorkspaceProblem.INVALID, "Layout $id cannot be resolved")
-        matched.single().path
-    }
-    val layout = layoutFile?.let {
-        try {
-            LayoutReader.read(source(it))
-        } catch (error: MantraException) {
-            throw WorkspaceException(WorkspaceProblem.INVALID, "Layout document is invalid", error.diagnostics)
-        }
-    } ?: Render.defaultLayout(view)
-    val revision = revision(
-        listOf(casePath) + schema.sources.map { path(it) } + bound.files + parameterFiles + listOfNotNull(layoutFile),
-        if (caseText == null) emptyMap() else mapOf(casePath to caseText.toByteArray(Charsets.UTF_8)),
+    val result = graph.result ?: throw WorkspaceException(
+        when {
+            graph.diagnostics.any { it.finding.code == "MANTRA-LINK-REVISION" } -> WorkspaceProblem.CONFLICT
+            explain?.case != null && CanonicalCaseKey(explain.case) !in graph.cases &&
+                graph.diagnostics.any { it.finding.code == "MANTRA-LINK-ADDRESS" } -> WorkspaceProblem.NOT_FOUND
+            else -> WorkspaceProblem.INVALID
+        },
+        "Case graph could not be calculated",
+        graph.diagnostics.map {
+            it.finding.copy(caseKey = it.case?.value, caseRevision = it.revision)
+        },
+        graph.diagnostics.firstOrNull { it.finding.code == "MANTRA-LINK-REVISION" }?.revision
+            ?: graph.cases[graph.root]?.revision,
     )
-    return Resolved(view, layout, revision, parameterIds, result.explainTrace, schema, parameters, bound.overridden)
+    val binding = loader.binding(key)
+    val view = result.view
+    val layout = if (includeLayout) binding.layout ?: Render.defaultLayout(view) else Render.defaultLayout(view)
+    return Resolved(
+        view, layout, graph.cases.getValue(key).revision, binding.parameterIds, graph.explain,
+        binding.packageData.schema, binding.packageData.parameters, binding.sourceOverrides, graph,
+        graph.cases.mapValues { (case, run) -> loader.binding(case).layout ?: Render.defaultLayout(run.view) },
+    )
 }

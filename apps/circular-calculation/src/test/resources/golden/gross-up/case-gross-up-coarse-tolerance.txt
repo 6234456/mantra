@@ -1,0 +1,47 @@
+Fictional net-to-gross — demonstration
+======================================
+Entity: Net-to-gross: gross-up-coarse-tolerance
+Calculation schema: Fictional net-to-gross calculation v1.0 [demo.gross-up]
+Gross amount: 1,333.01
+
+Structure of the calculation
+  Mainline 1: Declared seed and rounded fixed-point result [1]
+
+[1] Declared seed and rounded fixed-point result
+    Mainline › 1 Declared seed and rounded fixed-point result
+Line | Description                                       |      EUR |
+-----+---------------------------------------------------+----------+--
+1    | Gross amount                                      | 1,333.01 |
+2    | Result less unrounded equation                    | (0.2425) |
+3    | Result less rounded equation                      |   (0.24) |
+4    | Fictional flat deduction                          |      333 |
+5    | Gross less deduction                              |    1,000 |
+6    | Actual net less requested net                     |        – |
+7    | Returned amount also meets the equation tolerance |        ✗ | ✗
+
+Audit trail
+-----------
+1/1 Gross amount
+    Formula: (calc/converge rounded-step seed maximum-calls tolerance)
+    Working: (defn rounded-step [^Decimal current] (decimal/round (+ base (* rate current)) money-scale)) = [value unavailable] → (* rate current) = 250.00 → (+ base (* rate current)) = 1250.00 → (decimal/round (+ base (* rate current)) money-scale) = 1250.00 → (* rate current) = 312.5000 → (+ base (* rate current)) = 1312.5000 → (decimal/round (+ base (* rate current)) money-scale) = 1312.50 → (* rate current) = 328.1250 → (+ base (* rate current)) = 1328.1250 → (decimal/round (+ base (* rate current)) money-scale) = 1328.13 → (* rate current) = 332.0325 → (+ base (* rate current)) = 1332.0325 → (decimal/round (+ base (* rate current)) money-scale) = 1332.03 → (* rate current) = 333.0075 → (+ base (* rate current)) = 1333.0075 → (decimal/round (+ base (* rate current)) money-scale) = 1333.01 → (calc/converge rounded-step seed maximum-calls tolerance) = 1333.01 → (calc/converge rounded-step seed maximum-calls tolerance) = 1333.01 = 1,333.01
+1/2 Result less unrounded equation
+    Formula: (- converged-amount (+ base (* rate converged-amount)))
+    Working: (* rate converged-amount) = 333.2525 → (+ base (* rate converged-amount)) = 1333.2525 → (- converged-amount (+ base (* rate converged-amount))) = -0.2425 = (0.2425)
+1/3 Result less rounded equation
+    Formula: (- converged-amount (rounded-step converged-amount))
+    Working: (defn rounded-step [^Decimal current] (decimal/round (+ base (* rate current)) money-scale)) = [value unavailable] → (* rate current) = 333.2525 → (+ base (* rate current)) = 1333.2525 → (decimal/round (+ base (* rate current)) money-scale) = 1333.25 → (rounded-step converged-amount) = 1333.25 → (- converged-amount (rounded-step converged-amount)) = -0.24 → (- converged-amount (rounded-step converged-amount)) = -0.24 = (0.24)
+1/4 Fictional flat deduction
+    Formula: (decimal/round (* rate converged-amount) money-scale)
+    Working: (* rate converged-amount) = 333.2525 → (decimal/round (* rate converged-amount) money-scale) = 333.25 = 333
+1/5 Gross less deduction
+    Formula: (- converged-amount deduction)
+    Working: (- converged-amount deduction) = 999.76 = 1,000
+1/6 Actual net less requested net
+    Formula: (- actual-net base)
+    Working: (- actual-net base) = -0.24 = –
+1/7 Returned amount also meets the equation tolerance
+    Formula: (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance)
+    Working: (decimal/round money-equation-residual money-scale) = -0.24 → (abs (decimal/round money-equation-residual money-scale)) = 0.24 → (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance) = false = ✗
+
+Findings
+  error MANTRA-CHECK-FAILED at circular-calculation/gross-up/schema.mantra:27:5 [equation-residual]: Returned amount also meets the equation tolerance

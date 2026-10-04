@@ -1,0 +1,7 @@
+;; Frozen fictional bonus-main; independent cent-orbit certificate is source evidence, never runtime trace.
+(case bonus-main
+  {:schema "demo.bonus" :schema-version "1.0" :layout "demo.bonus/working-paper"
+   :parameters ["demo.bonus/parameters"] :title "Circular bonus: bonus-main"
+   :expected-business []}
+  (inputs {:base 100000 :rate 0.10 :seed 0
+           :maximum-calls 60 :tolerance 0}))

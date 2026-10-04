@@ -6,10 +6,14 @@ import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.api.AuditOptions
+import com.xqiou.mantra.core.api.CalculationOptions
 import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.api.RecalculationStats
+import com.xqiou.mantra.core.api.RunCounter
+import com.xqiou.mantra.core.api.RunStage
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.ChoiceRule
+import com.xqiou.mantra.core.model.InputAddress
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Rounding
 import com.xqiou.mantra.core.model.Value
@@ -40,13 +44,25 @@ internal class Evaluator(
     private val sink: DiagnosticSink,
     private val explainTarget: Pair<String, Coord>? = null,
     auditOptions: AuditOptions? = null,
+    calculationOptions: CalculationOptions = CalculationOptions(),
 ) : AutoCloseable {
-    private val kernel = KernelExecution()
-    private val inputs = KernelInputs({ plan }, sink)
+    private val kernel = KernelExecution(calculationOptions)
+    private var epoch: RunContext? = null
+    private val context: RunContext get() = checkNotNull(epoch) { "Evaluator has no active run epoch" }
+    private fun <T> withinEpoch(next: RunContext, action: () -> T): T {
+        check(epoch == null) { "Evaluator already has an active run epoch" }
+        epoch = next
+        return try {
+            next.checkpoint()
+            action()
+        } finally {
+            epoch = null
+        }
+    }
+    private val inputValues = InputValues({ plan }, sink, { context }, ::coordText)
+    private val inputs = KernelInputs({ plan }, sink) { context }
     private val inputIdentity = MantraKernel.inputIdentity(plan.case.id, plan.case.source + "|" + plan.schema.id)
     private val members = linkedMapOf<String, List<Member>>()
-    private data class MemberKeys(val domain: List<Member>, val keys: Set<String>)
-    private val memberKeyCache = hashMapOf<String, MemberKeys>()
     private val values = hashMapOf<String, MutableMap<Coord, Value>>()
     private val active = hashMapOf<String, MutableMap<Coord, Boolean>>()
     private val periodDomains = linkedMapOf<String, ResolvedPeriodDimension>()
@@ -54,20 +70,43 @@ internal class Evaluator(
         { id -> reductionNode(plan.valueVertices.getValue(id)) },
         { members[it].orEmpty() },
         sink,
-        { id ->
+        { id, context ->
             plan.dimensions[id]?.parentDimension?.let { parent ->
                 val column = plan.dimensions.getValue(id).parentKeyColumn ?: "parent-key"
                 parent to members[id].orEmpty().mapNotNull { member ->
+                    context.charge(RunCounter.HOST_SCANS)
                     memberKey(member.record[column])?.let { member.key to it }
                 }.toMap()
             }
         },
     )
-    private val graph = MemberGraph(sink, { MemberPlanner.describe(plan, it) }, { MemberPlanner.location(plan, it) })
+    private fun taskAddress(task: MemberTask): com.xqiou.mantra.core.api.RunAddress {
+        val (id, coord) = when (task) {
+            is MemberTask.Value -> task.id to task.coord
+            is MemberTask.Guard -> task.id to task.coord
+            is MemberTask.Validation -> task.id to task.coord
+            is MemberTask.Spread -> task.id to task.coord
+            is MemberTask.Domain -> task.id to emptyList()
+            is MemberTask.Slice -> task.id to emptyList()
+        }
+        return context.nodeAddress(id, coord)
+    }
+    private val graph = MemberGraph(
+        sink,
+        { MemberPlanner.describe(plan, it) },
+        { MemberPlanner.location(plan, it) },
+        before = { task, cached ->
+            context.at(RunStage.TASK, taskAddress(task)) {
+                if (cached) context.checkpoint() else context.charge(RunCounter.TASKS)
+            }
+        },
+        executeTask = { task, action -> context.at(RunStage.TASK, taskAddress(task), action) },
+    )
     private val spreadOutcomes = hashMapOf<Pair<String, Coord>, Outcome?>()
     private val spreadFailures = hashMapOf<Pair<String, Coord>, ExplainTrace?>()
     private val traces = hashMapOf<String, MutableMap<Coord, NodeTrace>>()
-    private val guardValues = hashMapOf<String, MutableMap<Coord, Boolean>>()
+    private data class GuardOutcome(val active: Boolean?, val explanation: ExplainTrace?)
+    private val guardValues = hashMapOf<String, MutableMap<Coord, GuardOutcome>>()
     private var explainTrace: ExplainTrace? = null
     private val audit = AuditCapture(auditOptions, explainTarget, sink)
     private var lastFailedExplanation: ExplainTrace? = null
@@ -79,7 +118,9 @@ internal class Evaluator(
 
     private class Outcome(val value: Value, val references: List<TraceRef>, val explainTrace: ExplainTrace?)
 
-    fun run(): CalculationResult {
+    fun run(context: RunContext): CalculationResult = withinEpoch(context) { runCurrent() }
+
+    private fun runCurrent(): CalculationResult {
         val evaluatedBefore = graph.evaluations
         val formulasBefore = kernel.valueOnlyEvaluations + kernel.auditedEvaluations
         val retained = graph.completedTasks.size
@@ -99,7 +140,9 @@ internal class Evaluator(
         sink.scoped(runOwner) { validateTableReferences() }
         val nodes = sink.scoped(runOwner) {
             plan.valueVertices.values.associate { vertex ->
-                val reduction = reductions.reduce(vertex.id)
+                val reduction = context.at(RunStage.REDUCING, context.nodeAddress(vertex.id)) {
+                    reductions.reduce(vertex.id, context = context)
+                }
                 val aggregateTrace = reduction.trace as? com.xqiou.mantra.core.view.RatioAggregateTrace
                 vertex.id to NodeResult(
                     vertex,
@@ -122,10 +165,29 @@ internal class Evaluator(
         )
         invalidated = 0
         fullRebuild = false
-        return CalculationResult(plan, members, nodes, sink.all, explainTrace)
+        context.checkpoint()
+        return context.at(RunStage.PROJECTING) {
+            val generated = CalculationResult(
+                plan,
+                members,
+                nodes,
+                sink.all,
+                explainTrace,
+                context.snapshot(),
+                projectionScan = { context.charge(RunCounter.HOST_SCANS) },
+            )
+            context.checkpoint()
+            generated.withGraphMetadata(emptyList(), context.snapshot())
+        }
     }
 
-    fun recalculate(next: CalculationPlan, planningDiagnostics: List<Diagnostic>): CalculationResult {
+    fun recalculate(
+        next: CalculationPlan,
+        planningDiagnostics: List<Diagnostic>,
+        context: RunContext,
+    ): CalculationResult = withinEpoch(context) { recalculateCurrent(next, planningDiagnostics) }
+
+    private fun recalculateCurrent(next: CalculationPlan, planningDiagnostics: List<Diagnostic>): CalculationResult {
         check(explainTarget == null) { "Explain evaluators cannot be reused for editing" }
         val changed = IncrementalInvalidation.changed(plan, next, graph.completedTasks)
         val dirty = graph.invalidate(changed)
@@ -153,7 +215,7 @@ internal class Evaluator(
         }
         reductions.clear()
         plan = next
-        return run()
+        return runCurrent()
     }
 
     // Dimensions and guards
@@ -170,6 +232,7 @@ internal class Evaluator(
                     periodSpec,
                     decl.location,
                     decl.parentDimension?.let(periodDomains::get),
+                    context,
                 )
                 sink.throwIfStructuralErrors()
                 periodDomains[id] = checkNotNull(resolved)
@@ -212,6 +275,7 @@ internal class Evaluator(
         vertex.id, vertex.dims, vertex.type, vertex.aggregate, vertex.ratio, vertex.boundary,
         values[vertex.id].orEmpty(), active[vertex.id].orEmpty(), vertex.location,
         vertex.isValidation, vertex is TotalVertex, vertex.undefinedValues,
+        traces[vertex.id].orEmpty(),
     )
 
     private fun memberKey(raw: Value?): String? = when (raw) {
@@ -226,9 +290,11 @@ internal class Evaluator(
         val table = decl.fromTable
         if (table == null) {
             return decl.members.filter { member ->
+                context.charge(RunCounter.HOST_SCANS)
                 val condition = vertex.memberConditions[member.key] ?: return@filter true
                 evaluate(condition, emptyList(), "${decl.id}.${member.key}")?.value?.truthy ?: false
             }.mapIndexed { index, member ->
+                context.charge(RunCounter.HOST_SCANS)
                 Member(
                     member.key,
                     member.label,
@@ -244,6 +310,7 @@ internal class Evaluator(
         val rows = (values[table]?.get(emptyList()) as? Value.Vec)?.items.orEmpty()
         val seen = mutableSetOf<String>()
         return rows.mapIndexedNotNull { index, row ->
+            context.charge(RunCounter.HOST_SCANS)
             val fields = (row as Value.MapV).entries.entries.associate { (k, v) -> (k as Value.Kw).name to v }
             val key = memberKey(fields[decl.keyColumn]) ?: run {
                 sink.error(
@@ -260,7 +327,12 @@ internal class Evaluator(
             decl.parentDimension?.let { parent ->
                 val parentKey = decl.parentKeyColumn?.let(fields::get)
                 val target = memberKey(parentKey)
-                if (target == null || members[parent].orEmpty().none { it.key == target }) {
+                if (target == null ||
+                    members[parent].orEmpty().none {
+                        context.charge(RunCounter.HOST_SCANS)
+                        it.key == target
+                    }
+                ) {
                     sink.error(
                         "MANTRA-DIMENSION-PARENT",
                         "Member $key of ${decl.id} refers to ${target ?: "no key"} in parent dimension $parent, " +
@@ -288,19 +360,25 @@ internal class Evaluator(
             values[input.id].orEmpty().forEach { (coord, value) ->
                 val rows = (value as? Value.Vec)?.items.orEmpty()
                 rows.forEachIndexed { index, row ->
+                    context.charge(RunCounter.HOST_SCANS)
                     val fields = (row as? Value.MapV)?.entries.orEmpty()
                     input.decl.references.forEach reference@{ (column, target) ->
+                        context.charge(RunCounter.HOST_SCANS)
                         val raw = fields[Value.Kw(column)]
                         if (raw == null || raw == Value.Nil) return@reference
                         val key = memberKey(raw) ?: return@reference
-                        if (members[target].orEmpty().none { it.key == key }) {
+                        if (members[target].orEmpty().none {
+                                context.charge(RunCounter.HOST_SCANS)
+                                it.key == key
+                            }
+                        ) {
                             sink.error(
                                 "MANTRA-INPUT-REFERENCE",
                                 "Row ${index + 1} of ${input.id}${coordText(
                                     input.dims,
                                     coord,
                                 )} :$column refers to `$key`, which is not a member of $target",
-                                inputLocation(input.id, input.location, coord, index, column),
+                                inputValues.location(input.id, input.location, coord, index, column),
                                 input.id,
                                 coord,
                                 rowIndex = index,
@@ -313,24 +391,9 @@ internal class Evaluator(
         }
     }
 
-    private fun memberKeys(id: String): Set<String> {
-        val domain = members[id].orEmpty()
-        val cached = memberKeyCache[id]
-        if (cached?.domain === domain) return cached.keys
-        return domain.map { it.key }.toSet().also { memberKeyCache[id] = MemberKeys(domain, it) }
-    }
-
     private fun coords(dims: List<String>, fixed: Map<String, String> = emptyMap()): List<Coord> {
         dims.forEach(::ensureDomain)
-        return dims.fold(listOf(emptyList())) { acc, dim ->
-            val selected = fixed[dim]
-            val keys = if (selected == null) {
-                members[dim].orEmpty().map { it.key }
-            } else {
-                if (selected in memberKeys(dim)) listOf(selected) else emptyList()
-            }
-            acc.flatMap { prefix -> keys.map { prefix + it } }
-        }
+        return reductions.scopeCoordinates(dims, fixed, context)
     }
 
     private fun project(coord: Coord, from: List<String>, to: List<String>): Coord = to.map { coord[from.indexOf(it)] }
@@ -339,27 +402,47 @@ internal class Evaluator(
         graph.ensure(MemberTask.Guard(vertex.id, coord)) {
             vertex.dims.forEach(::ensureDomain)
             val compiled = vertex.compiled ?: return@ensure
+            val outcome = evaluate(compiled, coord, vertex.sectionId)
             guardValues.getOrPut(vertex.id) { linkedMapOf() }[coord] =
-                evaluate(compiled, coord, vertex.sectionId)?.value?.truthy ?: false
+                GuardOutcome(outcome?.value?.truthy, outcome?.explainTrace ?: lastFailedExplanation)
         }
     }
 
-    private fun guardsHold(vertex: ValueVertex, coord: Coord): Boolean {
+    private fun guardsHold(vertex: ValueVertex, coord: Coord): Boolean? {
         vertex.guards.forEach { id ->
             (plan.vertices.getValue(id) as ConditionVertex).dims.forEach(::ensureDomain)
         }
-        val aligned = SectionGuards.align(plan, vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
-        val inherited = aligned.assignments.any { assignment ->
-            vertex.guards.all { guardId ->
+        val fixed = vertex.dims.zip(coord).toMap()
+        val extra = plan.dimensionOrder(
+            vertex.guards.flatMap {
+                (plan.vertices.getValue(it) as ConditionVertex).dims
+            }.filter { it !in fixed }.toSet(),
+        )
+        val assignments = coords(extra, fixed).map { fixed + extra.zip(it).toMap() }
+        var failed = false
+        var failureTrace: ExplainTrace? = null
+        val inherited = assignments.any { assignment ->
+            var assignmentFailed = false
+            val possible = vertex.guards.all { guardId ->
                 val guard = plan.vertices.getValue(guardId) as ConditionVertex
                 val guardCoord = guard.dims.map(assignment::getValue)
                 evaluateGuard(guard, guardCoord)
-                guardValues[guardId]?.get(guardCoord) == true
+                val outcome = guardValues[guardId]?.get(guardCoord)
+                if (outcome?.active == null) {
+                    assignmentFailed = true
+                    failureTrace = outcome?.explanation
+                }
+                outcome?.active != false
             }
+            if (possible && assignmentFailed) failed = true
+            possible && !assignmentFailed
         }
-        if (!inherited) return false
+        if (!inherited) {
+            if (failed) lastFailedExplanation = failureTrace
+            return if (failed) null else false
+        }
         val own = vertex.ownCondition ?: return true
-        return evaluate(own, coord, vertex.id)?.value?.truthy ?: false
+        return evaluate(own, coord, vertex.id)?.value?.truthy
     }
 
     // Value vertices
@@ -373,22 +456,50 @@ internal class Evaluator(
     private fun storeInactive(vertex: ValueVertex, coord: Coord, reason: String) =
         store(vertex, coord, neutral(vertex.type), NodeTrace.Inactive(reason), isActive = false)
 
+    private fun applicable(vertex: ValueVertex, coord: Coord): Boolean = when (guardsHold(vertex, coord)) {
+        true -> true
+        false -> {
+            storeInactive(vertex, coord, "condition not met")
+            false
+        }
+        null -> {
+            store(vertex, coord, Value.Nil, NodeTrace.Failed("condition failed", lastFailedExplanation))
+            false
+        }
+    }
+
     private fun neutral(type: ValueType): Value = if (type.isNumeric) Value.ZERO else Value.Nil
 
     private fun bindInput(vertex: InputVertex, at: Coord) {
         val decl = vertex.decl
         val supplied = plan.case.inputs[vertex.id]
         for (coord in listOf(at)) {
-            if (!guardsHold(vertex, coord)) {
-                storeInactive(vertex, coord, "condition not met")
-                continue
-            }
+            if (!applicable(vertex, coord)) continue
             val raw = if (vertex.dims.isEmpty()) supplied else lookup(supplied, coord)
             val source = plan.case.inputOrigins[vertex.id]?.get(coord.joinToString("/"))
+            val link = plan.case.linkInputs[InputAddress(vertex.id, coord)]
+            if (link != null && (raw == null || raw == Value.Nil)) {
+                sink.error(
+                    "MANTRA-LINK-UNDEFINED",
+                    "Linked input ${vertex.id} has no defined supplied value",
+                    decl.location,
+                    vertex.id,
+                    coord,
+                    category = DiagnosticCategory.EVALUATION,
+                )
+                store(vertex, coord, Value.Nil, NodeTrace.Failed("linked input undefined"))
+                continue
+            }
             val (value, origin) = when {
-                raw != null && raw != Value.Nil -> convertInput(raw, decl, coord) to
-                    if (source == null) InputOrigin.CASE else InputOrigin.SOURCE
-                decl.default != null && decl.default != Value.Nil -> convertInput(decl.default, decl, coord) to
+                raw != null && raw != Value.Nil -> inputValues.convert(raw, decl, coord) to
+                    if (link != null) {
+                        InputOrigin.LINK
+                    } else if (source == null) {
+                        InputOrigin.CASE
+                    } else {
+                        InputOrigin.SOURCE
+                    }
+                decl.default != null && decl.default != Value.Nil -> inputValues.convert(decl.default, decl, coord) to
                     InputOrigin.DEFAULT
                 decl.optional -> Value.Nil to InputOrigin.DEFAULT
                 decl.type.isNumeric -> Value.ZERO to InputOrigin.IMPLICIT
@@ -408,7 +519,7 @@ internal class Evaluator(
                 }
             }
             validateInput(vertex, coord, value, origin)
-            store(vertex, coord, value, NodeTrace.Input(origin, source))
+            store(vertex, coord, value, NodeTrace.Input(origin, source, link))
         }
     }
 
@@ -417,12 +528,12 @@ internal class Evaluator(
         val attributes = vertex.decl.presentation.attributes
         val where = "${vertex.id}${coordText(vertex.dims, coord)}"
         if (attributes["required"] == Value.Bool(true) &&
-            (origin !in setOf(InputOrigin.CASE, InputOrigin.SOURCE) || isMissing(value))
+            (origin !in setOf(InputOrigin.CASE, InputOrigin.SOURCE, InputOrigin.LINK) || isMissing(value))
         ) {
             sink.error(
                 "MANTRA-INPUT-REQUIRED",
                 "Input $where is required but was not supplied",
-                inputLocation(vertex.id, vertex.location, coord),
+                inputValues.location(vertex.id, vertex.location, coord),
                 vertex.id,
                 coord,
                 category = DiagnosticCategory.BUSINESS,
@@ -434,7 +545,7 @@ internal class Evaluator(
                 sink.error(
                     "MANTRA-INPUT-MIN-ROWS",
                     "Input $where needs at least $minimum rows; found $count",
-                    inputLocation(vertex.id, vertex.location, coord),
+                    inputValues.location(vertex.id, vertex.location, coord),
                     vertex.id,
                     coord,
                     category = DiagnosticCategory.BUSINESS,
@@ -449,7 +560,7 @@ internal class Evaluator(
                 sink.error(
                     "MANTRA-INPUT-RANGE",
                     "Input $where = ${number.toPlainString()} is below the minimum ${min.toPlainString()}",
-                    inputLocation(vertex.id, vertex.location, coord),
+                    inputValues.location(vertex.id, vertex.location, coord),
                     vertex.id,
                     coord,
                     category = DiagnosticCategory.BUSINESS,
@@ -463,7 +574,7 @@ internal class Evaluator(
                 sink.error(
                     "MANTRA-INPUT-RANGE",
                     "Input $where = ${number.toPlainString()} is above the maximum ${max.toPlainString()}",
-                    inputLocation(vertex.id, vertex.location, coord),
+                    inputValues.location(vertex.id, vertex.location, coord),
                     vertex.id,
                     coord,
                     category = DiagnosticCategory.BUSINESS,
@@ -501,7 +612,7 @@ internal class Evaluator(
                 sink.error(
                     "MANTRA-INPUT-REQUIRED",
                     "Input ${input.id}${coordText(input.dims, coord)} is required",
-                    inputLocation(input.id, input.location, coord),
+                    inputValues.location(input.id, input.location, coord),
                     input.id,
                     coord,
                     category = DiagnosticCategory.BUSINESS,
@@ -510,8 +621,10 @@ internal class Evaluator(
             val rawRows = (supplied as? Value.Vec)?.items.orEmpty()
             val rows = (values[input.id]?.get(coord) as? Value.Vec)?.items.orEmpty()
             rows.forEachIndexed { index, row ->
+                context.charge(RunCounter.HOST_SCANS)
                 if (row !is Value.MapV) return@forEachIndexed
                 vertex.columns.forEach { (column, formula) ->
+                    context.charge(RunCounter.HOST_SCANS)
                     val requiredColumn = evaluate(formula, coord, input.id, row = row)?.value == Value.Bool(true)
                     val raw = (rawRows.getOrNull(index) as? Value.MapV)?.entries
                     val value = raw?.get(Value.Kw(column)) ?: raw?.get(Value.Text(column))
@@ -519,7 +632,7 @@ internal class Evaluator(
                         sink.error(
                             "MANTRA-INPUT-REQUIRED",
                             "Row ${index + 1} of ${input.id} requires :$column",
-                            inputLocation(input.id, input.location, coord, index, column),
+                            inputValues.location(input.id, input.location, coord, index, column),
                             input.id,
                             coord,
                             category = DiagnosticCategory.BUSINESS,
@@ -535,13 +648,18 @@ internal class Evaluator(
     private fun evaluateCheck(vertex: CheckVertex, at: Coord) {
         val formula = vertex.compiled ?: return
         for (coord in listOf(at)) {
-            if (!guardsHold(vertex, coord)) {
+            val applicability = guardsHold(vertex, coord)
+            if (applicability != true) {
                 store(
                     vertex,
                     coord,
                     Value.Nil,
-                    NodeTrace.Validation(ValidationResult(null, vertex.item.severity)),
-                    false,
+                    if (applicability == null) {
+                        NodeTrace.Failed("condition failed", lastFailedExplanation)
+                    } else {
+                        NodeTrace.Validation(ValidationResult(null, vertex.item.severity))
+                    },
+                    applicability == null,
                 )
                 continue
             }
@@ -571,13 +689,18 @@ internal class Evaluator(
 
     private fun evaluateReconcile(vertex: ReconcileVertex, at: Coord) {
         for (coord in listOf(at)) {
-            if (!guardsHold(vertex, coord)) {
+            val applicability = guardsHold(vertex, coord)
+            if (applicability != true) {
                 store(
                     vertex,
                     coord,
                     Value.Nil,
-                    NodeTrace.Validation(ValidationResult(null, vertex.item.severity)),
-                    false,
+                    if (applicability == null) {
+                        NodeTrace.Failed("condition failed", lastFailedExplanation)
+                    } else {
+                        NodeTrace.Validation(ValidationResult(null, vertex.item.severity))
+                    },
+                    applicability == null,
                 )
                 continue
             }
@@ -636,141 +759,10 @@ internal class Evaluator(
         sink.addAll(listOf(Diagnostic(severity, code, message, location, nodeId, coord, DiagnosticCategory.BUSINESS)))
     }
 
-    private fun inputLocation(
-        id: String,
-        declaration: SourceLocation,
-        coord: Coord = emptyList(),
-        rowIndex: Int? = null,
-        column: String? = null,
-    ): SourceLocation {
-        val cells = plan.case.inputCells[id].orEmpty()
-        return cells.firstOrNull { it.coord == coord && it.rowIndex == rowIndex && it.column == column }?.location
-            ?: cells.firstOrNull { it.coord == coord && it.rowIndex == rowIndex && it.column == null }?.location
-            ?: plan.case.inputLocations[id] ?: declaration
-    }
-
-    private fun convertInput(
-        raw: Value,
-        decl: InputDecl,
-        coord: Coord,
-        rowIndex: Int? = null,
-        column: String? = null,
-    ): Value {
-        fun fail(message: String): Value {
-            sink.error(
-                "MANTRA-INPUT-TYPE",
-                "Input ${decl.id}${coordText(emptyList(), coord)}: $message",
-                inputLocation(decl.id, decl.location, coord, rowIndex, column),
-                decl.id,
-                coord,
-                rowIndex = rowIndex,
-                column = column,
-            )
-            return Value.Nil
-        }
-        return when (decl.type) {
-            ValueType.DECIMAL -> raw as? Value.Num ?: fail("expected a number, got $raw")
-            ValueType.INTEGER -> (raw as? Value.Num)?.takeIf { it.value.stripTrailingZeros().scale() <= 0 }
-                ?: fail("expected an integer, got $raw")
-            ValueType.BOOLEAN -> raw as? Value.Bool ?: fail("expected true or false, got $raw")
-            ValueType.TEXT -> raw as? Value.Text ?: fail("expected a string, got $raw")
-            ValueType.KEYWORD -> {
-                // Text from JSON/CSV sources is accepted as keyword name.
-                val keyword =
-                    raw as? Value.Kw ?: (raw as? Value.Text)?.let { Value.Kw(it.value.removePrefix(":")) }
-                        ?: return fail("expected a keyword, got $raw")
-                if (decl.options.isNotEmpty() &&
-                    keyword.name !in decl.options
-                ) {
-                    fail("`$keyword` is not one of ${decl.options.keys.joinToString { ":$it" }}")
-                } else {
-                    keyword
-                }
-            }
-            ValueType.DATE -> when (raw) {
-                is Value.Date -> raw
-                is Value.Text -> try {
-                    Value.Date(LocalDate.parse(raw.value))
-                } catch (_: DateTimeParseException) {
-                    fail("expected an ISO date yyyy-mm-dd")
-                }
-                else -> fail("expected a date string")
-            }
-            ValueType.TABLE -> {
-                val rows = raw as? Value.Vec ?: return fail("expected a vector of row maps")
-                Value.Vec(rows.items.mapIndexed { index, row -> convertRow(row, decl, coord, index) })
-            }
-            ValueType.ANY -> raw
-        }
-    }
-
-    private fun convertRow(row: Value, decl: InputDecl, coord: Coord, index: Int): Value {
-        val map = row as? Value.MapV
-        if (map == null) {
-            sink.error(
-                "MANTRA-INPUT-TYPE",
-                "Row ${index + 1} of ${decl.id} must be a map",
-                inputLocation(decl.id, decl.location, coord, index),
-                decl.id,
-                coord,
-                rowIndex = index,
-            )
-            return Value.MapV(emptyMap())
-        }
-        val byName = map.entries.entries.associate { (k, v) ->
-            (
-                (k as? Value.Kw)?.name ?: (k as? Value.Text)?.value
-                    ?: k.toString()
-                ) to
-                v
-        }
-        byName.keys.filter { key -> decl.columns.none { it.name == key } }.forEach {
-            sink.error(
-                "MANTRA-INPUT-COLUMN",
-                "Row ${index + 1} of ${decl.id} has unknown column :$it",
-                inputLocation(decl.id, decl.location, coord, index, it),
-                decl.id,
-                coord,
-                rowIndex = index,
-                column = it,
-            )
-        }
-        val converted = linkedMapOf<Value, Value>()
-        decl.columns.forEach { column ->
-            val value = byName[column.name]
-            val columnDecl = decl.copy(
-                type = column.type,
-                options = emptyMap(),
-                optional = column.optional,
-            )
-            converted[Value.Kw(column.name)] = when {
-                value != null && value != Value.Nil -> convertInput(value, columnDecl, coord, index, column.name)
-                column.optional -> Value.Nil
-                column.type.isNumeric -> Value.ZERO
-                else -> {
-                    sink.error(
-                        "MANTRA-INPUT-COLUMN",
-                        "Row ${index + 1} of ${decl.id} is missing column :${column.name}",
-                        inputLocation(decl.id, decl.location, coord, index, column.name),
-                        decl.id,
-                        coord,
-                        rowIndex = index,
-                        column = column.name,
-                    )
-                    Value.Nil
-                }
-            }
-        }
-        return Value.MapV(converted)
-    }
-
     private fun evaluateLine(vertex: LineVertex, coord: Coord) {
         val compiled = vertex.compiled ?: return
         val item = vertex.item
-        if (!guardsHold(vertex, coord)) {
-            storeInactive(vertex, coord, "condition not met")
-            return
-        }
+        if (!applicable(vertex, coord)) return
         val outcome = if (item.spread) {
             val context = coord.dropLast(1)
             val key = vertex.id to context
@@ -784,7 +776,7 @@ internal class Evaluator(
             evaluate(compiled, coord, vertex.id)
         }
         if (outcome == null) {
-            store(vertex, coord, neutral(vertex.type), NodeTrace.Failed("formula failed", lastFailedExplanation), false)
+            store(vertex, coord, Value.Nil, NodeTrace.Failed("formula failed", lastFailedExplanation))
             return
         }
         val raw = if (item.spread) {
@@ -803,15 +795,12 @@ internal class Evaluator(
 
     private fun evaluateTotal(vertex: TotalVertex, at: Coord) {
         for (coord in listOf(at)) {
-            if (!guardsHold(vertex, coord)) {
-                storeInactive(vertex, coord, "condition not met")
-                continue
-            }
+            if (!applicable(vertex, coord)) continue
             val parts = vertex.components.map { component ->
                 val source = plan.valueVertices.getValue(component.vertexId)
                 val fixed = vertex.dims.zip(coord).toMap()
                 ensureSlice(source, fixed)
-                val reduced = reductions.reduce(source.id, fixed)
+                val reduced = reductions.reduce(source.id, fixed, context)
                 val aggregate = reduced.trace as? com.xqiou.mantra.core.view.RatioAggregateTrace
                 val contribution = when {
                     aggregate?.undefinedReason == "no-active-members" -> BigDecimal.ZERO
@@ -840,14 +829,17 @@ internal class Evaluator(
     private fun evaluateChoice(vertex: ChoiceVertex, at: Coord) {
         val item = vertex.item
         for (coord in listOf(at)) {
-            if (!guardsHold(vertex, coord)) {
-                storeInactive(vertex, coord, "condition not met")
-                continue
-            }
+            if (!applicable(vertex, coord)) continue
             val references = mutableListOf<TraceRef>()
             var undefinedCandidate = false
+            var evaluationFailed = false
+            var failedExplanation: ExplainTrace? = null
             val outcomes = vertex.options.map { option ->
                 val condition = option.condition?.let { evaluate(it, coord, vertex.id) }
+                if (option.condition != null && condition == null) {
+                    evaluationFailed = true
+                    failedExplanation = lastFailedExplanation
+                }
                 val conditionTrace = if (option.condition !=
                     null
                 ) {
@@ -857,6 +849,10 @@ internal class Evaluator(
                 }
                 val available = option.condition == null || condition?.value?.truthy == true
                 val result = if (available) evaluate(option.formula, coord, vertex.id) else null
+                if (available && result == null) {
+                    evaluationFailed = true
+                    failedExplanation = lastFailedExplanation
+                }
                 if (available && result?.value == Value.Nil) undefinedCandidate = true
                 val optionTrace = if (available) result?.explainTrace ?: lastFailedExplanation else null
                 result?.let { references += it.references }
@@ -868,6 +864,10 @@ internal class Evaluator(
                     explanation = optionTrace,
                     conditionExplanation = conditionTrace,
                 )
+            }
+            if (evaluationFailed) {
+                store(vertex, coord, Value.Nil, NodeTrace.Failed("choice formula failed", failedExplanation))
+                continue
             }
             var selected: TraceOption? = null
             for (candidate in outcomes.filter { it.available }) {
@@ -945,6 +945,7 @@ internal class Evaluator(
             return Value.MapV(
                 LinkedHashMap<Value, Value>().apply {
                     members[dim].orEmpty().forEach { member ->
+                        context.charge(RunCounter.HOST_SCANS)
                         put(
                             Value.Kw(member.key),
                             build(
@@ -958,6 +959,9 @@ internal class Evaluator(
         }
         return build(extra, fixed.filterKeys { it in vertex.dims })
     }
+
+    private fun toKernel(value: Value): com.xqiou.normein.dsl.value.DslValue =
+        Values.toDslControlled(value) { context.charge(RunCounter.HOST_SCANS) }
 
     private fun evaluate(
         formula: CompiledFormula,
@@ -1039,6 +1043,7 @@ internal class Evaluator(
             val relation = Value.MapV(
                 linkedMapOf<Value, Value>().apply {
                     members[dim].orEmpty().forEach { member ->
+                        context.charge(RunCounter.HOST_SCANS)
                         val parent = when (val raw = member.record[column]) {
                             is Value.Kw -> raw.name
                             is Value.Text -> raw.value
@@ -1050,7 +1055,7 @@ internal class Evaluator(
                 },
             )
             references += TraceRef(root, relation, TraceRef.Kind.MEMBER_MAP)
-            roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(Values.toDsl(relation)))
+            roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(toKernel(relation)))
         }
         if (allRefs.isNotEmpty()) {
             val host = linkedMapOf<String, Any?>()
@@ -1072,7 +1077,7 @@ internal class Evaluator(
             val prior = coord.toMutableList()
             val at = formula.dims.indexOf(binding.periodDimension)
             val domain = periodDomains.getValue(binding.periodDimension)
-            val previous = if (first) null else domain.previous(coord[at])
+            val previous = if (first) null else domain.previous(coord[at], context)
             if (previous != null) prior[at] = previous.key
             val vertex = plan.valueVertices.getValue(binding.targetNodeId)
             val value = if (first) Value.Nil else rootValue(vertex, formula.dims, prior)
@@ -1083,7 +1088,7 @@ internal class Evaluator(
             )
             roots += DslInputRootCandidate(
                 binding.firstPeriodRoot,
-                DslInputCandidate.ControlledValue(Values.toDsl(Value.Bool(first))),
+                DslInputCandidate.ControlledValue(toKernel(Value.Bool(first))),
             )
             if (!first) {
                 references += TraceRef(
@@ -1098,7 +1103,7 @@ internal class Evaluator(
         if (formula.periodRefs.isNotEmpty()) {
             val host = formula.periodRefs.associateWith { id ->
                 ensureDomain(id)
-                mapOf("keys" to DslValues.sequential(members[id].orEmpty().map { Values.toDsl(Value.Kw(it.key)) }))
+                mapOf("keys" to DslValues.sequential(members[id].orEmpty().map { toKernel(Value.Kw(it.key)) }))
             }
             roots += DslInputRootCandidate(
                 "periods",
@@ -1124,9 +1129,23 @@ internal class Evaluator(
             )
         }
         val capture = audit.request(nodeId, coord, captureTrace)
-        val outcome = kernel.evaluate(formula, roots, inputIdentity, capture)
-        val explanation = audit.finish(capture, formula, outcome.trace, outcome.truncated, nodeId, coord)
-        if (outcome.value != null) return Outcome(Values.fromDsl(outcome.value), references, explanation)
+        val outcome = context.at(RunStage.FORMULA, context.nodeAddress(nodeId, coord)) {
+            kernel.evaluate(formula, roots, inputIdentity, capture, context)
+        }
+        val explanation = audit.finish(capture, formula, outcome.trace, outcome.truncated, nodeId, coord) {
+            context.charge(RunCounter.HOST_SCANS)
+        }
+        if (outcome.value !=
+            null
+        ) {
+            return Outcome(
+                Values.fromDslControlled(outcome.value) {
+                    context.charge(RunCounter.HOST_SCANS)
+                },
+                references,
+                explanation,
+            )
+        }
         lastFailedExplanation = explanation
         if (explainTarget == (nodeId to coord)) explainTrace = explanation
         outcome.diagnostics.forEach { diagnostic ->
@@ -1136,7 +1155,13 @@ internal class Evaluator(
                 SourceLocation(base.source, it.line, it.column, it.startOffset, it.endOffset)
             } ?: base
             sink.error(
-                "MANTRA-EVALUATION",
+                if (diagnostic.code ==
+                    "DSL-MANTRA-CALC-NOT-CONVERGED"
+                ) {
+                    "MANTRA-CALC-NOT-CONVERGED"
+                } else {
+                    "MANTRA-EVALUATION"
+                },
                 "${diagnostic.code}: ${diagnostic.message}${coordText(formula.dims, coord)}",
                 location,
                 nodeId,

@@ -1,21 +1,32 @@
 package com.xqiou.mantra.workbench.json
 
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.Value
 
 /** JSON primitives used by the versioned workbench contract. */
 object WorkbenchJson {
-    const val CONTRACT = "mantra.workbench/3"
+    const val CONTRACT = "mantra.workbench/4"
 
     /** Keep engine decimals exact and distinguish keywords, dates, and ordered map keys. */
-    fun value(value: Value): Any? = when (value) {
-        Value.Nil -> null
-        is Value.Num -> mapOf("n" to value.value.toPlainString())
-        is Value.Bool -> value.value
-        is Value.Kw -> mapOf("kw" to value.name)
-        is Value.Text -> value.value
-        is Value.Date -> mapOf("date" to value.value.toString())
-        is Value.Vec -> value.items.map(::value)
-        is Value.MapV -> mapOf("map" to value.entries.map { (key, entry) -> listOf(value(key), value(entry)) })
+    fun value(value: Value): Any? = value(value, null)
+
+    /** Charge each visited structured value before growing the projected contract tree. */
+    fun value(value: Value, reader: CalculationReader?): Any? {
+        reader?.chargeScans()
+        return when (value) {
+            Value.Nil -> null
+            is Value.Num -> mapOf("n" to value.value.toPlainString())
+            is Value.Bool -> value.value
+            is Value.Kw -> mapOf("kw" to value.name)
+            is Value.Text -> value.value
+            is Value.Date -> mapOf("date" to value.value.toString())
+            is Value.Vec -> value.items.map { value(it, reader) }
+            is Value.MapV -> mapOf(
+                "map" to value.entries.map { (key, entry) ->
+                    listOf(value(key, reader), value(entry, reader))
+                },
+            )
+        }
     }
 
     fun envelope(revision: String, mantraVersion: String, normeinVersion: String, data: Any?): Map<String, Any?> =

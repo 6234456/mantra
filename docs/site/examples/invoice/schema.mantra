@@ -1,0 +1,9 @@
+(schema tutorial.invoice
+  {:version "1.0" :title "Fictional charge" :headline due}
+  (input basis :decimal {:min 0 :required true})
+  (param levy-fraction 0.20)
+  (section assessment "Assessment"
+    (field basis "Supplied basis" {:op :info})
+    (line charge "Charge" (* basis levy-fraction) {:round [2 :half-up]})
+    (check nonnegative "Nonnegative charge" (>= charge 0))
+    (total due "Amount due")))

@@ -33,26 +33,24 @@ class CompareContractTest {
 
     @Test
     fun `ESt comparison matches versioned golden and wire schema`() {
-        val schema = Mantra.loadSchema(directory.resolve("schema.mantra"))
-        val case = Mantra.loadCase(directory.resolve("case-mustermann.mantra"))
-        val set = Mantra.loadParameters(directory.resolve("params-2026.mantra"))
-        val base = CalculationView.of(Mantra.calculate(schema, case))
-        val variant = CalculationView.of(Mantra.calculate(schema, case, listOf(set)))
-        val data = WorkbenchDocuments.compare(
-            base,
-            variant,
-            Render.loadLayout(directory.resolve("layout.mantra")),
-            listOf(set.id),
-        )
-        val generated = WorkbenchJson.write(WorkbenchJson.envelope("0000000000000000", "test", "test", data))
+        val comparison = WorkspaceCatalog(directory).use { catalog ->
+            catalog.compare("case-mustermann.mantra", null, listOf("de.est/params-2026"))
+        }
+        val data = comparison.data
+        val generated = WorkbenchJson.write(WorkbenchJson.envelope(comparison.revision, "test", "test", data))
+        if (System.getenv("MANTRA_UPDATE_GOLDEN") == "1") Files.writeString(golden, generated + "\n")
         val goldenValue = Json.parse(Files.readString(golden)) as Value.MapV
         val actualValue = Json.parse(generated) as Value.MapV
+        assertEquals(Value.Text(WorkbenchJson.CONTRACT), goldenValue.entries[Value.Kw("contract")])
+        assertEquals(Value.Text(WorkbenchJson.CONTRACT), actualValue.entries[Value.Kw("contract")])
         assertEquals(goldenValue.entries[Value.Kw("data")], actualValue.entries[Value.Kw("data")])
         val schemaCheck = registry().getSchema(
             SchemaLocation.of("https://mantra.local/workbench/schema/compare.schema.json"),
         )
-        assertTrue(schemaCheck.validate(Files.readString(golden), InputFormat.JSON).isEmpty())
-        assertTrue(schemaCheck.validate(generated, InputFormat.JSON).isEmpty())
+        val goldenErrors = schemaCheck.validate(Files.readString(golden), InputFormat.JSON)
+        val generatedErrors = schemaCheck.validate(generated, InputFormat.JSON)
+        assertTrue(goldenErrors.isEmpty(), goldenErrors.toString())
+        assertTrue(generatedErrors.isEmpty(), generatedErrors.toString())
         val mainline = data["mainline"] as List<*>
         assertEquals(
             listOf("zve", "est", "zuschlagsteuern", "abrechnung"),

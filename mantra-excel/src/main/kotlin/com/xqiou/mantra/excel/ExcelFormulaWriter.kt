@@ -50,7 +50,7 @@ internal fun ExcelWorkbookBuilder.signLabelFormula(node: ViewNode, suffix: Strin
 internal fun ExcelWorkbookBuilder.sectionConditions(vertex: ViewNode, coord: Coord): X.Scalar? {
     if (vertex.guards.isEmpty()) return null
     val guards = vertex.guards.map { view.conditions.getValue(it) }
-    val aligned = view.alignGuards(vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
+    val aligned = reader.alignGuards(vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
     val alternatives = aligned.assignments.map { assignment ->
         val tests = guards.map { guard ->
             val guardCoord = guard.dims.map(assignment::getValue)
@@ -275,14 +275,17 @@ internal fun ExcelWorkbookBuilder.writeValue(slot: Slot, value: Value) {
 }
 
 internal fun ExcelWorkbookBuilder.setFormula(slot: Slot, nodeId: String, build: () -> X.Scalar?) {
+    reader.chargeCoordinateVisits()
     val c = cell(slot.sheet, slot.row, slot.col)
     valueStyles[slot]?.let { c.cellStyle = styles.get(it.applyRule(paperCellStyles[slot] ?: StyleSpec())) }
+    val previousStrict = strictDynamicFormula
+    strictDynamicFormula = false
     try {
         val formula = build() ?: return
         try {
             Ex.validateFormula(formula.text)
         } catch (error: Untranslatable) {
-            if (fallbackValue(slot, nodeId) == null) {
+            if (strictDynamicFormula || fallbackValue(slot, nodeId) == null) {
                 throw ExcelExportLimitException("Cannot export $nodeId at ${slot.address}: ${error.reason}")
             }
             throw error
@@ -290,9 +293,17 @@ internal fun ExcelWorkbookBuilder.setFormula(slot: Slot, nodeId: String, build: 
         c.cellFormula = formula.text
         formulaCells++
     } catch (e: Untranslatable) {
+        if (strictDynamicFormula) {
+            throw ExcelExportLimitException("Cannot export live calculation $nodeId at ${slot.address}: ${e.reason}")
+        }
         fallback(slot, nodeId, e.reason)
     } catch (e: FormulaParseException) {
+        if (strictDynamicFormula) {
+            throw ExcelExportLimitException("POI rejected live calculation $nodeId at ${slot.address}")
+        }
         fallback(slot, nodeId, "formula rejected by POI: ${e.message?.take(160)}")
+    } finally {
+        strictDynamicFormula = previousStrict
     }
 }
 
@@ -350,6 +361,7 @@ internal fun ExcelWorkbookBuilder.writeValuesAndFormulas() {
             when {
                 vertex.kind == NodeKind.INPUT -> {
                     writeValue(slot, inputValue(vertex, coord))
+                    writeInputProvenance(slot, vertex, coord)
                     cell(slot.sheet, slot.row, slot.col).cellStyle =
                         styles.get(
                             (valueStyles[slot] ?: StyleKey()).applyRule(

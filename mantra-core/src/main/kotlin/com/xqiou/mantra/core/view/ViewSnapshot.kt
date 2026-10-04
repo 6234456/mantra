@@ -1,13 +1,16 @@
 package com.xqiou.mantra.core.view
 
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CaseLink
 import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.DimensionDecl
 import com.xqiou.mantra.core.model.FieldItem
+import com.xqiou.mantra.core.model.InputAddress
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Item
 import com.xqiou.mantra.core.model.LineItem
+import com.xqiou.mantra.core.model.LinkProvenance
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
 import com.xqiou.mantra.core.model.PeriodSpec
@@ -26,141 +29,204 @@ import java.util.Collections
 internal fun <T> frozenList(values: Collection<T>): List<T> = Collections.unmodifiableList(ArrayList(values))
 internal fun <K, V> frozenMap(values: Map<K, V>): Map<K, V> = Collections.unmodifiableMap(LinkedHashMap(values))
 
-internal fun Value.snapshot(): Value = when (this) {
-    Value.Nil, is Value.Num, is Value.Bool, is Value.Kw, is Value.Text, is Value.Date -> this
-    is Value.Vec -> copy(items = frozenList(items.map { it.snapshot() }))
-    is Value.MapV -> copy(
-        entries = frozenMap(
-            entries.mapKeys { (key, _) ->
-                key.snapshot()
-            }.mapValues { (_, value) -> value.snapshot() },
-        ),
-    )
+internal fun Value.snapshot(scan: () -> Unit = {}): Value {
+    scan()
+    return when (this) {
+        Value.Nil, is Value.Num, is Value.Bool, is Value.Kw, is Value.Text, is Value.Date -> this
+        is Value.Vec -> copy(items = frozenList(items.map { it.snapshot(scan) }))
+        is Value.MapV -> copy(
+            entries = frozenMap(
+                entries.mapKeys { (key, _) ->
+                    key.snapshot(scan)
+                }.mapValues { (_, value) -> value.snapshot(scan) },
+            ),
+        )
+    }
 }
 
-internal fun Presentation.snapshot(): Presentation = copy(
-    attributes = frozenMap(attributes.mapValues { (_, value) -> value.snapshot() }),
+internal fun Presentation.snapshot(scan: () -> Unit = {}): Presentation = copy(
+    attributes = frozenMap(attributes.mapValues { (_, value) -> value.snapshot(scan) }),
     classes = frozenList(classes),
 )
 
-internal fun Item.snapshot(): Item = when (this) {
-    is SectionItem -> copy(
-        per = per?.let(::frozenList),
-        children = frozenList(
-            children.map {
-                it.snapshot()
+internal fun Item.snapshot(scan: () -> Unit = {}): Item {
+    scan()
+    return when (this) {
+        is SectionItem -> copy(
+            per = per?.let(::frozenList),
+            children = frozenList(
+                children.map {
+                    it.snapshot(scan)
+                },
+            ),
+            presentation = presentation.snapshot(scan),
+        )
+        is LineItem -> copy(
+            per = per?.let(::frozenList),
+            presentation = presentation.snapshot(scan),
+            allowedRefs = allowedRefs?.let {
+                Collections.unmodifiableSet(LinkedHashSet(it))
             },
-        ),
-        presentation = presentation.snapshot(),
-    )
-    is LineItem -> copy(
-        per = per?.let(::frozenList),
-        presentation = presentation.snapshot(),
-        allowedRefs = allowedRefs?.let {
-            Collections.unmodifiableSet(LinkedHashSet(it))
-        },
-    )
-    is FieldItem -> copy(presentation = presentation.snapshot())
-    is TotalItem -> copy(presentation = presentation.snapshot())
-    is ChoiceItem -> copy(
-        options = frozenList(options),
-        per = per?.let(::frozenList),
-        presentation = presentation.snapshot(),
-    )
-    is NoteItem -> copy(presentation = presentation.snapshot())
-    is CheckItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot())
-    is ReconcileItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot())
+        )
+        is FieldItem -> copy(presentation = presentation.snapshot(scan))
+        is TotalItem -> copy(presentation = presentation.snapshot(scan))
+        is ChoiceItem -> copy(
+            options = frozenList(options),
+            per = per?.let(::frozenList),
+            presentation = presentation.snapshot(scan),
+        )
+        is NoteItem -> copy(presentation = presentation.snapshot(scan))
+        is CheckItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot(scan))
+        is ReconcileItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot(scan))
+    }
 }
 
-internal fun CaseData.snapshot(): CaseData = copy(
-    meta = frozenMap(meta.mapValues { (_, value) -> value.snapshot() }),
-    inputs = frozenMap(inputs.mapValues { (_, value) -> value.snapshot() }),
-    params = frozenMap(params.mapValues { (_, value) -> value.snapshot() }),
-    extensions = frozenMap(extensions.mapValues { (_, items) -> frozenList(items.map { it.snapshot() }) }),
+internal fun CaseData.snapshot(scan: () -> Unit = {}): CaseData = copy(
+    meta = frozenMap(meta.mapValues { (_, value) -> value.snapshot(scan) }),
+    inputs = frozenMap(inputs.mapValues { (_, value) -> value.snapshot(scan) }),
+    params = frozenMap(params.mapValues { (_, value) -> value.snapshot(scan) }),
+    extensions = frozenMap(
+        extensions.mapValues { (_, items) ->
+            frozenList(
+                items.map {
+                    scan()
+                    it.snapshot(scan)
+                },
+            )
+        },
+    ),
     formulaBindings = frozenMap(formulaBindings),
     functions = frozenList(functions),
     inputLocations = frozenMap(inputLocations),
     paramLocations = frozenMap(paramLocations),
     sources = frozenList(
         sources.map { binding ->
-            binding.copy(options = frozenMap(binding.options.mapValues { (_, value) -> value.snapshot() }))
+            binding.copy(options = frozenMap(binding.options.mapValues { (_, value) -> value.snapshot(scan) }))
         },
     ),
     inputOrigins = frozenMap(inputOrigins.mapValues { (_, origins) -> frozenMap(origins) }),
     inputCells = frozenMap(
         inputCells.mapValues { (_, cells) ->
-            frozenList(cells.map { it.copy(coord = frozenList(it.coord)) })
+            frozenList(
+                cells.map {
+                    scan()
+                    it.copy(coord = frozenList(it.coord))
+                },
+            )
         },
+    ),
+    links = frozenList(links.map { it.snapshot() }),
+    linkInputs = frozenMap(
+        linkInputs.mapKeys { (address, _) -> address.snapshot() }
+            .mapValues { (_, provenance) -> provenance.snapshot() },
     ),
 )
 
-internal fun Schema.snapshot(): Schema = copy(
-    meta = meta.snapshot(),
-    params = frozenList(params.map { it.snapshot() }),
-    inputs = frozenList(inputs.map { it.snapshot() }),
-    dimensions = frozenList(dimensions.map { it.snapshot() }),
+internal fun InputAddress.snapshot(): InputAddress = copy(coord = frozenList(coord))
+internal fun LinkProvenance.snapshot(): LinkProvenance = copy(from = from.snapshot())
+internal fun CaseLink.snapshot(): CaseLink = copy(
+    mappings = frozenList(mappings.map { it.copy(from = it.from.snapshot(), to = it.to.snapshot()) }),
+)
+
+internal fun Schema.snapshot(scan: () -> Unit = {}): Schema = copy(
+    meta = meta.snapshot(scan),
+    params = frozenList(params.map { it.snapshot(scan) }),
+    inputs = frozenList(inputs.map { it.snapshot(scan) }),
+    dimensions = frozenList(dimensions.map { it.snapshot(scan) }),
     functions = frozenList(functions),
-    root = root.snapshot() as SectionItem,
+    root = root.snapshot(scan) as SectionItem,
     sources = frozenList(sources),
 )
 
-internal fun ExplainTrace.snapshot(): ExplainTrace = copy(
-    steps = frozenList(steps.map { it.copy(value = it.value?.snapshot()) }),
-    branches = frozenList(branches),
-)
-
-internal fun SchemaMeta.snapshot(): SchemaMeta = copy(
-    attributes = frozenMap(
-        attributes.mapValues { (_, value) ->
-            value.snapshot()
+internal fun ExplainTrace.snapshot(scan: () -> Unit = {}): ExplainTrace = copy(
+    steps = frozenList(
+        steps.map {
+            scan()
+            it.copy(value = it.value?.snapshot(scan))
+        },
+    ),
+    branches = frozenList(
+        branches.map {
+            scan()
+            it
         },
     ),
 )
 
-internal fun InputDecl.snapshot(): InputDecl = copy(
+internal fun SchemaMeta.snapshot(scan: () -> Unit = {}): SchemaMeta = copy(
+    attributes = frozenMap(
+        attributes.mapValues { (_, value) ->
+            value.snapshot(scan)
+        },
+    ),
+)
+
+internal fun InputDecl.snapshot(scan: () -> Unit = {}): InputDecl = copy(
     per = per?.let(::frozenList),
-    default = default?.snapshot(),
+    default = default?.snapshot(scan),
     options = frozenMap(options),
     columns = frozenList(columns),
-    presentation = presentation.snapshot(),
+    presentation = presentation.snapshot(scan),
     references = frozenMap(references),
 )
 
-internal fun ParamDecl.snapshot(): ParamDecl = copy(value = value.snapshot(), presentation = presentation.snapshot())
+internal fun ParamDecl.snapshot(
+    scan: () -> Unit = {
+    },
+): ParamDecl = copy(value = value.snapshot(scan), presentation = presentation.snapshot(scan))
 
-internal fun DimensionDecl.snapshot(): DimensionDecl = copy(
-    members = frozenList(members),
+internal fun DimensionDecl.snapshot(scan: () -> Unit = {}): DimensionDecl = copy(
+    members = frozenList(
+        members.map {
+            scan()
+            it
+        },
+    ),
     periods = when (val spec = periods) {
         is PeriodSpec.Generated -> spec
-        is PeriodSpec.Listed -> spec.copy(entries = frozenList(spec.entries))
+        is PeriodSpec.Listed -> spec.copy(
+            entries = frozenList(
+                spec.entries.map {
+                    scan()
+                    it
+                },
+            ),
+        )
         null -> null
     },
 )
 
-internal fun Member.snapshot(): Member = copy(record = frozenMap(record.mapValues { (_, value) -> value.snapshot() }))
+internal fun Member.snapshot(
+    scan: () -> Unit = {
+    },
+): Member = copy(record = frozenMap(record.mapValues { (_, value) -> value.snapshot(scan) }))
 
 internal fun NodeTrace.snapshot(
     traceSnapshot: (ExplainTrace) -> ExplainTrace = { it.snapshot() },
     aggregateSnapshot: (RatioAggregateTrace) -> RatioAggregateTrace = { it.snapshot() },
+    scan: () -> Unit = {},
 ): NodeTrace = when (this) {
-    is NodeTrace.Input, is NodeTrace.Param, is NodeTrace.Inactive -> this
+    is NodeTrace.Input -> copy(link = link?.snapshot())
+    is NodeTrace.Param, is NodeTrace.Inactive -> this
     is NodeTrace.Failed -> copy(explanation = explanation?.let(traceSnapshot))
     is NodeTrace.Computed -> copy(
         references = frozenList(
             references.map {
+                scan()
                 it.copy(
-                    value = it.value.snapshot(),
+                    value = it.value.snapshot(scan),
                     coord = it.coord?.let { coord -> frozenList(coord) },
                     fixed = it.fixed?.let { fixed -> frozenMap(fixed) },
                 )
             },
         ),
-        raw = raw.snapshot(),
+        raw = raw.snapshot(scan),
         explanation = explanation?.let(traceSnapshot),
     )
     is NodeTrace.Sum -> copy(
         parts = frozenList(
             parts.map {
+                scan()
                 it.copy(
                     aggregate = it.aggregate?.let(aggregateSnapshot),
                     reduction = when (val generic = it.reduction) {
@@ -178,19 +244,21 @@ internal fun NodeTrace.snapshot(
     is NodeTrace.Choice -> copy(
         options = frozenList(
             options.map {
+                scan()
                 it.copy(
-                    value = it.value.snapshot(),
+                    value = it.value.snapshot(scan),
                     explanation = it.explanation?.let(traceSnapshot),
                     conditionExplanation = it.conditionExplanation?.let(traceSnapshot),
                 )
             },
         ),
-        raw = raw.snapshot(),
+        raw = raw.snapshot(scan),
     )
 }
 
-internal fun <T> Map<Coord, T>.snapshotCoords(value: (T) -> T): Map<Coord, T> = frozenMap(
+internal fun <T> Map<Coord, T>.snapshotCoords(scan: () -> Unit = {}, value: (T) -> T): Map<Coord, T> = frozenMap(
     entries.associate { (coord, item) ->
+        scan()
         frozenList(coord) to
             value(item)
     },

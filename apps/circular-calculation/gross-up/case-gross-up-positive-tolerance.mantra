@@ -1,0 +1,7 @@
+;; Frozen fictional gross-up-positive-tolerance; independent cent-orbit certificate is source evidence, never runtime trace.
+(case gross-up-positive-tolerance
+  {:schema "demo.gross-up" :schema-version "1.0" :layout "demo.gross-up/working-paper"
+   :parameters ["demo.gross-up/parameters"] :title "Net-to-gross: gross-up-positive-tolerance"
+   :expected-business []}
+  (inputs {:base 1000 :rate 0.25 :seed 1000
+           :maximum-calls 60 :tolerance 0.01}))

@@ -1,0 +1,12 @@
+{
+  "base": "0",
+  "rate": "0.25",
+  "seed": "0",
+  "tolerance": "0",
+  "converged-amount": "0",
+  "exact-equation-residual": "0",
+  "money-equation-residual": "0",
+  "deduction": "0",
+  "actual-net": "0",
+  "net-crossfoot": "0"
+}

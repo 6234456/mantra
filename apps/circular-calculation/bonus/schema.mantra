@@ -1,0 +1,26 @@
+;; Demonstration only. The coefficients and fictional flat deduction are supplied facts.
+;; Simplification: one bonus depending on profit after that same bonus.
+;; The callback rounds every actual iteration to the declared currency precision.
+;; Technical non-convergence returns no approximate or invented zero amount.
+(schema demo.bonus
+  {:title "Circular bonus calculation" :version "1.0"
+   :preset :ifrs-schedule :headline converged-amount :mainline [solution]}
+  (input base :decimal {:label "Profit before bonus" :default 0})
+  (input rate :decimal {:label "Bonus fraction" :default 0})
+  (input seed :decimal {:label "Declared initial iterate" :default 0})
+  (input maximum-calls :integer {:label "Maximum callback calls" :default 60 :min 1 :max 1000})
+  (input tolerance :decimal {:label "Adjacent-iterate stopping tolerance" :default 0 :min 0})
+  (param money-scale 2 {:label "Explicit rounding precision for every iteration"})
+  (param residual-tolerance 0.01 {:label "Separate equation crossfoot tolerance"})
+  (defn rounded-step [^Decimal current]
+    (decimal/round (* rate (- base current)) money-scale))
+  (section solution "Declared seed and rounded fixed-point result" {:display :schedule}
+    (line converged-amount "Bonus"
+      (calc/converge rounded-step seed maximum-calls tolerance) {:op :info :precision 2})
+    (line exact-equation-residual "Result less unrounded equation"
+      (- converged-amount (* rate (- base converged-amount))) {:op :info :precision 4})
+    (line money-equation-residual "Result less rounded equation"
+      (- converged-amount (rounded-step converged-amount)) {:op :info :precision 2})
+    (line retained-profit "Profit after bonus" (- base converged-amount) {:op :info})
+    (check equation-residual "Returned amount also meets the equation tolerance"
+      (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance))))

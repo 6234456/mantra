@@ -1,0 +1,7 @@
+;; Authoring template, not an additional accepted fixture.
+;; Supply an explicit carryback waiver and keep opening/closing stocks distinct.
+(case loss-template
+  {:schema "de.est-loss/2024" :schema-version "2024.1" :layout "de.est-loss/2024-working-paper"
+   :parameters ["de.est-loss/2024-parameters"] :title "Loss ledger: authoring template"}
+  (inputs {:opening-loss 0 :eligible-new-loss 0 :positive-income 0
+           :selected-carryback 0 :carryback-waived true :joint-amount-check false}))

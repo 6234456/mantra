@@ -72,7 +72,10 @@ class RatioAggregateExplainTest {
             assertEquals((partial["result"] as Map<*, *>)["display"], (slice["display"] as Map<*, *>)["result"])
             val checkpoint = catalog.explain("case.mantra", ExplainAddress("checkpoint", listOf("G1"))).data
             val part = (checkpoint["parts"] as List<*>).single() as Map<*, *>
-            assertEquals(mapOf("node" to "aggregate.rate", "coord" to listOf("group=G1")), part["address"])
+            assertEquals(
+                mapOf("case" to null, "node" to "aggregate.rate", "coord" to listOf("group=G1")),
+                part["address"],
+            )
             assertEquals(slice, part["aggregate"])
             assertEquals(part["display"], (slice["display"] as Map<*, *>)["result"])
         }

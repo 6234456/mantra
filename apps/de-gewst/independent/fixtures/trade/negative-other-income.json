@@ -1,0 +1,47 @@
+{
+  "case": "negative-other-income",
+  "domain": "trade",
+  "year": 2025,
+  "currency": "EUR",
+  "business": "Demo-Trade",
+  "taxpayer": "Demo-A",
+  "entity": "natural-person-sole-proprietor",
+  "profit": "120000",
+  "fees": [
+    {
+      "category": "debt",
+      "amount": "150000"
+    },
+    {
+      "category": "movable-rent",
+      "amount": "100000"
+    },
+    {
+      "category": "immovable-rent",
+      "amount": "100000"
+    },
+    {
+      "category": "licence",
+      "amount": "40000"
+    }
+  ],
+  "hebesatz_percent": "400",
+  "other_self_employment_income": "-20000",
+  "church_member": false,
+  "children": 0,
+  "special_expense_flat": "36",
+  "deductions_section9": "0",
+  "own_real_estate": false,
+  "foreign_branches": false,
+  "qualifying_dividends": "0",
+  "donations": "0",
+  "loss_carryforward": "0",
+  "trade_loss": "0",
+  "payments": "0",
+  "reference_scope": "complete-selected-chain",
+  "assumptions": [
+    "Specified expenses already deducted from profit.",
+    "Only ordinary assets and licences; eligibility is a given fact.",
+    "One calendar year and fictional municipality."
+  ]
+}

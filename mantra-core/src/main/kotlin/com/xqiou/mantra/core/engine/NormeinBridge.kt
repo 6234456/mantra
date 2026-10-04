@@ -153,15 +153,25 @@ internal object Types {
 
 /** Conversion between Mantra [Value]s and Normein runtime values. */
 internal object Values {
-    fun toDsl(value: Value): DslValue = when (value) {
-        Value.Nil -> DslValue.Nil
-        is Value.Num -> DslValues.decimal(value.value)
-        is Value.Bool -> DslValues.boolean(value.value)
-        is Value.Kw -> keyword(value.name)
-        is Value.Text -> DslValues.text(value.value)
-        is Value.Date -> DslValues.date(value.value)
-        is Value.Vec -> DslValues.vector(value.items.map(::toDsl))
-        is Value.MapV -> DslValues.map(value.entries.map { (k, v) -> toDsl(k) to toDsl(v) })
+    fun toDsl(value: Value): DslValue = toDslControlled(value) {}
+
+    fun toDslControlled(value: Value, scan: () -> Unit): DslValue {
+        scan()
+        return when (value) {
+            Value.Nil -> DslValue.Nil
+            is Value.Num -> DslValues.decimal(value.value)
+            is Value.Bool -> DslValues.boolean(value.value)
+            is Value.Kw -> keyword(value.name)
+            is Value.Text -> DslValues.text(value.value)
+            is Value.Date -> DslValues.date(value.value)
+            is Value.Vec -> DslValues.vector(value.items.map { toDslControlled(it, scan) })
+            is Value.MapV -> DslValues.map(
+                value.entries.map { (k, v) ->
+                    toDslControlled(k, scan) to
+                        toDslControlled(v, scan)
+                },
+            )
+        }
     }
 
     fun toIntegerDsl(value: Value): DslValue = when (value) {
@@ -180,25 +190,32 @@ internal object Values {
         }
     }
 
-    fun fromDsl(value: DslValue): Value = when (value) {
-        DslValue.Nil -> Value.Nil
-        is DslValue.DecimalValue -> Value.Num(value.value)
-        is DslValue.IntegerValue -> Value.Num(BigDecimal(value.value))
-        is DslValue.LongValue -> Value.Num(BigDecimal.valueOf(value.value))
-        is DslValue.BooleanValue -> Value.Bool(value.value)
-        is DslValue.TextValue -> Value.Text(value.value)
-        is DslValue.KeywordValue -> Value.Kw((value.namespace?.let { "$it/" } ?: "") + value.name)
-        is DslValue.DateValue -> Value.Date(value.value)
-        is DslValue.VectorValue -> Value.Vec(value.values.map(::fromDsl))
-        is DslValue.SequentialValue -> Value.Vec(value.values.map(::fromDsl))
-        is DslValue.SetValue -> Value.Vec(value.valuesInIterationOrder.map(::fromDsl))
-        is DslValue.MapValue -> Value.MapV(
-            LinkedHashMap<Value, Value>().apply {
-                value.entriesInIterationOrder.forEach { put(fromDsl(it.key), fromDsl(it.value)) }
-            },
-        )
-        is DslValue.CharacterValue -> Value.Text(value.value.toString())
-        is DslValue.EnumValue -> Value.Kw(value.symbol)
-        else -> Value.Text(value.toString())
+    fun fromDsl(value: DslValue): Value = fromDslControlled(value) {}
+
+    fun fromDslControlled(value: DslValue, scan: () -> Unit): Value {
+        scan()
+        return when (value) {
+            DslValue.Nil -> Value.Nil
+            is DslValue.DecimalValue -> Value.Num(value.value)
+            is DslValue.IntegerValue -> Value.Num(BigDecimal(value.value))
+            is DslValue.LongValue -> Value.Num(BigDecimal.valueOf(value.value))
+            is DslValue.BooleanValue -> Value.Bool(value.value)
+            is DslValue.TextValue -> Value.Text(value.value)
+            is DslValue.KeywordValue -> Value.Kw((value.namespace?.let { "$it/" } ?: "") + value.name)
+            is DslValue.DateValue -> Value.Date(value.value)
+            is DslValue.VectorValue -> Value.Vec(value.values.map { fromDslControlled(it, scan) })
+            is DslValue.SequentialValue -> Value.Vec(value.values.map { fromDslControlled(it, scan) })
+            is DslValue.SetValue -> Value.Vec(value.valuesInIterationOrder.map { fromDslControlled(it, scan) })
+            is DslValue.MapValue -> Value.MapV(
+                LinkedHashMap<Value, Value>().apply {
+                    value.entriesInIterationOrder.forEach {
+                        put(fromDslControlled(it.key, scan), fromDslControlled(it.value, scan))
+                    }
+                },
+            )
+            is DslValue.CharacterValue -> Value.Text(value.value.toString())
+            is DslValue.EnumValue -> Value.Kw(value.symbol)
+            else -> Value.Text(value.toString())
+        }
     }
 }

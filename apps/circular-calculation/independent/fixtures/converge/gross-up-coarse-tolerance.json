@@ -1,0 +1,15 @@
+{
+  "case": "gross-up-coarse-tolerance",
+  "domain": "gross-up",
+  "currency": "EUR",
+  "base": "1000",
+  "rate": "0.25",
+  "seed": "1000",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "1",
+  "expected_money": "1333.01",
+  "termination_certificate": "stopped-with-business-residual",
+  "supported_domain": true
+}

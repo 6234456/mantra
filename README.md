@@ -81,7 +81,7 @@ After `installDist`, use `mantra-cli/build/install/mantra/bin/mantra`:
 | Command | Purpose |
 | --- | --- |
 | `run <schema> --case <case>` | Calculate and render Text, HTML or XLSX; add `--layout`, `--format`, `--out` or `--audit` |
-| `check <schema> [--case <case>]` | Read and compile the schema; inspect structure and dependencies |
+| `check <schema> [--case <case>]` | Compile the schema and linked case graph; inspect static structure without executing formulas or business checks |
 | `catalog` | List schema forms, calculation functions, column contents and layout presets |
 | `fixtures <case> [more cases...] --out <dir> [--workspace apps]` | Generate versioned workbench JSON fixtures |
 | `diff <schema> --case <case> --variant-parameters <file[,file...]>` | Compare parameter sets or another case (`--variant-case`); JSON or Text |

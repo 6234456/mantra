@@ -2,8 +2,18 @@ package com.xqiou.mantra.cli
 
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.MantraException
+import com.xqiou.mantra.core.api.AuditOptions
+import com.xqiou.mantra.core.api.CalculationResult
+import com.xqiou.mantra.core.api.CaseExplainAddress
+import com.xqiou.mantra.core.api.CaseGraphInspector
+import com.xqiou.mantra.core.api.CaseGraphRunner
+import com.xqiou.mantra.core.api.CaseReference
+import com.xqiou.mantra.core.api.CaseRunDiagnostic
+import com.xqiou.mantra.core.api.CaseRunRequest
+import com.xqiou.mantra.core.api.CaseRunResult
 import com.xqiou.mantra.core.api.FunctionCatalog
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.InputAddress
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.ViewNote
@@ -11,11 +21,17 @@ import com.xqiou.mantra.core.view.ViewSection
 import com.xqiou.mantra.core.view.ViewTreeNode
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
+import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.render.layout.Presets
 import com.xqiou.mantra.server.WorkbenchServer
+import com.xqiou.mantra.workbench.CasePackageLoader
+import com.xqiou.mantra.workbench.CasePackageOverrides
 import com.xqiou.mantra.workbench.Fixtures
+import com.xqiou.mantra.workbench.WorkspaceException
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
+import java.io.IOException
+import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
@@ -26,21 +42,21 @@ mantra – calculation-schema engine (Normein DSL)
 
 Usage:
   mantra run <schema.mantra> [--case <case.mantra>] [--workspace <dir>] [--layout <layout.mantra>]
-             [--format text|html|xlsx] [--out <file>] [--audit]
-  mantra check <schema.mantra> [--case <case.mantra>]
+             [--parameters <file[,file...]>] [--format text|html|xlsx] [--out <file>] [--audit]
+  mantra check <schema.mantra> [--case <case.mantra>] [--workspace <dir>] [--parameters <file[,file...]>]
   mantra catalog
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
   mantra serve <workspace> [--port <number>] [--ui <workbench-ui/dist>]
   mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
               [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
-              [--layout <layout.mantra>] [--format json|text] [--out <file>]
+              [--workspace <dir>] [--layout <layout.mantra>] [--format json|text] [--out <file>]
   mantra explain <schema.mantra> --case <case.mantra> --address <node>
                  [--coord <member[,member...]>] [--parameters <file[,file...]>]
-                 [--layout <layout.mantra>] [--format json|text] [--out <file>]
+                 [--workspace <dir>] [--layout <layout.mantra>] [--format json|text] [--out <file>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
-  check    Read, compile and order the schema; print its structure and dependency statistics.
+  check    Compile the schema and linked case graph; report static diagnostics and structure.
   catalog  List the built-in schema forms, kernel functions, column contents and layout presets.
   fixtures Write versioned Structure, Run, Paper and Diagnostics JSON for cases with a sibling schema.mantra.
            A declared :layout resolves to sibling layout.mantra. --workspace sets the case-id root.
@@ -53,32 +69,62 @@ fun main(args: Array<String>) {
     // POI logs through log4j-api; use its built-in simple logger instead of a missing backend.
     System.setProperty("log4j2.loggerContextFactory", "org.apache.logging.log4j.simple.SimpleLoggerContextFactory")
     System.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level", "OFF")
-    val command = args.firstOrNull()
-    val options = parseOptions(args.drop(1))
-    try {
-        when (command) {
-            "run" -> run(options)
-            "check" -> check(options)
-            "catalog" -> catalog()
-            "fixtures" -> fixtures(options)
-            "serve" -> serve(options)
-            "diff" -> diff(options)
-            "explain" -> explain(options)
-            null, "help", "--help", "-h" -> println(USAGE.trimIndent())
-            else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
-        }
-    } catch (error: MantraException) {
-        System.err.println(error.diagnostics.joinToString("\n"))
-        exitProcess(2)
+    val status = executeCli(args)
+    if (status != 0) exitProcess(status)
+}
+
+/** The real command dispatcher, with explicit streams and exit status for in-process integration tests. */
+internal fun executeCli(args: Array<String>, out: PrintStream = System.out, err: PrintStream = System.err): Int = try {
+    val options = parseOptions(args.drop(1), out, err)
+    when (val command = args.firstOrNull()) {
+        "run" -> run(options)
+        "check" -> check(options)
+        "catalog" -> catalog(options)
+        "fixtures" -> fixtures(options)
+        "serve" -> serve(options)
+        "diff" -> diff(options)
+        "explain" -> explain(options)
+        null, "help", "--help", "-h" -> out.println(USAGE.trimIndent())
+        else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
     }
+    0
+} catch (error: CliExit) {
+    error.message?.let(err::println)
+    error.status
+} catch (error: MantraException) {
+    err.println(error.diagnostics.joinToString("\n"))
+    2
+} catch (error: WorkspaceException) {
+    err.println("mantra: ${error.message}")
+    error.diagnostics.forEach(err::println)
+    2
+} catch (error: IOException) {
+    err.println("mantra: ${error.message}")
+    2
 }
 
-private class Options(val positional: List<String>, val named: Map<String, String?>) {
+private class CliExit(val status: Int, message: String? = null) : RuntimeException(message)
+
+private class Options(
+    val positional: List<String>,
+    val named: Map<String, String?>,
+    val out: PrintStream,
+    val err: PrintStream,
+) {
     fun path(name: String): Path? = named[name]?.let(Path::of)
+        ?: if (flag(name)) fail("--$name requires a path") else null
     fun flag(name: String): Boolean = named.containsKey(name)
+    fun paths(name: String): List<Path>? = if (flag(name)) {
+        val value = named[name] ?: fail("--$name requires a comma-separated file list")
+        value.split(',').filter(String::isNotBlank).map { Path.of(it.trim()).toAbsolutePath().normalize() }
+    } else {
+        null
+    }
+    fun schemaPath(): Path = positional.firstOrNull()?.let(Path::of)?.toAbsolutePath()?.normalize()
+        ?: fail("A schema file is required.\n${USAGE.trimIndent()}")
 }
 
-private fun parseOptions(args: List<String>): Options {
+private fun parseOptions(args: List<String>, out: PrintStream, err: PrintStream): Options {
     val positional = mutableListOf<String>()
     val named = linkedMapOf<String, String?>()
     var index = 0
@@ -94,49 +140,147 @@ private fun parseOptions(args: List<String>): Options {
             index++
         }
     }
-    return Options(positional, named)
+    return Options(positional, named, out, err)
 }
 
-private fun fail(message: String): Nothing {
-    System.err.println(message)
-    exitProcess(1)
+private fun fail(message: String): Nothing = throw CliExit(1, message)
+
+private data class CliEvaluation(
+    val result: CalculationResult,
+    val layout: LayoutSpec,
+    val revision: String?,
+    val parameterIds: List<String>,
+    val graph: CaseRunResult? = null,
+) {
+    val succeeded: Boolean get() = graph?.succeeded ?: result.succeeded
+    fun diagnostics(options: Options) {
+        if (graph == null) {
+            result.diagnostics.forEach(options.err::println)
+        } else {
+            printGraphDiagnostics(graph, options)
+        }
+    }
 }
 
-private fun loadInputs(options: Options): Pair<com.xqiou.mantra.core.model.Schema, CaseData> {
-    val schemaPath =
-        options.positional.firstOrNull()?.let(Path::of) ?: fail("A schema file is required.\n${USAGE.trimIndent()}")
-    val schema = Mantra.loadSchema(schemaPath)
-    val casePath = options.path("case")?.toAbsolutePath()?.normalize()
-    val case = casePath?.let { path ->
-        val loaded = Mantra.loadCase(path)
-        com.xqiou.mantra.workbench.BoundSources.load(
-            loaded,
-            schema,
-            path,
-            options.path("workspace")?.toAbsolutePath()?.normalize() ?: path.parent,
-        ).case
-    } ?: CaseData.empty()
-    return schema to case
+private fun printGraphDiagnostics(graph: CaseRunResult, options: Options) =
+    printGraphDiagnostics(graph.diagnostics, options)
+
+private fun printGraphDiagnostics(diagnostics: List<CaseRunDiagnostic>, options: Options) {
+    diagnostics.forEach { owned ->
+        val identity = owned.case?.value?.let { case ->
+            "$case${owned.revision?.let { "@$it" }.orEmpty()}: "
+        }.orEmpty()
+        options.err.println("$identity${owned.finding}")
+    }
+}
+
+private data class CliCaseLoader(val loader: CasePackageLoader, val reference: CaseReference)
+
+private fun caseLoader(
+    options: Options,
+    casePath: Path,
+    parameterOption: String,
+    includeLayout: Boolean = true,
+): CliCaseLoader {
+    val actualCase = casePath.toRealPath()
+    val workspace = (options.path("workspace") ?: actualCase.parent).toRealPath()
+    if (!Files.isDirectory(workspace)) fail("--workspace requires a directory")
+    if (!actualCase.startsWith(workspace)) fail("Case is outside --workspace: $casePath")
+    val key = workspace.relativize(actualCase).toString().replace('\\', '/')
+    return CliCaseLoader(
+        CasePackageLoader(
+            workspace,
+            CasePackageOverrides(
+                rootCase = key,
+                schemaPath = options.schemaPath(),
+                parameterPaths = options.paths(parameterOption),
+                layoutPath = options.path("layout")?.toAbsolutePath()?.normalize(),
+                includeLayout = includeLayout,
+            ),
+        ),
+        CaseReference(key),
+    )
+}
+
+/** Explicit root files are capabilities; they never change the workspace permitted to link or data reads. */
+private fun evaluate(
+    options: Options,
+    casePath: Path? = options.path("case"),
+    parameterOption: String = "parameters",
+    audit: Boolean = true,
+    explain: InputAddress? = null,
+): CliEvaluation {
+    val schemaPath = options.schemaPath()
+    val parameterPaths = options.paths(parameterOption)
+    if (casePath == null) {
+        // A schema-only invocation has no case/link declarations to resolve.
+        val schema = Mantra.loadSchema(schemaPath)
+        val parameters = parameterPaths.orEmpty().map(Mantra::loadParameters)
+        val result = Mantra.calculateForAudit(schema, CaseData.empty(), parameters)
+        return CliEvaluation(
+            result,
+            options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result),
+            null,
+            parameters.map { it.id },
+        )
+    }
+    val prepared = caseLoader(options, casePath, parameterOption)
+    val loader = prepared.loader
+    val graph = CaseGraphRunner(loader).use { runner ->
+        runner.run(
+            CaseRunRequest(
+                reference = prepared.reference,
+                audit = if (audit) AuditOptions() else null,
+                explain = explain?.let { CaseExplainAddress(address = it) },
+            ),
+        )
+    }
+    val result = graph.result ?: run {
+        printGraphDiagnostics(graph, options)
+        throw CliExit(3)
+    }
+    val root = graph.root ?: throw CliExit(3, "Case graph did not resolve a root")
+    val binding = loader.binding(root)
+    return CliEvaluation(
+        result,
+        binding.layout ?: Render.defaultLayout(result),
+        graph.cases.getValue(root).revision,
+        binding.parameterIds,
+        graph,
+    )
+}
+
+private fun normeinVersion(schemaPath: Path): String {
+    var directory: Path? = schemaPath.toAbsolutePath().normalize().parent
+    while (directory != null) {
+        val lock = directory.resolve("normein-build.lock")
+        if (Files.isRegularFile(lock)) {
+            return Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
+                ?.substringAfter('=')?.take(8) ?: "unknown"
+        }
+        directory = directory.parent
+    }
+    return "unknown"
 }
 
 private fun run(options: Options) {
-    val (schema, case) = loadInputs(options)
-    val result = Mantra.calculateForAudit(schema, case)
-    val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
+    val execution = evaluate(options)
+    val result = execution.result
+    val layout = execution.layout
     if (options.named["format"] == "xlsx") {
         val out = options.path("out") ?: fail("--format xlsx requires --out <file.xlsx>")
         val workbook = com.xqiou.mantra.excel.ExcelExport.workbook(result, layout)
         workbook.use { it.write(out) }
         val report = workbook.report
-        System.err.println(
+        options.err.println(
             "mantra: wrote ${out.toAbsolutePath()} – ${report.formulaCells} formula cells, ${report.inputCells} input cells, ${report.names} names, ${report.fallbacks.size} values without formula",
         )
         report.fallbacks.forEach {
-            System.err.println("  value only: ${it.sheet}!${it.cell} ${it.nodeId}: ${it.reason}")
+            options.err.println("  value only: ${it.sheet}!${it.cell} ${it.nodeId}: ${it.reason}")
         }
-        report.evaluationErrors.forEach { System.err.println("  evaluation: $it") }
-        result.diagnostics.forEach { System.err.println(it) }
-        if (!result.succeeded) exitProcess(3)
+        report.evaluationErrors.forEach { options.err.println("  evaluation: $it") }
+        execution.diagnostics(options)
+        if (!execution.succeeded) throw CliExit(3)
         return
     }
     val output = when (options.named["format"] ?: "text") {
@@ -146,14 +290,14 @@ private fun run(options: Options) {
     }
     val out = options.path("out")
     if (out == null) {
-        println(output)
+        options.out.println(output)
     } else {
         out.toAbsolutePath().parent?.let(Files::createDirectories)
         Files.writeString(out, output)
-        System.err.println("mantra: wrote ${out.toAbsolutePath()}")
+        options.err.println("mantra: wrote ${out.toAbsolutePath()}")
     }
-    result.diagnostics.forEach { System.err.println(it) }
-    if (!result.succeeded) exitProcess(3)
+    execution.diagnostics(options)
+    if (!execution.succeeded) throw CliExit(3)
 }
 
 private fun fixtures(options: Options) {
@@ -161,7 +305,7 @@ private fun fixtures(options: Options) {
     if (cases.isEmpty()) fail("fixtures requires a case file.\n${USAGE.trimIndent()}")
     val out = options.path("out") ?: fail("fixtures requires --out <dir>")
     val entries = Fixtures.writeMany(cases, out, workspaceRoot = options.path("workspace"))
-    println("mantra: wrote ${entries.joinToString { it.id }} fixtures to ${out.toAbsolutePath()}")
+    options.out.println("mantra: wrote ${entries.joinToString { it.id }} fixtures to ${out.toAbsolutePath()}")
 }
 
 private fun serve(options: Options) {
@@ -175,55 +319,32 @@ private fun serve(options: Options) {
     if (ui != null && !Files.isDirectory(ui)) fail("--ui directory does not exist: $ui")
     val server = WorkbenchServer(workspace, port, ui ?: Path.of("workbench-ui/dist").takeIf(Files::isDirectory)).start()
     Runtime.getRuntime().addShutdownHook(Thread { server.close() })
-    println("mantra: serving ${workspace.toAbsolutePath()} at http://127.0.0.1:${server.localPort}/")
+    options.out.println("mantra: serving ${workspace.toAbsolutePath()} at http://127.0.0.1:${server.localPort}/")
     CountDownLatch(1).await()
 }
 
 private fun diff(options: Options) {
-    val (schema, baseCase) = loadInputs(options)
-    val variantCase = options.path("variant-case")?.let(Mantra::loadCase) ?: baseCase
-    fun sets(name: String) = options.named[name].orEmpty().split(',').filter { it.isNotBlank() }
-        .map { Mantra.loadParameters(Path.of(it.trim())) }
-    val baseSets = sets("base-parameters")
-    val variantSets = sets("variant-parameters")
-    if (variantSets.isEmpty() && options.path("variant-case") == null) {
+    val baseCase = options.path("case") ?: fail("diff requires --case <case.mantra>")
+    if (options.paths("variant-parameters").isNullOrEmpty() && options.path("variant-case") == null) {
         fail("diff requires --variant-parameters or --variant-case")
     }
-    val base = Mantra.calculate(schema, baseCase, baseSets)
-    val variant = Mantra.calculate(schema, variantCase, variantSets)
-    val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(base)
+    val baseExecution = evaluate(options, baseCase, "base-parameters", audit = false)
+    val variantExecution =
+        evaluate(options, options.path("variant-case") ?: baseCase, "variant-parameters", audit = false)
+    val base = baseExecution.result
+    val variant = variantExecution.result
+    val schema = base.schema
     val document = WorkbenchDocuments.compare(
-        CalculationView.of(base),
-        CalculationView.of(variant),
-        layout,
-        variantSets.map { it.id },
+        base.view,
+        variant.view,
+        baseExecution.layout,
+        variantExecution.parameterIds,
     )
-    val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
     val revision = DiffRevision.calculate(
-        schemaPath = schemaPath,
-        schemaSources = schema.sources,
-        baseCase = options.path("case"),
-        variantCase = options.path("variant-case"),
-        layout = options.path("layout"),
-        baseParameters = options.named["base-parameters"].orEmpty().split(',').filter {
-            it.isNotBlank()
-        }.map { Path.of(it.trim()) },
-        variantParameters = options.named["variant-parameters"].orEmpty().split(',').filter {
-            it.isNotBlank()
-        }.map { Path.of(it.trim()) },
+        requireNotNull(baseExecution.revision),
+        requireNotNull(variantExecution.revision),
     )
-    var directory: Path? = schemaPath.parent
-    var normein = "unknown"
-    while (directory != null) {
-        val lock = directory.resolve("normein-build.lock")
-        if (Files.isRegularFile(lock)) {
-            normein = Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
-                ?.substringAfter('=')?.take(8) ?: "unknown"
-            break
-        }
-        directory = directory.parent
-    }
-    val envelope = WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, document)
+    val envelope = WorkbenchJson.envelope(revision, "0.4.0-SNAPSHOT", normeinVersion(options.schemaPath()), document)
     val output = when (options.named["format"] ?: "json") {
         "json" -> WorkbenchJson.write(envelope)
         "text" -> buildString {
@@ -262,14 +383,14 @@ private fun diff(options: Options) {
     options.path("out")?.let { out ->
         out.toAbsolutePath().parent?.let(Files::createDirectories)
         Files.writeString(out, output + "\n")
-        System.err.println("mantra: wrote ${out.toAbsolutePath()}")
-    } ?: println(output)
-    (base.diagnostics + variant.diagnostics).forEach { System.err.println(it) }
-    if (!base.succeeded || !variant.succeeded) exitProcess(3)
+        options.err.println("mantra: wrote ${out.toAbsolutePath()}")
+    } ?: options.out.println(output)
+    baseExecution.diagnostics(options)
+    variantExecution.diagnostics(options)
+    if (!baseExecution.succeeded || !variantExecution.succeeded) throw CliExit(3)
 }
 
 private fun explain(options: Options) {
-    val (schema, case) = loadInputs(options)
     if (options.path("case") == null) fail("explain requires --case <case.mantra>")
     val address = options.named["address"]?.takeIf(String::isNotBlank)
         ?: fail("explain requires --address <node>")
@@ -277,14 +398,8 @@ private fun explain(options: Options) {
     val nodeId = address.removePrefix("aggregate.")
     val coord = options.named["coord"]?.split(',')?.map(String::trim) ?: emptyList()
     if (coord.any(String::isBlank)) fail("--coord must contain nonempty member keys")
-    val parameterPaths = options.named["parameters"].orEmpty().split(',').filter(String::isNotBlank).map {
-        Path.of(it.trim())
-    }
-    val result = if (aggregate) {
-        Mantra.calculateForAudit(schema, case, parameterPaths.map(Mantra::loadParameters))
-    } else {
-        Mantra.calculateForExplain(schema, case, parameterPaths.map(Mantra::loadParameters), nodeId, coord)
-    }
+    val execution = evaluate(options, explain = if (aggregate) null else InputAddress(nodeId, coord))
+    val result = execution.result
     val view = CalculationView.of(result)
     val node = view.nodes[nodeId] ?: fail("Explain node was not found: $nodeId")
     if (!aggregate && (
@@ -294,7 +409,7 @@ private fun explain(options: Options) {
     ) {
         fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
     }
-    val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
+    val layout = execution.layout
     val document = if (aggregate) {
         val fixed = coord.associate { binding ->
             val parts = binding.split('=', limit = 2)
@@ -314,29 +429,16 @@ private fun explain(options: Options) {
     } else {
         WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
     }
-    val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
-    val revision = DiffRevision.calculate(
-        schemaPath,
-        schema.sources,
-        options.path("case"),
-        null,
-        options.path("layout"),
-        parameterPaths,
-        emptyList(),
-    )
-    var directory: Path? = schemaPath.parent
-    var normein = "unknown"
-    while (directory != null) {
-        val lock = directory.resolve("normein-build.lock")
-        if (Files.isRegularFile(lock)) {
-            normein = Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
-                ?.substringAfter('=')?.take(8) ?: "unknown"
-            break
-        }
-        directory = directory.parent
-    }
+    val revision = requireNotNull(execution.revision)
     val output = when (options.named["format"] ?: "json") {
-        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, document))
+        "json" -> WorkbenchJson.write(
+            WorkbenchJson.envelope(
+                revision,
+                "0.4.0-SNAPSHOT",
+                normeinVersion(options.schemaPath()),
+                document + ("revision" to revision),
+            ),
+        )
         "text" -> buildString {
             appendLine("${document["label"]}: ${(document["result"] as Map<*, *>) ["display"]}")
             @Suppress("UNCHECKED_CAST")
@@ -360,29 +462,42 @@ private fun explain(options: Options) {
     options.path("out")?.let { out ->
         out.toAbsolutePath().parent?.let(Files::createDirectories)
         Files.writeString(out, output + "\n")
-        System.err.println("mantra: wrote ${out.toAbsolutePath()}")
-    } ?: println(output)
-    result.diagnostics.forEach { System.err.println(it) }
-    if (!result.succeeded) exitProcess(3)
+        options.err.println("mantra: wrote ${out.toAbsolutePath()}")
+    } ?: options.out.println(output)
+    execution.diagnostics(options)
+    if (!execution.succeeded) throw CliExit(3)
 }
 
 private fun check(options: Options) {
-    val (schema, case) = loadInputs(options)
-    val view = Mantra.inspect(schema, case)
+    val prepared = options.path("case")?.let { caseLoader(options, it, "parameters", includeLayout = false) }
+    val inspection = prepared?.let { CaseGraphInspector(it.loader).inspect(it.reference) }
+    if (inspection != null) {
+        printGraphDiagnostics(inspection.diagnostics, options)
+        if (!inspection.succeeded) throw CliExit(3)
+    }
+    val schema = inspection?.root?.let { prepared!!.loader.binding(it).packageData.schema }
+        ?: Mantra.loadSchema(options.schemaPath())
+    val view =
+        inspection?.view
+            ?: Mantra.inspect(
+                schema,
+                CaseData.empty(),
+                options.paths("parameters").orEmpty().map(Mantra::loadParameters),
+            )
     val values = view.nodes.values
-    println("Schema ${schema.id} – ${schema.meta.title}")
-    println("  sources:     ${schema.sources.joinToString()}")
-    println("  dimensions:  ${view.dimensions.keys.joinToString().ifEmpty { "–" }}")
-    println("  parameters:  ${values.count { it.kind == NodeKind.PARAM }}")
-    println("  inputs:      ${values.count { it.kind == NodeKind.INPUT }}")
-    println("  lines:       ${values.count { it.line != null }}")
-    println("  totals:      ${values.count { it.kind == NodeKind.TOTAL }}")
-    println("  choices:     ${values.count { it.kind == NodeKind.CHOICE }}")
-    println("  checks:      ${values.count { it.kind == NodeKind.CHECK }}")
-    println("  reconciles:  ${values.count { it.kind == NodeKind.RECONCILE }}")
-    println("  functions:   ${schema.functions.joinToString { it.name }.ifEmpty { "–" }}")
-    println("  dependency edges: ${view.dependencyCount}")
-    println()
+    options.out.println("Schema ${schema.id} – ${schema.meta.title}")
+    options.out.println("  sources:     ${schema.sources.joinToString()}")
+    options.out.println("  dimensions:  ${view.dimensions.keys.joinToString().ifEmpty { "–" }}")
+    options.out.println("  parameters:  ${values.count { it.kind == NodeKind.PARAM }}")
+    options.out.println("  inputs:      ${values.count { it.kind == NodeKind.INPUT }}")
+    options.out.println("  lines:       ${values.count { it.line != null }}")
+    options.out.println("  totals:      ${values.count { it.kind == NodeKind.TOTAL }}")
+    options.out.println("  choices:     ${values.count { it.kind == NodeKind.CHOICE }}")
+    options.out.println("  checks:      ${values.count { it.kind == NodeKind.CHECK }}")
+    options.out.println("  reconciles:  ${values.count { it.kind == NodeKind.RECONCILE }}")
+    options.out.println("  functions:   ${schema.functions.joinToString { it.name }.ifEmpty { "–" }}")
+    options.out.println("  dependency edges: ${view.dependencyCount}")
+    options.out.println()
     fun tree(section: ViewSection, depth: Int) {
         section.children.forEach { child ->
             val indent = "  ".repeat(depth)
@@ -390,7 +505,7 @@ private fun check(options: Options) {
                 is ViewSection -> {
                     val dims = if (child.dims.isEmpty()) "" else " per ${child.dims.joinToString()}"
                     val kind = if (child.resultId != null) " → ${child.resultId}" else ""
-                    println("$indent§ ${child.id} \"${child.label}\"$dims$kind")
+                    options.out.println("$indent§ ${child.id} \"${child.label}\"$dims$kind")
                     tree(child, depth + 1)
                 }
                 is ViewTreeNode -> {
@@ -400,7 +515,7 @@ private fun check(options: Options) {
                         child.op < 0 -> "-"
                         else -> "·"
                     }
-                    println("$indent$sign ${child.id}")
+                    options.out.println("$indent$sign ${child.id}")
                 }
                 is ViewNote -> Unit
             }
@@ -409,8 +524,8 @@ private fun check(options: Options) {
     tree(view.tree, 0)
 }
 
-private fun catalog() {
-    println("Schema forms (calculation layer)")
+private fun catalog(options: Options) {
+    options.out.println("Schema forms (calculation layer)")
     listOf(
         "(schema id {meta} decl*)" to "calculation schema document",
         "(fragment decl*)" to "included document",
@@ -432,27 +547,33 @@ private fun catalog() {
             "alternatives (Günstigerprüfung, higher-of)",
         "(slot id \"Label\" {opts})" to "extension point filled by (extend id ...) in a case",
         "(note \"Text\")" to "text row",
-    ).forEach { (form, text) -> println("  %-64s %s".format(form, text)) }
-    println("  item options: :op :plus|:minus|:info  :per dim|[dims]  :when expr  :round n|[n :mode]  :spread true")
-    println("                :reference :note :source :format :precision :hidden :type :class")
-    println("                :aggregate :sum|:none|{:ratio [numerator denominator]}|{:first period}|{:last period}")
-    println("                application attributes (for example :kz or :zeile) pass through unchanged")
-    println()
-    println(
+    ).forEach { (form, text) -> options.out.println("  %-64s %s".format(form, text)) }
+    options.out.println(
+        "  item options: :op :plus|:minus|:info  :per dim|[dims]  :when expr  :round n|[n :mode]  :spread true",
+    )
+    options.out.println("                :reference :note :source :format :precision :hidden :type :class")
+    options.out.println(
+        "                :aggregate :sum|:none|{:ratio [numerator denominator]}|{:first period}|{:last period}",
+    )
+    options.out.println("                application attributes (for example :kz or :zeile) pass through unchanged")
+    options.out.println()
+    options.out.println(
         "Kernel functions (${FunctionCatalog.libraryId}@${FunctionCatalog.semanticsVersion}, plus the Normein standard library)",
     )
-    FunctionCatalog.functions.forEach { println("  %-16s %s".format(it.name, it.summary)) }
-    println("  (${FunctionCatalog.callableCount} callables in total)")
-    println()
-    println("Layout forms (presentation layer)")
-    println(
+    FunctionCatalog.functions.forEach { options.out.println("  %-16s %s".format(it.name, it.summary)) }
+    options.out.println("  (${FunctionCatalog.callableCount} callables in total)")
+    options.out.println()
+    options.out.println("Layout forms (presentation layer)")
+    options.out.println(
         "  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)",
     )
-    println("  (operators {...})  (columns :tiered|:matrix col*)  (table section-id {opts} col*)")
-    println("  table axes: :style :matrix|:transpose  :row-dimension dim  :fixed {:dimension :member}")
-    println("  (attribute :name {opts}?)  application metadata column")
-    println("  (schedule id*)  (inline id*)  (hide id*)")
-    println("  (col id {:content <content> :header \"…\" :width n :align …})  (members dim)  (member dim :key)")
-    println("  column contents: ${ColumnContent.catalog.joinToString()}")
-    println("  presets: ${Presets.ALL.keys.joinToString()}")
+    options.out.println("  (operators {...})  (columns :tiered|:matrix col*)  (table section-id {opts} col*)")
+    options.out.println("  table axes: :style :matrix|:transpose  :row-dimension dim  :fixed {:dimension :member}")
+    options.out.println("  (attribute :name {opts}?)  application metadata column")
+    options.out.println("  (schedule id*)  (inline id*)  (hide id*)")
+    options.out.println(
+        "  (col id {:content <content> :header \"…\" :width n :align …})  (members dim)  (member dim :key)",
+    )
+    options.out.println("  column contents: ${ColumnContent.catalog.joinToString()}")
+    options.out.println("  presets: ${Presets.ALL.keys.joinToString()}")
 }

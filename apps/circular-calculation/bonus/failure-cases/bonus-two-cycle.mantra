@@ -1,0 +1,9 @@
+;; Frozen fictional bonus-two-cycle; technical failure must expose MANTRA-CALC-NOT-CONVERGED and no amount.
+(case bonus-two-cycle
+  {:acceptance-role :technical-failure
+   :expected-failed-values [{:node "converged-amount" :coord []}]
+   :schema "demo.bonus" :schema-version "1.0" :layout "demo.bonus/working-paper"
+   :parameters ["demo.bonus/parameters"] :title "Circular bonus: bonus-two-cycle"
+   :expected-evaluation-code "MANTRA-CALC-NOT-CONVERGED"}
+  (inputs {:base 1 :rate 1 :seed 0
+           :maximum-calls 60 :tolerance 0}))

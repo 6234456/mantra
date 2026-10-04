@@ -10,7 +10,7 @@ afterEach(cleanup)
 it('inspects a CSV, maps a source column, and applies the source to the case', async () => {
   document.documentElement.lang = 'en'
   const envelope = <T,>(data: T) => ({
-    contract: 'mantra.workbench/3' as const,
+    contract: 'mantra.workbench/4' as const,
     revision: '0123456789abcdef',
     engine: { mantra: 'test', normein: 'test' },
     data,

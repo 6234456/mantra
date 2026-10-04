@@ -8,17 +8,21 @@ import xml.etree.ElementTree as ET
 
 
 MINIMUM_TESTS = {
-    'mantra-core': 82,
-    'mantra-render': 23,
-    'mantra-excel': 21,
-    'mantra-workbench': 48,
-    'mantra-server': 19,
-    'mantra-cli': 2,
-    'apps/de-est': 14,
-    'apps/ifrs-impairment': 9,
-    'apps/cost-accounting': 14,
-    'apps/ifrs-income-taxes': 10,
-    'benchmarks': 1,
+    'mantra-core': 213,
+    'mantra-render': 36,
+    'mantra-excel': 66,
+    'mantra-workbench': 65,
+    'mantra-server': 21,
+    'mantra-cli': 11,
+    'apps/de-est': 31,
+    'apps/ifrs-impairment': 27,
+    'apps/cost-accounting': 27,
+    'apps/ifrs-income-taxes': 23,
+    'apps/fixed-assets': 21,
+    'apps/ifrs-leases': 20,
+    'apps/de-gewst': 18,
+    'apps/circular-calculation': 19,
+    'benchmarks': 3,
 }
 
 

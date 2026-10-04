@@ -30,6 +30,7 @@ internal fun WorkspaceCatalog.commitCaseEdits(
         val snapshot = scan()
         val base = resolve(caseId, snapshot)
         checkRevision(baseRevision, base.revision)
+        rejectLinkedEdits(base, operations)
         val original = source(path(caseId)).text
         val candidate = editCandidate(caseId, operations)
         val variant = resolve(caseId, snapshot, caseText = candidate)
@@ -318,5 +319,23 @@ internal fun WorkspaceCatalog.writeCase(
         }
     } finally {
         Files.deleteIfExists(temp)
+    }
+}
+
+/** Consumer edits cannot replace, clear, or overwrite an ancestor map of a linked input. */
+internal fun rejectLinkedEdits(base: Resolved, operations: List<CaseTextEditor.Operation>) {
+    operations.forEach { operation ->
+        val (id, coord) = when (operation) {
+            is CaseTextEditor.Operation.SetInput -> operation.id to operation.coord
+            is CaseTextEditor.Operation.ClearInput -> operation.id to operation.coord
+            else -> return@forEach
+        }
+        if (base.view.case.linkInputs.keys.any { address ->
+                address.nodeId == id &&
+                    (coord.isEmpty() || address.coord.take(coord.size) == coord)
+            }
+        ) {
+            throw WorkspaceException(WorkspaceProblem.REQUEST, "Linked input $id is read-only; edit its source case")
+        }
     }
 }

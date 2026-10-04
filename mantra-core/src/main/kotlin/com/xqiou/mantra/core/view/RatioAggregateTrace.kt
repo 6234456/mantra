@@ -13,8 +13,10 @@ data class RatioContribution(
 
 /**
  * Exact engine-owned evidence for `sum(numerator) / sum(denominator)`. Member details are bounded;
- * totals always cover the complete active mask. The unrounded value is the exact rational pair
- * [numeratorTotal]/[denominatorTotal], so no implicit decimal approximation is introduced.
+ * Successful totals cover the complete active mask. When [undefinedReason] is
+ * `selected-value-undefined`, numeric contributions and totals contain only available numbers;
+ * they are incomplete evidence and must not be interpreted as a successful ratio. Otherwise the
+ * unrounded value is the exact rational pair [numeratorTotal]/[denominatorTotal].
  */
 data class RatioAggregateTrace(
     val numeratorId: String,
@@ -28,7 +30,7 @@ data class RatioAggregateTrace(
     val denominatorTotal: BigDecimal,
     val rounding: Rounding?,
     override val result: BigDecimal?,
-    /** Stable reason: no-active-members, zero-denominator or rounding-required. */
+    /** Stable reason: no-active-members, zero-denominator, rounding-required or selected-value-undefined. */
     override val undefinedReason: String?,
     override val truncated: Boolean,
 ) : AggregateTrace

@@ -1,0 +1,12 @@
+{
+  "opening-loss": "3000000",
+  "eligible-new-loss": "0",
+  "positive-income": "1000000",
+  "loss-allowance": "1000000",
+  "loss-deduction-cap": "1000000.00",
+  "loss-used": "1000000.00",
+  "selected-carryback": "0",
+  "closing-loss": "2000000.00",
+  "post-loss-positive-income": "0.00",
+  "loss-crossfoot": "0.00"
+}

@@ -121,6 +121,6 @@ Audit trail
     Working: (= group-profit 0) = false → (decimal/divide group-tax group-profit 6) = 0.249375 → (if (= group-profit 0) nil (decimal/divide group-tax group-profit 6)) = 0.249375 → selected branch: (decimal/divide group-tax group-profit 6) = 24.9375 %
 
 Findings
-  error MANTRA-RECONCILE-FAILED at schema.mantra:41:5 [tax-reconciliation]: Explained less booked tax: difference -0.0200 exceeds tolerance 0.01
-  error MANTRA-RECONCILE-FAILED at schema.mantra:53:5 [group-tax-reconciliation]: Combined explained less booked tax: difference -0.0200 exceeds tolerance 0.01
-  error MANTRA-INPUT-REQUIRED at case-unreconciled.mantra:15:24 [tax-adjustments]: Row 1 of tax-adjustments requires :reason
+  error MANTRA-RECONCILE-FAILED at ifrs-income-taxes/schema.mantra:41:5 [tax-reconciliation]: Explained less booked tax: difference -0.0200 exceeds tolerance 0.01
+  error MANTRA-RECONCILE-FAILED at ifrs-income-taxes/schema.mantra:53:5 [group-tax-reconciliation]: Combined explained less booked tax: difference -0.0200 exceeds tolerance 0.01
+  error MANTRA-INPUT-REQUIRED at ifrs-income-taxes/case-unreconciled.mantra:15:24 [tax-adjustments]: Row 1 of tax-adjustments requires :reason

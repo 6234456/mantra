@@ -1,0 +1,14 @@
+{
+  "name": "financing-costs",
+  "format": "csv",
+  "case": "case-rate-400.mantra",
+  "schema": "de.gewst/2025",
+  "schema-version": "2025.1",
+  "options": {
+    "input": "financing-costs",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": "",
+    "path": "data/financing-costs.csv"
+  }
+}

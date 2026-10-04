@@ -1,0 +1,5 @@
+(case first-invoice
+  {:schema "tutorial.invoice" :schema-version "1.0"
+   :parameters ["tutorial.invoice/annual"] :layout "tutorial.invoice/paper"
+   :title "A fictional supplied basis"}
+  (inputs {:basis 1200}))

@@ -79,7 +79,30 @@ class AuditPaperTest {
         val balance = paper.audit.single { it.nodeId == "balance" }
         assertTrue("5 − 4 = 1 (± 0.25)" in balance.working)
         val explained = Mantra.calculateForExplain(schema, result.case, emptyList(), "balance")
-        assertEquals(explained.explainTrace, balance.explanation)
+        val direct = requireNotNull(explained.explainTrace)
+        val captured = requireNotNull(balance.explanation)
+        assertEquals(
+            direct.copy(
+                steps = direct.steps.map {
+                    it.copy(eventId = null)
+                },
+                branches = direct.branches.map { it.copy(eventId = null) },
+            ),
+            captured.copy(
+                steps = captured.steps.map {
+                    it.copy(eventId = null)
+                },
+                branches = captured.branches.map { it.copy(eventId = null) },
+            ),
+        )
+        assertTrue(direct.steps.all { !it.eventId.isNullOrBlank() })
+        assertTrue(captured.steps.all { !it.eventId.isNullOrBlank() })
+        assertTrue(
+            direct.steps.map {
+                it.eventId
+            } != captured.steps.map { it.eventId },
+            "Kernel event identities belong to their actual execution attempt",
+        )
         assertTrue("MANTRA-CHECK-FAILED" in Render.text(result, layout, includeAudit = true))
         assertTrue(result.succeeded)
     }

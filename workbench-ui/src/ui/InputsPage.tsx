@@ -5,6 +5,7 @@ import { casePath } from '../address'
 import { diagnosticsForInput } from '../diagnostics'
 import { language, t } from '../i18n'
 import './InputsPage.css'
+import { LinkedSourceEvidence } from './LinkedSourceEvidence'
 
 const lang = language()
 type Field = InputField
@@ -143,9 +144,11 @@ export function InputsPage({
                       <InputControl
                         key={coord.join('/')}
                         field={item}
-                        address={{ node: item.id, ...(coord.length ? { coord } : {}) }}
+                        address={{ case: null, node: item.id, ...(coord.length ? { coord } : {}) }}
                         label={label}
                         run={run}
+                        rootCaseId={caseId}
+                        navigate={navigate}
                         revision={revision}
                         save={save}
                         selected={
@@ -221,6 +224,8 @@ function InputControl({
   address,
   label,
   run,
+  rootCaseId,
+  navigate,
   revision,
   save,
   selected = false,
@@ -229,6 +234,8 @@ function InputControl({
   address: Address
   label: string
   run: Run
+  rootCaseId: string
+  navigate: (path: string) => void
   revision: string
   save: (operation: EditOperation) => Promise<void>
   selected?: boolean
@@ -265,6 +272,21 @@ function InputControl({
     }
   }
   const options = Object.entries(field.options ?? {})
+  if (item?.link || item?.origin?.toUpperCase() === 'LINK') {
+    return (
+      <div className="input-control linked-input-control">
+        <span>{title}</span>
+        <output className="linked-input-output" aria-label={title}>
+          {item.display}
+        </output>
+        {item.link ? (
+          <LinkedSourceEvidence source={item.link} rootCaseId={rootCaseId} navigate={navigate} />
+        ) : (
+          <p className="muted">{lang === 'de' ? 'Verknüpfter Wert · schreibgeschützt' : 'Linked value · read only'}</p>
+        )}
+      </div>
+    )
+  }
   return (
     <div ref={control} className={`input-control${selected ? ' is-selected' : ''}`}>
       <label htmlFor={`input-${field.id}-${address.coord?.join('-') ?? 'single'}`}>
@@ -366,7 +388,7 @@ function TableField({
   const [busy, setBusy] = useState(false)
   const [newRow, setNewRow] = useState<Record<string, string>>({})
   const columns = field.columns ?? []
-  const tableDiagnostics = diagnosticsForInput(run.diagnostics, { node: field.id })
+  const tableDiagnostics = diagnosticsForInput(run.diagnostics, { case: null, node: field.id })
   const indexedSelection =
     selectedAddress?.cell?.row !== undefined && rows.some((_, index) => String(index) === selectedAddress.cell?.row)
   async function mutate(operation: EditOperation) {
@@ -427,7 +449,7 @@ function TableField({
                       save={save}
                       diagnostics={diagnosticsForInput(
                         run.diagnostics,
-                        { node: field.id, cell: { row: rowKey(row, index), column: column.name } },
+                        { case: null, node: field.id, cell: { row: rowKey(row, index), column: column.name } },
                         index,
                       )}
                       selected={
@@ -529,7 +551,7 @@ function TableCell({
   async function submit() {
     setBusy(true)
     setError('')
-    const address: Address = { node: table, cell: { row, column } }
+    const address: Address = { case: null, node: table, cell: { row, column } }
     try {
       await save(draft === '' ? { op: 'clearInput', address } : { op: 'setInput', address, text: draft })
     } catch (failure) {

@@ -1,5 +1,6 @@
 package com.xqiou.mantra.core.view
 
+import com.xqiou.mantra.core.model.LinkProvenance
 import com.xqiou.mantra.core.model.Rounding
 import com.xqiou.mantra.core.model.Value
 import java.math.BigDecimal
@@ -11,7 +12,7 @@ typealias Coord = List<String>
 data class Member(val key: String, val label: String, val index: Int, val record: Map<String, Value>)
 
 /** Source category of an input value before formula evaluation. */
-enum class InputOrigin { CASE, SOURCE, DEFAULT, IMPLICIT }
+enum class InputOrigin { CASE, SOURCE, DEFAULT, IMPLICIT, LINK }
 
 /** One referenced node or member record, with its value in the evaluation context. */
 data class TraceRef(
@@ -53,10 +54,18 @@ data class ExplainStep(
     val location: com.xqiou.mantra.core.SourceLocation,
     /** Kernel summary retained when it cannot be represented as one complete value. */
     val rendered: String? = null,
+    val eventId: String? = null,
+    val invocationIndex: Long? = null,
 )
 
 /** One source-level conditional branch and whether evaluation selected it. */
-data class ExplainBranch(val text: String, val selected: Boolean, val location: com.xqiou.mantra.core.SourceLocation)
+data class ExplainBranch(
+    val text: String,
+    val selected: Boolean,
+    val location: com.xqiou.mantra.core.SourceLocation,
+    val eventId: String? = null,
+    val invocationIndex: Long? = null,
+)
 
 /** Bounded source-level trace; [truncated] signals that the collection budget was reached. */
 data class ExplainTrace(val steps: List<ExplainStep>, val branches: List<ExplainBranch>, val truncated: Boolean)
@@ -64,9 +73,12 @@ data class ExplainTrace(val steps: List<ExplainStep>, val branches: List<Explain
 /** How a value came about; renderers turn this into the audit trail ("Rechenweg"). */
 sealed interface NodeTrace {
     /** Input origin and an optional external data-source name. */
-    data class Input(val origin: InputOrigin, val source: String? = null) : NodeTrace {
+    data class Input(val origin: InputOrigin, val source: String? = null, val link: LinkProvenance? = null) :
+        NodeTrace {
         /** Stable lowercase source label used by audit renderers. */
-        fun label(): String = if (origin == InputOrigin.SOURCE &&
+        fun label(): String = if (origin == InputOrigin.LINK && link != null) {
+            "link:${link.caseKey}#${link.from.nodeId}"
+        } else if (origin == InputOrigin.SOURCE &&
             source != null
         ) {
             "source:$source"

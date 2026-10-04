@@ -3,6 +3,7 @@ package com.xqiou.mantra.core.read
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CaseLink
 import com.xqiou.mantra.core.model.Formula
 import com.xqiou.mantra.core.model.FunctionDecl
 import com.xqiou.mantra.core.model.InputCellLocation
@@ -46,8 +47,17 @@ object CaseReader {
         root.values.getOrNull(2)?.takeIf { it.isSequence(DslFormSequenceKind.MAP) }?.let { metaForm ->
             index = 3
             document.options(metaForm, sink, "case metadata").forEach { (key, form) ->
-                val value = form.symbol?.let { Value.Text(it) } ?: document.literal(form, sink, "case metadata :$key")
-                value?.let { meta[key] = it }
+                if (key == "schema-version" && form.string?.isNotBlank() != true) {
+                    sink.error(
+                        "MANTRA-CASE-SCHEMA-VERSION",
+                        ":schema-version must be nonblank literal text",
+                        document.location(form),
+                    )
+                } else {
+                    val value =
+                        form.symbol?.let { Value.Text(it) } ?: document.literal(form, sink, "case metadata :$key")
+                    value?.let { meta[key] = it }
+                }
             }
         }
         val inputs = linkedMapOf<String, Value>()
@@ -59,11 +69,13 @@ object CaseReader {
         val formulaBindings = linkedMapOf<String, Formula>()
         val functions = mutableListOf<FunctionDecl>()
         val sources = mutableListOf<SourceBinding>()
+        val links = mutableListOf<CaseLink>()
         root.values.drop(index).forEach { form ->
             val list = form as? DslForm.Sequence
             when (list?.listHead) {
                 "inputs" -> readValues(document, list, sink, "inputs", inputs, inputLocations, inputCells)
                 "params" -> readValues(document, list, sink, "params", params, paramLocations)
+                "links" -> links += LinkReader.read(document, list, sink)
                 "sources" -> list.values.drop(1).forEach { declaration ->
                     val source = declaration as? DslForm.Sequence
                     val kind = source?.listHead
@@ -143,7 +155,7 @@ object CaseReader {
         val schemaId = (meta["schema"] as? Value.Text)?.value
         return CaseData(
             id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
-            inputLocations, paramLocations, sources = sources, inputCells = inputCells,
+            inputLocations, paramLocations, sources = sources, inputCells = inputCells, links = links,
         )
     }
 

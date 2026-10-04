@@ -1,0 +1,7 @@
+;; Import smoke variant of the same frozen rate-400 facts; no new authored numeric fixture.
+(case rate-400-csv
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: rate 400 from typed CSV" :expected-business []}
+  (inputs {:profit 120000 :hebesatz-percent 400 :entity :natural-person-sole-proprietor :section9-deductions 0})
+  (sources (csv {:path "data/financing-costs.csv" :input "financing-costs"
+                 :delimiter "," :decimal "." :grouping ""})))

@@ -3,11 +3,14 @@ import type { Paper, Run } from './types'
 import { auditForCell, nodeValue } from './viewModel'
 
 const run: Run = {
+  caseGraph: null,
+  usage: null,
+  failure: null,
   succeeded: true,
   validationPassed: true,
   members: { member: [{ key: 'A', label: 'A' }] },
   diagnostics: [],
-  values: { value: { A: { value: { n: '10.00' }, display: '10.00', active: true } } },
+  values: { value: { A: { link: null, value: { n: '10.00' }, display: '10.00', active: true } } },
 }
 const paper: Paper = {
   title: 'Paper',
@@ -32,8 +35,8 @@ const paper: Paper = {
           depth: 0,
           anchor: 't1-r1',
           cells: [
-            { text: '10.00', address: { node: 'value', coord: ['A'] } },
-            { text: '20.00', address: { node: 'value', coord: ['B'] } },
+            { text: '10.00', address: { case: null, node: 'value', coord: ['A'] } },
+            { text: '20.00', address: { case: null, node: 'value', coord: ['B'] } },
           ],
         },
       ],
@@ -49,11 +52,11 @@ describe('read-only value selection', () => {
   })
   it('selects the audit entry for the addressed member', () => {
     const rows = paper.tables[0].rows
-    expect(auditForCell(paper, rows, { node: 'value', coord: ['B'] })?.formula).toBe('B')
-    expect(auditForCell(paper, rows, { node: 'value', coord: ['C'] })).toBeUndefined()
+    expect(auditForCell(paper, rows, { case: null, node: 'value', coord: ['B'] })?.formula).toBe('B')
+    expect(auditForCell(paper, rows, { case: null, node: 'value', coord: ['C'] })).toBeUndefined()
   })
   it('selects a weighted aggregate by its explicit address rather than a member row anchor', () => {
-    const aggregateAddress = { node: 'aggregate.value', coord: ['period=2025'] }
+    const aggregateAddress = { case: null, node: 'aggregate.value', coord: ['period=2025'] }
     const aggregateEntry = {
       ...paper.audit[0],
       anchor: 't1-r1-sum',
@@ -64,7 +67,11 @@ describe('read-only value selection', () => {
     expect(auditForCell(aggregatePaper, paper.tables[0].rows, aggregateAddress)).toBe(aggregateEntry)
     expect(auditForCell(aggregatePaper, undefined, aggregateAddress)).toBe(aggregateEntry)
     expect(
-      auditForCell(aggregatePaper, paper.tables[0].rows, { node: 'aggregate.value', coord: ['period=2024'] }),
+      auditForCell(aggregatePaper, paper.tables[0].rows, {
+        case: null,
+        node: 'aggregate.value',
+        coord: ['period=2024'],
+      }),
     ).toBeUndefined()
   })
   it('reads an explicitly addressed whole aggregate from the engine display and never substitutes it for a member or fixed slice', () => {

@@ -58,9 +58,12 @@ class PeriodPaperExplainTest {
         val rows = table["rows"] as List<*>
         val closing = rows.map { it as Map<*, *> }.first { it["node"] == "closing" }
         val cells = closing["cells"] as List<*>
-        assertEquals(mapOf("node" to "closing", "coord" to listOf("A", "P2")), (cells[2] as Map<*, *>)["address"])
         assertEquals(
-            mapOf("node" to "aggregate.closing", "coord" to listOf("asset=A")),
+            mapOf("case" to null, "node" to "closing", "coord" to listOf("A", "P2")),
+            (cells[2] as Map<*, *>)["address"],
+        )
+        assertEquals(
+            mapOf("case" to null, "node" to "aggregate.closing", "coord" to listOf("asset=A")),
             (cells.last() as Map<*, *>)["address"],
         )
         val transpose = catalog.document("case.mantra", "paper", layoutId = "test/transpose").data
@@ -69,7 +72,7 @@ class PeriodPaperExplainTest {
         val row = (transposed["rows"] as List<*>).first() as Map<*, *>
         val transposedCells = row["cells"] as List<*>
         assertEquals(
-            mapOf("node" to "aggregate.movement", "coord" to listOf("asset=A")),
+            mapOf("case" to null, "node" to "aggregate.movement", "coord" to listOf("asset=A")),
             (transposedCells[2] as Map<*, *>)["address"],
         )
         assertEquals("60.00", (transposedCells[2] as Map<*, *>)["text"])
@@ -110,7 +113,7 @@ class PeriodPaperExplainTest {
     fun `prev Explain points at the same asset in the actual preceding period`() = workspace { catalog ->
         val later = catalog.explain("case.mantra", ExplainAddress("opening", listOf("A", "P2"))).data
         val previous = (later["references"] as List<*>).map { it as Map<*, *> }.single { it["kind"] == "previous" }
-        assertEquals(mapOf("node" to "closing", "coord" to listOf("A", "P1")), previous["address"])
+        assertEquals(mapOf("case" to null, "node" to "closing", "coord" to listOf("A", "P1")), previous["address"])
         assertEquals(mapOf("n" to "120"), previous["value"])
         val first = catalog.explain("case.mantra", ExplainAddress("opening", listOf("A", "P1"))).data
         assertTrue((first["references"] as List<*>).map { it as Map<*, *> }.none { it["kind"] == "previous" })
@@ -137,7 +140,10 @@ class PeriodPaperExplainTest {
                     "case.mantra",
                     ExplainAddress("aggregate.balance", listOf("quarter=P1")),
                 ).data
-                assertEquals(mapOf("node" to "aggregate.balance", "coord" to listOf("quarter=P1")), data["address"])
+                assertEquals(
+                    mapOf("case" to null, "node" to "aggregate.balance", "coord" to listOf("quarter=P1")),
+                    data["address"],
+                )
                 val evidence = data["aggregate"] as Map<*, *>
                 assertEquals(mapOf("quarter" to "P1"), evidence["fixed"])
                 assertEquals(listOf("P1", "P2", "P3"), evidence["periodKeys"])

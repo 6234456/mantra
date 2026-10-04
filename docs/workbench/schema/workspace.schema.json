@@ -1,32 +1,116 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/workspace.schema.json",
-  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "allOf": [
+    {
+      "$ref": "envelope.schema.json"
+    }
+  ],
   "properties": {
     "data": {
       "type": "object",
-      "required": ["cases", "schemas", "parameters", "layouts", "diagnostics"],
+      "required": [
+        "cases",
+        "schemas",
+        "parameters",
+        "layouts",
+        "diagnostics"
+      ],
       "properties": {
         "cases": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["id", "title", "schema", "period", "revision", "diagnostics"],
+            "required": [
+              "id",
+              "title",
+              "schema",
+              "period",
+              "revision",
+              "diagnostics"
+            ],
             "properties": {
-              "id": { "type": "string" },
-              "title": { "type": "string" },
-              "schema": { "type": ["string", "null"] },
-              "period": { "type": ["string", "null"] },
-              "revision": { "type": ["string", "null"], "pattern": "^[0-9a-f]{16}$" },
-              "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } }
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "schema": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "period": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "revision": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9a-f]{16}([0-9a-f]{48})?$"
+              },
+              "diagnostics": {
+                "type": "array",
+                "items": {
+                  "$ref": "envelope.schema.json#/$defs/diagnostic"
+                }
+              },
+              "schemaVersion": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
             },
             "additionalProperties": false
           }
         },
-        "schemas": { "$ref": "#/$defs/documents" },
-        "parameters": { "$ref": "#/$defs/documents" },
-        "layouts": { "$ref": "#/$defs/documents" },
-        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } }
+        "schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "path"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "path": {
+                "type": "string"
+              },
+              "version": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "parameters": {
+          "$ref": "#/$defs/documents"
+        },
+        "layouts": {
+          "$ref": "#/$defs/documents"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        }
       },
       "additionalProperties": false
     }
@@ -36,10 +120,20 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "path"],
+        "required": [
+          "id",
+          "path"
+        ],
         "properties": {
-          "id": { "type": ["string", "null"] },
-          "path": { "type": "string" }
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": "string"
+          }
         },
         "additionalProperties": false
       }

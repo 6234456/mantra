@@ -1,0 +1,15 @@
+{
+  "case": "gross-up-insufficient-calls",
+  "domain": "gross-up",
+  "currency": "EUR",
+  "base": "1000",
+  "rate": "0.25",
+  "seed": "1000",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 2,
+  "tolerance": "0",
+  "expected_money": null,
+  "termination_certificate": "limit",
+  "supported_domain": true
+}

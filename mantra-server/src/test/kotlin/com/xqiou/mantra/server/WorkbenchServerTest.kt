@@ -231,7 +231,7 @@ class WorkbenchServerTest {
             val parameters = request(server.localPort, "/api/v1/cases/$case/parameters")
             for (response in listOf(structure, run, paper, diagnostics, parameters)) {
                 assertEquals(200, response.status, response.body)
-                assertContains(response.body, "\"contract\":\"mantra.workbench/3\"")
+                assertContains(response.body, "\"contract\":\"mantra.workbench/4\"")
                 assertContains(response.body, "\"revision\":")
             }
             listOf("structure", "run", "paper", "diagnostics", "parameters")
@@ -316,6 +316,7 @@ class WorkbenchServerTest {
                     {
                       "op": "setInput",
                       "address": {
+                        "case": null,
                         "node": "amount"
                       },
                       "text": "1.234,56"
@@ -499,6 +500,10 @@ class WorkbenchServerTest {
             root.resolve("sample/layout.mantra"),
             "(layout test/export {:preset :de-staffel-4 :title \"Custom export\"} (table main))",
         )
+        Files.writeString(
+            root.resolve("sample/alternate-layout.mantra"),
+            "(layout test/alternate-export {:preset :de-staffel-4 :title \"Alternate export\"} (table main))",
+        )
         WorkbenchServer(root, 0).use { server ->
             server.start()
             val path = "/api/v1/cases/sample%2Fcase.mantra"
@@ -517,11 +522,11 @@ class WorkbenchServerTest {
             assertEquals(200, selected.status, selected.body)
             assertEquals(404, request(server.localPort, "$path/export-preview?sheet=missing").status)
             assertEquals(400, request(server.localPort, "$path/export-preview?other=x").status)
-            val changedLayout = request(server.localPort, "$path/export-preview?layout=test%2Fexport")
+            val changedLayout = request(server.localPort, "$path/export-preview?layout=test%2Falternate-export")
             assertEquals(200, changedLayout.status, changedLayout.body)
             assertFalse(
                 changedLayout.body.contains(
-                    Regex("\"revision\":\"([a-f0-9]{16})\"")
+                    Regex("\"revision\":\"([a-f0-9]{16}([a-f0-9]{48})?)\"")
                         .find(preview.body)!!.value,
                 ),
             )
@@ -556,13 +561,13 @@ class WorkbenchServerTest {
                     .first { it["address"].asText() == formulaAddress }
                 assertEquals(formula.cellFormula, previewCell["formula"].asText())
             }
-            val changedXlsx = request(server.localPort, "$path/export.xlsx?layout=test%2Fexport")
+            val changedXlsx = request(server.localPort, "$path/export.xlsx?layout=test%2Falternate-export")
             assertEquals(200, changedXlsx.status)
             XSSFWorkbook(ByteArrayInputStream(changedXlsx.bytes)).use { workbook ->
                 val cell = workbook.getSheetAt(0).getRow(0).getCell(0).stringCellValue
                 val firstPreviewCell = ObjectMapper().readTree(changedLayout.body)["data"]["preview"]["cells"][0]
                 assertEquals(firstPreviewCell["value"].asText(), cell)
-                assertEquals("Custom export", cell)
+                assertEquals("Alternate export", cell)
             }
             val html = request(server.localPort, "$path/export.html")
             assertEquals(200, html.status)
@@ -770,7 +775,7 @@ class WorkbenchServerTest {
             validate("parameters", parameters.body)
             assertContains(parameters.body, "\"set\":\"test/variant\"")
             assertContains(parameters.body, "\"layer\":\"parameters\"")
-            val oldRevision = Regex("\"revision\":\"([a-f0-9]{16})\"").find(before.body)!!.groupValues[1]
+            val oldRevision = Regex("\"revision\":\"([a-f0-9]{16}([a-f0-9]{48})?)\"").find(before.body)!!.groupValues[1]
             Files.writeString(
                 root.resolve("sample/layout.mantra"),
                 "(layout test/brief {:preset :de-staffel-4 :zero \"0\"} (table main))",
@@ -845,7 +850,9 @@ class WorkbenchServerTest {
             validate("compare", other.body)
             assertContains(other.body, "\"case\":\"sample/other.mantra\"")
             assertEquals(200, post("""{"variant":{"case":"sample/bad-binding.mantra","parameters":[]}}""").status)
-            assertFalse(other.body.contains(Regex("\"revision\":\"([a-f0-9]{16})\"").find(variant.body)!!.value))
+            assertFalse(
+                other.body.contains(Regex("\"revision\":\"([a-f0-9]{16}([a-f0-9]{48})?)\"").find(variant.body)!!.value),
+            )
             for (invalid in listOf(
                 "{}",
                 "{",
@@ -1066,6 +1073,104 @@ class WorkbenchServerTest {
             val run = request(port, "/api/v1/cases/sample%2Fcase.mantra/run")
             assertContains(run.body, "\"n\":\"0.12345\"")
             assertFalse(run.body.contains("\"n\":\"12345\""))
+        }
+    }
+    private fun linkedWorkspace(): Path {
+        val root = Files.createDirectories(temp.resolve("linked-workspace"))
+        Files.writeString(
+            root.resolve("source-schema.mantra"),
+            """
+            (schema test/source {:version "1"}
+              (input source-amount :decimal)
+              (section main "Source" (line exported "Exported" (* source-amount 2))))
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("target-schema.mantra"),
+            """
+            (schema test/target {:version "1"}
+              (input received :decimal)
+              (section main "Consumer" (line answer "Answer" (+ received 1))))
+            """.trimIndent(),
+        )
+        Files.writeString(
+            root.resolve("source.mantra"),
+            "(case source {:schema \"test/source\" :schema-version \"1\"} (inputs {:source-amount 4}))",
+        )
+        Files.writeString(
+            root.resolve("consumer.mantra"),
+            """
+            (case consumer {:schema "test/target" :schema-version "1"}
+              (links {:path "source.mantra" :schema "test/source" :schema-version "1"
+                :mappings [{:from {:node exported :coord []} :to {:input received :coord []}}]}))
+            """.trimIndent(),
+        )
+        return root
+    }
+
+    @Test fun `linked source updates produce an event fresh provenance and stale Explain conflict`() {
+        val root = linkedWorkspace()
+        WorkbenchServer(root, 0).use { server ->
+            server.start()
+            val port = server.localPort
+            val path = "/api/v1/cases/consumer.mantra"
+            val first = ObjectMapper().readTree(request(port, "$path/run").body)
+            val revision = first["data"]["values"]["received"][""]["link"]["revision"].asText()
+            val query = "$path/explain?address=exported&case=source.mantra&expectedRevision=$revision"
+            val original = request(port, query)
+            assertEquals(200, original.status, original.body)
+            validate("explain", original.body)
+            assertEquals(revision, ObjectMapper().readTree(original.body)["data"]["revision"].asText())
+            EventStream(port).use { stream ->
+                stream.event("revision")
+                Files.writeString(
+                    root.resolve("source.mantra"),
+                    Files.readString(root.resolve("source.mantra")) + "\n;; reviewed source\n",
+                )
+                assertEquals(listOf("source.mantra"), stream.event("documentChanged")["paths"])
+            }
+            val changed = request(port, "$path/run")
+            assertEquals(200, changed.status, changed.body)
+            validate("run", changed.body)
+            val next = ObjectMapper().readTree(changed.body)
+            val nextRevision = next["data"]["values"]["received"][""]["link"]["revision"].asText()
+            assertFalse(revision == nextRevision)
+            assertEquals(first["data"]["values"]["answer"][""]["value"], next["data"]["values"]["answer"][""]["value"])
+            val stale = request(port, query)
+            assertEquals(409, stale.status, stale.body)
+            assertEquals(nextRevision, ObjectMapper().readTree(stale.body)["error"]["currentRevision"].asText())
+            assertEquals(404, request(port, "$path/explain?address=exported&case=../source.mantra").status)
+        }
+    }
+
+    @Test fun `HTTP consumer edit rejects both replacing and clearing a linked input without changing files`() {
+        val root = linkedWorkspace()
+        val ui = Files.createDirectories(temp.resolve("linked-ui"))
+        Files.writeString(ui.resolve("index.html"), "<html><head></head><body>workbench</body></html>")
+        WorkbenchServer(root, 0, ui).use { server ->
+            server.start()
+            val port = server.localPort
+            val path = "/api/v1/cases/consumer.mantra"
+            val token = Regex("name=\"mantra-session-token\" content=\"([a-f0-9]{64})\"")
+                .find(request(port, "/").body)!!.groupValues[1]
+            val revision = ObjectMapper().readTree(request(port, "$path/run").body)["revision"].asText()
+            val original = Files.readString(root.resolve("consumer.mantra"))
+            for (op in listOf("setInput", "clearInput")) {
+                val text = if (op == "setInput") ",\"text\":\"9\"" else ""
+                val body = """{"baseRevision":"$revision","operations":[""" +
+                    """{"op":"$op","address":{"node":"received"}$text}]}"""
+                for (route in listOf("preview", "edits")) {
+                    val rejected = request(
+                        port,
+                        "$path/$route",
+                        "POST",
+                        headers = mapOf("X-Mantra-Token" to token),
+                        body = body.toByteArray(),
+                    )
+                    assertEquals(400, rejected.status, rejected.body)
+                    assertEquals(original, Files.readString(root.resolve("consumer.mantra")))
+                }
+            }
         }
     }
 }

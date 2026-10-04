@@ -1,5 +1,7 @@
 package com.xqiou.mantra.core.engine
 
+import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.RunCounter
 import com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult
 import com.xqiou.normein.dsl.compiler.DslCompilationUnitResult
 import com.xqiou.normein.dsl.diagnostic.DslDiagnostic
@@ -33,7 +35,8 @@ internal data class KernelOutcome(
 )
 
 /** Owns reusable VALUE_ONLY sessions; evidence requests retain the audited reference route. */
-internal class KernelExecution : AutoCloseable {
+internal class KernelExecution(options: CalculationOptions) : AutoCloseable {
+    private val control = KernelControl(options)
     private val environment = MantraKernel.environment
     private val engine = DslEvaluationEngine()
     private val sessions = IdentityHashMap<CompiledFormula, DslExecutionSession>()
@@ -48,22 +51,27 @@ internal class KernelExecution : AutoCloseable {
         roots: List<DslInputRootCandidate>,
         identity: DslInputIdentity,
         capture: AuditCapture.Request?,
+        context: RunContext,
     ): KernelOutcome {
         if (capture?.enabled == true) {
+            context.charge(RunCounter.FORMULA_EXECUTIONS)
             auditedEvaluations++
-            return when (
+            val outcome = when (
                 val result = engine.evaluate(
-                    DslEvaluationRequest(
-                        expression = formula.expression,
-                        environment = environment,
-                        input = DslEvaluationInput(
-                            roots = roots,
-                            bindings = emptyList(),
-                            inputIdentity = identity,
-                            tracePolicy = DslTracePolicy.FULL,
+                    control.fullRequest(
+                        DslEvaluationRequest(
+                            expression = formula.expression,
+                            environment = environment,
+                            input = DslEvaluationInput(
+                                roots = roots,
+                                bindings = emptyList(),
+                                inputIdentity = identity,
+                                tracePolicy = DslTracePolicy.FULL,
+                            ),
+                            kernelArtifact = MantraKernel.kernelArtifact,
+                            traceLimits = capture.kernelLimits,
                         ),
-                        kernelArtifact = MantraKernel.kernelArtifact,
-                        traceLimits = capture.kernelLimits,
+                        context,
                     ),
                 )
             ) {
@@ -80,13 +88,16 @@ internal class KernelExecution : AutoCloseable {
                     result.receipt.traceStatus == DslTraceStatus.TRUNCATED,
                 )
             }
+            context.checkpoint()
+            return outcome
         }
-        valueOnlyEvaluations++
         val session = sessions.getOrPut(formula) { open(formula) }
+        context.charge(RunCounter.FORMULA_EXECUTIONS)
+        valueOnlyEvaluations++
         var value: DslValue? = null
         val diagnostics = mutableListOf<DslDiagnostic>()
         session.evaluateValueOnly(
-            DslValueOnlyInput(roots = roots),
+            control.valueOnlyInput(DslValueOnlyInput(roots = roots), context),
             DslBorrowedValueRowSink { row ->
                 diagnostics += row.diagnostics
                 if (row.outputCount == 1) {
@@ -98,6 +109,7 @@ internal class KernelExecution : AutoCloseable {
                 }
             },
         )
+        context.checkpoint()
         return KernelOutcome(value, diagnostics.distinct())
     }
 
@@ -139,14 +151,22 @@ internal class KernelExecution : AutoCloseable {
             is DslExecutionPlanResult.Success -> result.plan
             is DslExecutionPlanResult.Failure -> error("VALUE_ONLY execution plan rejected: ${result.diagnostics}")
         }
-        return when (val result = plan.openValueOnlySession()) {
+        return when (val result = plan.openValueOnlySession(options = control.sessionOptions)) {
             is DslExecutionSessionResult.Success -> result.session
             is DslExecutionSessionResult.Failure -> error("VALUE_ONLY session rejected: ${result.diagnostics}")
         }
     }
 
     override fun close() {
-        sessions.values.forEach(DslExecutionSession::close)
+        var failure: RuntimeException? = null
+        sessions.values.forEach { session ->
+            try {
+                session.close()
+            } catch (closing: RuntimeException) {
+                if (failure == null) failure = closing else failure!!.addSuppressed(closing)
+            }
+        }
         sessions.clear()
+        failure?.let { throw it }
     }
 }

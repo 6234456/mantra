@@ -1,0 +1,15 @@
+{
+  "case": "bonus-penny-cycle",
+  "domain": "bonus",
+  "currency": "EUR",
+  "base": "0.01",
+  "rate": "0.50",
+  "seed": "0",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "0",
+  "expected_money": null,
+  "termination_certificate": "two-cycle",
+  "supported_domain": true
+}

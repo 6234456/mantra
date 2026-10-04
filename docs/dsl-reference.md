@@ -128,7 +128,7 @@ authors do not configure evaluation order or cross-dimension condition propagati
 | `cgu`, `person` | Current member record, e.g. `cgu.carrying-amount`, `person.label`, `person.key`, `person.index` |
 | `(my-fn …)` | A helper declared with `defn` |
 
-### 1.4 Calculation functions (`mantra.calc@1`)
+### 1.4 Calculation functions (`mantra.calc@2`)
 
 | Function | Meaning |
 | --- | --- |
@@ -138,6 +138,7 @@ authors do not configure evaluation order or cross-dimension condition propagati
 | `(table/band x rows)`, `(table/band x rows default)` | Given ascending `[[threshold value] …]`, return the last value whose threshold is at most x. Below the first threshold, return default or nil |
 | `(fin/pmt rate n pv scale)` | Positive end-of-period annuity payment for present value pv over n positive periods, rounded half-up to scale. At rate zero, return pv/n |
 | `(calc/stepwise amount [[upper rate] … [nil rate]])` | Apply each rate only to the amount within its band; nil is the open upper limit of the final band |
+| `(calc/converge f init max-iterations tolerance)` | Return the first `next=f(current)` with `abs(next-current) <= tolerance`; the callback receives Decimal, the bound is an exact integer 1..1000 and tolerance is nonnegative. Exhaustion is a technical failure with no result. |
 | `(dim/sum values)` | Sum a member map; nil values count as zero |
 | `(dim/rollup values relation target)` | Sum source-member values assigned to target by a declared child-to-parent relation, e.g. `(dim/rollup all.actual-order-cost relation_order product.key)` |
 | `(dim/min values)` | Smallest non-nil member value, or nil if none |
@@ -149,6 +150,12 @@ Run `mantra catalog` for the executable function directory. Normein standard fun
 available, including `min`, `max`, `if`, `cond`, `let`, `decimal/round`, `decimal/floor` and
 `decimal/divide`. Division with `/` rejects non-terminating decimals; request explicit rounding
 with `decimal/divide` or `:round`.
+
+`calc/converge` executes its pure callback through the pinned kernel; the trace records the actual
+invocations and selected branches. Apply monetary rounding inside the callback when the recurrence
+requires it. The seed can select a different rounded fixed point, and a cent cycle fails even when
+an unrounded algebraic solution exists. There is no implicit rounding, approximation or retry.
+XLSX uses bounded helper formulas and preserves eager `let` errors, including unused bindings.
 
 ## 2. Cases and parameter sets
 

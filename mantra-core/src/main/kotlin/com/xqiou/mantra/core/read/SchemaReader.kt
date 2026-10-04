@@ -77,7 +77,15 @@ class SchemaReader(private val resolver: SourceResolver) {
         if (metaForm != null) {
             index = 3
             document.options(metaForm, sink, "schema metadata").forEach { (key, form) ->
-                document.literal(form, sink, "schema metadata :$key", symbolsAsText = true)?.let { meta[key] = it }
+                if (key == "version" && form.string?.isNotBlank() != true) {
+                    sink.error(
+                        "MANTRA-SCHEMA-VERSION",
+                        ":version must be nonblank literal text",
+                        document.location(form),
+                    )
+                } else {
+                    document.literal(form, sink, "schema metadata :$key", symbolsAsText = true)?.let { meta[key] = it }
+                }
             }
         }
         val state = SchemaState(resolver, sink)

@@ -127,4 +127,4 @@ Audit trail
     Working: 5751.7186 − 5751.7186 = –
 
 Findings
-  error MANTRA-CHECK-FAILED at schema.mantra:54:5 [payment-nonnegative]: Supplied payment is nonnegative
+  error MANTRA-CHECK-FAILED at ifrs-leases/schema.mantra:54:5 [payment-nonnegative]: Supplied payment is nonnegative

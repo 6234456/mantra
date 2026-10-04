@@ -2,13 +2,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
-import { addressToPath, casePath } from '../address'
+import { addressToPath, casePath, provenancePath } from '../address'
 import type { Envelope, Explain, Paper, Run, Structure, Diagnostic, RatioAggregate } from '../types'
 
 const caseId = 'sample/case.mantra'
 const base = '/cases/sample%2Fcase.mantra'
 const wrap = <T,>(data: T): Envelope<T> => ({
-  contract: 'mantra.workbench/3',
+  contract: 'mantra.workbench/4',
   revision: '1234567890abcdef',
   engine: { mantra: 'test', normein: 'test' },
   data,
@@ -57,6 +57,9 @@ const structure: Structure = {
   headline: 'total',
 }
 const run: Run = {
+  caseGraph: null,
+  usage: null,
+  failure: null,
   succeeded: true,
   validationPassed: true,
   diagnostics: [],
@@ -67,10 +70,10 @@ const run: Run = {
     ],
   },
   values: {
-    total: { '': { value: { n: '30.00' }, display: '30.00', active: true } },
+    total: { '': { link: null, value: { n: '30.00' }, display: '30.00', active: true } },
     value: {
-      A: { value: { n: '10.00' }, display: '10.00', active: true },
-      B: { value: { n: '20.00' }, display: '20.00', active: true },
+      A: { link: null, value: { n: '10.00' }, display: '10.00', active: true },
+      B: { link: null, value: { n: '20.00' }, display: '20.00', active: true },
     },
   },
 }
@@ -116,8 +119,8 @@ const paper: Paper = {
           anchor: 't1-r1',
           cells: [
             { text: 'Member value' },
-            { text: '10.00', address: { node: 'value', coord: ['A'] } },
-            { text: '20.00', address: { node: 'value', coord: ['B'] } },
+            { text: '10.00', address: { case: null, node: 'value', coord: ['A'] } },
+            { text: '20.00', address: { case: null, node: 'value', coord: ['B'] } },
           ],
         },
         {
@@ -126,14 +129,22 @@ const paper: Paper = {
           node: 'choice',
           optionKey: 'one',
           flags: ['selected'],
-          cells: [{ text: 'Option one' }, { text: '18.00', address: { node: 'choice' } }, { text: 'Reference' }],
+          cells: [
+            { text: 'Option one' },
+            { text: '18.00', address: { case: null, node: 'choice' } },
+            { text: 'Reference' },
+          ],
         },
         {
           kind: 'option',
           depth: 0,
           node: 'choice',
           optionKey: 'two',
-          cells: [{ text: 'Option two' }, { text: '20.00', address: { node: 'choice' } }, { text: 'Reference' }],
+          cells: [
+            { text: 'Option two' },
+            { text: '20.00', address: { case: null, node: 'choice' } },
+            { text: 'Reference' },
+          ],
         },
       ],
     },
@@ -297,19 +308,20 @@ describe('fixture-backed workbench shell', () => {
     const explanations: Record<string, unknown> = {}
     for (let i = 0; i < 7; i++) {
       const explain: Explain = {
-        address: { node: `n${i}` },
+        address: { case: null, node: `n${i}` },
         label: `Node ${i}`,
         kind: 'line',
         result: { value: { n: String(i) }, display: String(i) },
         status: 'active',
         steps: [],
         branches: [],
-        references: i < 5 ? [{ address: { node: `n${i + 1}` }, label: `Node ${i + 1}`, display: String(i + 1) }] : [],
+        references:
+          i < 5 ? [{ address: { case: null, node: `n${i + 1}` }, label: `Node ${i + 1}`, display: String(i + 1) }] : [],
         parts:
           i === 5
             ? [
                 {
-                  address: { node: 'n6' },
+                  address: { case: null, node: 'n6' },
                   label: 'Node 6',
                   sign: 1,
                   value: { n: '6' },
@@ -337,10 +349,10 @@ describe('fixture-backed workbench shell', () => {
   })
 
   it('expands a previous-period total through its exact part addresses without duplicating references', async () => {
-    const currentAddress = { node: 'carrying-opening', coord: ['Machine', 'P2'] }
-    const priorAddress = { node: 'carrying-closing', coord: ['Machine', 'P1'] }
-    const openingAddress = { node: 'carrying-opening', coord: ['Machine', 'P1'] }
-    const movementAddress = { node: 'depreciation', coord: ['Machine', 'P1'] }
+    const currentAddress = { case: null, node: 'carrying-opening', coord: ['Machine', 'P2'] }
+    const priorAddress = { case: null, node: 'carrying-closing', coord: ['Machine', 'P1'] }
+    const openingAddress = { case: null, node: 'carrying-opening', coord: ['Machine', 'P1'] }
+    const movementAddress = { case: null, node: 'depreciation', coord: ['Machine', 'P1'] }
     const explanation = (address: Explain['address'], label: string, value: string): Explain => ({
       address,
       label,
@@ -495,6 +507,7 @@ describe('fixture-backed workbench shell', () => {
     manifest.cases[0].files.diagnostics = '/fixtures/sample/diagnostics.json'
     const findings: Diagnostic[] = [
       {
+        caseRevision: null,
         severity: 'error',
         category: 'structural',
         rowIndex: null,
@@ -502,10 +515,11 @@ describe('fixture-backed workbench shell', () => {
         code: 'MANTRA-INPUT-TYPE',
         message: 'Wrong type',
         location: null,
-        address: { node: 'value', coord: ['B'] },
+        address: { case: null, node: 'value', coord: ['B'] },
         related: [],
       },
       {
+        caseRevision: null,
         severity: 'warning',
         category: 'evaluation',
         rowIndex: null,
@@ -513,7 +527,7 @@ describe('fixture-backed workbench shell', () => {
         code: 'DSL-EXAMPLE',
         message: 'Check source',
         location: { document: 'case.mantra', line: 7, column: 4, startOffset: 42, endOffset: 47 },
-        address: { node: 'value', coord: ['B'] },
+        address: { case: null, node: 'value', coord: ['B'] },
         related: [{ document: 'schema.mantra', line: 2, column: 8 }],
       },
     ]
@@ -533,12 +547,13 @@ describe('fixture-backed workbench shell', () => {
 
   it('filters business findings separately and opens their table cell in the input editor', async () => {
     const finding: Diagnostic = {
+      caseRevision: null,
       category: 'business',
       severity: 'error',
       code: 'MANTRA-INPUT-REQUIRED',
       message: 'Provide an amount',
       location: null,
-      address: { node: 'items', cell: { row: '0', column: 'amount' } },
+      address: { case: null, node: 'items', cell: { row: '0', column: 'amount' } },
       related: [],
       rowIndex: 0,
       column: 'amount',
@@ -582,6 +597,7 @@ describe('fixture-backed workbench shell', () => {
         ...run.values,
         items: {
           '': {
+            link: null,
             active: true,
             display: '',
             value: [
@@ -615,8 +631,8 @@ describe('fixture-backed workbench shell', () => {
   })
 
   it('selects multidimensional and transposed cells using their own addresses and keyboard navigation', async () => {
-    const stock = { node: 'closing', coord: ['A', 'P2'] }
-    const flow = { node: 'aggregate.movement', coord: ['asset=A'] }
+    const stock = { case: null, node: 'closing', coord: ['A', 'P2'] }
+    const flow = { case: null, node: 'aggregate.movement', coord: ['asset=A'] }
     const fixture = docs()
     const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
     manifest.cases[0].files.explains = {
@@ -698,7 +714,7 @@ describe('fixture-backed workbench shell', () => {
       truncated: false,
       display: { numeratorTotal: '79,80', denominatorTotal: '320,00', result: '24,9375 %' },
     }
-    const address = { node: 'aggregate.value' }
+    const address = { case: null, node: 'aggregate.value' }
     const explanation: Explain = {
       address,
       label: 'Weighted total',
@@ -760,7 +776,7 @@ describe('fixture-backed workbench shell', () => {
   })
 
   it('shows the addressed reconciliation verdict and amounts from Run in the inspector and provenance', async () => {
-    const address = { node: 'reconciliation', coord: ['B'] }
+    const address = { case: null, node: 'reconciliation', coord: ['B'] }
     const validation = {
       active: true,
       passed: false,
@@ -794,7 +810,7 @@ describe('fixture-backed workbench shell', () => {
       validationPassed: false,
       values: {
         ...run.values,
-        reconciliation: { B: { active: true, value: { n: '0.02' }, display: '0.02', validation } },
+        reconciliation: { B: { link: null, active: true, value: { n: '0.02' }, display: '0.02', validation } },
       },
     })
     fixture['/fixtures/sample/paper.json'] = wrap({
@@ -819,4 +835,97 @@ describe('fixture-backed workbench shell', () => {
     expect(await screen.findByText('Nicht bestanden')).toBeTruthy()
     expect(screen.getByText('100.00')).toBeTruthy()
   })
+})
+
+it('expands a linked source and its ordinary child within the captured source case and revision', async () => {
+  const sourceCase = 'other/source-case.mantra'
+  const sourceAddress = { case: sourceCase, node: 'value', coord: ['A'] }
+  const childAddress = { case: null, node: 'opening', coord: ['A'] }
+  const rootAddress = { case: null, node: 'linked-input' }
+  const explanation = (address: Explain['address'], label: string): Explain => ({
+    address,
+    label,
+    kind: 'line',
+    result: { value: { n: '0' }, display: '0.00' },
+    status: 'active',
+    steps: [],
+    branches: [],
+    references: [],
+    parts: [],
+    options: [],
+  })
+  const linked = explanation(rootAddress, 'Linked opening')
+  linked.link = {
+    case: sourceCase,
+    path: '../other/source-case.mantra',
+    caseId: 'source',
+    schema: { id: 'generic/example', version: '1' },
+    revision: 'captured-source',
+    address: sourceAddress,
+  }
+  linked.references = [
+    { address: sourceAddress, label: 'Source closing', display: '0.00', revision: 'captured-source' },
+  ]
+  const source = explanation(sourceAddress, 'Source closing')
+  source.references = [{ address: childAddress, label: 'Source opening', display: '0.00' }]
+  const child = explanation({ ...childAddress, case: sourceCase }, 'Source opening')
+  const fixture = docs({
+    '/fixtures/sample/linked.json': wrap(linked),
+    '/fixtures/other/source.json': { ...wrap(source), revision: 'captured-source' },
+    '/fixtures/other/opening.json': { ...wrap(child), revision: 'captured-source' },
+  })
+  const manifest = fixture['/fixtures/index.json'] as {
+    cases: Array<{ id: string; title?: string; files: Record<string, unknown> }>
+  }
+  manifest.cases[0].files.explains = { [addressToPath(rootAddress)]: '/fixtures/sample/linked.json' }
+  manifest.cases.push({
+    id: sourceCase,
+    title: 'Source case',
+    files: {
+      explains: {
+        [addressToPath(sourceAddress)]: '/fixtures/other/source.json',
+        [addressToPath(childAddress)]: '/fixtures/other/opening.json',
+      },
+    },
+  })
+  serve(fixture)
+  history.replaceState(null, '', base + '/provenance/' + addressToPath(rootAddress))
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: /^▸ value/ }))
+  expect(await screen.findByRole('button', { name: /Source closing/ })).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: /^▸ opening/ }))
+  expect(await screen.findByRole('button', { name: /Source opening/ })).toBeTruthy()
+  expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/fixtures/other/opening.json')).toHaveLength(1)
+  expect(vi.mocked(fetch).mock.calls.some(([url]) => url === '/fixtures/sample/value.json')).toBe(false)
+})
+
+it('requires an explicit refresh before displaying the changed source calculation', async () => {
+  const sourceCase = 'other/source-case.mantra'
+  const address = { case: sourceCase, node: 'closing' }
+  const explanation: Explain = {
+    address,
+    label: 'Current source closing',
+    kind: 'line',
+    result: { value: { n: '45' }, display: '45.00' },
+    status: 'active',
+    steps: [],
+    branches: [],
+    references: [],
+    parts: [],
+    options: [],
+    revision: 'current-source',
+  }
+  const fixture = docs({ '/fixtures/other/current-source.json': { ...wrap(explanation), revision: 'current-source' } })
+  const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ id: string; files: Record<string, unknown> }> }
+  manifest.cases.push({ id: sourceCase, files: { explains: { closing: '/fixtures/other/current-source.json' } } })
+  serve(fixture)
+  history.replaceState(null, '', provenancePath(caseId, address, 'old-source'))
+  render(<App />)
+  expect((await screen.findByRole('alert')).textContent).toContain('Die Quelle wurde geändert')
+  expect(screen.queryByRole('heading', { name: 'Current source closing' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Aktuellen Rechenweg laden' }))
+  expect(await screen.findByRole('heading', { name: 'Current source closing' })).toBeTruthy()
+  expect(new URLSearchParams(location.search).get('case')).toBe(sourceCase)
+  expect(new URLSearchParams(location.search).get('expectedRevision')).toBe('current-source')
+  expect(screen.queryByRole('alert')).toBeNull()
 })

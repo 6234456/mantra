@@ -103,4 +103,4 @@ Audit trail
     Working: (= group-profit 0) = true → (if (= group-profit 0) nil (decimal/divide group-tax group-profit 6)) = nil → selected branch: nil = 
 
 Findings
-  warning MANTRA-AGGREGATE-ZERO-DENOMINATOR at schema.mantra:44:5 [effective-tax-rate]: Ratio effective-tax-rate has a zero aggregate denominator
+  warning MANTRA-AGGREGATE-ZERO-DENOMINATOR at ifrs-income-taxes/schema.mantra:44:5 [effective-tax-rate]: Ratio effective-tax-rate has a zero aggregate denominator

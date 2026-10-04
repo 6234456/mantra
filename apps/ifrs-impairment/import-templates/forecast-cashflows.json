@@ -5,6 +5,10 @@
     "input": "forecast-cashflows",
     "delimiter": ",",
     "decimal": ".",
-    "grouping": ""
-  }
+    "grouping": "",
+    "path": "data/forecast-cashflows.csv"
+  },
+  "case": "case-discounted-viu.mantra",
+  "schema": "ifrs.ias36/corporate-assets",
+  "schema-version": "0.3"
 }

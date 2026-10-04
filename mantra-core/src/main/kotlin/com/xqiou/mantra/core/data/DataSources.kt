@@ -97,12 +97,24 @@ class JsonSource(
     private val path: Path,
     private val root: String? = null,
     private val mapping: Map<String, String> = emptyMap(),
+    private val capturedText: String? = null,
+    private val onRow: () -> Unit = {},
+    private val checkpoint: () -> Unit = {},
 ) : DataSource {
     override val description: String = "json:${path.fileName}"
 
     override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> {
         val document = try {
-            Json.parse(Files.readString(path))
+            val tablePaths = schema.inputs.filter { it.type == ValueType.TABLE }.flatMap { input ->
+                val selected = mapping[input.id]
+                if (mapping.isNotEmpty()) {
+                    listOfNotNull(selected?.split('.'))
+                } else {
+                    listOf(listOf(input.id), listOf("inputs", input.id)) +
+                        listOfNotNull(root?.split('.')?.plus(input.id))
+                }
+            }.toSet()
+            Json.parse(capturedText ?: Files.readString(path), { at -> if (at in tablePaths) onRow() }, checkpoint)
         } catch (e: Json.JsonException) {
             sink.error("MANTRA-DATA-JSON", "${path.fileName}: ${e.message}")
             return emptyMap()
@@ -168,11 +180,21 @@ class CsvSource(
     private val columns: Map<String, String> = emptyMap(),
     private val mode: String = "pairs",
     private val memberColumn: String? = null,
+    private val capturedText: String? = null,
+    private val onRow: () -> Unit = {},
+    private val checkpoint: () -> Unit = {},
 ) : DataSource {
     override val description: String = "csv:${path.fileName}"
 
     override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> {
-        val rows = parseRows(Files.readString(path).removePrefix(""), delimiter)
+        val rows =
+            parseRows((capturedText ?: Files.readString(path)).removePrefix("\uFEFF"), delimiter, beforeRow = { index ->
+                if (index >
+                    0
+                ) {
+                    onRow()
+                }
+            }, checkpoint = checkpoint)
         if (rows.isEmpty()) return emptyMap()
         val header = rows.first().map { it.trim() }
         val inputs = DataSources.inputs(schema)
@@ -322,13 +344,20 @@ class CsvSource(
 
     companion object {
         /** Same CSV quoting rules for import inspection and actual calculation. */
-        fun parseRows(content: String, delimiter: Char, maxRows: Int = Int.MAX_VALUE): List<List<String>> {
+        fun parseRows(
+            content: String,
+            delimiter: Char,
+            maxRows: Int = Int.MAX_VALUE,
+            beforeRow: (Int) -> Unit = {},
+            checkpoint: () -> Unit = {},
+        ): List<List<String>> {
             val rows = mutableListOf<List<String>>()
             var row = mutableListOf<String>()
             val cell = StringBuilder()
             var quoted = false
             var i = 0
             while (i < content.length) {
+                if (i % 1024 == 0) checkpoint()
                 val ch = content[i]
                 when {
                     quoted && ch == '"' && content.getOrNull(i + 1) == '"' -> {
@@ -344,6 +373,7 @@ class CsvSource(
                         if (ch == '\r' && content.getOrNull(i + 1) == '\n') i++
                         row += cell.toString()
                         cell.clear()
+                        beforeRow(rows.size)
                         rows += row
                         if (rows.size >= maxRows) return rows
                         row = mutableListOf()
@@ -355,6 +385,7 @@ class CsvSource(
             require(!quoted) { "Unclosed quoted CSV field" }
             if (cell.isNotEmpty() || row.isNotEmpty()) {
                 row += cell.toString()
+                beforeRow(rows.size)
                 rows += row
             }
             return rows

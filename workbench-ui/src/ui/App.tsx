@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { Address, CaseSummary, Compare, Explain, Paper, Panel, Run, Structure } from '../types'
 import type { WorkbenchData } from '../data'
-import { configuredData } from '../data'
-import { addressFromPath, addressKey, addressToPath, casePath } from '../address'
+import { configuredData, WorkbenchReadError } from '../data'
+import { addressFromPath, addressKey, addressToPath, casePath, provenancePath } from '../address'
 import { chooseLanguage, language, t } from '../i18n'
 import { auditForCell, nodeValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
@@ -10,6 +10,8 @@ import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
 import { SourcesPage } from './SourcesPage'
 import { ExplainDetails } from './ExplainDetails'
+import { CaseChainEvidence } from './CaseChainEvidence'
+import { ChoiceComparison } from './ChoiceComparison'
 import { AggregateEvidence } from './AggregateEvidence'
 import { ValidationEvidence } from './ValidationEvidence'
 import type { Validation } from './ValidationEvidence'
@@ -32,6 +34,7 @@ type Route = {
   panelId?: string
   groupId?: string
   address?: Address
+  expectedRevision?: string
   compare?: string
 }
 const lang = language()
@@ -50,13 +53,22 @@ function route(): Route {
       caseId,
       page: 'panel',
       panelId: decodeURIComponent(parts[3]),
-      address: addressFromPath(new URLSearchParams(location.search).get('cell') ?? '') ?? undefined,
+      address:
+        addressFromPath(
+          new URLSearchParams(location.search).get('cell') ?? '',
+          new URLSearchParams(location.search).get('case'),
+        ) ?? undefined,
     }
   if (parts[2] === 'provenance' && parts[3])
     return {
       caseId,
       page: 'provenance',
-      address: addressFromPath(decodeURIComponent(parts.slice(3).join('/'))) ?? undefined,
+      address:
+        addressFromPath(
+          decodeURIComponent(parts.slice(3).join('/')),
+          new URLSearchParams(location.search).get('case'),
+        ) ?? undefined,
+      expectedRevision: new URLSearchParams(location.search).get('expectedRevision') ?? undefined,
     }
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
   if (parts[2] === 'inputs')
@@ -292,6 +304,7 @@ export function App() {
           ) : current.page === 'provenance' && current.address ? (
             <ProvenancePage
               address={current.address}
+              expectedRevision={current.expectedRevision}
               structure={structure.data!.data}
               run={run.data!.data}
               data={data}
@@ -657,6 +670,7 @@ function Overview({
         </div>
         <MainlineMap structure={structure} run={run} caseId={caseId} navigate={navigate} />
       </section>
+      <CaseChainEvidence graph={run.caseGraph} caseId={caseId} navigate={navigate} />
       <div className="overview-cards">
         <section className="sheet result-card">
           <span className="eyebrow">{t('result', lang)}</span>
@@ -667,7 +681,13 @@ function Overview({
         </section>
         <section className="sheet info-card">
           <span className="eyebrow">{t('diagnostics', lang)}</span>
-          <h2>{t('statusReady', lang)}</h2>
+          <h2>
+            {run.succeeded
+              ? t('statusReady', lang)
+              : lang === 'de'
+                ? 'Berechnung fehlgeschlagen'
+                : 'Calculation failed'}
+          </h2>
           {!run.validationPassed && (
             <p>{lang === 'de' ? 'Fachliche Prüfungen offen' : 'Business checks need attention'}</p>
           )}
@@ -794,7 +814,9 @@ function PanelPage({
     (panel?.result && structure.nodes?.[panel.result]?.kind === 'choice' ? panel.result : undefined)
   const choice = useLoad(
     (signal) =>
-      choiceNode ? data.explain(caseId, { node: choiceNode }, signal) : Promise.reject(new Error('No choice')),
+      choiceNode
+        ? data.explain(caseId, { case: null, node: choiceNode }, signal)
+        : Promise.reject(new Error('No choice')),
     [data, caseId, choiceNode],
   )
   if (!panel) return <section className="sheet empty-view">{t('unavailable', lang)}</section>
@@ -803,6 +825,9 @@ function PanelPage({
   function select(address: Address) {
     const url = new URL(location.href)
     url.searchParams.set('cell', addressToPath(address))
+    if (address.case) url.searchParams.set('case', address.case)
+    else url.searchParams.delete('case')
+    url.searchParams.delete('expectedRevision')
     replaceRoute(`${url.pathname}${url.search}${url.hash}`)
   }
   return (
@@ -996,20 +1021,18 @@ function Inspector({
           {explain?.formula?.text || audit?.formula ? <pre>{explain?.formula?.text ?? audit?.formula}</pre> : null}
           {audit?.working && !explain && <p>{audit.working}</p>}
           {validation && <ValidationEvidence validation={validation} />}
-          {explain && <ExplainDetails explain={explain} />}
+          {explain && <ExplainDetails explain={explain} rootCaseId={caseId} navigate={navigate} />}
           {!explain && audit?.aggregate && <AggregateEvidence aggregate={audit.aggregate} />}
           {explain?.references.map((ref, i) => (
             <div className="reference-item" key={i}>
-              <span>{ref.label}</span>
+              <Link href={provenancePath(caseId, ref.address, ref.revision)} navigate={navigate}>
+                {ref.label}
+              </Link>
               <b>{ref.display}</b>
             </div>
           ))}
           {error && !audit && <p className="muted">{error.message}</p>}
-          <Link
-            href={`${casePath(caseId)}/provenance/${encodeURIComponent(addressToPath(selected))}`}
-            navigate={navigate}
-            className="text-link"
-          >
+          <Link href={provenancePath(caseId, selected)} navigate={navigate} className="text-link">
             {t('provenance', lang)} ↗
           </Link>
         </>
@@ -1018,65 +1041,9 @@ function Inspector({
   )
 }
 
-function ChoiceComparison({
-  explain,
-  table,
-  choiceNode,
-  panel,
-  structure,
-  run,
-}: {
-  explain?: Explain
-  table?: Paper['tables'][number]
-  choiceNode?: string
-  panel: Panel
-  structure: Structure
-  run: Run
-}) {
-  const options = explain?.options.length
-    ? explain.options
-    : (table?.rows
-        .filter((row) => row.kind.toLowerCase() === 'option' && row.node === choiceNode)
-        .map((row) => {
-          const cells = row.cells.map((cell) => cell.text.trim()).filter(Boolean)
-          const labelIndex = table.columns.findIndex((column) => column.id === 'label')
-          return {
-            key: row.optionKey,
-            label: labelIndex >= 0 ? row.cells[labelIndex]?.text : cells[0],
-            display: row.cells.find((cell) => cell.address && cell.text.trim())?.text ?? cells.at(-1),
-            selected: row.flags?.some((flag) => flag.toLowerCase() === 'selected'),
-          }
-        }) ?? [])
-  return (
-    <section className="sheet choice">
-      <h2>{t('comparison', lang)}</h2>
-      <div className="choice-options">
-        {options.map((option, i) => (
-          <div className={`choice-option ${option.selected ? 'chosen' : ''}`} key={option.key ?? i}>
-            <span>
-              {option.selected ? '✓ ' : ''}
-              {option.label ?? option.key}
-            </span>
-            <strong>{option.display}</strong>
-            {'differenceDisplay' in option && option.differenceDisplay && <small>{option.differenceDisplay}</small>}
-          </div>
-        ))}
-      </div>
-      <h3>{t('effect', lang)}</h3>
-      <div className="choice-effects">
-        {panel.entries.map((entry) => (
-          <span key={`${entry.step}-${entry.via}`}>
-            {t('step', lang)} {entry.step} · {entry.viaLabel}{' '}
-            <b>{nodeValue(run, entry.via) ?? structure.mainline.find((step) => step.step === entry.step)?.title}</b>
-          </span>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 function ProvenancePage({
   address,
+  expectedRevision,
   structure,
   run,
   data,
@@ -1084,14 +1051,26 @@ function ProvenancePage({
   navigate,
 }: {
   address: Address
+  expectedRevision?: string
   structure: Structure
   run: Run
   data: WorkbenchData
   caseId: string
   navigate: (path: string) => void
 }) {
-  const root = useLoad((signal) => data.explain(caseId, address, signal), [data, caseId, addressKey(address)])
-  const panel = structure.panels.find((item) => item.result === address.node || item.nodes.includes(address.node))
+  const root = useLoad(
+    (signal) => data.explain(caseId, address, signal, expectedRevision),
+    [data, caseId, addressKey(address), expectedRevision],
+  )
+  const local = !address.case || address.case === caseId || address.case === run.caseGraph?.root
+  const revisions = Object.fromEntries(run.caseGraph?.cases.map((entry) => [entry.case, entry.revision]) ?? [])
+  const stale = root.error instanceof WorkbenchReadError && root.error.status === 409
+  const currentRevision =
+    (address.case ? revisions[address.case] : undefined) ??
+    (root.error instanceof WorkbenchReadError ? root.error.currentRevision : undefined)
+  const panel = local
+    ? structure.panels.find((item) => item.result === address.node || item.nodes.includes(address.node))
+    : undefined
   return (
     <>
       <Breadcrumb
@@ -1101,21 +1080,40 @@ function ProvenancePage({
       />
       <div className="page-heading">
         <span className="eyebrow">{t('provenance', lang)}</span>
-        <h1>{root.data?.data.label ?? structure.nodes?.[address.node]?.label ?? address.node}</h1>
-        <p>{root.data?.data.result.display ?? nodeValue(run, address.node, address.coord?.join('/') ?? '')}</p>
+        <h1>{root.data?.data.label ?? (local ? structure.nodes?.[address.node]?.label : undefined) ?? address.node}</h1>
+        <p>
+          {root.data?.data.result.display ??
+            (local ? nodeValue(run, address.node, address.coord?.join('/') ?? '') : '—')}
+        </p>
       </div>
       <div className="provenance-layout">
         <section className="sheet">
           <h2>{t('sourceTree', lang)}</h2>
-          <ProvenanceNode address={address} caseId={caseId} data={data} depth={0} />
+          <ProvenanceNode
+            address={address}
+            expectedRevision={expectedRevision}
+            revisions={revisions}
+            caseId={caseId}
+            data={data}
+            depth={0}
+          />
         </section>
         <aside className="sheet">
           <h2>{t('intermediate', lang)}</h2>
-          {run.values[address.node]?.[address.coord?.join('/') ?? '']?.validation && (
+          {local && run.values[address.node]?.[address.coord?.join('/') ?? '']?.validation && (
             <ValidationEvidence validation={run.values[address.node][address.coord?.join('/') ?? ''].validation!} />
           )}
-          {root.data && <ExplainDetails explain={root.data.data} />}
-          {root.error && <p>{root.error.message}</p>}
+          {root.data && <ExplainDetails explain={root.data.data} rootCaseId={caseId} navigate={navigate} />}
+          {root.error && (
+            <div role="alert">
+              <p>{stale ? t('sourceChanged', lang) : root.error.message}</p>
+              {stale && (
+                <button onClick={() => navigate(provenancePath(caseId, address, currentRevision))}>
+                  {t('refreshSource', lang)}
+                </button>
+              )}
+            </div>
+          )}
         </aside>
       </div>
     </>
@@ -1124,11 +1122,15 @@ function ProvenancePage({
 
 function ProvenanceNode({
   address,
+  expectedRevision,
+  revisions,
   caseId,
   data,
   depth,
 }: {
   address: Address
+  expectedRevision?: string
+  revisions: Record<string, string>
   caseId: string
   data: WorkbenchData
   depth: number
@@ -1136,15 +1138,25 @@ function ProvenanceNode({
   const [open, setOpen] = useState(depth === 0)
   const [continued, setContinued] = useState(false)
   const explain = useLoad(
-    (signal) => (open ? data.explain(caseId, address, signal) : Promise.reject(new Error('Closed'))),
-    [data, caseId, addressKey(address), open],
+    (signal) => (open ? data.explain(caseId, address, signal, expectedRevision) : Promise.reject(new Error('Closed'))),
+    [data, caseId, addressKey(address), expectedRevision, open],
   )
   const children = Array.from(
     new Map(
-      [...(explain.data?.data.references ?? []), ...(explain.data?.data.parts ?? [])].map(({ address }) => [
-        addressKey(address),
-        address,
-      ]),
+      [...(explain.data?.data.references ?? []), ...(explain.data?.data.parts ?? [])].map((reference) => {
+        const childAddress = { ...reference.address, case: reference.address.case ?? address.case }
+        const revision =
+          ('revision' in reference ? reference.revision : undefined) ??
+          (childAddress.case === address.case
+            ? expectedRevision
+            : childAddress.case
+              ? revisions[childAddress.case]
+              : undefined)
+        return [
+          addressKey(childAddress) + '|' + (revision ?? ''),
+          { address: childAddress, expectedRevision: revision },
+        ] as const
+      }),
     ).values(),
   )
   return (
@@ -1162,7 +1174,15 @@ function ProvenanceNode({
       {open &&
         (depth < 5 || continued) &&
         children.map((child) => (
-          <ProvenanceNode key={addressKey(child)} address={child} caseId={caseId} data={data} depth={depth + 1} />
+          <ProvenanceNode
+            key={addressKey(child.address) + (child.expectedRevision ?? '')}
+            address={child.address}
+            expectedRevision={child.expectedRevision}
+            revisions={revisions}
+            caseId={caseId}
+            data={data}
+            depth={depth + 1}
+          />
         ))}
       {open && explain.data?.data.truncated && <p className="muted">{t('traceTruncated', lang)}</p>}
     </div>

@@ -1,0 +1,255 @@
+Einkommensteuer 2025 – Steuerberechnung
+Arbeitspapier: Ermittlung nach § 2 EStG / R 2 EStR mit Nebenrechnungen
+=======================================
+Mandant: Income tax 2025: threshold-1000010
+Zeitraum: Veranlagungszeitraum 2025
+Berechnungsschema: Einkommensteuer 2025 — selected loss and § 35 demonstration v2025.3 [de.est/2025]
+Ausgeglichen: 0,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Ermittlung des zu versteuernden Einkommens [4]  -33,00
+      ↳ Einkünfte aus den einzelnen Einkunftsarten [8]  1.000.010,00  → 1 · Summe der Einkünfte, → 2 · Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)
+      ↳ Sonderausgaben [9]  36,00  → 1 · Sonderausgaben
+      ↳ Außergewöhnliche Belastungen [10]  0,00  → 1 · Außergewöhnliche Belastungen
+      ↳ Günstigerprüfung Kindergeld / Freibeträge für Kinder    → 1 · Freibeträge für Kinder (soweit günstiger als Kindergeld), → 2 · Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen), → 3 · Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
+      ↳ § 10d deduction capacity [1]    → 1 · Verlustabzug mit Sockelbetrag und Mindestbesteuerung
+  Hauptlinie 2: Ermittlung der festzusetzenden Einkommensteuer [5]  0,00
+      ↳ § 35 attribution limit [3]    → 2 · Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)
+  Hauptlinie 3: Solidaritätszuschlag und Kirchensteuer [6]  0,00
+  Hauptlinie 4: Abrechnung [7]  0,00
+  Nebeninformation: § 10d carryforward ledger [2]  1.999.993,00
+  Nebeninformation: Gesondert besteuerte Kapitalerträge (Abgeltungsteuer) [12]  0,00
+
+[1] § 10d deduction capacity
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Verlustabzug mit Sockelbetrag und Mindestbesteuerung“ › § 10d deduction capacity
+Zeile | Bezeichnung                               | Hauptspalte EUR
+------+-------------------------------------------+----------------
+1     | Opening carryforward                      |    3.000.000,00
+2     | Positive total income                     |    1.000.010,00
+3     | Full-use allowance                        |    1.000.000,00
+4     | Allowance plus selected excess percentage |    1.000.007,00
+5     | Carryforward deducted this year           |    1.000.007,00
+6     | Positive income remaining                 |            3,00
+
+[2] Loss carryforward ledger
+    Hauptlinie › § 10d carryforward ledger
+Zeile |     | Bezeichnung                           | Hauptspalte EUR |
+------+-----+---------------------------------------+-----------------+--
+1     | +   | Opening carryforward                  |    3.000.000,00 |
+2     | ./. | Loss used (→ Tabelle 1)               |    1.000.007,00 |
+     -+-   -+-                                     -+-----------------+-
+3     | =   | Closing carryforward                  |    1.999.993,00 | Σ
+     =+=   =+=                                     =+=================+=
+4     |     | Carryforward for the next case        |    1.999.993,00 |
+5     |     | Opening plus movements equals closing |            0,00 | ✓
+6     |     | Opening loss is nonnegative           |               ✓ | ✓
+7     |     | Eligible new loss is nonnegative      |               ✓ | ✓
+8     |     | Selected carryback is waived          |               ✓ | ✓
+
+[3] § 35 attribution limit
+    Hauptlinie › 2 Ermittlung der festzusetzenden Einkommensteuer › „Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)“ › § 35 attribution limit
+Zeile | Bezeichnung                                      |     Person A |       Gesamt
+------+--------------------------------------------------+--------------+-------------
+1     | Positive selected personal income categories     | 1.000.010,00 | 1.000.010,00
+2     | Total selected positive income                   |              | 1.000.010,00
+3     | Positive trade share                             |              |       0,00 %
+4     | Tariff tax attributable to positive trade income |              |         0,00
+5     | Full-euro tariff income                          |              |       -33,00
+
+[4] Ermittlung des zu versteuernden Einkommens (R 2 Abs. 1 EStR)
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens
+Zeile |     | Bezeichnung                                                      | Hauptspalte EUR |   | Rechtsgrundlage
+------+-----+------------------------------------------------------------------+-----------------+---+------------------
+1     | +   | Summe der Einkünfte (→ Tabelle 8)                                |    1.000.010,00 |   | § 2 Abs. 2 EStG
+     -+-   -+-                                                                -+-----------------+- -+-
+2     | =   | Gesamtbetrag der Einkünfte                                       |    1.000.010,00 | Σ | § 2 Abs. 3 EStG
+3     | ./. | Verlustabzug mit Sockelbetrag und Mindestbesteuerung (→ Tabelle… |    1.000.007,00 |   | § 10d Abs. 2 EStG
+4     | ./. | Sonderausgaben (→ Tabelle 9)                                     |           36,00 |   | §§ 10–10c EStG
+     -+-   -+-                                                                -+-----------------+- -+-
+5     | =   | Einkommen                                                        |          -33,00 | Σ | § 2 Abs. 4 EStG
+     -+-   -+-                                                                -+-----------------+- -+-
+6     | =   | Zu versteuerndes Einkommen                                       |          -33,00 | Σ | § 2 Abs. 5 EStG
+     =+=   =+=                                                                =+=================+= =+=
+
+[5] Ermittlung der festzusetzenden Einkommensteuer (R 2 Abs. 2 EStR)
+    Hauptlinie › 2 Ermittlung der festzusetzenden Einkommensteuer
+Zeile |   | Bezeichnung                            | Hauptspalte EUR |   | Rechtsgrundlage
+------+---+----------------------------------------+-----------------+---+---------------------
+1     | + | Tarifliche Einkommensteuer             |            0,00 |   | § 32a Abs. 1, 5 EStG
+     -+- -+-                                      -+-----------------+- -+-
+2     | = | Festzusetzende Einkommensteuer         |            0,00 | Σ | § 2 Abs. 6 EStG
+     =+= =+=                                      =+=================+= =+=
+3     |   | Durchschnittlicher Einkommensteuersatz |          0,00 % |   |
+
+[6] Solidaritätszuschlag und Kirchensteuer
+    Hauptlinie › 3 Solidaritätszuschlag und Kirchensteuer
+Zeile |   | Bezeichnung                                                      | Hauptspalte EUR |   | Rechtsgrundlage
+------+---+------------------------------------------------------------------+-----------------+---+-----------------------------------------
+1     |   | Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträg… |            0,00 |   | § 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG
+     -+- -+-                                                                -+-----------------+- -+-
+2     | = | Zuschlagsteuern                                                  |            0,00 | Σ |
+     =+= =+=                                                                =+=================+= =+=
+
+[7] Abrechnung
+    Hauptlinie › 4 Abrechnung
+Zeile |   | Bezeichnung                                         | Person A | Gesamt |
+------+---+-----------------------------------------------------+----------+--------+--
+     -+- -+-                                                   -+----------+--------+-
+1     | = | Festgesetzte Steuern                                |          |   0,00 | Σ
+     -+- -+-                                                   -+----------+--------+-
+2     | = | Ausgeglichen                                        |          |   0,00 | Σ
+     =+= =+=                                                   =+==========+========+=
+3     |   | Abrechnung stimmt mit Steuern und Zahlungen überein |          |   0,00 | ✓
+
+[8] Nebenrechnung: Einkünfte aus den Einkunftsarten
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Summe der Einkünfte“ › Einkünfte aus den einzelnen Einkunftsarten
+Zeile |   | Bezeichnung                          |     Person A |       Gesamt |   | Rechtsgrundlage
+------+---+--------------------------------------+--------------+--------------+---+----------------
+      |   | 3. Selbständige Arbeit               |              |              |   | § 18 EStG
+1     | + |   Gewinn                             | 1.000.010,00 | 1.000.010,00 |   |
+     -+- -+-                                    -+--------------+--------------+- -+-
+2     | = |   Einkünfte aus selbständiger Arbeit | 1.000.010,00 | 1.000.010,00 | Σ |
+     -+- -+-                                    -+--------------+--------------+- -+-
+3     | = | Summe der Einkünfte                  |              | 1.000.010,00 | Σ | § 2 Abs. 2 EStG
+     =+= =+=                                    =+==============+==============+= =+=
+
+[9] Nebenrechnung: Sonderausgaben
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Sonderausgaben“ › Sonderausgaben
+Zeile |   | Bezeichnung                                                      | Person A | Gesamt |   | Rechtsgrundlage
+------+---+------------------------------------------------------------------+----------+--------+---+-------------------------------
+      |   | Vorsorgeaufwendungen                                             |          |        |   | § 10 Abs. 1 Nr. 2, 3, 3a EStG
+1     |   |   Anspruch auf steuerfreie Zuschüsse zur Krankenversicherung     |        ✓ |        |   |
+     -+- -+-                                                                -+----------+--------+- -+-
+2     | = |   Abziehbare Vorsorgeaufwendungen                                |     0,00 |   0,00 | Σ |
+3     | + | Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Ei… |          |   0,00 |   | § 10b Abs. 1 Satz 1 Nr. 1 EStG
+4     | + | Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonde… |          |  36,00 |   | § 10c EStG
+     -+- -+-                                                                -+----------+--------+- -+-
+5     | = | Sonderausgaben insgesamt                                         |          |  36,00 | Σ |
+     =+= =+=                                                                =+==========+========+= =+=
+
+[10] Nebenrechnung: Außergewöhnliche Belastungen
+    Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Außergewöhnliche Belastungen“ › Außergewöhnliche Belastungen
+Zeile |   | Bezeichnung                            | Hauptspalte EUR |
+------+---+----------------------------------------+-----------------+--
+     -+- -+-                                      -+-----------------+-
+1     | = | Außergewöhnliche Belastungen insgesamt |            0,00 | Σ
+     =+= =+=                                      =+=================+=
+
+[12] Nebenrechnung: Abgeltungsteuer
+    Hauptlinie › Gesondert besteuerte Kapitalerträge (Abgeltungsteuer)
+Zeile |   | Bezeichnung                  | Hauptspalte EUR |
+------+---+------------------------------+-----------------+--
+     -+- -+-                            -+-----------------+-
+1     | = | Durch Steuerabzug abgegolten |            0,00 | Σ
+     =+= =+=                            =+=================+=
+
+Berechnungsnachweis
+-------------------
+1/2 Positive total income
+    Formel: (max gesamtbetrag-der-einkuenfte 0)
+    Rechenweg: (max gesamtbetrag-der-einkuenfte 0) = 1000010.00 = 1.000.010,00
+1/3 Full-use allowance
+    Formel: (if zusammen loss-base-joint loss-base)
+    Rechenweg: (if zusammen loss-base-joint loss-base) = 1000000 → gewählter Zweig: loss-base = 1.000.000,00
+1/4 Allowance plus selected excess percentage
+    Formel: (+ (min positive-income loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0)))
+    Rechenweg: (min positive-income loss-allowance) = 1000000 → (- positive-income loss-allowance) = 10.00 → (max (- positive-income loss-allowance) 0) = 10.00 → (* loss-excess-rate (max (- positive-income loss-allowance) 0)) = 7.000 → (+ (min positive-income loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0))) = 1000007.000 = 1.000.007,00
+1/5 Carryforward deducted this year
+    Formel: (min verlustvortrag loss-deduction-cap)
+    Rechenweg: (min verlustvortrag loss-deduction-cap) = 1000007.000 = 1.000.007,00
+1/6 Positive income remaining
+    Formel: (- positive-income loss-used)
+    Rechenweg: (- positive-income loss-used) = 3.000 = 3,00
+2/3 Closing carryforward
+    Formel: ledger-opening + ledger-new − ledger-used − ledger-carryback
+    Rechenweg: 3000000 + 0 − 1000007.000 − 0 = 1.999.993,00
+2/5 Opening plus movements equals closing
+    Formel: closing-loss ≈ (- (+ verlustvortrag eligible-new-loss) loss-used selected-carryback) (± 0)
+    Rechenweg: closing-loss = 1999993.000; (+ verlustvortrag eligible-new-loss) = 3000000 → (- (+ verlustvortrag eligible-new-loss) loss-used selected-carryback) = 1999993.000 → 1999993.000 − 1999993.000 = 0.000 (± 0) = 0,00
+2/6 Opening loss is nonnegative
+    Formel: (>= verlustvortrag 0)
+    Rechenweg: (>= verlustvortrag 0) = true = ✓
+2/7 Eligible new loss is nonnegative
+    Formel: (>= eligible-new-loss 0)
+    Rechenweg: (>= eligible-new-loss 0) = true = ✓
+2/8 Selected carryback is waived
+    Formel: (and carryback-waived (= selected-carryback 0))
+    Rechenweg: (= selected-carryback 0) = true → (and carryback-waived (= selected-carryback 0)) = true = ✓
+3/1 Σ Positive selected personal income categories (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 1000010 included → 1000010 = 1.000.010,00
+3/1 Positive selected personal income categories [Person A]
+    Formel: (+ (max einkuenfte-luf 0) (max einkuenfte-gewerbe 0) (max einkuenfte-selbstaendig 0) (max einkuenfte-nsa 0) (if guenstigerpruefung-kap (max einkuenfte-kap 0) 0) (max einkuenfte-sonstige 0))
+    Rechenweg: (max einkuenfte-luf 0) = 0 → (max einkuenfte-gewerbe 0) = 0 → (max einkuenfte-selbstaendig 0) = 1000010 → (max einkuenfte-nsa 0) = 0 → (if guenstigerpruefung-kap (max einkuenfte-kap 0) 0) = 0 → (max einkuenfte-sonstige 0) = 0 → (+ (max einkuenfte-luf 0) (max einkuenfte-gewerbe 0) (max einkuenfte-selbstaendig 0) (max einkuenfte-nsa 0) (if guenstigerpruefung-kap (max einkuenfte-kap 0) 0) (max einkuenfte-sonstige 0)) = 1000010 → gewählter Zweig: 0 = 1.000.010,00
+3/2 Total selected positive income
+    Formel: (+ (dim/sum positive-person-income) (max einkuenfte-vuv 0))
+    Rechenweg: (dim/sum positive-person-income) = 1000010 → (max einkuenfte-vuv 0) = 0 → (+ (dim/sum positive-person-income) (max einkuenfte-vuv 0)) = 1000010 = 1.000.010,00
+3/3 Positive trade share
+    Formel: (if (= all-positive-income 0) 0 (decimal/divide positive-trade-total all-positive-income 6))
+    Rechenweg: (= all-positive-income 0) = false → (decimal/divide positive-trade-total all-positive-income 6) = 0.000000 → (if (= all-positive-income 0) 0 (decimal/divide positive-trade-total all-positive-income 6)) = 0.000000 → gewählter Zweig: (decimal/divide positive-trade-total all-positive-income 6) = 0,00 %
+3/4 Tariff tax attributable to positive trade income
+    Formel: (if (= all-positive-income 0) 0 (decimal/divide (* tarifliche-est positive-trade-total) all-positive-income 20))
+    Rechenweg: (= all-positive-income 0) = false → (* tarifliche-est positive-trade-total) = 0 → (decimal/divide (* tarifliche-est positive-trade-total) all-positive-income 20) = 0.00000000000000000000 → (if (= all-positive-income 0) 0 (decimal/divide (* tarifliche-est positive-trade-total) all-positive-income 20)) = 0.00000000000000000000 → gewählter Zweig: (decimal/divide (* tarifliche-est positive-trade-total) all-positive-income 20) = 0,00
+3/5 Full-euro tariff income
+    Formel: (decimal/floor zu-versteuerndes-einkommen 0)
+    Rechenweg: (decimal/floor zu-versteuerndes-einkommen 0) = -33 = -33,00
+4/2 Gesamtbetrag der Einkünfte
+    Formel: summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug
+    Rechenweg: 1000010.00 − (Σ contributions: [person=A] 0 excluded → 0) − 0 − 0 = 1.000.010,00
+4/5 Einkommen
+    Formel: gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug
+    Rechenweg: 1000010.00 − 1000007.000 − 36 − 0 = -33,00
+4/6 Zu versteuerndes Einkommen
+    Formel: einkommen − freibetraege-kinder
+    Rechenweg: -33.000 − 0 = -33,00
+5/1 Tarifliche Einkommensteuer
+    Formel: (est-tarif zu-versteuerndes-einkommen zusammen)
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (decimal/floor zve 0) = -33 → (<= x tarif-gfb) = true → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve) = 0,00
+5/2 Festzusetzende Einkommensteuer
+    Formel: tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung
+    Rechenweg: 0 − 0 − 0.0 + 0 = 0,00
+5/3 Durchschnittlicher Einkommensteuersatz
+    Formel: (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6))
+    Rechenweg: (= zu-versteuerndes-einkommen 0) = false → (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 0.000000 → (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)) = 0.000000 → gewählter Zweig: (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 0,00 %
+6/1 Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
+    Formel: (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (if kfb-guenstiger 0 kfb-summe) = 0 → (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) = -33.000 → (decimal/floor zve 0) = -33 → (<= x tarif-gfb) = true → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) = 0 → (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a) = 0.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.0 → gewählter Zweig: kfb-summe → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve) = 0,00
+6/2 Zuschlagsteuern
+    Formel: solidaritaetszuschlag + kirchensteuer
+    Rechenweg: 0.00 + 0.00 = 0,00
+7/1 Festgesetzte Steuern
+    Formel: abr-est + abr-soli + abr-kist
+    Rechenweg: 0.0 + 0.00 + 0.00 = 0,00
+7/2 Nachzahlung (+) / Erstattung (−)
+    Formel: festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen
+    Rechenweg: 0.00 − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − 0 = 0,00
+7/3 Abrechnung stimmt mit Steuern und Zahlungen überein
+    Formel: abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)
+    Rechenweg: abrechnungsergebnis = 0.00; (dim/sum lohnsteuer) = 0 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 0 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01) = 0,00
+8/1 Σ Gewinn (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 1000010 included → 1000010 = 1.000.010,00
+8/2 Σ Einkünfte aus selbständiger Arbeit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 1000010 included → 1000010 = 1.000.010,00
+8/3 Summe der Einkünfte
+    Formel: einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige
+    Rechenweg: (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 1000010 included → 1000010) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 excluded → 0) + 0 + (Σ contributions: [person=A] 0.00 included → 0.00) = 1.000.010,00
+9/2 Σ Abziehbare Vorsorgeaufwendungen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0 included → 0 = 0,00
+9/2 Abziehbare Vorsorgeaufwendungen [Person A]
+    Formel: altersvorsorge + sonstige-vorsorge
+    Rechenweg: 0 + 0 = 0,00
+9/3 Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Einkünfte)
+    Formel: (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))
+    Rechenweg: (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte) = 200002.000 → (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte)) = 0 = 0,00
+9/4 Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)
+    Formel: (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))
+    Rechenweg: (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) = 36 → (+ kirchensteuer-gezahlt spenden-abziehbar) = 0 → (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)) = 36 → (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar))) = 36 → gewählter Zweig: sonderausgaben-pauschbetrag = 36,00
+9/5 Sonderausgaben insgesamt
+    Formel: vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag
+    Rechenweg: (Σ contributions: [person=A] 0 included → 0) + 0 + 0 + 36 = 36,00
+12/1 Durch Steuerabzug abgegolten
+    Formel: abgeltungsteuer + abgeltung-soli
+    Rechenweg: 0.00 + 0.00 = 0,00

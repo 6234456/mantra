@@ -59,10 +59,11 @@ internal class AuditCapture(
         kernelTruncated: Boolean,
         nodeId: String,
         coord: Coord,
+        scan: () -> Unit = {},
     ): ExplainTrace? {
         if (request == null) return null
         val projection = if (request.enabled && root != null) {
-            TraceProjection.project(formula, root, kernelTruncated, request.projectionBudget)
+            TraceProjection.project(formula, root, kernelTruncated, request.projectionBudget, scan)
         } else {
             // Preparation can fail before any trace event; that is not a collection-budget failure.
             TraceProjection.Projection(

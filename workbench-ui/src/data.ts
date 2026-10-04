@@ -30,7 +30,7 @@ export interface WorkbenchData {
   structure(caseId: string, signal?: AbortSignal): Promise<Envelope<Structure>>
   run(caseId: string, signal?: AbortSignal): Promise<Envelope<Run>>
   paper(caseId: string, panelId?: string, signal?: AbortSignal): Promise<Envelope<Paper>>
-  explain(caseId: string, address: Address, signal?: AbortSignal): Promise<Envelope<Explain>>
+  explain(caseId: string, address: Address, signal?: AbortSignal, expectedRevision?: string): Promise<Envelope<Explain>>
   parameters(caseId: string, signal?: AbortSignal): Promise<Envelope<Parameters>>
   diagnostics(caseId: string, signal?: AbortSignal): Promise<Envelope<Diagnostics>>
   compare(caseId: string, parameterSets: string[], signal?: AbortSignal): Promise<Envelope<Compare>>
@@ -83,14 +83,36 @@ export interface WorkbenchData {
   saveImportTemplate(template: ImportTemplate): Promise<Envelope<{ templates: ImportTemplate[] }>>
 }
 
+export class WorkbenchReadError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly currentRevision?: string,
+  ) {
+    super(message)
+  }
+}
+
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(url, { signal })
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`)
+  if (!response.ok) {
+    let payload
+    try {
+      payload = await response.json()
+    } catch {
+      // A non-JSON transport failure still has a useful HTTP status.
+    }
+    throw new WorkbenchReadError(
+      response.status,
+      payload?.error?.message ?? `${response.status} ${response.statusText}`,
+      payload?.error?.currentRevision,
+    )
+  }
   return response.json() as Promise<T>
 }
 
 function contract<T>(raw: Envelope<T>): Envelope<T> {
-  if (raw.contract !== 'mantra.workbench/3') throw new Error('Unsupported workbench contract')
+  if (raw.contract !== 'mantra.workbench/4') throw new Error('Unsupported workbench contract')
   return raw
 }
 
@@ -202,11 +224,11 @@ export class LiveData implements WorkbenchData {
     const query = panelId ? `?panel=${encodeURIComponent(panelId)}` : ''
     return json<Envelope<Paper>>(`${apiCase(id)}/paper${query}`, signal).then(contract)
   }
-  explain(id: string, address: Address, signal?: AbortSignal) {
-    return json<Envelope<Explain>>(
-      `${apiCase(id)}/explain?address=${encodeURIComponent(addressToPath(address))}`,
-      signal,
-    ).then(contract)
+  explain(id: string, address: Address, signal?: AbortSignal, expectedRevision?: string) {
+    const query = new URLSearchParams({ address: addressToPath(address) })
+    if (address.case) query.set('case', address.case)
+    if (expectedRevision) query.set('expectedRevision', expectedRevision)
+    return json<Envelope<Explain>>(apiCase(id) + '/explain?' + query.toString(), signal).then(contract)
   }
   parameters(id: string, signal?: AbortSignal) {
     return json<Envelope<Parameters>>(`${apiCase(id)}/parameters`, signal).then(contract)
@@ -243,7 +265,7 @@ export class LiveData implements WorkbenchData {
 export class FixtureData implements WorkbenchData {
   importTemplates(): Promise<Envelope<{ templates: ImportTemplate[] }>> {
     return Promise.resolve({
-      contract: 'mantra.workbench/3',
+      contract: 'mantra.workbench/4',
       revision: '',
       engine: { mantra: '', normein: '' },
       data: { templates: [] },
@@ -254,7 +276,7 @@ export class FixtureData implements WorkbenchData {
   }
   sources(_id: string): Promise<Envelope<Sources>> {
     return Promise.resolve({
-      contract: 'mantra.workbench/3',
+      contract: 'mantra.workbench/4',
       revision: '',
       engine: { mantra: '', normein: '' },
       data: { sources: [] },
@@ -358,11 +380,14 @@ export class FixtureData implements WorkbenchData {
   async paper(id: string, _panelId?: string, signal?: AbortSignal) {
     return contract(await json<Envelope<Paper>>(await this.file(id, 'paper'), signal))
   }
-  async explain(id: string, address: Address, signal?: AbortSignal) {
-    const entry = (await this.index()).cases.find((item) => item.id === id)
+  async explain(id: string, address: Address, signal?: AbortSignal, expectedRevision?: string) {
+    const entry = (await this.index()).cases.find((item) => item.id === (address.case ?? id))
     const path = entry?.files.explains?.[addressToPath(address)]
     if (!path) throw new Error('Explain fixture unavailable')
-    return contract(await json<Envelope<Explain>>(path, signal))
+    const response = contract(await json<Envelope<Explain>>(path, signal))
+    if (expectedRevision && (response.data.revision ?? response.revision) !== expectedRevision)
+      throw new WorkbenchReadError(409, 'Source Explain fixture is stale', response.data.revision ?? response.revision)
+    return response
   }
   async parameters(id: string, signal?: AbortSignal) {
     return contract(await json<Envelope<Parameters>>(await this.file(id, 'parameters'), signal))

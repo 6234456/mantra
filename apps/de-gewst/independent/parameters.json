@@ -1,0 +1,61 @@
+{
+  "checked_on": "2026-10-04",
+  "applicability_years": [
+    2024,
+    2025
+  ],
+  "currency": "EUR",
+  "loss": {
+    "single_allowance": "1000000",
+    "joint_allowance": "2000000",
+    "excess_fraction": "0.70",
+    "carryback_policy": "Explicit full waiver; no carryback calculation. Integral EUR facts."
+  },
+  "trade": {
+    "year": 2025,
+    "financing_allowance": "200000",
+    "addition_fraction": "0.25",
+    "weighted_fractions": {
+      "debt": "1",
+      "movable-rent": "0.20",
+      "immovable-rent": "0.50",
+      "licence": "0.25"
+    },
+    "natural_person_allowance": "24500",
+    "assessment_fraction": "0.035",
+    "minimum_hebesatz_percent": "200",
+    "hebesatz_unit": "percentage points; 400 means 400%, multiplier 4",
+    "tax_rounding": "Frozen amounts are exact cents; no additional legal rounding claim."
+  },
+  "income_2025": {
+    "basic_allowance": "12096",
+    "zone2_upper": "17443",
+    "zone3_upper": "68480",
+    "zone4_upper": "277825",
+    "zone2_quadratic": "932.30",
+    "zone2_linear": "1400",
+    "zone3_quadratic": "176.64",
+    "zone3_linear": "2397",
+    "zone3_constant": "1015.13",
+    "zone4_fraction": "0.42",
+    "zone4_subtraction": "10911.92",
+    "zone5_fraction": "0.45",
+    "zone5_subtraction": "19246.67",
+    "special_expense_flat": "36",
+    "credit_factor": "4",
+    "soli_threshold": "19950",
+    "soli_fraction": "0.055",
+    "soli_taper": "0.119",
+    "tariff_rounding": "Taxable income and tariff each floor to integral EUR. Soli floors to cents."
+  },
+  "converge": {
+    "money_scale": 2,
+    "rounding": "half-up (ties away from zero)",
+    "callback_rounding": "Every callback result rounds to cents. Closed-form exact values are separate evidence.",
+    "stop": "Call callback, then accept next when abs(next-current)<=tolerance; maximum counts callback calls.",
+    "max_default": 60,
+    "tolerance_default": "0",
+    "not_converged": "No approximate numeric result returned.",
+    "budget": "Resource limits are separate technical failure; code/details pending public API."
+  }
+}

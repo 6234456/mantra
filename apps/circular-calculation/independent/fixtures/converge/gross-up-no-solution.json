@@ -1,0 +1,15 @@
+{
+  "case": "gross-up-no-solution",
+  "domain": "gross-up",
+  "currency": "EUR",
+  "base": "1000",
+  "rate": "1",
+  "seed": "1000",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "0",
+  "expected_money": null,
+  "termination_certificate": "unbounded-drift",
+  "supported_domain": false
+}

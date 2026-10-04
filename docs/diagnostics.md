@@ -1,8 +1,8 @@
 # Diagnostic reference
 
 Diagnostics carry a stable `code`, `severity`, `category`, optional source `location` and optional
-calculation address. Workbench contract `mantra.workbench/3` also carries zero-based `rowIndex` and
-`column` for table-cell findings. A cell address uses that row index within the current revision;
+calculation address. Workbench contract `mantra.workbench/4` also carries zero-based `rowIndex` and
+`column` for table-cell findings. Linked findings also retain typed `caseKey` / `caseRevision`; their wire address selects the originating case. A cell address uses that row index within the current revision;
 source locations point at the supplied cell, its row when the field is omitted, or the declaration
 when an external source has no DSL source span.
 
@@ -231,3 +231,23 @@ node/member coordinates; they are not bypassed merely because a schema contains 
 | `DSL-MANTRA-ROLLUP-BOUNDARY` | Five-argument rollup needs a first/last boundary policy |
 | `DSL-MANTRA-ROLLUP-ORDER` | Boundary rollup needs an explicit unique sequence of period keys |
 | `DSL-MANTRA-PREV` | Previous-period reference has an invalid target or ambiguous period context |
+| `DSL-MANTRA-CALC-ITERATIONS` | evaluation cause | Convergence maximum must be an exact integer from 1 through 1000. |
+| `DSL-MANTRA-CALC-NOT-CONVERGED` | evaluation cause | No adjacent iterate meets the tolerance within the declared maximum; no iterate becomes a result. |
+| `DSL-MANTRA-CALC-NUMBER` | evaluation cause | Convergence requires a defined scalar numeric seed, tolerance, bound and callback result. |
+| `DSL-MANTRA-CALC-TOLERANCE` | evaluation cause | Convergence tolerance must be nonnegative. |
+| `MANTRA-CALC-INVALID-BOUND` | evaluation | A projected calculation primitive has an invalid explicit bound. |
+| `MANTRA-CALC-NOT-CONVERGED` | evaluation | Bounded convergence exhausted its maximum; the failed node is nil with genuine failure evidence. |
+| `MANTRA-CALC-NUMBER` | evaluation | A projected calculation primitive requires a defined numeric scalar. |
+| `MANTRA-CASE-LINK` | structural | A link declaration lacks a literal path, exact schema/version, or complete mapping records. |
+| `MANTRA-CASE-SCHEMA-VERSION` | structural | Case version is invalid or differs from the actual loaded schema version. |
+| `MANTRA-LINK-ADDRESS` | structural | A source, target, participating case or full coordinate cannot be resolved unambiguously. |
+| `MANTRA-LINK-CONFLICT` | structural | A linked target already has a local, imported or competing linked fact, including explicit nil. |
+| `MANTRA-LINK-CYCLE` | structural | The canonical source case is already on the active graph path. |
+| `MANTRA-LINK-REVISION` | structural | Requested Explain evidence refers to a changed source revision. |
+| `MANTRA-LINK-TYPE` | structural | A defined source scalar does not match the target input declaration. |
+| `MANTRA-LINK-UNDEFINED` | evaluation | A source failed technically, has a nil/inactive/missing value, or an authored link has not been materialized. |
+| `MANTRA-LINK-VERSION` | structural | The source schema identity and opaque version do not match the exact authored assertion. |
+| `MANTRA-RUN-CANCELLED` | evaluation | Shared cancellation stopped the current run; any partial graph is reported without an old root result. |
+| `MANTRA-RUN-DEADLINE` | evaluation | The shared effective run deadline was reached. |
+| `MANTRA-RUN-LIMIT` | evaluation | A cumulative counter or high-water bound was exceeded; typed usage includes counter, limit and attempted amount. |
+| `MANTRA-SCHEMA-VERSION` | structural | Schema version must be nonblank literal text. |

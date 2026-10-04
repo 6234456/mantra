@@ -1,5 +1,7 @@
 package com.xqiou.mantra.render
 
+import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.view.CalculationView
@@ -33,18 +35,34 @@ object Render {
     fun paper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper =
         paper(CalculationView.of(result), layout)
 
-    fun paper(view: CalculationView, layout: LayoutSpec = defaultLayout(view)): WorkingPaper =
-        WorkingPaperBuilder(view, layout).build()
+    fun paper(
+        view: CalculationView,
+        layout: LayoutSpec = defaultLayout(view),
+        options: CalculationOptions = CalculationOptions(),
+    ): WorkingPaper =
+        view.openReader(options).use { reader -> WorkingPaperBuilder(view, layout, reader = reader).build() }
+
+    /** Shares a caller-owned read epoch; the caller closes [reader]. */
+    fun paper(view: CalculationView, layout: LayoutSpec, reader: CalculationReader): WorkingPaper =
+        WorkingPaperBuilder(view, layout, reader = reader).build()
 
     /** Paper with every row of every table, independent of current values (basis for spreadsheet export). */
     fun completePaper(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): WorkingPaper =
         completePaper(CalculationView.of(result), layout)
 
-    fun completePaper(view: CalculationView, layout: LayoutSpec = defaultLayout(view)): WorkingPaper =
+    fun completePaper(
+        view: CalculationView,
+        layout: LayoutSpec = defaultLayout(view),
+        options: CalculationOptions = CalculationOptions(),
+    ): WorkingPaper = view.openReader(options).use { reader -> completePaper(view, layout, reader) }
+
+    /** Shares the export's read epoch, including all tables and reductions. */
+    fun completePaper(view: CalculationView, layout: LayoutSpec, reader: CalculationReader): WorkingPaper =
         WorkingPaperBuilder(
             view,
             layout.copy(hideZero = false, showInactive = true, expandMembers = false),
             includeAll = true,
+            reader = reader,
         ).build()
 
     fun html(result: CalculationResult, layout: LayoutSpec = defaultLayout(result)): String =

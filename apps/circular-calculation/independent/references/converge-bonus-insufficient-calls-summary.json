@@ -1,0 +1,31 @@
+{
+  "reference_scope": "closed-form-and-cent-orbit-certificate",
+  "outcome": "not-converged",
+  "exact_closed_form": {
+    "numerator": 100000,
+    "denominator": 11
+  },
+  "cent_fixed_points": [
+    "9090.91"
+  ],
+  "certificate": {
+    "outcome": "not-converged",
+    "expected_callback_calls": 2,
+    "proof": "maximum callbacks reached before stopping relation",
+    "orbit_edges": [
+      [
+        "0",
+        "10000"
+      ],
+      [
+        "10000",
+        "9000"
+      ]
+    ]
+  },
+  "not_runtime_trace": true,
+  "expected_business": [],
+  "expected_evaluation_code": "MANTRA-CALC-NOT-CONVERGED",
+  "declared_domain_supported": true,
+  "validation_passed": false
+}

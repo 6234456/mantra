@@ -1,0 +1,7 @@
+;; Frozen fictional bonus-profit-zero; independent cent-orbit certificate is source evidence, never runtime trace.
+(case bonus-profit-zero
+  {:schema "demo.bonus" :schema-version "1.0" :layout "demo.bonus/working-paper"
+   :parameters ["demo.bonus/parameters"] :title "Circular bonus: bonus-profit-zero"
+   :expected-business []}
+  (inputs {:base 0 :rate 0.10 :seed 0
+           :maximum-calls 60 :tolerance 0}))

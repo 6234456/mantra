@@ -1,0 +1,7 @@
+;; Frozen fictional gross-up-seed-high; independent cent-orbit certificate is source evidence, never runtime trace.
+(case gross-up-seed-high
+  {:schema "demo.gross-up" :schema-version "1.0" :layout "demo.gross-up/working-paper"
+   :parameters ["demo.gross-up/parameters"] :title "Net-to-gross: gross-up-seed-high"
+   :expected-business []}
+  (inputs {:base 1000 :rate 0.25 :seed 2000
+           :maximum-calls 60 :tolerance 0}))

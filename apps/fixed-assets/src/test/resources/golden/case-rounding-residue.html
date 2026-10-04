@@ -715,499 +715,499 @@ code.formula { font-size: 11px; color: var(--muted); }
 <thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
 <tbody>
 <tr id="audit-t1-ngross-opening-aggregate">
-<td class="left cite"><a href="#t1-ngross">1/1 Σ</a></td>
+<td class="left cite"><a href="#table-1">1/1 Σ</a></td>
 <td class="left">Opening gross cost (Total)</td>
 <td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 100 included → 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-opening-Tool-P1">
-<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left cite"><a href="#t1-r2">1/1</a></td>
 <td class="left">Opening gross cost <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-opening-Tool-P2">
-<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left cite"><a href="#t1-r2">1/1</a></td>
 <td class="left">Opening gross cost <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-opening-Tool-P3">
-<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left cite"><a href="#t1-r2">1/1</a></td>
 <td class="left">Opening gross cost <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-opening-Tool-P4">
-<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left cite"><a href="#t1-r2">1/1</a></td>
 <td class="left">Opening gross cost <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-opening-Tool-P5">
-<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left cite"><a href="#t1-r2">1/1</a></td>
 <td class="left">Opening gross cost <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-additions-aggregate">
-<td class="left cite"><a href="#t1-ngross">1/2 Σ</a></td>
+<td class="left cite"><a href="#table-1">1/2 Σ</a></td>
 <td class="left">Acquisitions (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-additions-Tool-P1">
-<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left cite"><a href="#t1-r3">1/2</a></td>
 <td class="left">Acquisitions <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-additions-Tool-P2">
-<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left cite"><a href="#t1-r3">1/2</a></td>
 <td class="left">Acquisitions <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-additions-Tool-P3">
-<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left cite"><a href="#t1-r3">1/2</a></td>
 <td class="left">Acquisitions <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-additions-Tool-P4">
-<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left cite"><a href="#t1-r3">1/2</a></td>
 <td class="left">Acquisitions <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-additions-Tool-P5">
-<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left cite"><a href="#t1-r3">1/2</a></td>
 <td class="left">Acquisitions <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-aggregate">
-<td class="left cite"><a href="#t1-ngross">1/3 Σ</a></td>
+<td class="left cite"><a href="#table-1">1/3 Σ</a></td>
 <td class="left">Disposals at period end (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-Tool-P1">
-<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left cite"><a href="#t1-r4">1/3</a></td>
 <td class="left">Disposals at period end <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-Tool-P2">
-<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left cite"><a href="#t1-r4">1/3</a></td>
 <td class="left">Disposals at period end <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-Tool-P3">
-<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left cite"><a href="#t1-r4">1/3</a></td>
 <td class="left">Disposals at period end <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-Tool-P4">
-<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left cite"><a href="#t1-r4">1/3</a></td>
 <td class="left">Disposals at period end <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-disposals-Tool-P5">
-<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left cite"><a href="#t1-r4">1/3</a></td>
 <td class="left">Disposals at period end <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-ngross-closing-aggregate">
-<td class="left cite"><a href="#t1-ngross">1/4 Σ</a></td>
+<td class="left cite"><a href="#table-1">1/4 Σ</a></td>
 <td class="left">Closing gross cost (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 100 included → 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-closing-Tool-P1">
-<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left cite"><a href="#t1-r5">1/4</a></td>
 <td class="left">Closing gross cost <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-closing-Tool-P2">
-<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left cite"><a href="#t1-r5">1/4</a></td>
 <td class="left">Closing gross cost <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-closing-Tool-P3">
-<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left cite"><a href="#t1-r5">1/4</a></td>
 <td class="left">Closing gross cost <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-closing-Tool-P4">
-<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left cite"><a href="#t1-r5">1/4</a></td>
 <td class="left">Closing gross cost <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t1-ngross-closing-Tool-P5">
-<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left cite"><a href="#t1-r5">1/4</a></td>
 <td class="left">Closing gross cost <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-aggregate">
-<td class="left cite"><a href="#t2-naccumulated">2/1 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/1 Σ</a></td>
 <td class="left">Opening accumulated depreciation (Total)</td>
 <td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-Tool-P1">
-<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening accumulated depreciation <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-Tool-P2">
-<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening accumulated depreciation <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 33.33</div></td>
 <td class="right num">33.33</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-Tool-P3">
-<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening accumulated depreciation <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 66.66</div></td>
 <td class="right num">66.66</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-Tool-P4">
-<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening accumulated depreciation <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 100.00</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-naccumulated-opening-Tool-P5">
-<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Opening accumulated depreciation <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 100.00</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-nservice-months-Tool-P1">
-<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Months in use <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 12 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 12 → (date/months-between asset.available-from year.start) = 0 → (max 0 (date/months-between asset.available-from year.start)) = 0 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
 <td class="right num">12</td>
 </tr>
 <tr id="audit-t2-nservice-months-Tool-P2">
-<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Months in use <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 24 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 24 → (date/months-between asset.available-from year.start) = 12 → (max 0 (date/months-between asset.available-from year.start)) = 12 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
 <td class="right num">12</td>
 </tr>
 <tr id="audit-t2-nservice-months-Tool-P3">
-<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Months in use <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 36 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 24 → (max 0 (date/months-between asset.available-from year.start)) = 24 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
 <td class="right num">12</td>
 </tr>
 <tr id="audit-t2-nservice-months-Tool-P4">
-<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Months in use <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 48 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 36 → (max 0 (date/months-between asset.available-from year.start)) = 36 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 0 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-nservice-months-Tool-P5">
-<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">Months in use <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 60 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 48 → (max 0 (date/months-between asset.available-from year.start)) = 48 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = -12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-ndepreciation-aggregate">
-<td class="left cite"><a href="#t2-ndepreciation">2/3 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/3 Σ</a></td>
 <td class="left">Depreciation for the period (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 33.33 included; [asset=Tool, year=P2] 33.33 included; [asset=Tool, year=P3] 33.34 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 100.00</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-ndepreciation-Tool-P1">
-<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Depreciation for the period <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 100 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 100 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 100 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 100 → (date/months-between asset.available-from year.end-exclusive) = 12 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 1200 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 33.33 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 33.33 → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 33.33 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 33.33 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 33.33 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
 <td class="right num">33.33</td>
 </tr>
 <tr id="audit-t2-ndepreciation-Tool-P2">
-<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Depreciation for the period <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 66.67 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 66.67 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 100 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 100 → (date/months-between asset.available-from year.end-exclusive) = 24 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 1200 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 33.33 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 33.33 → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 33.33 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 33.33 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 33.33 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
 <td class="right num">33.33</td>
 </tr>
 <tr id="audit-t2-ndepreciation-Tool-P3">
-<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Depreciation for the period <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 33.34 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 33.34 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 100 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 100 → (date/months-between asset.available-from year.end-exclusive) = 36 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = true → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 33.34 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 33.34 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 33.34 → selected branch: remaining → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
 <td class="right num">33.34</td>
 </tr>
 <tr id="audit-t2-ndepreciation-Tool-P4">
-<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Depreciation for the period <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-ndepreciation-Tool-P5">
-<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Depreciation for the period <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-aggregate">
-<td class="left cite"><a href="#t2-naccumulated">2/4 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/4 Σ</a></td>
 <td class="left">Accumulated depreciation removed on disposal (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-Tool-P1">
-<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Accumulated depreciation removed on disposal <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-Tool-P2">
-<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Accumulated depreciation removed on disposal <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-Tool-P3">
-<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Accumulated depreciation removed on disposal <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-Tool-P4">
-<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Accumulated depreciation removed on disposal <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-disposals-Tool-P5">
-<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
 <td class="left">Accumulated depreciation removed on disposal <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-aggregate">
-<td class="left cite"><a href="#t2-naccumulated">2/5 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/5 Σ</a></td>
 <td class="left">Closing accumulated depreciation (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 100.00 included → 100.00</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-Tool-P1">
-<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing accumulated depreciation <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">0 + 33.33 − 0</div></td>
 <td class="right num">33.33</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-Tool-P2">
-<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing accumulated depreciation <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">33.33 + 33.33 − 0</div></td>
 <td class="right num">66.66</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-Tool-P3">
-<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing accumulated depreciation <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">66.66 + 33.34 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-Tool-P4">
-<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing accumulated depreciation <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">100.00 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-naccumulated-closing-Tool-P5">
-<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
 <td class="left">Closing accumulated depreciation <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">100.00 + 0 − 0</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-aggregate">
-<td class="left cite"><a href="#t3-ncarrying">3/1 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/1 Σ</a></td>
 <td class="left">Opening carrying amount (Total)</td>
 <td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 100 included → 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-Tool-P1">
-<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening carrying amount <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(- asset.opening-cost asset.opening-accumulated-depreciation) = 100 → (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-Tool-P2">
-<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening carrying amount <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 66.67</div></td>
 <td class="right num">66.67</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-Tool-P3">
-<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening carrying amount <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 33.34</div></td>
 <td class="right num">33.34</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-Tool-P4">
-<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening carrying amount <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 0.00</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-opening-Tool-P5">
-<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
 <td class="left">Opening carrying amount <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 0.00</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-additions-aggregate">
-<td class="left cite"><a href="#t3-ncarrying">3/2 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/2 Σ</a></td>
 <td class="left">Acquisitions (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-depreciation-aggregate">
-<td class="left cite"><a href="#t3-ncarrying">3/3 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/3 Σ</a></td>
 <td class="left">Depreciation (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 33.33 included; [asset=Tool, year=P2] 33.33 included; [asset=Tool, year=P3] 33.34 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 100.00</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-aggregate">
-<td class="left cite"><a href="#t3-ncarrying">3/4 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/4 Σ</a></td>
 <td class="left">Net carrying amount removed on disposal (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-Tool-P1">
-<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left cite"><a href="#t3-r5">3/4</a></td>
 <td class="left">Net carrying amount removed on disposal <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-Tool-P2">
-<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left cite"><a href="#t3-r5">3/4</a></td>
 <td class="left">Net carrying amount removed on disposal <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-Tool-P3">
-<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left cite"><a href="#t3-r5">3/4</a></td>
 <td class="left">Net carrying amount removed on disposal <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-Tool-P4">
-<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left cite"><a href="#t3-r5">3/4</a></td>
 <td class="left">Net carrying amount removed on disposal <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-disposals-Tool-P5">
-<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left cite"><a href="#t3-r5">3/4</a></td>
 <td class="left">Net carrying amount removed on disposal <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-aggregate">
-<td class="left cite"><a href="#t3-ncarrying">3/5 Σ</a></td>
+<td class="left cite"><a href="#table-3">3/5 Σ</a></td>
 <td class="left">Closing carrying amount (Total)</td>
 <td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 0.00 included → 0.00</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-Tool-P1">
-<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left cite"><a href="#t3-r6">3/5</a></td>
 <td class="left">Closing carrying amount <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">100 + 0 − 33.33 − 0</div></td>
 <td class="right num">66.67</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-Tool-P2">
-<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left cite"><a href="#t3-r6">3/5</a></td>
 <td class="left">Closing carrying amount <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">66.67 + 0 − 33.33 − 0</div></td>
 <td class="right num">33.34</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-Tool-P3">
-<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left cite"><a href="#t3-r6">3/5</a></td>
 <td class="left">Closing carrying amount <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">33.34 + 0 − 33.34 − 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-Tool-P4">
-<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left cite"><a href="#t3-r6">3/5</a></td>
 <td class="left">Closing carrying amount <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">0.00 + 0 − 0 − 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-ncarrying-closing-Tool-P5">
-<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left cite"><a href="#t3-r6">3/5</a></td>
 <td class="left">Closing carrying amount <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">0.00 + 0 − 0 − 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-cost-crossfoot-Tool-P1">
-<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left cite"><a href="#t3-r7">3/6</a></td>
 <td class="left">Gross cost less accumulated depreciation agrees <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 66.67; (- gross-closing accumulated-closing) = 66.67 → 66.67 − 66.67 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-cost-crossfoot-Tool-P2">
-<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left cite"><a href="#t3-r7">3/6</a></td>
 <td class="left">Gross cost less accumulated depreciation agrees <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 33.34; (- gross-closing accumulated-closing) = 33.34 → 33.34 − 33.34 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-cost-crossfoot-Tool-P3">
-<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left cite"><a href="#t3-r7">3/6</a></td>
 <td class="left">Gross cost less accumulated depreciation agrees <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 0.00; (- gross-closing accumulated-closing) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-cost-crossfoot-Tool-P4">
-<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left cite"><a href="#t3-r7">3/6</a></td>
 <td class="left">Gross cost less accumulated depreciation agrees <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 0.00; (- gross-closing accumulated-closing) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-cost-crossfoot-Tool-P5">
-<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left cite"><a href="#t3-r7">3/6</a></td>
 <td class="left">Gross cost less accumulated depreciation agrees <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 0.00; (- gross-closing accumulated-closing) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t3-nasset-residual-floor-Tool-P1">
-<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left cite"><a href="#t3-r8">3/7</a></td>
 <td class="left">Undisposed asset is not below residual value <span class="member">Small tool / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 66.67 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t3-nasset-residual-floor-Tool-P2">
-<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left cite"><a href="#t3-r8">3/7</a></td>
 <td class="left">Undisposed asset is not below residual value <span class="member">Small tool / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 33.34 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t3-nasset-residual-floor-Tool-P3">
-<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left cite"><a href="#t3-r8">3/7</a></td>
 <td class="left">Undisposed asset is not below residual value <span class="member">Small tool / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 0.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t3-nasset-residual-floor-Tool-P4">
-<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left cite"><a href="#t3-r8">3/7</a></td>
 <td class="left">Undisposed asset is not below residual value <span class="member">Small tool / 2029-01-01 – 2029-12-31</span></td>
 <td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 0.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t3-nasset-residual-floor-Tool-P5">
-<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left cite"><a href="#t3-r8">3/7</a></td>
 <td class="left">Undisposed asset is not below residual value <span class="member">Small tool / 2030-01-01 – 2030-12-31</span></td>
 <td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 0.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
 <td class="right num">✓</td>

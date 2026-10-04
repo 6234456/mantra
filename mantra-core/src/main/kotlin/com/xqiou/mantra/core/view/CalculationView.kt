@@ -3,10 +3,15 @@ package com.xqiou.mantra.core.view
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.SourceLocation
+import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.api.CalculationResult
+import com.xqiou.mantra.core.api.RunCounter
+import com.xqiou.mantra.core.api.RunStage
 import com.xqiou.mantra.core.engine.CheckVertex
 import com.xqiou.mantra.core.engine.ChoiceVertex
 import com.xqiou.mantra.core.engine.ConditionVertex
+import com.xqiou.mantra.core.engine.CoordSpace
 import com.xqiou.mantra.core.engine.InputVertex
 import com.xqiou.mantra.core.engine.LineVertex
 import com.xqiou.mantra.core.engine.NodeResult
@@ -18,6 +23,7 @@ import com.xqiou.mantra.core.engine.ResolvedItem
 import com.xqiou.mantra.core.engine.ResolvedNode
 import com.xqiou.mantra.core.engine.ResolvedNote
 import com.xqiou.mantra.core.engine.ResolvedSection
+import com.xqiou.mantra.core.engine.RunContext
 import com.xqiou.mantra.core.engine.TotalVertex
 import com.xqiou.mantra.core.engine.ValueVertex
 import com.xqiou.mantra.core.engine.undefinedValues
@@ -148,7 +154,10 @@ class CalculationView private constructor(
     /** Total number of directed dependencies in the compiled calculation graph. */
     val dependencyCount: Int,
 ) {
-    private val memberKeys by lazy { members.mapValues { (_, domain) -> domain.map { it.key }.toSet() } }
+    internal fun withDiagnostics(findings: List<Diagnostic>): CalculationView = CalculationView(
+        schema, case, structure, tree, dimensions, members, nodes, conditions, functions,
+        formulaSlotDefaults, frozenList(findings.map { it.copy(coord = frozenList(it.coord)) }), dependencyCount,
+    )
     private val reductions by lazy {
         ReductionService(
             { id ->
@@ -157,13 +166,15 @@ class CalculationView private constructor(
                     source.id, source.dims, source.type, source.aggregate, source.ratio, source.boundary,
                     source.values, source.active, source.location,
                     source.check != null || source.reconcile != null, source.total != null, source.undefinedValues,
+                    source.traces,
                 )
             },
             { id -> members[id].orEmpty() },
-            parents = { id ->
+            parents = { id, context ->
                 dimensions[id]?.parentDimension?.let { parent ->
                     val column = dimensions.getValue(id).parentKeyColumn ?: "parent-key"
                     parent to members[id].orEmpty().mapNotNull { member ->
+                        context.charge(RunCounter.HOST_SCANS)
                         when (val value = member.record[column]) {
                             is Value.Kw -> member.key to value.name
                             is Value.Text -> member.key to value.value
@@ -176,30 +187,41 @@ class CalculationView private constructor(
         )
     }
 
-    /** Exact configured reduction in a fixed coordinate scope. Unrelated axes broadcast the node. */
-    fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult {
-        validateFixed(fixed)
-        return reductions.reduce(nodeId, fixed)
-    }
+    /** A single read budget shared across all reductions/coordinate scopes in this request. */
+    fun openReader(options: CalculationOptions = CalculationOptions()): CalculationReader =
+        CalculationReader.open(this, options)
 
-    /** Complete canonical coordinate, if the fixed child and ancestor assignments are consistent. */
-    fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? {
-        validateFixed(fixed)
-        return reductions.coordinate(nodeId, fixed)?.let(::frozenList)
-    }
+    /** Exact configured reduction in an independent fixed-scope read request. */
+    fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult =
+        openReader().use { it.reduce(nodeId, fixed) }
 
-    /** All declared coordinates compatible with one fixed child/ancestor scope, in canonical order. */
-    fun coordinates(nodeId: String, fixed: Map<String, String> = emptyMap()): List<Coord> {
-        validateFixed(fixed)
-        return frozenList(reductions.coordinates(nodeId, fixed).map(::frozenList))
-    }
+    fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? =
+        openReader().use { it.coordinate(nodeId, fixed) }
 
-    private fun validateFixed(fixed: Map<String, String>) {
-        fixed.forEach { (dimension, member) ->
-            require(dimension in dimensions) { "Unknown dimension $dimension" }
-            require(member in memberKeys[dimension].orEmpty()) { "Unknown member $member of $dimension" }
+    fun coordinates(nodeId: String, fixed: Map<String, String> = emptyMap()): List<Coord> =
+        openReader().use { it.coordinates(nodeId, fixed) }
+
+    internal fun reduceBound(nodeId: String, fixed: Map<String, String>, context: RunContext): AggregationResult =
+        context.at(RunStage.REDUCING, context.nodeAddress(nodeId)) {
+            validateFixed(fixed, context)
+            reductions.reduce(nodeId, fixed, context)
         }
-    }
+
+    internal fun coordinateBound(nodeId: String, fixed: Map<String, String>, context: RunContext): Coord? =
+        context.at(RunStage.READING, context.nodeAddress(nodeId)) {
+            validateFixed(fixed, context)
+            reductions.coordinate(nodeId, fixed, context)?.let(::frozenList)
+        }
+
+    internal fun coordinatesBound(nodeId: String, fixed: Map<String, String>, context: RunContext): List<Coord> =
+        context.at(RunStage.READING, context.nodeAddress(nodeId)) {
+            validateFixed(fixed, context)
+            frozenList(reductions.coordinates(nodeId, fixed, context).map(::frozenList))
+        }
+
+    private fun validateFixed(fixed: Map<String, String>, context: RunContext) =
+        reductions.validateFixed(dimensions.keys, fixed, context)
+
     val succeeded: Boolean get() = diagnostics.none {
         it.severity == com.xqiou.mantra.core.Severity.ERROR && it.category != DiagnosticCategory.BUSINESS
     }
@@ -229,12 +251,19 @@ class CalculationView private constructor(
     }
 
     /** Coordinates where all inherited section guards must be evaluated together. */
-    fun alignGuards(node: ViewNode, coord: Coord, memberKeys: (String) -> List<String>): GuardAlignment {
+    fun alignGuards(node: ViewNode, coord: Coord, memberKeys: (String) -> List<String>): GuardAlignment =
+        openReader().use { it.alignGuards(node, coord, memberKeys) }
+
+    internal fun alignGuardsBound(
+        node: ViewNode,
+        coord: Coord,
+        memberKeys: (String) -> List<String>,
+        context: RunContext,
+    ): GuardAlignment {
         val fixed = node.dims.zip(coord).toMap()
         val extra = dimensionOrder(node.guards.flatMap { conditions.getValue(it).dims }.filter { it !in fixed }.toSet())
-        val assignments = extra.fold(listOf(fixed)) { partial, dim ->
-            partial.flatMap { assignment -> memberKeys(dim).map { assignment + (dim to it) } }
-        }
+        val scopes = CoordSpace(memberKeys, { it })
+        val assignments = scopes.coordinates(extra, fixed, context).map { fixed + extra.zip(it).toMap() }
         return GuardAlignment(extra, assignments)
     }
 
@@ -251,15 +280,17 @@ class CalculationView private constructor(
         /** Returns the read-only snapshot owned by [result]. */
         fun of(result: CalculationResult): CalculationView = result.view
 
-        internal fun fromResult(result: CalculationResult): CalculationView {
+        internal fun fromResult(result: CalculationResult, scan: () -> Unit = {}): CalculationView {
             val plan = result.plan
             val traceSnapshots = IdentityHashMap<ExplainTrace, ExplainTrace>()
-            fun traceSnapshot(trace: ExplainTrace): ExplainTrace = traceSnapshots.getOrPut(trace) { trace.snapshot() }
+            fun traceSnapshot(trace: ExplainTrace): ExplainTrace =
+                traceSnapshots.getOrPut(trace) { trace.snapshot(scan) }
             val aggregateSnapshots = IdentityHashMap<RatioAggregateTrace, RatioAggregateTrace>()
             fun aggregateSnapshot(trace: RatioAggregateTrace): RatioAggregateTrace =
                 aggregateSnapshots.getOrPut(trace) { trace.snapshot() }
             val formulaSlotDefaults = linkedMapOf<String, Formula>()
             fun collectFormulaSlots(item: com.xqiou.mantra.core.model.Item) {
+                scan()
                 when (item) {
                     is SectionItem -> item.children.forEach(::collectFormulaSlots)
                     is LineItem -> if (item.formulaSlot) formulaSlotDefaults[item.id] = item.formula
@@ -269,6 +300,7 @@ class CalculationView private constructor(
             collectFormulaSlots(plan.schema.root)
             val opByNode = linkedMapOf<String, Int>()
             fun collectOps(item: ResolvedItem) {
+                scan()
                 when (item) {
                     is ResolvedSection -> item.children.forEach(::collectOps)
                     is ResolvedNode -> opByNode[item.id] = item.op
@@ -278,6 +310,7 @@ class CalculationView private constructor(
             collectOps(plan.tree)
             val slotByNode = linkedMapOf<String, String>()
             fun collectExtensions(item: Item, slotId: String) {
+                scan()
                 when (item) {
                     is SectionItem -> item.children.forEach { collectExtensions(it, slotId) }
                     is NodeItem -> slotByNode[item.id] = slotId
@@ -296,6 +329,7 @@ class CalculationView private constructor(
                 is ResolvedNote -> ViewNote(item.item.snapshot() as NoteItem)
             }
             val nodes = result.rawNodes.mapValues { (_, calculated) ->
+                scan()
                 val vertex: ValueVertex = calculated.vertex
                 val line = vertex as? LineVertex
                 val choice = vertex as? ChoiceVertex
@@ -338,9 +372,11 @@ class CalculationView private constructor(
                     total = total?.item?.snapshot() as? TotalItem, choice = choice?.item?.snapshot() as? ChoiceItem,
                     components = frozenList(total?.components?.map { ViewComponent(it.vertexId, it.sign) }.orEmpty()),
                     guards = frozenList(vertex.guards), ownCondition = vertex.ownCondition?.formula,
-                    values = calculated.values.snapshotCoords { it.snapshot() },
-                    active = calculated.active.snapshotCoords { it },
-                    traces = calculated.traces.snapshotCoords { it.snapshot(::traceSnapshot, ::aggregateSnapshot) },
+                    values = calculated.values.snapshotCoords(scan) { it.snapshot(scan) },
+                    active = calculated.active.snapshotCoords(scan) { it },
+                    traces = calculated.traces.snapshotCoords(scan) {
+                        it.snapshot(::traceSnapshot, ::aggregateSnapshot, scan)
+                    },
                     check = check?.item?.snapshot() as? CheckItem,
                     reconcile = reconcile?.item?.snapshot() as? ReconcileItem,
                     validations = calculated.traces.mapNotNull { (coord, trace) ->
@@ -361,7 +397,7 @@ class CalculationView private constructor(
                 )
             }
             return CalculationView(
-                schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(),
+                schema = plan.schema.meta.snapshot(), case = plan.case.snapshot(scan),
                 structure = SchemaMaps.of(
                     plan,
                 ).snapshot(),
@@ -369,7 +405,12 @@ class CalculationView private constructor(
                 dimensions = frozenMap(plan.dimensions.mapValues { (_, decl) -> decl.snapshot() }),
                 members = frozenMap(
                     result.rawMembers.mapValues { (_, members) ->
-                        frozenList(members.map { it.snapshot() })
+                        frozenList(
+                            members.map {
+                                scan()
+                                it.snapshot(scan)
+                            },
+                        )
                     },
                 ),
                 nodes = frozenMap(nodes),

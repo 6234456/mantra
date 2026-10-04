@@ -209,5 +209,5 @@ Audit trail
     Working: 6000.00 − 6000.00 = –
 
 Findings
-  warning MANTRA-AUDIT-TRUNCATED at schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly
-  error MANTRA-RECONCILE-FAILED at schema.mantra:61:5 [liability-reconciliation]: Computed and independently reported liability balances agree: difference -0.02 exceeds tolerance 0.01
+  warning MANTRA-AUDIT-TRUNCATED at ifrs-leases/schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly
+  error MANTRA-RECONCILE-FAILED at ifrs-leases/schema.mantra:61:5 [liability-reconciliation]: Computed and independently reported liability balances agree: difference -0.02 exceeds tolerance 0.01

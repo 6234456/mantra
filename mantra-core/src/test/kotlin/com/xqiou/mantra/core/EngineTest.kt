@@ -426,7 +426,8 @@ class EngineTest {
         assertFalse(result.succeeded)
         assertTrue(result.diagnostics.any { it.code == "MANTRA-EVALUATION" && it.nodeId == "a" })
         assertDecimal("5", result.decimal("b"))
-        assertEquals(Value.num(0), result.value("a"))
+        assertEquals(Value.Nil, result.value("a"))
+        assertIs<NodeTrace.Failed>(result.node("a").trace())
     }
 
     @Test

@@ -1,0 +1,47 @@
+{
+  "reference_scope": "closed-form-and-cent-orbit-certificate",
+  "outcome": "converged",
+  "exact_closed_form": {
+    "numerator": -1000,
+    "denominator": 11
+  },
+  "cent_fixed_points": [
+    "-90.91"
+  ],
+  "certificate": {
+    "outcome": "converged",
+    "expected_callback_calls": 6,
+    "proof": "rational cent transition reaches the declared stopping relation",
+    "orbit_edges": [
+      [
+        "0",
+        "-100"
+      ],
+      [
+        "-100",
+        "-90"
+      ],
+      [
+        "-90",
+        "-91"
+      ],
+      [
+        "-91",
+        "-90.9"
+      ],
+      [
+        "-90.9",
+        "-90.91"
+      ],
+      [
+        "-90.91",
+        "-90.91"
+      ]
+    ]
+  },
+  "not_runtime_trace": true,
+  "expected_business": [],
+  "expected_evaluation_code": null,
+  "declared_domain_supported": true,
+  "validation_passed": true
+}

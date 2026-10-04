@@ -1,0 +1,9 @@
+;; Frozen fictional bonus-insufficient-calls; technical failure must expose MANTRA-CALC-NOT-CONVERGED and no amount.
+(case bonus-insufficient-calls
+  {:acceptance-role :technical-failure
+   :expected-failed-values [{:node "converged-amount" :coord []}]
+   :schema "demo.bonus" :schema-version "1.0" :layout "demo.bonus/working-paper"
+   :parameters ["demo.bonus/parameters"] :title "Circular bonus: bonus-insufficient-calls"
+   :expected-evaluation-code "MANTRA-CALC-NOT-CONVERGED"}
+  (inputs {:base 100000 :rate 0.10 :seed 0
+           :maximum-calls 2 :tolerance 0}))

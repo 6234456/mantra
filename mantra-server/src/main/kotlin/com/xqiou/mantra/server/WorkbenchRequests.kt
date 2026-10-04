@@ -149,8 +149,8 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
             throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Import file exceeds 10 MiB")
         }
         val revision = if (apply) {
-            string("baseRevision").takeIf { Regex("[0-9a-f]{16}").matches(it) }
-                ?: bad("baseRevision must be 16 hexadecimal characters")
+            string("baseRevision").takeIf { Regex("[0-9a-f]{16}([0-9a-f]{48})?").matches(it) }
+                ?: bad("baseRevision must be a supported 16 or 64 character hexadecimal revision")
         } else {
             null
         }
@@ -172,7 +172,8 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
         val expected = if (history) setOf("baseRevision") else setOf("baseRevision", "operations")
         if (!root.isObject || root.fieldNames().asSequence().toSet() != expected) bad("Unexpected edit request fields")
         val revision = root["baseRevision"]?.takeIf(JsonNode::isTextual)?.textValue()
-            ?.takeIf { Regex("[0-9a-f]{16}").matches(it) } ?: bad("baseRevision must be 16 hexadecimal characters")
+            ?.takeIf { Regex("[0-9a-f]{16}([0-9a-f]{48})?").matches(it) }
+            ?: bad("baseRevision must be a supported 16 or 64 character hexadecimal revision")
         if (history) return revision to emptyList()
         val values = root["operations"]?.takeIf(JsonNode::isArray) ?: bad("operations must be an array")
         if (values.size() !in 1..100) bad("Expected 1–100 operations")
@@ -189,11 +190,13 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
             ?: bad("$name must be an integer")
         fun address(node: JsonNode): EditAddress {
             val address = node["address"] ?: bad("address is required")
-            if (!address.isObject || address.fieldNames().asSequence().any { it !in setOf("node", "coord", "cell") } ||
+            if (!address.isObject ||
+                address.fieldNames().asSequence().any { it !in setOf("case", "node", "coord", "cell") } ||
                 (address.has("coord") && address.has("cell"))
             ) {
                 bad("Invalid address")
             }
+            if (address.has("case") && !address["case"].isNull) bad("Edits must address the selected case")
             val id = string(address, "node")
             val coord = address["coord"]?.let { array ->
                 if (!array.isArray || array.size() > 8 || array.any { !it.isTextual }) bad("Invalid coordinate")

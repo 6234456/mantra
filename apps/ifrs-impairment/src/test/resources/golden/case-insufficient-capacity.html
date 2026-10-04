@@ -692,13 +692,13 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num">390</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-aggregate">
-<td class="left cite"><a href="#t2-nforecast">2/1 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/1 Σ</a></td>
 <td class="left">Projected pre-tax cash flow (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, year=P1] 0 excluded; [cgu=Workshop, year=P2] 0 excluded; [cgu=Workshop, year=P3] 0 excluded → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t2-npresent-value-aggregate">
-<td class="left cite"><a href="#t2-npresent">2/3 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/3 Σ</a></td>
 <td class="left">Discounted cash flow (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, year=P1] 0 excluded; [cgu=Workshop, year=P2] 0 excluded; [cgu=Workshop, year=P3] 0 excluded → 0</div></td>
 <td class="right num">–</td>
@@ -800,97 +800,97 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t5-nindividual-carrying-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/1 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/1 Σ</a></td>
 <td class="left">Asset carrying amount before the loss (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, asset=Machine] 120 included; [cgu=Workshop, asset=Building] 180 included; [cgu=Workshop, asset=Equipment] 60 included → 360</div></td>
 <td class="right num">360.00</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/2 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/2 Σ</a></td>
 <td class="left">Higher of FVLCD, value in use and zero (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, asset=Machine] 115 included; [cgu=Workshop, asset=Building] 175 included; [cgu=Workshop, asset=Equipment] 55 included → 345</div></td>
 <td class="right num">345.00</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-Workshop-Machine">
-<td class="left cite"><a href="#t5-nindividual">5/2</a></td>
+<td class="left cite"><a href="#t5-r1">5/2</a></td>
 <td class="left">Higher of FVLCD, value in use and zero <span class="member">Workshop CGU / Machine</span></td>
 <td class="left"><code class="formula">(max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))</code><div class="working">(or asset.asset-fvlcd 0) = 115 → (or asset.asset-value-in-use 0) = 115 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 115</div></td>
 <td class="right num">115.00</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-Workshop-Building">
-<td class="left cite"><a href="#t5-nindividual">5/2</a></td>
+<td class="left cite"><a href="#t5-r1">5/2</a></td>
 <td class="left">Higher of FVLCD, value in use and zero <span class="member">Workshop CGU / Building</span></td>
 <td class="left"><code class="formula">(max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))</code><div class="working">(or asset.asset-fvlcd 0) = 175 → (or asset.asset-value-in-use 0) = 175 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 175</div></td>
 <td class="right num">175.00</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-Workshop-Equipment">
-<td class="left cite"><a href="#t5-nindividual">5/2</a></td>
+<td class="left cite"><a href="#t5-r1">5/2</a></td>
 <td class="left">Higher of FVLCD, value in use and zero <span class="member">Workshop CGU / Equipment</span></td>
 <td class="left"><code class="formula">(max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))</code><div class="working">(or asset.asset-fvlcd 0) = 55 → (or asset.asset-value-in-use 0) = 55 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 55</div></td>
 <td class="right num">55.00</td>
 </tr>
 <tr id="audit-t5-nasset-allocated-loss-aggregate">
-<td class="left cite"><a href="#t5-nasset">5/3 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/3 Σ</a></td>
 <td class="left">Loss after cap and redistribution (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, asset=Machine] 5 included; [cgu=Workshop, asset=Building] 5 included; [cgu=Workshop, asset=Equipment] 5 included → 15</div></td>
 <td class="right num">15.00</td>
 </tr>
 <tr id="audit-t5-nasset-allocated-loss-Workshop-Machine">
-<td class="left cite"><a href="#t5-nasset">5/3</a></td>
+<td class="left cite"><a href="#t5-r1">5/3</a></td>
 <td class="left">Loss after cap and redistribution <span class="member">Workshop CGU / Machine</span></td>
 <td class="left"><code class="formula">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding)</code><div class="working">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 5, :Building 5, :Equipment 5}</div></td>
 <td class="right num">5.00</td>
 </tr>
 <tr id="audit-t5-nasset-allocated-loss-Workshop-Building">
-<td class="left cite"><a href="#t5-nasset">5/3</a></td>
+<td class="left cite"><a href="#t5-r1">5/3</a></td>
 <td class="left">Loss after cap and redistribution <span class="member">Workshop CGU / Building</span></td>
 <td class="left"><code class="formula">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding)</code><div class="working">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 5, :Building 5, :Equipment 5}</div></td>
 <td class="right num">5.00</td>
 </tr>
 <tr id="audit-t5-nasset-allocated-loss-Workshop-Equipment">
-<td class="left cite"><a href="#t5-nasset">5/3</a></td>
+<td class="left cite"><a href="#t5-r1">5/3</a></td>
 <td class="left">Loss after cap and redistribution <span class="member">Workshop CGU / Equipment</span></td>
 <td class="left"><code class="formula">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding)</code><div class="working">(alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 5, :Building 5, :Equipment 5}</div></td>
 <td class="right num">5.00</td>
 </tr>
 <tr id="audit-t5-nindividual-closing-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/4 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/4 Σ</a></td>
 <td class="left">Asset carrying amount after the capped allocation (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=Workshop, asset=Machine] 115 included; [cgu=Workshop, asset=Building] 175 included; [cgu=Workshop, asset=Equipment] 55 included → 345</div></td>
 <td class="right num">345.00</td>
 </tr>
 <tr id="audit-t5-nindividual-closing-Workshop-Machine">
-<td class="left cite"><a href="#t5-nindividual">5/4</a></td>
+<td class="left cite"><a href="#t5-r1">5/4</a></td>
 <td class="left">Asset carrying amount after the capped allocation <span class="member">Workshop CGU / Machine</span></td>
 <td class="left"><code class="formula">individual-carrying − asset-allocated-loss</code><div class="working">120 − 5</div></td>
 <td class="right num">115.00</td>
 </tr>
 <tr id="audit-t5-nindividual-closing-Workshop-Building">
-<td class="left cite"><a href="#t5-nindividual">5/4</a></td>
+<td class="left cite"><a href="#t5-r1">5/4</a></td>
 <td class="left">Asset carrying amount after the capped allocation <span class="member">Workshop CGU / Building</span></td>
 <td class="left"><code class="formula">individual-carrying − asset-allocated-loss</code><div class="working">180 − 5</div></td>
 <td class="right num">175.00</td>
 </tr>
 <tr id="audit-t5-nindividual-closing-Workshop-Equipment">
-<td class="left cite"><a href="#t5-nindividual">5/4</a></td>
+<td class="left cite"><a href="#t5-r1">5/4</a></td>
 <td class="left">Asset carrying amount after the capped allocation <span class="member">Workshop CGU / Equipment</span></td>
 <td class="left"><code class="formula">individual-carrying − asset-allocated-loss</code><div class="working">60 − 5</div></td>
 <td class="right num">55.00</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-respected-Workshop-Machine">
-<td class="left cite"><a href="#t5-nindividual">5/5</a></td>
+<td class="left cite"><a href="#table-5">5/5</a></td>
 <td class="left">Loss does not reduce the asset below its floor <span class="member">Workshop CGU / Machine</span></td>
 <td class="left"><code class="formula">(&gt;= individual-closing individual-floor)</code><div class="working">(&gt;= individual-closing individual-floor) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-respected-Workshop-Building">
-<td class="left cite"><a href="#t5-nindividual">5/5</a></td>
+<td class="left cite"><a href="#table-5">5/5</a></td>
 <td class="left">Loss does not reduce the asset below its floor <span class="member">Workshop CGU / Building</span></td>
 <td class="left"><code class="formula">(&gt;= individual-closing individual-floor)</code><div class="working">(&gt;= individual-closing individual-floor) = true</div></td>
 <td class="right num">✓</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-respected-Workshop-Equipment">
-<td class="left cite"><a href="#t5-nindividual">5/5</a></td>
+<td class="left cite"><a href="#table-5">5/5</a></td>
 <td class="left">Loss does not reduce the asset below its floor <span class="member">Workshop CGU / Equipment</span></td>
 <td class="left"><code class="formula">(&gt;= individual-closing individual-floor)</code><div class="working">(&gt;= individual-closing individual-floor) = true</div></td>
 <td class="right num">✓</td>
@@ -1020,8 +1020,8 @@ code.formula { font-size: 11px; color: var(--muted); }
 <footer class="wp-footer">
 <div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
 <div class="findings"><strong>Findings</strong><ul>
-<li class="error"><code>MANTRA-CHECK-FAILED</code> Individual asset caps can absorb the requested loss <span class="loc">schema.mantra:139:5</span></li>
-<li class="error"><code>MANTRA-RECONCILE-FAILED</code> Requested loss agrees to the capped allocation: difference 45 exceeds tolerance 0.01 <span class="loc">schema.mantra:141:5</span></li>
+<li class="error"><code>MANTRA-CHECK-FAILED</code> Individual asset caps can absorb the requested loss <span class="loc">ifrs-impairment/schema.mantra:139:5</span></li>
+<li class="error"><code>MANTRA-RECONCILE-FAILED</code> Requested loss agrees to the capped allocation: difference 45 exceeds tolerance 0.01 <span class="loc">ifrs-impairment/schema.mantra:141:5</span></li>
 </ul></div>
 <div class="engine">Mantra calculation engine · Normein DSL</div>
 </footer>

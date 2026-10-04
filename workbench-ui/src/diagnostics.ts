@@ -1,5 +1,5 @@
 import type { Address, Diagnostic, InputField, Structure } from './types'
-import { addressToPath, casePath } from './address'
+import { addressToPath, casePath, provenancePath } from './address'
 
 const fieldId = (field: string | InputField) => (typeof field === 'string' ? field : field.id)
 const sameCoord = (left: Address, right: Address) =>
@@ -9,7 +9,8 @@ const sameCoord = (left: Address, right: Address) =>
 export function diagnosticsForInput(diagnostics: Diagnostic[], address: Address, rowIndex?: number): Diagnostic[] {
   return diagnostics.filter((finding) => {
     const target = finding.address
-    if (!target || target.node !== address.node || !sameCoord(target, address)) return false
+    if (!target || target.case !== address.case || target.node !== address.node || !sameCoord(target, address))
+      return false
     if (!address.cell) return !target.cell && finding.rowIndex == null
     if (finding.rowIndex != null && finding.column != null)
       return finding.rowIndex === rowIndex && finding.column === address.cell.column
@@ -24,6 +25,7 @@ export function diagnosticsForInput(diagnostics: Diagnostic[], address: Address,
 export function diagnosticPath(caseId: string, structure: Structure, finding: Diagnostic): string | undefined {
   const address = finding.address
   if (!address) return undefined
+  if (address.case && address.case !== caseId) return provenancePath(caseId, address, finding.caseRevision ?? undefined)
   const query = `?cell=${encodeURIComponent(addressToPath(address))}`
   if (structure.generalInputs.some((field) => fieldId(field) === address.node))
     return `${casePath(caseId)}/inputs/general${query}`

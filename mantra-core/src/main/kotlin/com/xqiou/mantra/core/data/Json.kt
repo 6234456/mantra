@@ -10,14 +10,15 @@ import java.math.BigDecimal
 object Json {
     class JsonException(message: String) : RuntimeException(message)
 
-    fun parse(text: String): Value = Parser(text).run {
-        val value = value()
-        skipWhitespace()
-        if (pos != text.length) fail("unexpected trailing content")
-        value
-    }
+    fun parse(text: String, beforeArrayElement: (List<String>) -> Unit = {}, checkpoint: () -> Unit = {}): Value =
+        Parser(text, beforeArrayElement, checkpoint).run {
+            val value = value()
+            skipWhitespace()
+            if (pos != text.length) fail("unexpected trailing content")
+            value
+        }
 
-    private class Parser(val text: String) {
+    private class Parser(val text: String, val beforeArrayElement: (List<String>) -> Unit, val checkpoint: () -> Unit) {
         var pos = 0
 
         fun fail(message: String): Nothing {
@@ -29,12 +30,13 @@ object Json {
             while (pos < text.length && text[pos].isWhitespace()) pos++
         }
 
-        fun value(): Value {
+        fun value(path: List<String> = emptyList()): Value {
+            checkpoint()
             skipWhitespace()
             if (pos >= text.length) fail("unexpected end")
             return when (val ch = text[pos]) {
-                '{' -> obj()
-                '[' -> array()
+                '{' -> obj(path)
+                '[' -> array(path)
                 '"' -> Value.Text(string())
                 't' -> literal("true", Value.Bool(true))
                 'f' -> literal("false", Value.Bool(false))
@@ -49,7 +51,7 @@ object Json {
             return value
         }
 
-        fun obj(): Value {
+        fun obj(path: List<String>): Value {
             pos++
             val entries = linkedMapOf<Value, Value>()
             skipWhitespace()
@@ -64,7 +66,7 @@ object Json {
                 skipWhitespace()
                 if (text.getOrNull(pos) != ':') fail("expected ':'")
                 pos++
-                entries[Value.Kw(key)] = value()
+                entries[Value.Kw(key)] = value(path + key)
                 skipWhitespace()
                 when (text.getOrNull(pos)) {
                     ',' -> pos++
@@ -77,7 +79,7 @@ object Json {
             }
         }
 
-        fun array(): Value {
+        fun array(path: List<String>): Value {
             pos++
             val items = mutableListOf<Value>()
             skipWhitespace()
@@ -86,7 +88,8 @@ object Json {
                 return Value.Vec(items)
             }
             while (true) {
-                items += value()
+                beforeArrayElement(path)
+                items += value(path + "[${items.size}]")
                 skipWhitespace()
                 when (text.getOrNull(pos)) {
                     ',' -> pos++
@@ -103,6 +106,7 @@ object Json {
             pos++
             val out = StringBuilder()
             while (true) {
+                if (pos % 1024 == 0) checkpoint()
                 if (pos >= text.length) fail("unterminated string")
                 when (val ch = text[pos++]) {
                     '"' -> return out.toString()

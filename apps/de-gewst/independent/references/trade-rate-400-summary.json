@@ -1,0 +1,10 @@
+{
+  "expected_business": [],
+  "validation_passed": true,
+  "reference_scope": "complete-selected-chain",
+  "consumer_version": "de.est/2025@2025.3",
+  "source_version": "de.gewst/2025@2025.1",
+  "final-credit-rounding": "No inferred rounding rule: complete fixture credits are integral. Fractional-cap fixture has no final tax outputs.",
+  "missing-category": "Unknown classification is reported; only recognized categories enter the selected weighted subtotal. No guessed category.",
+  "unsupported-entity": "Computed selected sole-proprietor scenario remains visible alongside explicit unsupported-entity error, not a corporation calculation."
+}

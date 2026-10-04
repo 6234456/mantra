@@ -169,7 +169,8 @@ class WorkbenchServer(
             }
             if (root == null || !root.isObject ||
                 root.fieldNames().asSequence().toSet() != setOf("baseRevision", "index") ||
-                !root["baseRevision"].isTextual || !Regex("[0-9a-f]{16}").matches(root["baseRevision"].textValue()) ||
+                !root["baseRevision"].isTextual ||
+                !Regex("[0-9a-f]{16}([0-9a-f]{48})?").matches(root["baseRevision"].textValue()) ||
                 !root["index"].isInt
             ) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Invalid source removal request")
@@ -200,7 +201,9 @@ class WorkbenchServer(
         }
         if (method == "GET" && document == "explain") {
             val query = query(exchange.requestURI.rawQuery)
-            if (query.keys.any { it !in setOf("address", "depth") } || "address" !in query) {
+            if (query.keys.any { it !in setOf("address", "depth", "case", "expectedRevision") } ||
+                "address" !in query
+            ) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Explain address is required")
             }
             val depth = query["depth"]?.toIntOrNull() ?: if ("depth" in query) -1 else 1
@@ -209,7 +212,9 @@ class WorkbenchServer(
             ) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Explain depth must be between 1 and 5")
             }
-            val address = parseExplainAddress(query.getValue("address"))
+            val address = parseExplainAddress(
+                query.getValue("address"),
+            ).copy(case = query["case"], expectedRevision = query["expectedRevision"])
             return json(exchange, 200, catalog.envelope(catalog.explain(caseId, address, depth)))
         }
         if (method == "GET" && document == "export-preview") {

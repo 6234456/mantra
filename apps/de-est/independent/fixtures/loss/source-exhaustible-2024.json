@@ -1,0 +1,20 @@
+{
+  "case": "source-exhaustible-2024",
+  "domain": "loss",
+  "currency": "EUR",
+  "taxpayer": "Demo-A",
+  "year": 2024,
+  "opening_loss": "5000",
+  "eligible_new_loss": "27000",
+  "positive_income": "0",
+  "joint_amount_check_only": false,
+  "carryback_waived": true,
+  "selected_carryback": "0",
+  "other_deductions": "0",
+  "source": null,
+  "assumptions": [
+    "Income categories already offset for the year.",
+    "No special loss limitation categories.",
+    "No spouse attribution claim."
+  ]
+}

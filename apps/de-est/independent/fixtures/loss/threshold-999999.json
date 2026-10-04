@@ -1,0 +1,20 @@
+{
+  "case": "threshold-999999",
+  "domain": "loss",
+  "currency": "EUR",
+  "taxpayer": "Demo-A",
+  "year": 2025,
+  "opening_loss": "3000000",
+  "eligible_new_loss": "0",
+  "positive_income": "999999",
+  "joint_amount_check_only": false,
+  "carryback_waived": true,
+  "selected_carryback": "0",
+  "other_deductions": "36",
+  "source": null,
+  "assumptions": [
+    "Income categories already offset for the year.",
+    "No special loss limitation categories.",
+    "No spouse attribution claim."
+  ]
+}

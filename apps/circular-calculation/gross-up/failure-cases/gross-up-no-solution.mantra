@@ -1,0 +1,9 @@
+;; Frozen fictional gross-up-no-solution; technical failure must expose MANTRA-CALC-NOT-CONVERGED and no amount.
+(case gross-up-no-solution
+  {:acceptance-role :technical-failure
+   :expected-failed-values [{:node "converged-amount" :coord []}]
+   :schema "demo.gross-up" :schema-version "1.0" :layout "demo.gross-up/working-paper"
+   :parameters ["demo.gross-up/parameters"] :title "Net-to-gross: gross-up-no-solution"
+   :expected-evaluation-code "MANTRA-CALC-NOT-CONVERGED"}
+  (inputs {:base 1000 :rate 1 :seed 1000
+           :maximum-calls 60 :tolerance 0}))

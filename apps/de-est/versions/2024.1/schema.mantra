@@ -1,0 +1,35 @@
+;; Demonstration only: fictional annual § 10d loss ledger, not a tax assessment.
+;; Simplification: no special loss baskets, spouse attribution or carryback calculation.
+;; Carryback is waived in supported cases; an unwaived case remains visible with a BUSINESS error.
+(schema de.est-loss/2024
+  {:title "Income-tax loss ledger 2024" :version "2024.1" :period "2024"
+   :subtitle "Fictional § 10d carryforward source for an explicitly versioned 2025 case"
+   :preset :de-staffel-4 :headline closing-loss :mainline [loss-cap loss-ledger]}
+  (input opening-loss :decimal {:label "Loss carried into 2024" :default 0})
+  (input eligible-new-loss :decimal {:label "Eligible new loss after within-year offset" :default 0})
+  (input positive-income :decimal {:label "Positive total income before § 10d deduction" :default 0})
+  (input selected-carryback :decimal {:label "Selected carryback (supported demonstration: zero)" :default 0})
+  (input carryback-waived :boolean {:label "Carryback waived" :default true})
+  (input joint-amount-check :boolean {:label "Joint allowance amount test only" :default false})
+  (param loss-base 1000000 {:reference "§ 10d Abs. 2 EStG, selected assessment years 2024–2027"})
+  (param loss-base-joint 2000000 {:reference "§ 10d Abs. 2 EStG, joint allowance amount only"})
+  (param loss-excess-rate 0.7 {:reference "§ 10d Abs. 2 EStG, selected assessment years 2024–2027"})
+  (section loss-cap "Deduction capacity" {:display :schedule :op :info}
+    (line loss-allowance "Allowance" (if joint-amount-check loss-base-joint loss-base) {:op :info})
+    (line loss-deduction-cap "Selected § 10d deduction cap"
+      (+ (min (max positive-income 0) loss-allowance)
+         (* loss-excess-rate (max (- positive-income loss-allowance) 0))) {:op :info})
+    (line loss-used "Loss deducted" (min opening-loss loss-deduction-cap) {:op :info})
+    (line post-loss-positive-income "Positive income after deduction" (- (max positive-income 0) loss-used) {:op :info}))
+  (section loss-ledger "Opening, movements and closing carryforward" {:display :schedule}
+    (line ledger-opening "Opening loss" opening-loss)
+    (line ledger-new "Eligible new loss" eligible-new-loss)
+    (line ledger-used "Loss used in this year" loss-used {:op :minus})
+    (line ledger-carryback "Selected carryback" selected-carryback {:op :minus})
+    (total closing-loss "Closing loss carried once into the next year")
+    (reconcile loss-crossfoot "Loss ledger crossfoot"
+      closing-loss (- (+ opening-loss eligible-new-loss) loss-used selected-carryback) {:tolerance 0})
+    (check opening-loss-nonnegative "Opening loss is nonnegative" (>= opening-loss 0))
+    (check new-loss-nonnegative "Eligible new loss is nonnegative" (>= eligible-new-loss 0))
+    (check carryback-waiver-supported "Supported scenario has waived carryback"
+      (and carryback-waived (= selected-carryback 0)))))

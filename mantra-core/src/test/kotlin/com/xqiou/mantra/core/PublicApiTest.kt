@@ -44,11 +44,18 @@ class PublicApiTest {
     @Test
     fun `function catalog exposes documentation for the calculation primitives`() {
         assertEquals("mantra.calc", FunctionCatalog.libraryId)
-        assertEquals("1", FunctionCatalog.semanticsVersion)
+        assertEquals("2", FunctionCatalog.semanticsVersion)
         val functions = FunctionCatalog.functions
         assertEquals(functions.size, functions.map { it.name }.toSet().size)
         assertTrue(functions.all { it.summary.isNotBlank() })
-        assertTrue(setOf("alloc/pro-rata", "dim/rollup", "fin/npv").all { name -> functions.any { it.name == name } })
+        assertTrue(
+            setOf("alloc/pro-rata", "calc/converge", "dim/rollup", "fin/npv").all { name ->
+                functions.any {
+                    it.name ==
+                        name
+                }
+            },
+        )
         assertTrue(FunctionCatalog.callableCount >= functions.size)
     }
 }

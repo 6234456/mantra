@@ -1,0 +1,8 @@
+;; Fictional already-deducted expenses from frozen trade/allowance-24599_99.json.
+(case allowance-24599_99
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: allowance-24599_99"
+   :expected-business []}
+  (inputs {:profit 24599.99 :hebesatz-percent 400
+           :entity :natural-person-sole-proprietor :section9-deductions 0
+           :financing-costs []}))

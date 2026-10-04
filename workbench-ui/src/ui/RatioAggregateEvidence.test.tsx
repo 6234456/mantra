@@ -63,7 +63,7 @@ it('keeps an undefined ratio visible with its reason, fixed context and bounded 
 
 it('displays aggregate evidence from a Total part separately from the captured kernel steps', () => {
   const explain: Explain = {
-    address: { node: 'group-result' },
+    address: { case: null, node: 'group-result' },
     label: 'Group result',
     kind: 'total',
     result: { value: { n: '0.249375' }, display: '24,9375 %' },
@@ -75,7 +75,7 @@ it('displays aggregate evidence from a Total part separately from the captured k
     options: [],
     parts: [
       {
-        address: { node: 'aggregate.effective-rate' },
+        address: { case: null, node: 'aggregate.effective-rate' },
         label: 'Effective rate',
         sign: 1,
         value: { n: '0.249375' },

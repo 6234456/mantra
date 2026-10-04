@@ -66,6 +66,8 @@ data class Presentation(
 )
 
 data class SchemaMeta(val id: String, val title: String, val attributes: Map<String, Value>) {
+    /** Exact opaque version, or null for a legacy unversioned schema. */
+    val version: String? get() = text("version")
     fun text(key: String): String? = (attributes[key] as? Value.Text)?.value
 }
 
@@ -248,6 +250,8 @@ data class Schema(
     val sources: List<String>,
 ) {
     val id: String get() = meta.id
+    val version: String? get() = meta.version
+    val identity: SchemaIdentity get() = SchemaIdentity(id, version)
 }
 
 /** User data for one calculation run ("Fall", engagement file). */
@@ -274,7 +278,12 @@ data class CaseData(
     val inputOrigins: Map<String, Map<String, String>> = emptyMap(),
     /** Exact scalar, row and column positions available in the case source. */
     val inputCells: Map<String, List<InputCellLocation>> = emptyMap(),
+    /** Authored links remain separate from the materialized inputs of a calculation. */
+    val links: List<CaseLink> = emptyList(),
+    /** Detached source provenance for each explicitly materialized linked coordinate. */
+    val linkInputs: Map<InputAddress, LinkProvenance> = emptyMap(),
 ) {
+    val schemaVersion: String? get() = text("schema-version")
     fun text(key: String): String? = (meta[key] as? Value.Text)?.value
 
     companion object {

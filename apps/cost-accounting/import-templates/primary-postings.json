@@ -4,6 +4,10 @@
   "options": {
     "input": "primary-postings",
     "delimiter": ";",
-    "decimal": ","
-  }
+    "decimal": ",",
+    "path": "data/primary-postings.csv"
+  },
+  "case": "case-demo.mantra",
+  "schema": "cost.accounting/product-cost",
+  "schema-version": "0.2"
 }

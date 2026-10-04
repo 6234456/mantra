@@ -11,6 +11,7 @@ internal fun ExcelWorkbookBuilder.reductionFormula(node: ViewNode, fixed: Map<St
     reductionExpressions.getOrPut(node.id to fixed.toMap()) { buildReductionFormula(node, fixed) }
 
 private fun ExcelWorkbookBuilder.buildReductionFormula(node: ViewNode, fixed: Map<String, String>): X.Scalar? {
+    reader.checkpoint()
     if (!node.type.isNumeric || node.check != null || node.reconcile != null) return null
     val contextDims = node.dims.filter { it in fixed }
     val coord = contextDims.map(fixed::getValue)
@@ -72,7 +73,11 @@ private fun ExcelWorkbookBuilder.reductionMembers(
     }.toSet()
     val aligned = fixed.filterKeys { it in related }
     aligned.forEach { (axis, key) ->
-        if (members[axis].orEmpty().none { it.key == key }) throw Untranslatable("unknown member $key of $axis")
+        val missing = members[axis].orEmpty().none {
+            reader.chargeScans()
+            it.key == key
+        }
+        if (missing) throw Untranslatable("unknown member $key of $axis")
     }
     val boundary = node.boundary?.takeIf { it.dimension !in aligned }
     val selection = boundary?.let { rule ->
@@ -80,6 +85,7 @@ private fun ExcelWorkbookBuilder.reductionMembers(
         val keys = members[rule.dimension].orEmpty().map { it.key }
             .let { if (rule.boundary == BoundaryAggregation.Boundary.FIRST) it else it.reversed() }
         keys.associateWith { key ->
+            reader.chargeScans()
             val inScope = reductionScope(rule.dimension, key, aligned)
             val withoutPrior = when (prior) {
                 Ex.FALSE -> Ex.TRUE
@@ -93,6 +99,7 @@ private fun ExcelWorkbookBuilder.reductionMembers(
         }
     }.orEmpty()
     return nodeSlots[node.id]?.keys.orEmpty().mapNotNull { at ->
+        reader.chargeCoordinateVisits()
         val scope = conjunction(node.dims.mapIndexed { index, axis -> reductionScope(axis, at[index], aligned) })
         val selected = boundary?.let { selection.getValue(at[node.dims.indexOf(it.dimension)]) } ?: Ex.TRUE
         if (scope == Ex.FALSE ||
@@ -130,6 +137,7 @@ private fun ExcelWorkbookBuilder.reductionScope(axis: String, member: String, fi
             )
         } else {
             members[dimension].orEmpty().foldRight(Ex.EMPTY) { candidate, otherwise ->
+                reader.chargeScans()
                 val parentKey = translator.toScalar(
                     record(dimension, candidate.key, column)
                         ?: throw Untranslatable("missing parent relation $dimension.$column"),
@@ -193,6 +201,7 @@ private fun ExcelWorkbookBuilder.reductionChunks(
     var chunk = mutableListOf<X.Scalar>()
     var length = 0
     for (original in terms) {
+        reader.chargeScans()
         val term = if (original.text.length > 1000) materializeExpression(original) else original
         if (length + term.text.length > 5000 || chunk.size >= 200) {
             cells += materializeExpression(Ex.fn(operation, chunk, kind))

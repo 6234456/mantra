@@ -1,5 +1,7 @@
 package com.xqiou.mantra.excel
 
+import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.RunUsage
 import com.xqiou.mantra.core.view.Coord
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.util.CellReference
@@ -14,9 +16,13 @@ class ExcelOptions(
     val evaluate: Boolean = true,
     val maxSheets: Int = Int.MAX_VALUE,
     val maxCells: Int = Int.MAX_VALUE,
+    /** Actual callback translation rows across this export; independent of engine iteration budgets. */
+    val maxConvergenceSteps: Int = 100_000,
+    /** One read request spanning paper construction, formula translation and POI evaluation. */
+    val reading: CalculationOptions = CalculationOptions(),
 ) {
     init {
-        require(maxSheets > 0 && maxCells > 0)
+        require(maxSheets > 0 && maxCells > 0 && maxConvergenceSteps >= 0)
     }
 }
 
@@ -44,6 +50,7 @@ class ExcelReport(
     /** Cells that hold a computed value instead of a formula, with the reason. */
     val fallbacks: List<ExcelFallback>,
     val evaluationErrors: List<String>,
+    val readingUsage: RunUsage? = null,
 )
 
 /** A generated workbook plus the map of where every node lives (used by tests and re-import). */

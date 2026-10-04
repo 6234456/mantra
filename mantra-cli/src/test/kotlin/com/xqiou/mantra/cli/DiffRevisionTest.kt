@@ -1,72 +1,83 @@
 package com.xqiou.mantra.cli
 
-import com.xqiou.mantra.core.Mantra
-import com.xqiou.mantra.core.data.Json
+import com.xqiou.mantra.core.api.CaseGraphRunner
+import com.xqiou.mantra.core.api.CaseReference
+import com.xqiou.mantra.core.api.CaseRunRequest
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.workbench.CasePackageLoader
+import com.xqiou.mantra.workbench.CasePackageOverrides
 import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class DiffRevisionTest {
     @Test
-    fun `revision is independent of checkout and external file paths but preserves parameter order`() {
-        val temp = Files.createTempDirectory("mantra-diff-revision-")
-        try {
-            fun files(root: Path): Triple<Path, Path, List<Path>> {
-                val schema = root.resolve("work/schema.mantra")
-                val source = root.resolve("work/fragment.mantra")
-                val case = root.resolve("external/case.mantra")
-                val first = root.resolve("external/first.mantra")
-                val second = root.resolve("external/second.mantra")
-                listOf(schema, source, case, first, second).forEach { Files.createDirectories(it.parent) }
-                Files.writeString(schema, "schema bytes")
-                Files.writeString(source, "fragment bytes")
-                Files.writeString(case, "case bytes")
-                Files.writeString(first, "first parameters")
-                Files.writeString(second, "second parameters")
-                return Triple(schema, case, listOf(first, second))
+    fun `CLI diff revision uses both actual graph revisions and compares source parameterized values`() {
+        CliGraphFixture().use { fixture ->
+            fun revision(parameters: List<java.nio.file.Path>?): String {
+                val loader = CasePackageLoader(
+                    fixture.workspace,
+                    CasePackageOverrides(
+                        "case.mantra",
+                        schemaPath = fixture.schema,
+                        parameterPaths = parameters,
+                    ),
+                )
+                return CaseGraphRunner(loader).use { runner ->
+                    val graph = runner.run(CaseRunRequest(CaseReference("case.mantra")))
+                    assertTrue(graph.succeeded, graph.diagnostics.toString())
+                    graph.cases.getValue(requireNotNull(graph.root)).revision
+                }
             }
-            val (schemaA, caseA, paramsA) = files(temp.resolve("checkout-a"))
-            val (schemaB, caseB, paramsB) = files(temp.resolve("checkout-b"))
-            fun revision(schema: Path, case: Path, params: List<Path>) = DiffRevision.calculate(
-                schema,
-                listOf("schema.mantra", "fragment.mantra"),
-                case,
-                null,
-                null,
-                emptyList(),
-                params,
-            )
-            val first = revision(schemaA, caseA, paramsA)
-            assertEquals(first, revision(schemaB, caseB, paramsB))
-            assertNotEquals(first, revision(schemaA, caseA, paramsA.reversed()))
-            Files.writeString(paramsB[0], "changed parameters")
-            assertNotEquals(first, revision(schemaB, caseB, paramsB))
-        } finally {
-            Files.walk(temp).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) }
+            val base = revision(null)
+            val variant = revision(listOf(fixture.overrideParameters))
+            val output = fixture.command("diff", "--variant-parameters", fixture.overrideParameters.toString())
+            assertEquals(0, output.status, output.err)
+            val envelope = output.json()
+            assertEquals(DiffRevision.calculate(base, variant), envelope.textAt("revision"))
+            assertNotEquals(DiffRevision.calculate(base, variant), DiffRevision.calculate(variant, base))
+            val groups = envelope.objectAt("data").entry("changes") as Value.Vec
+            val change = groups.items.flatMap { group -> ((group as Value.MapV).entry("items") as Value.Vec).items }
+                .map { it as Value.MapV }.single { it.textAt("node") == "answer" }
+            assertEquals("12", change.objectAt("base").textAt("n"))
+            assertEquals("36", change.objectAt("variant").textAt("n"))
+            assertEquals("24", change.objectAt("delta").textAt("n"))
         }
     }
 
     @Test
-    fun `CLI revision matches the ESt Compare golden`() {
-        val directory = Path.of("apps/de-est")
-        val schemaPath = directory.resolve("schema.mantra")
-        val schema = Mantra.loadSchema(schemaPath)
-        val revision = DiffRevision.calculate(
-            schemaPath,
-            schema.sources,
-            directory.resolve("case-mustermann.mantra"),
-            null,
-            directory.resolve("layout.mantra"),
-            emptyList(),
-            listOf(directory.resolve("params-2026.mantra")),
-        )
-        val goldenPath = Path.of(
-            "mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json",
-        )
-        val golden = Json.parse(Files.readString(goldenPath)) as Value.MapV
-        assertEquals(revision, (golden.entries.getValue(Value.Kw("revision")) as Value.Text).value)
+    fun `participating upstream bytes change comparison revision even when financial values stay equal`() {
+        CliGraphFixture().use { fixture ->
+            val first = fixture.command("diff", "--variant-parameters", fixture.overrideParameters.toString())
+            assertEquals(0, first.status, first.err)
+            Files.writeString(
+                fixture.sourceCase,
+                Files.readString(fixture.sourceCase) + ";; revised source provenance\n",
+            )
+            val second = fixture.command("diff", "--variant-parameters", fixture.overrideParameters.toString())
+            assertEquals(0, second.status, second.err)
+            assertNotEquals(first.json().textAt("revision"), second.json().textAt("revision"))
+            assertEquals(first.json().objectAt("data"), second.json().objectAt("data"))
+        }
+    }
+
+    @Test
+    fun `actual revisions are independent of absolute checkout locations`() {
+        CliGraphFixture().use { first ->
+            CliGraphFixture().use { second ->
+                val firstParameters = first.workspace.resolve("variant-parameters.mantra")
+                val secondParameters = second.workspace.resolve("variant-parameters.mantra")
+                Files.copy(first.overrideParameters, firstParameters)
+                Files.copy(second.overrideParameters, secondParameters)
+                val before = first.command("diff", "--variant-parameters", firstParameters.toString())
+                val after = second.command("diff", "--variant-parameters", secondParameters.toString())
+                assertEquals(0, before.status, before.err)
+                assertEquals(0, after.status, after.err)
+                assertEquals(before.json().textAt("revision"), after.json().textAt("revision"))
+                assertEquals(before.json().objectAt("data"), after.json().objectAt("data"))
+            }
+        }
     }
 }

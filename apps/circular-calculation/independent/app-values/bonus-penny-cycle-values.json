@@ -1,0 +1,9 @@
+{
+  "base": "0.01",
+  "rate": "0.5",
+  "seed": "0",
+  "tolerance": "0",
+  "maximum-calls": "60",
+  "money-scale": "2",
+  "residual-tolerance": "0.01"
+}

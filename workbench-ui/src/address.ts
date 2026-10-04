@@ -10,12 +10,12 @@ export function addressToPath(address: Address): string {
   return `${encodePart(address.node)}${members}${cell}`
 }
 
-export function addressFromPath(path: string): Address | null {
+export function addressFromPath(path: string, sourceCase: string | null = null): Address | null {
   try {
     const [beforeCell, cellText] = path.split('#', 2)
     const [nodeText, ...coordText] = beforeCell.split('@')
     if (!nodeText) return null
-    const result: Address = { node: decodeURIComponent(nodeText) }
+    const result: Address = { case: sourceCase, node: decodeURIComponent(nodeText) }
     if (coordText.length) result.coord = coordText.join('@').split('/').map(decodeURIComponent)
     if (cellText) {
       const separator = cellText.indexOf('.')
@@ -31,5 +31,14 @@ export function addressFromPath(path: string): Address | null {
   }
 }
 
-export const addressKey = (address: Address) => addressToPath(address)
+export const addressKey = (address: Address) => JSON.stringify([address.case ?? null, addressToPath(address)])
 export const casePath = (caseId: string) => `/cases/${encodePart(caseId)}`
+
+/** Keep the resource case fixed while identifying the source snapshot explicitly. */
+export function provenancePath(rootCase: string, address: Address, expectedRevision?: string): string {
+  const query = new URLSearchParams()
+  if (address.case) query.set('case', address.case)
+  if (expectedRevision) query.set('expectedRevision', expectedRevision)
+  const suffix = query.size ? '?' + query.toString() : ''
+  return casePath(rootCase) + '/provenance/' + encodeURIComponent(addressToPath(address)) + suffix
+}

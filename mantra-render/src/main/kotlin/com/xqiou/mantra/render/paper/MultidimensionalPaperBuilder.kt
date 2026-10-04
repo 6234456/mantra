@@ -1,6 +1,7 @@
 package com.xqiou.mantra.render.paper
 
 import com.xqiou.mantra.core.DiagnosticSink
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.CalculationView
@@ -32,6 +33,7 @@ internal class MultidimensionalPaperBuilder(
     private val includeAll: Boolean,
     private val auditNode: (ViewNode, String, String) -> Unit,
     private val nextDocumentNumber: () -> String,
+    private val reader: CalculationReader,
 ) {
     private val numbers = NumberFormatter(layout.number)
     private val rowDimension = requireNotNull(spec.rowDimension)
@@ -39,6 +41,7 @@ internal class MultidimensionalPaperBuilder(
     private var rowNumber = 0
     private val visibleNodeIds = buildSet {
         fun visit(item: ViewItem) {
+            reader.chargeScans()
             when (item) {
                 is ViewSection -> if (item.id !in layout.hidden && !item.item.presentation.hidden &&
                     item.item.display != com.xqiou.mantra.core.model.SectionDisplay.HIDDEN
@@ -53,6 +56,7 @@ internal class MultidimensionalPaperBuilder(
     }
     private val nodes = buildList {
         fun visit(item: ViewItem) {
+            reader.chargeScans()
             when (item) {
                 is ViewSection -> if (item.id !in layout.hidden &&
                     item.item.display != com.xqiou.mantra.core.model.SectionDisplay.HIDDEN &&
@@ -119,11 +123,13 @@ internal class MultidimensionalPaperBuilder(
     }
 
     fun build(): PaperTable {
+        reader.checkpoint()
         validate()
         val rows = mutableListOf<PaperRow>()
         val members = view.members.getValue(rowDimension)
         if (style == TableStyle.TRANSPOSE) {
             members.forEach { member ->
+                reader.chargeScans()
                 transposeRow(member.label, spec.fixed + (rowDimension to member.key), rows.size)?.let(rows::add)
             }
             if (members.isNotEmpty()) {
@@ -136,6 +142,7 @@ internal class MultidimensionalPaperBuilder(
             }
         } else {
             members.forEach { member ->
+                reader.chargeScans()
                 rows += row(RowKind.HEADING, member.label, emptyList(), emptyList(), rows.size)
                 matrixRows(spec.fixed + (rowDimension to member.key), rows)
             }
@@ -266,8 +273,8 @@ internal class MultidimensionalPaperBuilder(
     private fun valueCell(node: ViewNode, fixed: Map<String, String>): Pair<String, PaperValueAddress?> {
         val coords = slice(node, fixed)
         if (coords.isEmpty()) return "" to null
-        val complete = view.coordinate(node.id, fixed)
-        val value = if (complete != null) node.value(complete) else view.reduce(node.id, fixed).value
+        val complete = reader.coordinate(view, node.id, fixed)
+        val value = if (complete != null) node.value(complete) else reader.reduce(view, node.id, fixed).value
         if (value == null) return "" to null
         val address = if (complete != null) {
             PaperValueAddress(node.id, complete)
@@ -302,7 +309,7 @@ internal class MultidimensionalPaperBuilder(
         return text to address
     }
 
-    private fun slice(node: ViewNode, fixed: Map<String, String>) = view.coordinates(node.id, fixed)
+    private fun slice(node: ViewNode, fixed: Map<String, String>) = reader.coordinates(view, node.id, fixed)
 
     private fun zero(node: ViewNode, coords: List<List<String>>) =
         coords.all { (node.value(it) as? Value.Num)?.value?.signum() == 0 }

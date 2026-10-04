@@ -1,0 +1,170 @@
+Gewerbesteuer 2025 — demonstration
+==================================
+Mandant: Gewerbesteuer 2025: rate 400 from typed CSV
+Zeitraum: 2025
+Berechnungsschema: Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]
+Trade tax due: 14.420,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Financing addition [3]
+      ↳ Weighted financing expenses [1]    → 1 · Unweighted supplied expenses
+  Hauptlinie 2: Trade-tax assessment [4]  127.500,00
+  Nebeninformation: Expense totals by category [2]
+
+[1] Weighted financing expenses
+    Hauptlinie › 1 Financing addition › „Unweighted supplied expenses“ › Weighted financing expenses
+Zeile | Bezeichnung                               |         F1 |         F2 |         F3 |        F4 |     Gesamt |
+------+-------------------------------------------+------------+------------+------------+-----------+------------+--
+1     | Supplied expense                          | 150.000,00 | 100.000,00 | 100.000,00 | 40.000,00 | 390.000,00 |
+2     | Selected statutory fraction               |   100,00 % |    20,00 % |    50,00 % |   25,00 % |            |
+3     | Selected weighted expense                 | 150.000,00 |  20.000,00 |  50.000,00 | 10.000,00 | 230.000,00 |
+4     | Supplied financing expense is nonnegative |          ✓ |          ✓ |          ✓ |         ✓ |            | ✓
+5     | Supplied category is recognized           |          ✓ |          ✓ |          ✓ |         ✓ |            | ✓
+
+[2] Expense totals by category
+    Hauptlinie › Expense totals by category
+Zeile | Bezeichnung                       |       debt | movable-rent | immovable-rent |   licence |     Gesamt
+------+-----------------------------------+------------+--------------+----------------+-----------+-----------
+1     | Supplied expense in this category | 150.000,00 |   100.000,00 |     100.000,00 | 40.000,00 | 390.000,00
+
+[3] Financing addition
+    Hauptlinie › 1 Financing addition
+Zeile | Bezeichnung                    |        EUR
+------+--------------------------------+-----------
+1     | Unweighted supplied expenses   | 390.000,00
+2     | Selected weighted total        | 230.000,00
+3     | Weighted total above allowance |  30.000,00
+4     | Financing addition             |   7.500,00
+
+[4] Trade-tax assessment
+    Hauptlinie › 2 Trade-tax assessment
+Zeile |   | Bezeichnung                                             |        EUR |   | Rechtsgrundlage
+------+---+---------------------------------------------------------+------------+---+-------------------
+1     |   | Profit                                                  | 120.000,00 |   |
+2     |   | Selected § 8 addition (→ Tabelle 3)                     |   7.500,00 |   |
+     -+- -+-                                                       -+------------+- -+-
+3     | = | Trade earnings before full-hundred rounding             | 127.500,00 | Σ |
+     =+= =+=                                                       =+============+= =+=
+4     |   | Trade earnings floored to full hundreds                 | 127.500,00 |   | § 11 Abs. 1 GewStG
+5     |   | Selected personal allowance actually used               |  24.500,00 |   |
+6     |   | Nonnegative assessment base                             | 103.000,00 |   |
+7     |   | Trade-tax assessment amount                             |   3.605,00 |   |
+8     |   | Trade tax due                                           |  14.420,00 |   |
+9     |   | Source profit less unchanged income-tax trade profit    |       0,00 |   |
+10    |   | Demonstration supports a natural-person sole proprietor |          ✓ | ✓ |
+11    |   | Hebesatz meets the historical 2025 minimum              |          ✓ | ✓ |
+12    |   | Selected demonstration has no § 9 deduction             |          ✓ | ✓ |
+
+Berechnungsnachweis
+-------------------
+1/1 Σ Supplied expense (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [cost=F1] 150000 included; [cost=F2] 100000 included; [cost=F3] 100000 included; [cost=F4] 40000 included → 390000 = 390.000,00
+1/2 Selected statutory fraction [F1]
+    Formel: (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)
+    Rechenweg: (= cost.category :debt) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 1 → gewählter Zweig: debt-weight = 100,00 %
+1/2 Selected statutory fraction [F2]
+    Formel: (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)
+    Rechenweg: (= cost.category :debt) = false → (= cost.category :movable-rent) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.2 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.2 → gewählter Zweig: movable-rent-weight = 20,00 %
+1/2 Selected statutory fraction [F3]
+    Formel: (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)
+    Rechenweg: (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → gewählter Zweig: immovable-rent-weight = 50,00 %
+1/2 Selected statutory fraction [F4]
+    Formel: (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)
+    Rechenweg: (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = false → (= cost.category :licence) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → gewählter Zweig: licence-weight = 25,00 %
+1/3 Σ Selected weighted expense (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [cost=F1] 150000 included; [cost=F2] 20000.0 included; [cost=F3] 50000.0 included; [cost=F4] 10000.00 included → 230000.00 = 230.000,00
+1/3 Selected weighted expense [F1]
+    Formel: (* fee-amount weighting-fraction)
+    Rechenweg: (* fee-amount weighting-fraction) = 150000 = 150.000,00
+1/3 Selected weighted expense [F2]
+    Formel: (* fee-amount weighting-fraction)
+    Rechenweg: (* fee-amount weighting-fraction) = 20000.0 = 20.000,00
+1/3 Selected weighted expense [F3]
+    Formel: (* fee-amount weighting-fraction)
+    Rechenweg: (* fee-amount weighting-fraction) = 50000.0 = 50.000,00
+1/3 Selected weighted expense [F4]
+    Formel: (* fee-amount weighting-fraction)
+    Rechenweg: (* fee-amount weighting-fraction) = 10000.00 = 10.000,00
+1/4 Supplied financing expense is nonnegative [F1]
+    Formel: (>= fee-amount 0)
+    Rechenweg: (>= fee-amount 0) = true = ✓
+1/4 Supplied financing expense is nonnegative [F2]
+    Formel: (>= fee-amount 0)
+    Rechenweg: (>= fee-amount 0) = true = ✓
+1/4 Supplied financing expense is nonnegative [F3]
+    Formel: (>= fee-amount 0)
+    Rechenweg: (>= fee-amount 0) = true = ✓
+1/4 Supplied financing expense is nonnegative [F4]
+    Formel: (>= fee-amount 0)
+    Rechenweg: (>= fee-amount 0) = true = ✓
+1/5 Supplied category is recognized [F1]
+    Formel: (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))
+    Rechenweg: (= cost.category nil) = false → (= cost.category :debt) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true = ✓
+1/5 Supplied category is recognized [F2]
+    Formel: (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))
+    Rechenweg: (= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true = ✓
+1/5 Supplied category is recognized [F3]
+    Formel: (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))
+    Rechenweg: (= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true = ✓
+1/5 Supplied category is recognized [F4]
+    Formel: (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))
+    Rechenweg: (= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = false → (= cost.category :licence) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true = ✓
+2/1 Σ Supplied expense in this category (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [fee-category=debt] 150000 included; [fee-category=movable-rent] 100000 included; [fee-category=immovable-rent] 100000 included; [fee-category=licence] 40000 included → 390000 = 390.000,00
+2/1 Supplied expense in this category [debt]
+    Formel: (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))
+    Rechenweg: (fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 150000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 150000 → gewählter Zweig: row.amount → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 = 150.000,00
+2/1 Supplied expense in this category [movable-rent]
+    Formel: (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))
+    Rechenweg: (fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 100000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 100000 → gewählter Zweig: 0 → gewählter Zweig: row.amount → gewählter Zweig: 0 → gewählter Zweig: 0 = 100.000,00
+2/1 Supplied expense in this category [immovable-rent]
+    Formel: (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))
+    Rechenweg: (fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 100000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 100000 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: row.amount → gewählter Zweig: 0 = 100.000,00
+2/1 Supplied expense in this category [licence]
+    Formel: (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))
+    Rechenweg: (fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 40000 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 40000 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: row.amount = 40.000,00
+3/1 Unweighted supplied expenses
+    Formel: (dim/sum all.fee-amount)
+    Rechenweg: (dim/sum all.fee-amount) = 390000 = 390.000,00
+3/2 Selected weighted total
+    Formel: (dim/sum all.weighted-fee)
+    Rechenweg: (dim/sum all.weighted-fee) = 230000.00 = 230.000,00
+3/3 Weighted total above allowance
+    Formel: (max (- weighted-financing-total financing-allowance) 0)
+    Rechenweg: (- weighted-financing-total financing-allowance) = 30000.00 → (max (- weighted-financing-total financing-allowance) 0) = 30000.00 = 30.000,00
+3/4 Financing addition
+    Formel: (* financing-excess financing-addition-rate)
+    Rechenweg: (* financing-excess financing-addition-rate) = 7500.0000 = 7.500,00
+4/3 Trade earnings before full-hundred rounding
+    Formel: assessment-profit + assessment-addition − assessment-deductions
+    Rechenweg: 120000 + 7500.0000 − 0 = 127.500,00
+4/4 Trade earnings floored to full hundreds
+    Formel: (decimal/floor gewerbeertrag -2)
+    Rechenweg: (decimal/floor gewerbeertrag -2) = 127500 = 127.500,00
+4/5 Selected personal allowance actually used
+    Formel: (min personal-allowance (max gewerbeertrag-rounded-hundreds 0))
+    Rechenweg: (max gewerbeertrag-rounded-hundreds 0) = 127500 → (min personal-allowance (max gewerbeertrag-rounded-hundreds 0)) = 24500 = 24.500,00
+4/6 Nonnegative assessment base
+    Formel: (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0)
+    Rechenweg: (- gewerbeertrag-rounded-hundreds applied-freibetrag) = 103000 → (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0) = 103000 = 103.000,00
+4/7 Trade-tax assessment amount
+    Formel: (* assessment-base assessment-rate)
+    Rechenweg: (* assessment-base assessment-rate) = 3605.000 = 3.605,00
+4/8 Trade tax due
+    Formel: (decimal/divide (* messbetrag hebesatz-percent) 100 2)
+    Rechenweg: (* messbetrag hebesatz-percent) = 1442000.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 14420.00 = 14.420,00
+4/9 Source profit less unchanged income-tax trade profit
+    Formel: (- profit assessment-profit)
+    Rechenweg: (- profit assessment-profit) = 0 = 0,00
+4/10 Demonstration supports a natural-person sole proprietor
+    Formel: (= entity :natural-person-sole-proprietor)
+    Rechenweg: (= entity :natural-person-sole-proprietor) = true = ✓
+4/11 Hebesatz meets the historical 2025 minimum
+    Formel: (>= hebesatz-percent historical-minimum-hebesatz)
+    Rechenweg: (>= hebesatz-percent historical-minimum-hebesatz) = true = ✓
+4/12 Selected demonstration has no § 9 deduction
+    Formel: (= section9-deductions 0)
+    Rechenweg: (= section9-deductions 0) = true = ✓

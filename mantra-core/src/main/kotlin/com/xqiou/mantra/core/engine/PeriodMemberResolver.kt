@@ -3,6 +3,8 @@ package com.xqiou.mantra.core.engine
 import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.SourceLocation
+import com.xqiou.mantra.core.api.RunCounter
+import com.xqiou.mantra.core.api.RunStage
 import com.xqiou.mantra.core.model.PeriodEntry
 import com.xqiou.mantra.core.model.PeriodSpec
 import com.xqiou.mantra.core.model.Value
@@ -48,8 +50,11 @@ internal data class ResolvedPeriodDimension(
         member.parentKey?.let { member.key to it }
     }.toMap()
 
-    fun previous(key: String): PeriodMember? {
-        val index = periods.indexOfFirst { it.key == key }
+    fun previous(key: String, context: RunContext? = null): PeriodMember? {
+        val index = periods.indexOfFirst {
+            context?.charge(RunCounter.HOST_SCANS)
+            it.key == key
+        }
         require(index >= 0) { "Unknown member $key of $id" }
         return periods.getOrNull(index - 1)
     }
@@ -69,9 +74,22 @@ internal class PeriodMemberResolver(
         spec: PeriodSpec,
         location: SourceLocation,
         parent: ResolvedPeriodDimension? = null,
+        context: RunContext? = null,
+    ): ResolvedPeriodDimension? = if (context == null) {
+        resolveCurrent(id, spec, location, parent, null)
+    } else {
+        context.at(RunStage.DOMAIN, context.nodeAddress(id)) { resolveCurrent(id, spec, location, parent, context) }
+    }
+
+    private fun resolveCurrent(
+        id: String,
+        spec: PeriodSpec,
+        location: SourceLocation,
+        parent: ResolvedPeriodDimension?,
+        context: RunContext?,
     ): ResolvedPeriodDimension? {
         val entries = when (spec) {
-            is PeriodSpec.Generated -> generated(id, spec, location) ?: return null
+            is PeriodSpec.Generated -> generated(id, spec, location, context) ?: return null
             is PeriodSpec.Listed -> spec.entries
         }
         if (entries.isEmpty()) {
@@ -88,9 +106,11 @@ internal class PeriodMemberResolver(
             return null
         }
 
+        context?.coordinateProduct(listOf(entries.size.toLong()))
         var valid = true
         val seen = mutableSetOf<String>()
         entries.forEachIndexed { index, entry ->
+            context?.charge(RunCounter.HOST_SCANS)
             val at = entry.location ?: location
             if (entry.key.isBlank() || !seen.add(entry.key)) {
                 error("MANTRA-PERIOD-KEY", "Period $id has a blank or duplicate key ${entry.key}", id, at)
@@ -124,12 +144,14 @@ internal class PeriodMemberResolver(
         } else {
             entries.map { entry ->
                 val owners = parent.periods.filter {
+                    context?.charge(RunCounter.HOST_SCANS)
                     it.start <= entry.start && entry.endExclusive <= it.endExclusive
                 }
                 if (owners.size == 1) {
                     owners.single().key
                 } else {
                     val overlapping = parent.periods.count {
+                        context?.charge(RunCounter.HOST_SCANS)
                         entry.start < it.endExclusive && it.start < entry.endExclusive
                     }
                     val reason = when {
@@ -153,6 +175,7 @@ internal class PeriodMemberResolver(
         return ResolvedPeriodDimension(
             id,
             entries.mapIndexed { index, entry ->
+                context?.charge(RunCounter.HOST_SCANS)
                 PeriodMember(
                     entry.key,
                     entry.label ?: "${entry.start} – ${entry.endExclusive.minusDays(1)}",
@@ -167,7 +190,12 @@ internal class PeriodMemberResolver(
         )
     }
 
-    private fun generated(id: String, spec: PeriodSpec.Generated, location: SourceLocation): List<PeriodEntry>? {
+    private fun generated(
+        id: String,
+        spec: PeriodSpec.Generated,
+        location: SourceLocation,
+        context: RunContext?,
+    ): List<PeriodEntry>? {
         if (spec.count !in 1..maxMembers) {
             error(
                 "MANTRA-PERIOD-COUNT",
@@ -177,12 +205,15 @@ internal class PeriodMemberResolver(
             )
             return null
         }
+        context?.coordinateProduct(listOf(spec.count.toLong()))
         return try {
             // Always advance from the original anchor: Jan 31 → Feb 28 → Mar 31.
             val boundaries = (0..spec.count).map { index ->
+                context?.charge(RunCounter.HOST_SCANS)
                 spec.start.plusMonths(Math.multiplyExact(index.toLong(), spec.unit.months))
             }
             List(spec.count) { index ->
+                context?.charge(RunCounter.HOST_SCANS)
                 PeriodEntry("P${index + 1}", boundaries[index], boundaries[index + 1], location = location)
             }
         } catch (_: DateTimeException) {

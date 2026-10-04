@@ -72,6 +72,39 @@ const scenarios = [
     address: 'liability-closing@Office/P2',
     rowLabel: 'Closing lease liability',
   },
+  {
+    id: 'de-est/versions/2025.3/case-consumer-2025.mantra',
+    heading: 'Einkommensteuer 2025 — selected loss and § 35 demonstration',
+    result: '0,00',
+    panel: 'zve',
+    cell: '-36,00',
+    address: 'einkommen',
+    linkedSource: true,
+  },
+  {
+    id: 'de-gewst/case-rate-400.mantra',
+    heading: 'Gewerbesteuer 2025 — fictional sole proprietor',
+    result: '14.420,00',
+    panel: 'trade-assessment',
+    cell: '127.500,00',
+    address: 'gewerbeertrag',
+  },
+  {
+    id: 'circular-calculation/bonus/case-bonus-main.mantra',
+    heading: 'Circular bonus calculation',
+    result: '9,090.91',
+    panel: 'solution',
+    cell: '9,090.91',
+    address: 'converged-amount',
+  },
+  {
+    id: 'circular-calculation/gross-up/case-gross-up-main.mantra',
+    heading: 'Fictional net-to-gross calculation',
+    result: '1,333.33',
+    panel: 'solution',
+    cell: '1,333.33',
+    address: 'converged-amount',
+  },
 ]
 
 async function freePort() {
@@ -261,6 +294,26 @@ try {
       `${scenario.id} overview`,
     )
     assert.equal(await evaluate("document.querySelector('.result-card strong')?.textContent"), scenario.result)
+    if (scenario.linkedSource) {
+      const sourceUrl = await evaluate(
+        "document.querySelector('.case-chain-evidence a[href*=\"/provenance/\"]')?.getAttribute('href')",
+      )
+      assert.ok(sourceUrl, 'Linked source Explain is available')
+      const source = new URL(sourceUrl, `http://127.0.0.1:${port}`)
+      assert.equal(source.searchParams.get('case'), 'de-est/versions/2024.1/case-source-2024.mantra')
+      assert.match(source.searchParams.get('expectedRevision'), /^[a-f0-9]{64}$/)
+      await session.send('Page.navigate', { url: source.href })
+      await until(
+        async () =>
+          await evaluate(
+            "document.querySelector('.page-heading h1')?.textContent === 'Closing loss carried once into the next year'",
+          ),
+        'Captured source Explain',
+      )
+      assert.equal(await evaluate("document.querySelector('.page-heading p')?.textContent"), '45.000,00')
+      await session.send('Page.navigate', { url: `http://127.0.0.1:${port}${base}/overview` })
+      await until(async () => await evaluate("!!document.querySelector('.mainline-map')"), 'Return to linked root')
+    }
     const panelUrl = `${base}/panels/${scenario.panel}`
     assert.equal(
       await evaluate(

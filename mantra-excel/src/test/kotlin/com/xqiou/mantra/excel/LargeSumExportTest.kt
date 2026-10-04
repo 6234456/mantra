@@ -58,6 +58,14 @@ class LargeSumExportTest {
                 evaluator.clearAllCachedResultValues()
                 assertEquals(500510.0, evaluator.evaluate(total).numberValue)
                 assertEquals(2816.0, evaluator.evaluate(duplicate).numberValue)
+                // Error effects are preserved even when repeated references need helper formulas.
+                val input = cell(export, requireNotNull(export.tableAddress("facts", 0, "amount")))
+                input.setCellErrorValue(FormulaError.DIV0.code)
+                evaluator.clearAllCachedResultValues()
+                assertEquals(FormulaError.DIV0.code, evaluator.evaluate(duplicate).errorValue)
+                input.setCellValue(11.0)
+                evaluator.clearAllCachedResultValues()
+                assertEquals(2816.0, evaluator.evaluate(duplicate).numberValue)
             }
         }
     }

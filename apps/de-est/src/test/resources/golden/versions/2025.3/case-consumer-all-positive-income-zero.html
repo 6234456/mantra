@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einkommensteuer 2025 – Steuerberechnung</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Einkommensteuer 2025 – Steuerberechnung</h1>
+<p class="subtitle">Arbeitspapier: Ermittlung nach § 2 EStG / R 2 EStR mit Nebenrechnungen</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Mandant</dt><dd>Income tax 2025: linked trade case all-positive-income-zero</dd></div>
+<div><dt>Zeitraum</dt><dd>Veranlagungszeitraum 2025</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Einkommensteuer 2025 — selected loss and § 35 demonstration v2025.3 [de.est/2025]</dd></div>
+<div><dt>Verknüpfter Eingang gewst-messbetrag@A</dt><dd>de-gewst/case-all-positive-income-zero.mantra#messbetrag@ · de.gewst/2025@2025.1 · 8fed102e39d2cc035f2d9350c879d3cb9212ce3bd4a4eab67ad28db20c6d07b8</dd></div>
+<div><dt>Verknüpfter Eingang gewst-due@A</dt><dd>de-gewst/case-all-positive-income-zero.mantra#gewerbesteuer@ · de.gewst/2025@2025.1 · 8fed102e39d2cc035f2d9350c879d3cb9212ce3bd4a4eab67ad28db20c6d07b8</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Ausgeglichen</strong> 0,00</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Aufbau der Berechnung</h2>
+<ol class="mainline" aria-label="Hauptlinie">
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Hauptlinie 1</span><span class="title">Ermittlung des zu versteuernden Einkommens</span><span class="value">-36,00</span></a>
+<ul class="branches">
+<li><a class="card" href="#table-8"><span class="title">↳ Einkünfte aus den einzelnen Einkunftsarten</span><span class="value">0,00</span><span class="entry">→ 1 · Summe der Einkünfte, → 2 · Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)</span></a></li>
+<li><a class="card" href="#table-9"><span class="title">↳ Sonderausgaben</span><span class="value">36,00</span><span class="entry">→ 1 · Sonderausgaben</span></a></li>
+<li><a class="card" href="#table-10"><span class="title">↳ Außergewöhnliche Belastungen</span><span class="value">0,00</span><span class="entry">→ 1 · Außergewöhnliche Belastungen</span></a></li>
+<li><span class="card"><span class="title">↳ Günstigerprüfung Kindergeld / Freibeträge für Kinder</span><span class="value"></span><span class="entry">→ 1 · Freibeträge für Kinder (soweit günstiger als Kindergeld), → 2 · Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen), → 3 · Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)</span></span></li>
+<li><a class="card" href="#table-1"><span class="title">↳ § 10d deduction capacity</span><span class="value"></span><span class="entry">→ 1 · Verlustabzug mit Sockelbetrag und Mindestbesteuerung</span></a></li>
+</ul>
+</li>
+<li class="step">
+<a class="card" href="#table-5"><span class="step-no">Hauptlinie 2</span><span class="title">Ermittlung der festzusetzenden Einkommensteuer</span><span class="value">0,00</span></a>
+<ul class="branches">
+<li><a class="card" href="#table-3"><span class="title">↳ § 35 attribution limit</span><span class="value"></span><span class="entry">→ 2 · Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)</span></a></li>
+</ul>
+</li>
+<li class="step">
+<a class="card" href="#table-6"><span class="step-no">Hauptlinie 3</span><span class="title">Solidaritätszuschlag und Kirchensteuer</span><span class="value">0,00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-7"><span class="step-no">Hauptlinie 4</span><span class="title">Abrechnung</span><span class="value">0,00</span></a>
+</li>
+</ol>
+<p class="aux"><strong>Nebeninformation:</strong> <a href="#table-2">§ 10d carryforward ledger</a> 0,00 · <a href="#table-12">Gesondert besteuerte Kapitalerträge (Abgeltungsteuer)</a> 0,00</p>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> § 10d deduction capacity</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Loss carryforward ledger</a></li>
+<li><a href="#table-3"><span class="ref">3</span> § 35 attribution limit</a></li>
+<li><a href="#table-4"><span class="ref">4</span> Ermittlung des zu versteuernden Einkommens (R 2 Abs. 1 EStR)</a></li>
+<li><a href="#table-5"><span class="ref">5</span> Ermittlung der festzusetzenden Einkommensteuer (R 2 Abs. 2 EStR)</a></li>
+<li><a href="#table-6"><span class="ref">6</span> Solidaritätszuschlag und Kirchensteuer</a></li>
+<li><a href="#table-7"><span class="ref">7</span> Abrechnung</a></li>
+<li><a href="#table-8"><span class="ref">8</span> Nebenrechnung: Einkünfte aus den Einkunftsarten</a></li>
+<li><a href="#table-9"><span class="ref">9</span> Nebenrechnung: Sonderausgaben</a></li>
+<li><a href="#table-10"><span class="ref">10</span> Nebenrechnung: Außergewöhnliche Belastungen</a></li>
+<li><a href="#table-12"><span class="ref">12</span> Nebenrechnung: Abgeltungsteuer</a></li>
+<li><a href="#audit"><span class="ref">§</span> Berechnungsnachweis</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Verlustabzug mit Sockelbetrag und Mindestbesteuerung“ › § 10d deduction capacity</p>
+<h2><span class="ref">1</span>§ 10d deduction capacity</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-label">
+<col class="c-main">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t1-r1" data-section="loss-cap" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r1" title="Berechnungsnachweis">1</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Full-use allowance</span></td>
+<td class="right num c-main" data-column="main">1.000.000,00</td>
+</tr>
+<tr class="value info" id="t1-r2" data-section="loss-cap" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r2" title="Berechnungsnachweis">2</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Allowance plus selected excess percentage</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › § 10d carryforward ledger</p>
+<h2><span class="ref">2</span>Loss carryforward ledger</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="total grand" id="t2-r1" data-section="loss-ledger" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Closing carryforward</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value info" id="t2-r2" data-section="loss-ledger" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r2" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening plus movements equals closing</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t2-r3" data-section="loss-ledger" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening loss is nonnegative</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t2-r4" data-section="loss-ledger" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r4" title="Berechnungsnachweis">4</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Eligible new loss is nonnegative</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t2-r5" data-section="loss-ledger" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r5" title="Berechnungsnachweis">5</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected carryback is waived</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Ermittlung der festzusetzenden Einkommensteuer › „Anrechnungsbetrag Gewerbesteuer (4,0 × Messbetrag, höchstens gezahlt)“ › § 35 attribution limit</p>
+<h2><span class="ref">3</span>§ 35 attribution limit</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-label">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Person A</th>
+<th class="right num c-crosstotal">Gesamt</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t3-r1" data-section="section35-basis" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t3-r1" title="Berechnungsnachweis">1</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Full-euro tariff income</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">-36,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens</p>
+<h2><span class="ref">4</span>Ermittlung des zu versteuernden Einkommens (R 2 Abs. 1 EStR)</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="total" id="t4-r1" data-section="zve" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Gesamtbetrag der Einkünfte</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference">§ 2 Abs. 3 EStG</td>
+</tr>
+<tr class="value" id="t4-r2" data-section="zve" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number">2</td>
+<td class="center c-operator" data-column="operator">./.</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Sonderausgaben (→ Tabelle 9) <a class="xref" href="#table-9">↗</a></span></td>
+<td class="right num c-main" data-column="main">36,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§§ 10–10c EStG</td>
+</tr>
+<tr class="total" id="t4-r3" data-section="zve" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Einkommen</span></td>
+<td class="right num c-main" data-column="main">-36,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference">§ 2 Abs. 4 EStG</td>
+</tr>
+<tr class="total grand" id="t4-r4" data-section="zve" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r4" title="Berechnungsnachweis">4</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Zu versteuerndes Einkommen</span></td>
+<td class="right num c-main" data-column="main">-36,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference">§ 2 Abs. 5 EStG</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-5">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Ermittlung der festzusetzenden Einkommensteuer</p>
+<h2><span class="ref">5</span>Ermittlung der festzusetzenden Einkommensteuer (R 2 Abs. 2 EStR)</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t5-r1" data-section="est" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">+</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Tarifliche Einkommensteuer</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§ 32a Abs. 1, 5 EStG</td>
+</tr>
+<tr class="total grand" id="t5-r2" data-section="est" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r2" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Festzusetzende Einkommensteuer</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference">§ 2 Abs. 6 EStG</td>
+</tr>
+<tr class="value info" id="t5-r3" data-section="est" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Durchschnittlicher Einkommensteuersatz</span></td>
+<td class="right num c-main" data-column="main">0,00 %</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-6">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 3 Solidaritätszuschlag und Kirchensteuer</p>
+<h2><span class="ref">6</span>Solidaritätszuschlag und Kirchensteuer</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t6-r1" data-section="zuschlagsteuern" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t6-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§ 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG</td>
+</tr>
+<tr class="total grand" id="t6-r2" data-section="zuschlagsteuern" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t6-r2" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Zuschlagsteuern</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-7">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 4 Abrechnung</p>
+<h2><span class="ref">7</span>Abrechnung</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Person A</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="total" id="t7-r1" data-section="abrechnung" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t7-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Festgesetzte Steuern</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+<tr class="total grand" id="t7-r2" data-section="abrechnung" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t7-r2" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Ausgeglichen</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value info" id="t7-r3" data-section="abrechnung" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t7-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Abrechnung stimmt mit Steuern und Zahlungen überein</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-8">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Summe der Einkünfte“ › Einkünfte aus den einzelnen Einkunftsarten</p>
+<h2><span class="ref">8</span>Nebenrechnung: Einkünfte aus den Einkunftsarten</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Person A</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="total grand" id="t8-r1" data-section="einkuenfte" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t8-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Summe der Einkünfte</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference">§ 2 Abs. 2 EStG</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-9">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Sonderausgaben“ › Sonderausgaben</p>
+<h2><span class="ref">9</span>Nebenrechnung: Sonderausgaben</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Person A</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="heading" data-section="vorsorge" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Vorsorgeaufwendungen</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§ 10 Abs. 1 Nr. 2, 3, 3a EStG</td>
+</tr>
+<tr class="value info" id="t9-r1" data-section="vorsorge" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number">1</td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Anspruch auf steuerfreie Zuschüsse zur Krankenversicherung</span></td>
+<td class="right num c-member" data-column="membersperson-A">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="result" id="t9-r2" data-section="vorsorge" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t9-r2-aggregate" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Abziehbare Vorsorgeaufwendungen</span></td>
+<td class="right num c-member" data-column="membersperson-A">0,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t9-r3" data-section="sonderausgaben" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t9-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator">+</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">36,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§ 10c EStG</td>
+</tr>
+<tr class="total grand" id="t9-r4" data-section="sonderausgaben" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t9-r4" title="Berechnungsnachweis">4</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Sonderausgaben insgesamt</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">36,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-10">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Außergewöhnliche Belastungen“ › Außergewöhnliche Belastungen</p>
+<h2><span class="ref">10</span>Nebenrechnung: Außergewöhnliche Belastungen</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="total grand" id="t10-r1" data-section="agb" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number">1</td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Außergewöhnliche Belastungen insgesamt</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-12">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › Gesondert besteuerte Kapitalerträge (Abgeltungsteuer)</p>
+<h2><span class="ref">12</span>Nebenrechnung: Abgeltungsteuer</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">Hauptspalte EUR</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="total grand" id="t12-r1" data-section="abgeltung" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t12-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Durch Steuerabzug abgegolten</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Berechnungsnachweis</h2>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1">
+<td class="left cite"><a href="#t1-r1">1/1</a></td>
+<td class="left">Full-use allowance</td>
+<td class="left"><code class="formula">(if zusammen loss-base-joint loss-base)</code><div class="working">(if zusammen loss-base-joint loss-base) = 1000000 → gewählter Zweig: loss-base</div></td>
+<td class="right num">1.000.000,00</td>
+</tr>
+<tr id="audit-t1-r2">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Allowance plus selected excess percentage</td>
+<td class="left"><code class="formula">(+ (min positive-income loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0)))</code><div class="working">(min positive-income loss-allowance) = 0 → (- positive-income loss-allowance) = -1000000 → (max (- positive-income loss-allowance) 0) = 0 → (* loss-excess-rate (max (- positive-income loss-allowance) 0)) = 0.0 → (+ (min positive-income loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0))) = 0.0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-r1">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Closing carryforward</td>
+<td class="left"><code class="formula">ledger-opening + ledger-new − ledger-used − ledger-carryback</code><div class="working">0 + 0 − 0.0 − 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-r2">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Opening plus movements equals closing</td>
+<td class="left"><code class="formula">closing-loss ≈ (- (+ verlustvortrag eligible-new-loss) loss-used selected-carryback) (± 0)</code><div class="working">closing-loss = 0.0; (+ verlustvortrag eligible-new-loss) = 0 → (- (+ verlustvortrag eligible-new-loss) loss-used selected-carryback) = 0.0 → 0.0 − 0.0 = 0.0 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-r3">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Opening loss is nonnegative</td>
+<td class="left"><code class="formula">(&gt;= verlustvortrag 0)</code><div class="working">(&gt;= verlustvortrag 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r4">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Eligible new loss is nonnegative</td>
+<td class="left"><code class="formula">(&gt;= eligible-new-loss 0)</code><div class="working">(&gt;= eligible-new-loss 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r5">
+<td class="left cite"><a href="#t2-r5">2/5</a></td>
+<td class="left">Selected carryback is waived</td>
+<td class="left"><code class="formula">(and carryback-waived (= selected-carryback 0))</code><div class="working">(= selected-carryback 0) = true → (and carryback-waived (= selected-carryback 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-r1">
+<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<td class="left">Full-euro tariff income</td>
+<td class="left"><code class="formula">(decimal/floor zu-versteuerndes-einkommen 0)</code><div class="working">(decimal/floor zu-versteuerndes-einkommen 0) = -36</div></td>
+<td class="right num">-36,00</td>
+</tr>
+<tr id="audit-t4-r1">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Gesamtbetrag der Einkünfte<div class="norm">§ 2 Abs. 3 EStG</div></td>
+<td class="left"><code class="formula">summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug</code><div class="working">0.00 − (Σ contributions: [person=A] 0 excluded → 0) − 0 − 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t4-r3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Einkommen<div class="norm">§ 2 Abs. 4 EStG</div></td>
+<td class="left"><code class="formula">gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug</code><div class="working">0.00 − 0.0 − 36.000 − 0</div></td>
+<td class="right num">-36,00</td>
+</tr>
+<tr id="audit-t4-r4">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Zu versteuerndes Einkommen<div class="norm">§ 2 Abs. 5 EStG</div></td>
+<td class="left"><code class="formula">einkommen − freibetraege-kinder</code><div class="working">-36.000 − 0</div></td>
+<td class="right num">-36,00</td>
+</tr>
+<tr id="audit-t5-r1">
+<td class="left cite"><a href="#t5-r1">5/1</a></td>
+<td class="left">Tarifliche Einkommensteuer<div class="norm">§ 32a Abs. 1, 5 EStG</div></td>
+<td class="left"><code class="formula">(est-tarif zu-versteuerndes-einkommen zusammen)</code><div class="working">(defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (decimal/floor zve 0) = -36 → (&lt;= x tarif-gfb) = true → (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t5-r2">
+<td class="left cite"><a href="#t5-r2">5/2</a></td>
+<td class="left">Festzusetzende Einkommensteuer<div class="norm">§ 2 Abs. 6 EStG</div></td>
+<td class="left"><code class="formula">tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung</code><div class="working">0 − 0.00 − 0.0 + 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t5-r3">
+<td class="left cite"><a href="#t5-r3">5/3</a></td>
+<td class="left">Durchschnittlicher Einkommensteuersatz</td>
+<td class="left"><code class="formula">(if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6))</code><div class="working">(= zu-versteuerndes-einkommen 0) = false → (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 0.000000 → (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)) = 0.000000 → gewählter Zweig: (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)</div></td>
+<td class="right num">0,00 %</td>
+</tr>
+<tr id="audit-t6-r1">
+<td class="left cite"><a href="#t6-r1">6/1</a></td>
+<td class="left">Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)<div class="norm">§ 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG</div></td>
+<td class="left"><code class="formula">(max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))</code><div class="working">(defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (if kfb-guenstiger 0 kfb-summe) = 0 → (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) = -36.000 → (decimal/floor zve 0) = -36 → (&lt;= x tarif-gfb) = true → (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) = 0 → (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a) = 0.00 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.00 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.00 → gewählter Zweig: kfb-summe → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t6-r2">
+<td class="left cite"><a href="#t6-r2">6/2</a></td>
+<td class="left">Zuschlagsteuern</td>
+<td class="left"><code class="formula">solidaritaetszuschlag + kirchensteuer</code><div class="working">0.00 + 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t7-r1">
+<td class="left cite"><a href="#t7-r1">7/1</a></td>
+<td class="left">Festgesetzte Steuern</td>
+<td class="left"><code class="formula">abr-est + abr-soli + abr-kist</code><div class="working">0.00 + 0.00 + 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t7-r2">
+<td class="left cite"><a href="#t7-r2">7/2</a></td>
+<td class="left">Nachzahlung (+) / Erstattung (−)</td>
+<td class="left"><code class="formula">festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen</code><div class="working">0.00 − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t7-r3">
+<td class="left cite"><a href="#t7-r3">7/3</a></td>
+<td class="left">Abrechnung stimmt mit Steuern und Zahlungen überein</td>
+<td class="left"><code class="formula">abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)</code><div class="working">abrechnungsergebnis = 0.00; (dim/sum lohnsteuer) = 0 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 0 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t8-r1">
+<td class="left cite"><a href="#t8-r1">8/1</a></td>
+<td class="left">Summe der Einkünfte<div class="norm">§ 2 Abs. 2 EStG</div></td>
+<td class="left"><code class="formula">einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige</code><div class="working">(Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 excluded → 0) + 0 + (Σ contributions: [person=A] 0.00 included → 0.00)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t9-r2-aggregate">
+<td class="left cite"><a href="#t9-r2">9/2 Σ</a></td>
+<td class="left">Abziehbare Vorsorgeaufwendungen (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [person=A] 0 included → 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t9-r2-A">
+<td class="left cite"><a href="#t9-r2">9/2</a></td>
+<td class="left">Abziehbare Vorsorgeaufwendungen <span class="member">Person A</span></td>
+<td class="left"><code class="formula">altersvorsorge + sonstige-vorsorge</code><div class="working">0 + 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t9-r3">
+<td class="left cite"><a href="#t9-r3">9/3</a></td>
+<td class="left">Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)<div class="norm">§ 10c EStG</div></td>
+<td class="left"><code class="formula">(max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))</code><div class="working">(if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) = 36 → (+ kirchensteuer-gezahlt spenden-abziehbar) = 0.000 → (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)) = 36.000 → (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar))) = 36.000 → gewählter Zweig: sonderausgaben-pauschbetrag</div></td>
+<td class="right num">36,00</td>
+</tr>
+<tr id="audit-t9-r4">
+<td class="left cite"><a href="#t9-r4">9/4</a></td>
+<td class="left">Sonderausgaben insgesamt</td>
+<td class="left"><code class="formula">vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag</code><div class="working">(Σ contributions: [person=A] 0 included → 0) + 0 + 0.000 + 36.000</div></td>
+<td class="right num">36,00</td>
+</tr>
+<tr id="audit-t12-r1">
+<td class="left cite"><a href="#t12-r1">12/1</a></td>
+<td class="left">Durch Steuerabzug abgegolten</td>
+<td class="left"><code class="formula">abgeltungsteuer + abgeltung-soli</code><div class="working">0.00 + 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

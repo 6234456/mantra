@@ -22,12 +22,20 @@ sealed interface X {
 
     data object Nil : X
 
-    data class Vec(val items: List<X>) : X
+    data class Vec(
+        val items: List<X>,
+        /** Only creation effects of a lazy producer; its item callbacks are deferred. */
+        internal val creationErrors: Scalar? = null,
+        internal val deferred: Boolean = false,
+    ) : X
 
     data class MapX(val keys: List<String>, val values: List<X>) : X
 
     /** A lexical closure inlined at its call sites; never written to a workbook cell. */
-    class Callable(val invoke: (List<X>) -> X) : X
+    class Callable private constructor(val invoke: (List<X>) -> X, internal val creationErrors: Scalar?) : X {
+        constructor(invoke: (List<X>) -> X) : this(invoke, null)
+        internal constructor(errors: Scalar, invoke: (List<X>) -> X) : this(invoke, errors)
+    }
 
     /** Member map stored in contiguous cells; [text] is the range (or its name), [cells] the members. */
     data class Range(val text: String, val keys: List<String>, val cells: List<Scalar>) : X

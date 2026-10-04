@@ -1,0 +1,15 @@
+{
+  "case": "gross-up-seed-high",
+  "domain": "gross-up",
+  "currency": "EUR",
+  "base": "1000",
+  "rate": "0.25",
+  "seed": "2000",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "0",
+  "expected_money": "1333.34",
+  "termination_certificate": "fixed-point",
+  "supported_domain": true
+}

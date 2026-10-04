@@ -1,0 +1,5 @@
+(layout de.est-loss/2024-working-paper
+  {:title "Income-tax loss ledger 2024 — demonstration" :preset :de-staffel-4 :row-numbers :table}
+  (columns :tiered :operator :label (col :pre {:header "EUR"}) (col :main {:header "EUR"}) :status :reference)
+  (table loss-cap {:style :tiered})
+  (table loss-ledger {:style :tiered}))

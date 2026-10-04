@@ -46,12 +46,14 @@ data class ExplainAddress(
     val node: String,
     val coord: List<String> = emptyList(),
     val cell: Pair<String, String>? = null,
+    val case: String? = null,
+    val expectedRevision: String? = null,
 )
 
 /** Reads workspace files on every request and owns bounded calculation sessions for dependency reuse. */
 class WorkspaceCatalog(
     directory: Path,
-    private val mantraVersion: String = "0.3.0-SNAPSHOT",
+    private val mantraVersion: String = "0.4.0-SNAPSHOT",
     normeinVersion: String? = null,
     private val exportBudget: ExportBudget = ExportBudget(),
 ) : AutoCloseable {
@@ -79,6 +81,7 @@ class WorkspaceCatalog(
         val kind: String,
         val name: String?,
         val diagnostics: List<Diagnostic>,
+        val version: String? = null,
     )
     internal data class Snapshot(val files: List<Indexed>) {
         fun kind(name: String) = files.filter { it.kind == name }
@@ -160,6 +163,7 @@ class WorkspaceCatalog(
                 "id" to entry.id,
                 "title" to (case?.text("title") ?: case?.id ?: entry.path.fileName.toString()),
                 "schema" to schemaId,
+                "schemaVersion" to case?.schemaVersion,
                 "period" to case?.text("period"),
                 "revision" to caseRevision,
                 "diagnostics" to diagnostics.map(WorkbenchDocuments::diagnostic),
@@ -167,7 +171,7 @@ class WorkspaceCatalog(
         }
         val data = linkedMapOf<String, Any?>(
             "cases" to cases,
-            "schemas" to schemas.map { linkedMapOf("id" to it.name, "path" to it.id) },
+            "schemas" to schemas.map { linkedMapOf("id" to it.name, "path" to it.id, "version" to it.version) },
             "parameters" to params.map { linkedMapOf("id" to it.name, "path" to it.id) },
             "layouts" to layouts.map { linkedMapOf("id" to it.name, "path" to it.id) },
             "diagnostics" to snapshot.files.flatMap { it.diagnostics }.map(WorkbenchDocuments::diagnostic),
@@ -180,7 +184,7 @@ class WorkspaceCatalog(
         val view = resolved.view
         val data = when (name) {
             "structure" -> WorkbenchDocuments.structure(view)
-            "run" -> WorkbenchDocuments.run(view, resolved.layout)
+            "run" -> WorkbenchDocuments.run(view, resolved.layout, resolved.graph)
             "parameters" -> WorkbenchDocuments.parameters(view)
             "paper" -> {
                 if (panel != null && view.structure.panels.none { it.id == panel }) {
@@ -276,6 +280,7 @@ class WorkspaceCatalog(
             val snapshot = scan()
             val base = resolve(caseId, snapshot)
             checkRevision(baseRevision, base.revision)
+            rejectLinkedEdits(base, operations)
             val candidate = editCandidate(caseId, operations)
             val variant = resolve(caseId, snapshot, caseText = candidate)
             checkEditDiagnostics(variant)
@@ -308,108 +313,8 @@ class WorkspaceCatalog(
 
     fun tableKeyColumn(caseId: String, table: String): String? = inputTableKeyColumn(caseId, table)
 
-    fun explain(caseId: String, address: ExplainAddress, depth: Int = 1): DocumentResult {
-        if (depth !in 1..5) throw WorkspaceException(WorkspaceProblem.REQUEST, "Explain depth must be between 1 and 5")
-        val snapshot = scan()
-        var remaining = 64
-        lateinit var revision: String
-        fun project(target: ExplainAddress, level: Int): Map<String, Any?> {
-            if (--remaining < 0) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Explain exceeds 64 nodes")
-            val memberMap = target.node.startsWith("all.")
-            val aggregate = target.node.startsWith("aggregate.")
-            val projected = memberMap || aggregate
-            if (projected && target.cell != null) {
-                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map or aggregate address cannot have a cell")
-            }
-            val nodeId = if (memberMap) target.node.removePrefix("all.") else target.node.removePrefix("aggregate.")
-            val resolved = resolve(caseId, snapshot, explain = target.takeUnless { projected })
-            revision = resolved.revision
-            val node = resolved.view.nodes[nodeId]
-                ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain node was not found")
-            if (!projected && (node.dims.size != target.coord.size || target.coord !in node.values)) {
-                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain coordinate was not found")
-            }
-            if (memberMap && node.dims.isEmpty()) {
-                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member map was not found")
-            }
-            if (aggregate && (node.dims.isEmpty() || resolved.view.reduce(nodeId, emptyMap()).trace == null)) {
-                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain aggregate was not found")
-            }
-            val fixed = if (projected) {
-                val bindings = linkedMapOf<String, String>()
-                target.coord.forEach { part ->
-                    val split = part.split('=', limit = 2)
-                    if (split.size != 2 || split.any(String::isBlank) ||
-                        split[0] !in (if (aggregate) resolved.view.dimensions.keys else node.dims) ||
-                        bindings.put(split[0], split[1]) != null
-                    ) {
-                        throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
-                    }
-                    if (resolved.view.members[split[0]].orEmpty().none { it.key == split[1] }) {
-                        throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member was not found")
-                    }
-                }
-                val dimensions = if (aggregate) {
-                    resolved.view.dimensionOrder(bindings.keys)
-                } else {
-                    node.dims.filter {
-                        it in
-                            bindings
-                    }
-                }
-                if (target.coord != dimensions.map { "$it=${bindings.getValue(it)}" } ||
-                    node.dims.all { it in bindings }
-                ) {
-                    throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
-                }
-                bindings
-            } else {
-                emptyMap()
-            }
-            val cellValue = target.cell?.let { (row, column) ->
-                val rows = node.value(target.coord) as? Value.Vec
-                val item = row.toIntOrNull()?.let { rows?.items?.getOrNull(it) } as? Value.MapV
-                item?.entries?.entries?.firstOrNull { (key, _) ->
-                    key == Value.Kw(column) || key == Value.Text(column)
-                }?.value ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain cell was not found")
-            }
-            val data = if (aggregate) {
-                try {
-                    WorkbenchDocuments.aggregate(resolved.view, resolved.layout, nodeId, fixed).toMutableMap()
-                } catch (_: IllegalArgumentException) {
-                    throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain aggregate evidence was not found")
-                }
-            } else if (memberMap) {
-                WorkbenchDocuments.memberMap(resolved.view, resolved.layout, nodeId, fixed).toMutableMap()
-            } else {
-                WorkbenchDocuments.explain(
-                    resolved.view,
-                    resolved.layout,
-                    nodeId,
-                    target.coord,
-                    resolved.explainTrace,
-                    target.cell,
-                    cellValue,
-                ).toMutableMap()
-            }
-            if (level > 1) {
-                @Suppress("UNCHECKED_CAST")
-                val refs = data["references"] as List<Map<String, Any?>>
-                data["references"] = refs.map { ref ->
-                    @Suppress("UNCHECKED_CAST")
-                    val linked = ref["address"] as Map<String, Any?>
-                    val child = ExplainAddress(
-                        linked.getValue("node") as String,
-                        (linked["coord"] as? List<*>)?.filterIsInstance<String>().orEmpty(),
-                    )
-                    ref + ("explanation" to project(child, level - 1))
-                }
-            }
-            return data
-        }
-        val data = project(address, depth)
-        return DocumentResult(revision, data)
-    }
+    fun explain(caseId: String, address: ExplainAddress, depth: Int = 1): DocumentResult =
+        explainGraph(caseId, address, depth)
 
     fun envelope(document: DocumentResult): String = WorkbenchJson.write(
         WorkbenchJson.envelope(document.revision, mantraVersion, normeinVersion, document.data),
@@ -424,6 +329,8 @@ class WorkspaceCatalog(
         val schema: Schema,
         val parameters: List<ParameterSet>,
         val sourceOverrides: List<List<String>> = emptyList(),
+        val graph: com.xqiou.mantra.core.api.CaseRunResult? = null,
+        val caseLayouts: Map<com.xqiou.mantra.core.api.CanonicalCaseKey, LayoutSpec> = emptyMap(),
     )
 
     internal fun diagnostic(code: String, message: String) = Diagnostic(Severity.ERROR, code, message)

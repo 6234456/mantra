@@ -1,0 +1,4 @@
+(parameters demo.gross-up/parameters
+  {:for "demo.gross-up" :label "Explicit cent-rounding demonstration parameters"}
+  (value money-scale 2)
+  (value residual-tolerance 0.01))

@@ -1,0 +1,20 @@
+;; Explicit historical 2025 values; not current-law parameter substitution.
+(parameters de.est/params-2025.3
+  {:for "de.est/2025" :label "Selected loss and § 35 rules — VZ 2025" :valid-from "2025-01-01"}
+  (value loss-base 1000000)
+  (value loss-base-joint 2000000)
+  (value loss-excess-rate 0.7)
+  (value section35-factor 4)
+  (value sonderausgaben-pauschbetrag 36)
+  (value soli-freigrenze 19950)
+  (value soli-satz 0.055)
+  (value soli-milderungssatz 0.119)
+  (value tarif-gfb 12096)
+  (value tarif-g2 17443)
+  (value tarif-g3 68480)
+  (value tarif-g4 277825)
+  (value tarif-a2 932.3)
+  (value tarif-a3 176.64)
+  (value tarif-c3 1015.13)
+  (value tarif-c4 10911.92)
+  (value tarif-c5 19246.67))

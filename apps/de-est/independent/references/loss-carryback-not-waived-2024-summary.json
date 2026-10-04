@@ -1,0 +1,18 @@
+{
+  "reference_scope": "loss-ledger-only",
+  "expected_business": [
+    {
+      "category": "BUSINESS",
+      "code": "MANTRA-CHECK-FAILED",
+      "node": "carryback-waiver-supported",
+      "severity": "error"
+    }
+  ],
+  "inherited_source_business": [],
+  "validation_passed": false,
+  "source_case": null,
+  "source_kind": "Provided",
+  "source_zero_is_provided": false,
+  "stock": "closing-loss is carried once to the next opening; never sum annual closing balances.",
+  "numeric_invalid_facts": "Signed original facts remain visible; business findings do not turn a technical success into a tax approval."
+}

@@ -455,4 +455,4 @@ Audit trail
     Working: (dim/sum rou-closing) = 0.00 = –
 
 Findings
-  warning MANTRA-AUDIT-TRUNCATED at schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly
+  warning MANTRA-AUDIT-TRUNCATED at ifrs-leases/schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly

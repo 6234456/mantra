@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gewerbesteuer 2025 — demonstration</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Gewerbesteuer 2025 — demonstration</h1>
+</div>
+<dl class="wp-meta">
+<div><dt>Mandant</dt><dd>Gewerbesteuer 2025: all-positive-income-zero</dd></div>
+<div><dt>Zeitraum</dt><dd>2025</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Trade tax due</strong> 0,00</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Aufbau der Berechnung</h2>
+<ol class="mainline" aria-label="Hauptlinie">
+<li class="step">
+<span class="card"><span class="step-no">Hauptlinie 1</span><span class="title">Financing addition</span><span class="value"></span></span>
+<ul class="branches">
+<li><span class="card"><span class="title">↳ Weighted financing expenses</span><span class="value"></span><span class="entry">→ 1 · Unweighted supplied expenses</span></span></li>
+</ul>
+</li>
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Hauptlinie 2</span><span class="title">Trade-tax assessment</span><span class="value">0,00</span></a>
+</li>
+</ol>
+<p class="aux"><strong>Nebeninformation:</strong> Expense totals by category </p>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Trade-tax assessment</p>
+<h2><span class="ref">4</span>Trade-tax assessment</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">EUR</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="total grand" id="t4-r1" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r1" title="Berechnungsnachweis">1</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade earnings before full-hundred rounding</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value info" id="t4-r2" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r2" title="Berechnungsnachweis">2</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade tax due</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t4-r3" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Demonstration supports a natural-person sole proprietor</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t4-r4" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r4" title="Berechnungsnachweis">4</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Hebesatz meets the historical 2025 minimum</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t4-r5" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r5" title="Berechnungsnachweis">5</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected demonstration has no § 9 deduction</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Berechnungsnachweis</h2>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
+<tbody>
+<tr id="audit-t4-r1">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Trade earnings before full-hundred rounding</td>
+<td class="left"><code class="formula">assessment-profit + assessment-addition − assessment-deductions</code><div class="working">0 + 0.00 − 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t4-r2">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Trade tax due</td>
+<td class="left"><code class="formula">(decimal/divide (* messbetrag hebesatz-percent) 100 2)</code><div class="working">(* messbetrag hebesatz-percent) = 0.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t4-r3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Demonstration supports a natural-person sole proprietor</td>
+<td class="left"><code class="formula">(= entity :natural-person-sole-proprietor)</code><div class="working">(= entity :natural-person-sole-proprietor) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t4-r4">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Hebesatz meets the historical 2025 minimum</td>
+<td class="left"><code class="formula">(&gt;= hebesatz-percent historical-minimum-hebesatz)</code><div class="working">(&gt;= hebesatz-percent historical-minimum-hebesatz) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t4-r5">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Selected demonstration has no § 9 deduction</td>
+<td class="left"><code class="formula">(= section9-deductions 0)</code><div class="working">(= section9-deductions 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,4 @@
+(layout demo.bonus/working-paper
+  {:title "Circular bonus — demonstration" :preset :ifrs-schedule :row-numbers :table}
+  (columns :tiered :operator :label (col :pre {:header "EUR"}) (col :main {:header "EUR"}) :status :reference)
+  (table solution {:style :tiered}))

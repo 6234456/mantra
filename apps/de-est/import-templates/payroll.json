@@ -8,6 +8,10 @@
     "decimal": ",",
     "columns": {
       "bruttoarbeitslohn": "bruttoarbeitslohn"
-    }
-  }
+    },
+    "path": "data/payroll.csv"
+  },
+  "case": "case-mustermann.mantra",
+  "schema": "de.est/2025",
+  "schema-version": "2025.2"
 }

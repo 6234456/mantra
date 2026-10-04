@@ -38,6 +38,36 @@ internal class WorkspaceSessions(private val limit: Int = 16) : AutoCloseable {
     private var closeTask: Future<Unit>? = null
     internal val isTerminated: Boolean get() = executor.isTerminated && ownerThread?.isAlive != true
 
+    private var activeResolver: com.xqiou.mantra.core.api.CasePackageResolver? = null
+    private var graphRunner: com.xqiou.mantra.core.api.CaseGraphRunner? = null
+    private var lastGraph: com.xqiou.mantra.core.api.CaseRunResult? = null
+
+    fun graph(
+        resolver: com.xqiou.mantra.core.api.CasePackageResolver,
+        request: com.xqiou.mantra.core.api.CaseRunRequest,
+    ): com.xqiou.mantra.core.api.CaseRunResult = onOwner {
+        check(activeResolver == null) { "Workspace graph requests cannot be nested" }
+        val runner = graphRunner ?: com.xqiou.mantra.core.api.CaseGraphRunner(
+            object : com.xqiou.mantra.core.api.CasePackageResolver {
+                override fun identify(
+                    reference: com.xqiou.mantra.core.api.CaseReference,
+                    control: com.xqiou.mantra.core.api.CaseLoadControl,
+                ) = checkNotNull(activeResolver).identify(reference, control)
+                override fun load(
+                    key: com.xqiou.mantra.core.api.CanonicalCaseKey,
+                    control: com.xqiou.mantra.core.api.CaseLoadControl,
+                ) = checkNotNull(activeResolver).load(key, control)
+            },
+            limit,
+        ).also { graphRunner = it }
+        activeResolver = resolver
+        try {
+            runner.run(request).also { lastGraph = it }
+        } finally {
+            activeResolver = null
+        }
+    }
+
     fun calculate(
         caseId: String,
         schemaFingerprint: String,
@@ -71,13 +101,16 @@ internal class WorkspaceSessions(private val limit: Int = 16) : AutoCloseable {
     }
 
     fun stats(caseId: String): RecalculationStats? {
-        if (Thread.currentThread() === ownerThread) return entries[caseId]?.session?.lastRun
+        if (Thread.currentThread() === ownerThread) return graphStats(caseId) ?: entries[caseId]?.session?.lastRun
         val task = synchronized(submissions) {
             if (closed) return null
-            executor.submit(Callable { entries[caseId]?.session?.lastRun })
+            executor.submit(Callable { graphStats(caseId) ?: entries[caseId]?.session?.lastRun })
         }
         return await(task)
     }
+
+    private fun graphStats(caseId: String) =
+        lastGraph?.cases?.get(com.xqiou.mantra.core.api.CanonicalCaseKey(caseId))?.recalculation
 
     override fun close() {
         // The owner never waits for a task queued behind itself.
@@ -135,11 +168,24 @@ internal class WorkspaceSessions(private val limit: Int = 16) : AutoCloseable {
     }
 
     private fun closeEntries() {
+        var first: Throwable? = null
+        fun close(resource: AutoCloseable) {
+            try {
+                resource.close()
+            } catch (failure: Throwable) {
+                if (first == null) first = failure else first!!.addSuppressed(failure)
+            }
+        }
         try {
-            entries.values.forEach { it.session.close() }
+            entries.values.forEach { close(it.session) }
+            graphRunner?.let(::close)
         } finally {
             entries.clear()
+            graphRunner = null
+            activeResolver = null
+            lastGraph = null
         }
+        first?.let { throw it }
     }
 
     private fun <T> onOwner(operation: () -> T): T {

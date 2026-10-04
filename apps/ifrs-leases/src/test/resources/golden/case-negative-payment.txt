@@ -326,4 +326,4 @@ Audit trail
     Working: (dim/sum rou-closing) = 0.00 = –
 
 Findings
-  error MANTRA-CHECK-FAILED at schema.mantra:54:5 [payment-nonnegative]: Supplied payment is nonnegative
+  error MANTRA-CHECK-FAILED at ifrs-leases/schema.mantra:54:5 [payment-nonnegative]: Supplied payment is nonnegative

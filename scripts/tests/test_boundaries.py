@@ -39,6 +39,17 @@ class BoundaryTests(unittest.TestCase):
         self.write('apps/demo/schema.mantra', '(schema demo/calculation (dimension year {}) (line payment "Payment" 1))')
         self.assertEqual([], boundaries.check(self.root))
 
+    def test_generic_iteration_and_numeric_terms_do_not_exempt_schema_or_domain_ids(self):
+        self.write('apps/demo/schema.mantra', '(schema demo/calculation (input seed {}) (param rate 1) '
+                   '(line tolerance "Tolerance" 0) (line gewst-messbetrag "Tax" 1))')
+        self.write('mantra-core/src/main/kotlin/Code.kt', 'val seed = 1\nval rate = 2\nval tolerance = 0')
+        self.assertEqual([], boundaries.check(self.root))
+        self.write('mantra-core/src/main/kotlin/Code.kt', 'val node = "gewst-messbetrag"')
+        self.assertEqual(1, len(boundaries.check(self.root)))
+        self.write('apps/demo/schema.mantra', '(schema rate (input seed {}))')
+        self.write('mantra-core/src/main/kotlin/Code.kt', 'val argument = "rate"')
+        self.assertEqual(1, len(boundaries.check(self.root)))
+
     def test_qualified_internal_references_caught_in_consumer_tests(self):
         self.write('mantra-excel/src/test/kotlin/Code.kt', 'val a: com.xqiou.mantra.core.engine.Coord')
         self.assertEqual(1, len(boundaries.check(self.root)))

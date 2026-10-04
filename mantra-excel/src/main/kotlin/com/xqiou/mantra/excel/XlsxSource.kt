@@ -19,16 +19,22 @@ import java.nio.file.Path
  * a workbook exported by Mantra can be edited in Excel and re-imported, and any other workbook
  * that defines the same names can serve as a data source.
  */
-class XlsxSource(private val path: Path) : DataSource {
+class XlsxSource(
+    private val path: Path,
+    private val capturedBytes: ByteArray? = null,
+    private val onRow: () -> Unit = {},
+    private val checkpoint: () -> Unit = {},
+) : DataSource {
     override val description: String = "xlsx:${path.fileName}"
 
     override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> {
-        val workbook = Files.newInputStream(path).use { XSSFWorkbook(it) }
+        val workbook = (capturedBytes?.inputStream() ?: Files.newInputStream(path)).use { XSSFWorkbook(it) }
         workbook.use { wb ->
             val evaluator = wb.creationHelper.createFormulaEvaluator()
             val names = wb.allNames.associateBy { it.nameName.lowercase() }
 
             fun valueOf(name: String): Value? {
+                checkpoint()
                 val defined = names[name.lowercase()] ?: return null
                 val area =
                     runCatching { AreaReference(defined.refersToFormula, SpreadsheetVersion.EXCEL2007) }.getOrNull()
@@ -78,7 +84,10 @@ class XlsxSource(private val path: Path) : DataSource {
                             } else {
                                 raw
                             }
-                            rows.getOrPut(parts[0]) { linkedMapOf() }[Value.Kw(column.name)] = value
+                            rows.getOrPut(parts[0]) {
+                                onRow()
+                                linkedMapOf()
+                            }[Value.Kw(column.name)] = value
                         }
                         if (rows.isNotEmpty()) result[input.id] = Value.Vec(rows.values.map { Value.MapV(it) })
                     }

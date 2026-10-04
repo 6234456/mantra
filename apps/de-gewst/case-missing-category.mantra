@@ -1,0 +1,8 @@
+;; Fictional already-deducted expenses from frozen trade/missing-category.json.
+(case missing-category
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: missing-category"
+   :expected-business [{:code "MANTRA-INPUT-REQUIRED" :node "financing-costs" :severity :error :row-index 0 :column :category}]}
+  (inputs {:profit 120000 :hebesatz-percent 400
+           :entity :natural-person-sole-proprietor :section9-deductions 0
+           :financing-costs [{:id :F1 :category nil :amount 100}]}))

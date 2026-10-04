@@ -14,7 +14,7 @@ Structure of the calculation
   Mainline 3: Step 2 – Impairment test of each CGU [3]
   Mainline 4: Step 3 – Allocation of the impairment losses within the CGUs [4]  133
   Mainline 5: Step 3a – Individually capped allocation [5]  –
-  Mainline 6: Capped allocation control [6]
+  Mainline 6: Capped allocation control
   Mainline 7: Step 4 – Combined recovery check [7]  711
   Mainline 8: Summary of impairment losses recognised [8]  133
 

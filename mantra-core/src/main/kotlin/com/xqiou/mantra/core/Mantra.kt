@@ -1,12 +1,18 @@
 package com.xqiou.mantra.core
 
 import com.xqiou.mantra.core.api.AuditOptions
+import com.xqiou.mantra.core.api.CalculationOptions
 import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.api.CalculationSession
+import com.xqiou.mantra.core.api.RunStage
 import com.xqiou.mantra.core.engine.CalculationPlan
 import com.xqiou.mantra.core.engine.Evaluator
+import com.xqiou.mantra.core.engine.LiteralInputRows
 import com.xqiou.mantra.core.engine.Planner
+import com.xqiou.mantra.core.engine.RunBoundary
+import com.xqiou.mantra.core.engine.RunContext
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.InputAddress
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.read.CaseReader
 import com.xqiou.mantra.core.read.ParameterSet
@@ -16,6 +22,7 @@ import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.Coord
+import com.xqiou.mantra.core.view.snapshot
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -47,9 +54,11 @@ object Mantra {
         return checkNotNull(case)
     }
 
-    fun loadParameters(path: Path): ParameterSet {
+    fun loadParameters(path: Path): ParameterSet = loadParameters(FileSources.read(path))
+
+    fun loadParameters(source: SourceText): ParameterSet {
         val sink = DiagnosticSink()
-        val set = ParameterSetReader.read(FileSources.read(path), sink)
+        val set = ParameterSetReader.read(source, sink)
         sink.throwIfErrors()
         return checkNotNull(set)
     }
@@ -71,7 +80,38 @@ object Mantra {
         schema: Schema,
         case: CaseData = CaseData.empty(),
         parameters: List<ParameterSet> = emptyList(),
-    ): CalculationView = CalculationView.of(plan(schema, case, parameters))
+        options: CalculationOptions = CalculationOptions(),
+    ): CalculationView = RunBoundary.independent(options, { view, _ -> view }) {
+        inspectBound(schema, case, parameters, it)
+    }
+
+    /** Static compilation only; unresolved link values and dynamic domains are execution concerns. */
+    internal fun inspectBound(
+        schema: Schema,
+        case: CaseData,
+        parameters: List<ParameterSet>,
+        context: RunContext,
+    ): CalculationView = context.at(com.xqiou.mantra.core.api.RunStage.PLANNING) {
+        val sink = DiagnosticSink()
+        val scan = { context.charge(com.xqiou.mantra.core.api.RunCounter.HOST_SCANS) }
+        val declared = schema.snapshot(scan)
+        val facts = case.snapshot(scan)
+        LiteralInputRows.account(declared, facts, context)
+        val planned = Planner(sink, context, requireMaterializedLinks = false).plan(declared, facts, parameters)
+        sink.throwIfErrors()
+        val plan = checkNotNull(planned)
+        context.checkpoint()
+        CalculationResult(
+            plan,
+            emptyMap(),
+            plan.valueVertices.mapValues { (_, vertex) ->
+                context.charge(com.xqiou.mantra.core.api.RunCounter.HOST_SCANS)
+                com.xqiou.mantra.core.engine.NodeResult(vertex, emptyMap(), emptyMap(), emptyMap())
+            },
+            sink.all,
+            projectionScan = scan,
+        ).view.also { context.checkpoint() }
+    }
 
     /**
      * Evaluates the schema for a case. Parameter values come from the schema, then the given
@@ -82,11 +122,11 @@ object Mantra {
         schema: Schema,
         case: CaseData = CaseData.empty(),
         parameters: List<ParameterSet> = emptyList(),
-    ): CalculationResult {
-        val sink = DiagnosticSink()
-        val plan = Planner(sink).plan(schema, case, parameters)
-        sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink).use { it.run() }
+        options: CalculationOptions = CalculationOptions(),
+    ): CalculationResult = RunBoundary.independent(options, { result, usage ->
+        result.withGraphMetadata(emptyList(), usage)
+    }) {
+        calculateBound(schema, case, parameters, it)
     }
 
     /** Opens a reusable VALUE_ONLY runtime; recalculate and close it on this thread after the last edit. */
@@ -94,10 +134,18 @@ object Mantra {
         schema: Schema,
         case: CaseData = CaseData.empty(),
         parameters: List<ParameterSet> = emptyList(),
-    ): CalculationSession = CalculationSession(schema, case, parameters)
+        options: CalculationOptions = CalculationOptions(),
+    ): CalculationSession = RunBoundary.independent(options, { session, usage ->
+        session.attachUsage(usage)
+    }, { it.close() }) {
+        openSessionBound(schema, case, parameters, it)
+    }
 
-    internal fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).use {
-        it.run()
+    internal fun calculate(plan: CalculationPlan): CalculationResult = RunBoundary.independent(
+        CalculationOptions(),
+        { result, usage -> result.withGraphMetadata(emptyList(), usage) },
+    ) { context ->
+        Evaluator(plan, DiagnosticSink(), calculationOptions = context.options).use { it.run(context) }
     }
 
     /**
@@ -110,11 +158,12 @@ object Mantra {
         case: CaseData = CaseData.empty(),
         parameters: List<ParameterSet> = emptyList(),
         options: AuditOptions = AuditOptions(),
-    ): CalculationResult {
-        val sink = DiagnosticSink()
-        val plan = Planner(sink).plan(schema, case, parameters)
-        sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink, auditOptions = options).use { it.run() }
+        calculationOptions: CalculationOptions = CalculationOptions(),
+    ): CalculationResult = RunBoundary.independent(
+        calculationOptions,
+        { result, usage -> result.withGraphMetadata(emptyList(), usage) },
+    ) {
+        calculateBound(schema, case, parameters, it, options)
     }
 
     /** Recalculates one case while collecting a bounded FULL trace only for the requested value. */
@@ -124,12 +173,41 @@ object Mantra {
         parameters: List<ParameterSet>,
         node: String,
         coord: Coord = emptyList(),
-    ): CalculationResult {
-        val sink = DiagnosticSink()
-        val plan = Planner(sink).plan(schema, case, parameters)
-        sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink, node to coord).use { it.run() }
+        options: CalculationOptions = CalculationOptions(),
+    ): CalculationResult = RunBoundary.independent(options, { result, usage ->
+        result.withGraphMetadata(emptyList(), usage)
+    }) {
+        calculateBound(schema, case, parameters, it, explain = InputAddress(node, coord))
     }
+
+    internal fun calculateBound(
+        schema: Schema,
+        case: CaseData,
+        parameters: List<ParameterSet>,
+        context: RunContext,
+        audit: AuditOptions? = null,
+        explain: InputAddress? = null,
+    ): CalculationResult = context.at(RunStage.PLANNING) {
+        LiteralInputRows.account(schema, case, context)
+        val sink = DiagnosticSink()
+        val plan = Planner(sink, context).plan(schema, case, parameters)
+        sink.throwIfErrors()
+        context.checkpoint()
+        Evaluator(
+            checkNotNull(plan),
+            sink,
+            explain?.let { it.nodeId to it.coord },
+            audit,
+            context.options,
+        ).use { it.run(context) }
+    }
+
+    internal fun openSessionBound(
+        schema: Schema,
+        case: CaseData,
+        parameters: List<ParameterSet>,
+        context: RunContext,
+    ): CalculationSession = CalculationSession(schema, case, parameters, context)
 }
 
 /** Resolves includes relative to the including file on the local file system. */

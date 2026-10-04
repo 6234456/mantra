@@ -1,0 +1,10 @@
+;; Fictional facts copied from frozen loss/source-revised-2024.json. Demonstration only.
+(case source-revised-2024
+  {:schema "de.est-loss/2024" :schema-version "2024.1"
+   :layout "de.est-loss/2024-working-paper"
+   :parameters ["de.est-loss/2024-parameters"]
+   :title "Loss ledger 2024: source-revised-2024"
+   :expected-business []}
+  (inputs {:opening-loss 5000 :eligible-new-loss 50000
+           :positive-income 0 :selected-carryback 0
+           :carryback-waived true :joint-amount-check false}))

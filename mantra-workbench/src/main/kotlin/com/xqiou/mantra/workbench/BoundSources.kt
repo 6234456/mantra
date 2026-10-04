@@ -19,7 +19,15 @@ import java.nio.file.Path
 object BoundSources {
     data class Loaded(val case: CaseData, val files: List<Path>, val overridden: List<List<String>>)
 
-    fun load(case: CaseData, schema: Schema, caseFile: Path, workspaceRoot: Path): Loaded {
+    fun load(
+        case: CaseData,
+        schema: Schema,
+        caseFile: Path,
+        workspaceRoot: Path,
+        capturedRead: ((Path) -> ByteArray)? = null,
+        onRow: () -> Unit = {},
+        checkpoint: () -> Unit = {},
+    ): Loaded {
         if (case.sources.isEmpty()) return Loaded(case, emptyList(), emptyList())
         val root = workspaceRoot.toRealPath()
         val base = caseFile.toRealPath().parent
@@ -43,12 +51,15 @@ object BoundSources {
         val sink = DiagnosticSink()
         val readValues = linkedMapOf<Path, Map<String, Value>>()
         val sources = case.sources.zip(files).map { (binding, file) ->
-            val source = create(binding, file)
+            val source = create(binding, file, capturedRead?.invoke(file), onRow, checkpoint)
             object : DataSource {
                 override val description = source.description
                 override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> = try {
                     source.read(schema, sink).also { readValues[file] = it }
-                } catch (error: Exception) {
+                } catch (error: java.io.IOException) {
+                    sink.error("MANTRA-DATA-SOURCE", "${file.fileName}: ${error.message}", binding.location)
+                    emptyMap()
+                } catch (error: IllegalArgumentException) {
                     sink.error("MANTRA-DATA-SOURCE", "${file.fileName}: ${error.message}", binding.location)
                     emptyMap()
                 }
@@ -86,7 +97,13 @@ object BoundSources {
         listOf(Diagnostic(Severity.ERROR, "MANTRA-CASE-SOURCE", message, binding.location)),
     )
 
-    private fun create(binding: SourceBinding, file: Path): DataSource {
+    private fun create(
+        binding: SourceBinding,
+        file: Path,
+        capturedBytes: ByteArray?,
+        onRow: () -> Unit,
+        checkpoint: () -> Unit,
+    ): DataSource {
         fun string(key: String): String? = when (val value = binding.options[key]) {
             null -> null
             is Value.Text -> value.value
@@ -137,9 +154,17 @@ object BoundSources {
                 columns = mapping("columns"),
                 mode = string("mode") ?: "pairs",
                 memberColumn = string("member-column"),
+                capturedText = capturedBytes?.toString(Charsets.UTF_8), onRow = onRow, checkpoint = checkpoint,
             )
-            "json" -> JsonSource(file, root = string("root"), mapping = mapping("mapping"))
-            "xlsx" -> XlsxSource(file)
+            "json" -> JsonSource(
+                file,
+                root = string("root"),
+                mapping = mapping("mapping"),
+                capturedText = capturedBytes?.toString(Charsets.UTF_8),
+                onRow = onRow,
+                checkpoint = checkpoint,
+            )
+            "xlsx" -> XlsxSource(file, capturedBytes, onRow, checkpoint)
             else -> invalid(binding, "Unsupported source ${binding.kind}")
         }
     }

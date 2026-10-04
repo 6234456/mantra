@@ -1,0 +1,99 @@
+Gewerbesteuer 2025 — demonstration
+==================================
+Mandant: Gewerbesteuer 2025: missing-category
+Zeitraum: 2025
+Berechnungsschema: Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]
+Trade tax due: 13.370,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Financing addition [3]
+      ↳ Weighted financing expenses [1]    → 1 · Unweighted supplied expenses
+  Hauptlinie 2: Trade-tax assessment [4]  120.000,00
+  Nebeninformation: Expense totals by category
+
+[1] Weighted financing expenses
+    Hauptlinie › 1 Financing addition › „Unweighted supplied expenses“ › Weighted financing expenses
+Zeile | Bezeichnung                               |     F1 | Gesamt |
+------+-------------------------------------------+--------+--------+--
+1     | Supplied expense                          | 100,00 | 100,00 |
+2     | Selected weighted expense                 |   0,00 |   0,00 |
+3     | Supplied financing expense is nonnegative |      ✓ |        | ✓
+4     | Supplied category is recognized           |      ✓ |        | ✓
+
+[3] Financing addition
+    Hauptlinie › 1 Financing addition
+Zeile | Bezeichnung                  |    EUR
+------+------------------------------+-------
+1     | Unweighted supplied expenses | 100,00
+
+[4] Trade-tax assessment
+    Hauptlinie › 2 Trade-tax assessment
+Zeile |   | Bezeichnung                                             |        EUR |   | Rechtsgrundlage
+------+---+---------------------------------------------------------+------------+---+-------------------
+1     |   | Profit                                                  | 120.000,00 |   |
+     -+- -+-                                                       -+------------+- -+-
+2     | = | Trade earnings before full-hundred rounding             | 120.000,00 | Σ |
+     =+= =+=                                                       =+============+= =+=
+3     |   | Trade earnings floored to full hundreds                 | 120.000,00 |   | § 11 Abs. 1 GewStG
+4     |   | Selected personal allowance actually used               |  24.500,00 |   |
+5     |   | Nonnegative assessment base                             |  95.500,00 |   |
+6     |   | Trade-tax assessment amount                             |   3.342,50 |   |
+7     |   | Trade tax due                                           |  13.370,00 |   |
+8     |   | Source profit less unchanged income-tax trade profit    |       0,00 |   |
+9     |   | Demonstration supports a natural-person sole proprietor |          ✓ | ✓ |
+10    |   | Hebesatz meets the historical 2025 minimum              |          ✓ | ✓ |
+11    |   | Selected demonstration has no § 9 deduction             |          ✓ | ✓ |
+
+Berechnungsnachweis
+-------------------
+1/1 Σ Supplied expense (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [cost=F1] 100 included → 100 = 100,00
+1/2 Σ Selected weighted expense (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [cost=F1] 0 included → 0 = 0,00
+1/2 Selected weighted expense [F1]
+    Formel: (* fee-amount weighting-fraction)
+    Rechenweg: (* fee-amount weighting-fraction) = 0 = 0,00
+1/3 Supplied financing expense is nonnegative [F1]
+    Formel: (>= fee-amount 0)
+    Rechenweg: (>= fee-amount 0) = true = ✓
+1/4 Supplied category is recognized [F1]
+    Formel: (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))
+    Rechenweg: (= cost.category nil) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true = ✓
+3/1 Unweighted supplied expenses
+    Formel: (dim/sum all.fee-amount)
+    Rechenweg: (dim/sum all.fee-amount) = 100 = 100,00
+4/2 Trade earnings before full-hundred rounding
+    Formel: assessment-profit + assessment-addition − assessment-deductions
+    Rechenweg: 120000 + 0.00 − 0 = 120.000,00
+4/3 Trade earnings floored to full hundreds
+    Formel: (decimal/floor gewerbeertrag -2)
+    Rechenweg: (decimal/floor gewerbeertrag -2) = 120000 = 120.000,00
+4/4 Selected personal allowance actually used
+    Formel: (min personal-allowance (max gewerbeertrag-rounded-hundreds 0))
+    Rechenweg: (max gewerbeertrag-rounded-hundreds 0) = 120000 → (min personal-allowance (max gewerbeertrag-rounded-hundreds 0)) = 24500 = 24.500,00
+4/5 Nonnegative assessment base
+    Formel: (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0)
+    Rechenweg: (- gewerbeertrag-rounded-hundreds applied-freibetrag) = 95500 → (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0) = 95500 = 95.500,00
+4/6 Trade-tax assessment amount
+    Formel: (* assessment-base assessment-rate)
+    Rechenweg: (* assessment-base assessment-rate) = 3342.500 = 3.342,50
+4/7 Trade tax due
+    Formel: (decimal/divide (* messbetrag hebesatz-percent) 100 2)
+    Rechenweg: (* messbetrag hebesatz-percent) = 1337000.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 13370.00 = 13.370,00
+4/8 Source profit less unchanged income-tax trade profit
+    Formel: (- profit assessment-profit)
+    Rechenweg: (- profit assessment-profit) = 0 = 0,00
+4/9 Demonstration supports a natural-person sole proprietor
+    Formel: (= entity :natural-person-sole-proprietor)
+    Rechenweg: (= entity :natural-person-sole-proprietor) = true = ✓
+4/10 Hebesatz meets the historical 2025 minimum
+    Formel: (>= hebesatz-percent historical-minimum-hebesatz)
+    Rechenweg: (>= hebesatz-percent historical-minimum-hebesatz) = true = ✓
+4/11 Selected demonstration has no § 9 deduction
+    Formel: (= section9-deductions 0)
+    Rechenweg: (= section9-deductions 0) = true = ✓
+
+Hinweise
+  error MANTRA-INPUT-REQUIRED at de-gewst/case-missing-category.mantra:8:49 [financing-costs]: Row 1 of financing-costs requires :category

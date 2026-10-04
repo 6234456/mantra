@@ -2,6 +2,7 @@ package com.xqiou.mantra.workbench.json
 
 import com.xqiou.mantra.core.Diagnostic
 import com.xqiou.mantra.core.SourceLocation
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.structure.Flow
 import com.xqiou.mantra.core.view.CalculationCompare
@@ -42,7 +43,15 @@ object WorkbenchDocuments {
         full: ExplainTrace?,
         cell: Pair<String, String>? = null,
         cellValue: Value? = null,
+        reader: CalculationReader? = null,
     ): Map<String, Any?> {
+        if (reader ==
+            null
+        ) {
+            return view.openReader().use { explain(view, layout, nodeId, coord, full, cell, cellValue, it) }
+        }
+        reader.chargeScans()
+        fun json(value: Value) = WorkbenchJson.value(value, reader)
         val node = view.node(nodeId)
         val formatter = NumberFormatter(layout.number)
         val trace = node.trace(coord)
@@ -52,6 +61,7 @@ object WorkbenchDocuments {
             node.dims.indexOf(dim).takeIf { it >= 0 }?.let(coord::get)
         }
         val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
+            reader.chargeScans()
             val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
             val previousMap = ref.kind == TraceRef.Kind.PREVIOUS && ref.coord == null && ref.fixed != null
             val memberMap = ref.kind == TraceRef.Kind.ALL || ref.kind == TraceRef.Kind.MEMBER_MAP || previousMap
@@ -70,7 +80,7 @@ object WorkbenchDocuments {
             linkedMapOf<String, Any?>(
                 "address" to address(targetId, targetCoord),
                 "label" to target.label,
-                "value" to WorkbenchJson.value(ref.value),
+                "value" to json(ref.value),
                 "display" to display(ref.value, target),
                 "kind" to ref.kind.name.lowercase().replace('_', '-'),
                 "origin" to when (val origin = target.trace(if (memberMap) emptyList() else targetCoord)) {
@@ -79,8 +89,21 @@ object WorkbenchDocuments {
                     else -> null
                 },
             )
-        }
+        } + listOfNotNull(
+            (trace as? NodeTrace.Input)?.link?.let { link ->
+                linkedMapOf<String, Any?>(
+                    "address" to CaseGraphDocuments.address(link.caseKey, link.from),
+                    "label" to link.from.nodeId,
+                    "value" to json(node.value(coord)),
+                    "display" to display(node.value(coord)),
+                    "kind" to "link",
+                    "origin" to "link:${link.caseKey}#${link.from.nodeId}",
+                    "revision" to link.revision,
+                )
+            },
+        )
         val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
+            reader.chargeScans()
             val target = view.nodes[part.id] ?: return@mapNotNull null
             linkedMapOf<String, Any?>(
                 "address" to if (part.reduction != null || part.aggregate != null) {
@@ -93,7 +116,7 @@ object WorkbenchDocuments {
                 },
                 "label" to target.label,
                 "sign" to part.sign,
-                "value" to part.value?.let { WorkbenchJson.value(Value.Num(it)) },
+                "value" to part.value?.let { json(Value.Num(it)) },
                 "display" to (part.value?.let { display(Value.Num(it), target) } ?: "—"),
                 "crossFooted" to part.crossFooted,
                 "aggregate" to
@@ -103,6 +126,7 @@ object WorkbenchDocuments {
         val choice = trace as? NodeTrace.Choice
         val selectedValue = choice?.options?.firstOrNull { it.key == choice.selected }?.value
         val options = choice?.options.orEmpty().map { option ->
+            reader.chargeScans()
             val optionValue = option.value
             val difference = if (selectedValue is Value.Num && optionValue is Value.Num) {
                 Value.Num(selectedValue.value - optionValue.value)
@@ -112,11 +136,11 @@ object WorkbenchDocuments {
             linkedMapOf<String, Any?>(
                 "key" to option.key,
                 "label" to option.label,
-                "value" to WorkbenchJson.value(optionValue),
+                "value" to json(optionValue),
                 "display" to display(optionValue),
                 "available" to option.available,
                 "selected" to (option.key == choice?.selected),
-                "difference" to difference?.let(WorkbenchJson::value),
+                "difference" to difference?.let(::json),
                 "differenceDisplay" to difference?.let { display(it) },
             )
         }
@@ -132,10 +156,11 @@ object WorkbenchDocuments {
         }
         return linkedMapOf(
             "address" to requestedAddress, "label" to node.label,
+            "link" to (trace as? NodeTrace.Input)?.link?.let(CaseGraphDocuments::link),
             "kind" to node.kind.name.lowercase().replace('_', '-'),
             "formula" to formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
             "result" to linkedMapOf(
-                "value" to WorkbenchJson.value(value),
+                "value" to json(value),
                 "display" to display(value),
                 "rounding" to rounding?.let { linkedMapOf("scale" to it.scale, "mode" to it.mode.name.lowercase()) },
             ),
@@ -151,19 +176,25 @@ object WorkbenchDocuments {
                     else -> null
                 },
             "steps" to full?.steps.orEmpty().map { step ->
+                reader.chargeScans()
                 linkedMapOf(
                     "text" to step.text,
-                    "value" to step.value?.let(WorkbenchJson::value),
+                    "value" to step.value?.let(::json),
                     "display" to (step.value?.let { display(it) } ?: step.rendered ?: "value unavailable"),
                     "rendered" to step.rendered,
                     "location" to location(step.location),
+                    "eventId" to step.eventId,
+                    "invocationIndex" to step.invocationIndex?.toString(),
                 )
             },
             "branches" to full?.branches.orEmpty().map { branch ->
+                reader.chargeScans()
                 linkedMapOf(
                     "text" to branch.text,
                     "selected" to branch.selected,
                     "location" to location(branch.location),
+                    "eventId" to branch.eventId,
+                    "invocationIndex" to branch.invocationIndex?.toString(),
                 )
             },
             "references" to references, "parts" to parts, "options" to options,
@@ -178,13 +209,17 @@ object WorkbenchDocuments {
         layout: LayoutSpec,
         nodeId: String,
         fixed: Map<String, String> = emptyMap(),
+        reader: CalculationReader? = null,
     ): Map<String, Any?> {
+        if (reader == null) return view.openReader().use { memberMap(view, layout, nodeId, fixed, it) }
+        reader.coordinates(view, nodeId, fixed) // Product and fixed-member preflight before nested map growth.
         val node = view.node(nodeId)
         require(node.dims.isNotEmpty()) { "Member map requires a dimensioned node" }
         val formatter = NumberFormatter(layout.number)
         val variableDims = node.dims.filter { it !in fixed }
         require(variableDims.isNotEmpty()) { "Member map requires at least one unfixed dimension" }
         fun build(dims: List<String>, assignment: Map<String, String>): Value {
+            reader.chargeScans()
             if (dims.isEmpty()) {
                 return node.values[node.dims.map(assignment::getValue)]
                     ?: if (node.type.isNumeric) Value.ZERO else Value.Nil
@@ -198,6 +233,7 @@ object WorkbenchDocuments {
             )
         }
         val value = build(variableDims, fixed)
+        reader.chargeScans(node.values.size.toLong())
         val members = node.values.keys.filter { coord ->
             node.dims.indices.all { i ->
                 fixed[node.dims[i]] == null || fixed[node.dims[i]] == coord[i]
@@ -208,7 +244,7 @@ object WorkbenchDocuments {
             linkedMapOf<String, Any?>(
                 "address" to address(nodeId, coord),
                 "label" to node.label,
-                "value" to WorkbenchJson.value(item),
+                "value" to WorkbenchJson.value(item, reader),
                 "display" to formatter.value(item, node.presentation.format, node.presentation.precision),
                 "kind" to "member",
                 "origin" to null,
@@ -219,12 +255,12 @@ object WorkbenchDocuments {
             "label" to node.label,
             "kind" to "member-map", "formula" to null,
             "result" to linkedMapOf(
-                "value" to WorkbenchJson.value(value),
+                "value" to WorkbenchJson.value(value, reader),
                 "display" to formatter.value(value, node.presentation.format, node.presentation.precision),
                 "rounding" to null,
             ),
             "status" to "active", "reason" to null,
-            "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
+            "link" to null, "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
             "references" to references, "parts" to emptyList<Any>(), "options" to emptyList<Any>(),
             "reference" to node.presentation.reference, "truncated" to (members.size > 63),
             "aggregate" to null,
@@ -237,7 +273,8 @@ object WorkbenchDocuments {
         layout: LayoutSpec,
         nodeId: String,
         fixed: Map<String, String> = emptyMap(),
-    ): Map<String, Any?> = aggregateExplanation(view, layout, nodeId, fixed)
+        reader: CalculationReader? = null,
+    ): Map<String, Any?> = aggregateExplanation(view, layout, nodeId, fixed, reader)
 
     /** Parameter defaults, every supplied set value, case override, and the effective layer. */
     fun parameters(view: CalculationView): Map<String, Any?> = linkedMapOf(
@@ -318,8 +355,16 @@ object WorkbenchDocuments {
     }
 
     /** A panel always has a paper table, even when the chosen layout did not declare one. */
-    fun paper(view: CalculationView, layout: LayoutSpec, panelId: String? = null): Map<String, Any?> {
-        val rendered = Render.paper(view, layout)
+    fun paper(view: CalculationView, layout: LayoutSpec, panelId: String? = null): Map<String, Any?> =
+        view.openReader().use { reader -> paper(view, layout, panelId, reader) }
+
+    private fun paper(
+        view: CalculationView,
+        layout: LayoutSpec,
+        panelId: String?,
+        reader: CalculationReader,
+    ): Map<String, Any?> {
+        val rendered = Render.paper(view, layout, reader)
         if (panelId == null || rendered.tables.any { it.id == panelId }) return paper(rendered, view, panelId)
         require(view.structure.panels.any { it.id == panelId }) { "Unknown panel $panelId" }
         val dimensions = view.dimensionOrder(
@@ -343,7 +388,7 @@ object WorkbenchDocuments {
         } else {
             TableSpec(panelId)
         }
-        val fallback = Render.completePaper(view, layout.copy(tables = listOf(table)))
+        val fallback = Render.completePaper(view, layout.copy(tables = listOf(table)), reader)
         return paper(fallback, view, panelId)
     }
 
@@ -405,17 +450,35 @@ object WorkbenchDocuments {
         )
     }
 
-    fun run(view: CalculationView, layout: LayoutSpec): Map<String, Any?> {
+    fun run(
+        view: CalculationView,
+        layout: LayoutSpec,
+        graph: com.xqiou.mantra.core.api.CaseRunResult? = null,
+    ): Map<String, Any?> = view.openReader().use { reader -> run(view, layout, graph, reader) }
+
+    private fun run(
+        view: CalculationView,
+        layout: LayoutSpec,
+        graph: com.xqiou.mantra.core.api.CaseRunResult?,
+        reader: CalculationReader,
+    ): Map<String, Any?> {
+        reader.chargeScans(
+            view.nodes.size.toLong() + view.nodes.values.sumOf { it.values.size.toLong() } +
+                view.members.values.sumOf { it.size.toLong() },
+        )
         val formatter = NumberFormatter(layout.number)
         return linkedMapOf(
+            "caseGraph" to graph?.let(CaseGraphDocuments::graph),
+            "usage" to graph?.let(CaseGraphDocuments::usage),
+            "failure" to graph?.failure?.let(CaseGraphDocuments::failure),
             "succeeded" to view.succeeded,
-            "validationPassed" to view.validationPassed,
+            "validationPassed" to (graph?.validationPassed ?: view.validationPassed),
             "aggregates" to
                 view.nodes.mapNotNull { (id, node) ->
                     if (node.dims.isEmpty()) {
                         null
                     } else {
-                        view.reduce(id, emptyMap()).trace?.let {
+                        reader.reduce(id, emptyMap()).trace?.let {
                             id to
                                 reductionDocument(it, layout, node.presentation)
                         }
@@ -428,7 +491,7 @@ object WorkbenchDocuments {
                 node.values.mapKeys { (coord, _) -> coord.joinToString("/") }.mapValues { (key, value) ->
                     val coord = if (key.isEmpty()) emptyList() else key.split("/")
                     linkedMapOf<String, Any?>(
-                        "value" to WorkbenchJson.value(value),
+                        "value" to WorkbenchJson.value(value, reader),
                         "display" to
                             if (node.isActive(coord)) {
                                 formatter.value(value, node.presentation.format, node.presentation.precision)
@@ -437,9 +500,13 @@ object WorkbenchDocuments {
                             },
                         "active" to node.isActive(coord),
                         "validation" to node.validations[coord]?.let { validation(it, node.isActive(coord)) },
+                        "link" to null,
                     ).apply {
                         when (val trace = node.trace(coord)) {
-                            is NodeTrace.Input -> put("origin", trace.label())
+                            is NodeTrace.Input -> {
+                                put("origin", trace.label())
+                                put("link", trace.link?.let(CaseGraphDocuments::link))
+                            }
                             is NodeTrace.Param -> put("source", trace.source)
                             else -> Unit
                         }
@@ -533,11 +600,13 @@ object WorkbenchDocuments {
         "location" to diagnostic.location?.let(::location),
         "address" to diagnostic.nodeId?.let { node ->
             address(node, diagnostic.coord).toMutableMap().apply {
+                put("case", diagnostic.caseKey)
                 if (diagnostic.rowIndex != null && diagnostic.column != null) {
                     put("cell", mapOf("row" to diagnostic.rowIndex.toString(), "column" to diagnostic.column))
                 }
             }
         },
+        "caseRevision" to diagnostic.caseRevision,
         "related" to emptyList<Any>(),
     )
 
@@ -551,7 +620,7 @@ object WorkbenchDocuments {
     }
 
     private fun address(id: String, coord: List<String>? = null): Map<String, Any?> =
-        linkedMapOf<String, Any?>("node" to id).apply {
+        linkedMapOf<String, Any?>("case" to null, "node" to id).apply {
             if (!coord.isNullOrEmpty()) put("coord", coord)
         }
 

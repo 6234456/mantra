@@ -1,0 +1,54 @@
+Income-tax loss ledger 2024 — demonstration
+Fictional § 10d carryforward source for an explicitly versioned 2025 case
+===========================================
+Mandant: Loss ledger 2024: source-zero-2024
+Zeitraum: 2024
+Berechnungsschema: Income-tax loss ledger 2024 v2024.1 [de.est-loss/2024]
+Closing loss carried once into the next year: 0,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Deduction capacity [1]
+  Hauptlinie 2: Opening, movements and closing carryforward [2]  0,00
+
+[1] Deduction capacity
+    Hauptlinie › 1 Deduction capacity
+Zeile | Bezeichnung                  |          EUR
+------+------------------------------+-------------
+1     | Allowance                    | 1.000.000,00
+2     | Selected § 10d deduction cap |         0,00
+
+[2] Opening, movements and closing carryforward
+    Hauptlinie › 2 Opening, movements and closing carryforward
+Zeile |   | Bezeichnung                                  |  EUR |
+------+---+----------------------------------------------+------+--
+     -+- -+-                                            -+------+-
+1     | = | Closing loss carried once into the next year | 0,00 | Σ
+     =+= =+=                                            =+======+=
+2     |   | Loss ledger crossfoot                        | 0,00 | ✓
+3     |   | Opening loss is nonnegative                  |    ✓ | ✓
+4     |   | Eligible new loss is nonnegative             |    ✓ | ✓
+5     |   | Supported scenario has waived carryback      |    ✓ | ✓
+
+Berechnungsnachweis
+-------------------
+1/1 Allowance
+    Formel: (if joint-amount-check loss-base-joint loss-base)
+    Rechenweg: (if joint-amount-check loss-base-joint loss-base) = 1000000 → gewählter Zweig: loss-base = 1.000.000,00
+1/2 Selected § 10d deduction cap
+    Formel: (+ (min (max positive-income 0) loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0)))
+    Rechenweg: (max positive-income 0) = 0 → (min (max positive-income 0) loss-allowance) = 0 → (- positive-income loss-allowance) = -1000000 → (max (- positive-income loss-allowance) 0) = 0 → (* loss-excess-rate (max (- positive-income loss-allowance) 0)) = 0.0 → (+ (min (max positive-income 0) loss-allowance) (* loss-excess-rate (max (- positive-income loss-allowance) 0))) = 0.0 = 0,00
+2/1 Closing loss carried once into the next year
+    Formel: ledger-opening + ledger-new − ledger-used − ledger-carryback
+    Rechenweg: 0 + 0 − 0.0 − 0 = 0,00
+2/2 Loss ledger crossfoot
+    Formel: closing-loss ≈ (- (+ opening-loss eligible-new-loss) loss-used selected-carryback) (± 0)
+    Rechenweg: closing-loss = 0.0; (+ opening-loss eligible-new-loss) = 0 → (- (+ opening-loss eligible-new-loss) loss-used selected-carryback) = 0.0 → 0.0 − 0.0 = 0.0 (± 0) = 0,00
+2/3 Opening loss is nonnegative
+    Formel: (>= opening-loss 0)
+    Rechenweg: (>= opening-loss 0) = true = ✓
+2/4 Eligible new loss is nonnegative
+    Formel: (>= eligible-new-loss 0)
+    Rechenweg: (>= eligible-new-loss 0) = true = ✓
+2/5 Supported scenario has waived carryback
+    Formel: (and carryback-waived (= selected-carryback 0))
+    Rechenweg: (= selected-carryback 0) = true → (and carryback-waived (= selected-carryback 0)) = true = ✓

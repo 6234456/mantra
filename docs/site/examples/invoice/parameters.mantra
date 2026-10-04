@@ -1,0 +1,3 @@
+(parameters tutorial.invoice/annual
+  {:for "tutorial.invoice" :label "Fictional annual assumptions"}
+  (values {:levy-fraction 0.25}))

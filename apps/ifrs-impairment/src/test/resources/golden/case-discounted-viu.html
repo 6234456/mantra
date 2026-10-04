@@ -135,7 +135,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <a class="card" href="#table-5"><span class="step-no">Mainline 5</span><span class="title">Step 3a – Individually capped allocation</span><span class="value">–</span></a>
 </li>
 <li class="step">
-<a class="card" href="#table-6"><span class="step-no">Mainline 6</span><span class="title">Capped allocation control</span><span class="value"></span></a>
+<span class="card"><span class="step-no">Mainline 6</span><span class="title">Capped allocation control</span><span class="value"></span></span>
 </li>
 <li class="step">
 <a class="card" href="#table-7"><span class="step-no">Mainline 7</span><span class="title">Step 4 – Combined recovery check</span><span class="value">723</span></a>
@@ -836,175 +836,175 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num">391</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-aggregate">
-<td class="left cite"><a href="#t2-nforecast">2/1 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/1 Σ</a></td>
 <td class="left">Projected pre-tax cash flow (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 66 included; [cgu=A, year=P2] 72.6 included; [cgu=A, year=P3] 79.86 included; [cgu=B, year=P1] 77 included; [cgu=B, year=P2] 84.7 included; [cgu=B, year=P3] 93.17 included; [cgu=C, year=P1] 110 included; [cgu=C, year=P2] 121 included; [cgu=C, year=P3] 133.1 included → 837.43</div></td>
 <td class="right num">837.43</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-A-P1">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 66 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 66 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">66.00</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-A-P2">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 72.6 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 72.6 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">72.60</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-A-P3">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 79.86 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 79.86 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">79.86</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-B-P1">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r6">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 77 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 77 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">77.00</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-B-P2">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r6">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 84.7 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 84.7 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">84.70</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-B-P3">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r6">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 93.17 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 93.17 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">93.17</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-C-P1">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r10">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 110 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 110 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">110.00</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-C-P2">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r10">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 121 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 121 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0</div></td>
 <td class="right num">121.00</td>
 </tr>
 <tr id="audit-t2-nforecast-cash-flow-C-P3">
-<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left cite"><a href="#t2-r10">2/1</a></td>
 <td class="left">Projected pre-tax cash flow <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 133.1 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 133.1 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow</div></td>
 <td class="right num">133.10</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-A-P1">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
 <td class="right num">0.90909091</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-A-P2">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
 <td class="right num">0.82644628</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-A-P3">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
 <td class="right num">0.75131480</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-B-P1">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r7">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
 <td class="right num">0.90909091</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-B-P2">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r7">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
 <td class="right num">0.82644628</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-B-P3">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r7">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
 <td class="right num">0.75131480</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-C-P1">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r11">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
 <td class="right num">0.90909091</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-C-P2">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r11">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
 <td class="right num">0.82644628</td>
 </tr>
 <tr id="audit-t2-ndiscount-factor-C-P3">
-<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left cite"><a href="#t2-r11">2/2</a></td>
 <td class="left">End-of-year discount factor <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
 <td class="right num">0.75131480</td>
 </tr>
 <tr id="audit-t2-npresent-value-aggregate">
-<td class="left cite"><a href="#t2-npresent">2/3 Σ</a></td>
+<td class="left cite"><a href="#table-2">2/3 Σ</a></td>
 <td class="left">Discounted cash flow (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 60 included; [cgu=A, year=P2] 60 included; [cgu=A, year=P3] 60 included; [cgu=B, year=P1] 70 included; [cgu=B, year=P2] 70 included; [cgu=B, year=P3] 70 included; [cgu=C, year=P1] 100 included; [cgu=C, year=P2] 100 included; [cgu=C, year=P3] 100 included → 690</div></td>
 <td class="right num">690.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-A-P1">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 60.000000000000000006 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60</div></td>
 <td class="right num">60.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-A-P2">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 59.9999999999999999862 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60</div></td>
 <td class="right num">60.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-A-P3">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 59.99999999999999999346 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60</div></td>
 <td class="right num">60.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-B-P1">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r8">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 70.000000000000000007 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70</div></td>
 <td class="right num">70.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-B-P2">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r8">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 69.9999999999999999839 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70</div></td>
 <td class="right num">70.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-B-P3">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r8">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 69.99999999999999999237 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70</div></td>
 <td class="right num">70.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-C-P1">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r12">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 100.000000000000000010 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-C-P2">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r12">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 99.999999999999999977 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100</div></td>
 <td class="right num">100.00</td>
 </tr>
 <tr id="audit-t2-npresent-value-C-P3">
-<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left cite"><a href="#t2-r12">2/3</a></td>
 <td class="left">Discounted cash flow <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
 <td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 99.9999999999999999891 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100</div></td>
 <td class="right num">100.00</td>
@@ -1202,25 +1202,25 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t5-nindividual-carrying-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/1 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/1 Σ</a></td>
 <td class="left">Asset carrying amount before the loss (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t5-nindividual-floor-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/2 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/2 Σ</a></td>
 <td class="left">Higher of FVLCD, value in use and zero (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t5-nasset-allocated-loss-aggregate">
-<td class="left cite"><a href="#t5-nasset">5/3 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/3 Σ</a></td>
 <td class="left">Loss after cap and redistribution (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t5-nindividual-closing-aggregate">
-<td class="left cite"><a href="#t5-nindividual">5/4 Σ</a></td>
+<td class="left cite"><a href="#table-5">5/4 Σ</a></td>
 <td class="left">Asset carrying amount after the capped allocation (Total)</td>
 <td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
 <td class="right num">–</td>

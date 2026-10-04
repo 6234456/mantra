@@ -1,6 +1,8 @@
 package com.xqiou.mantra.benchmarks
 
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.RunLimits
 import com.xqiou.mantra.excel.ExcelExport
 import com.xqiou.mantra.excel.ExcelOptions
 import com.xqiou.mantra.render.Render
@@ -11,6 +13,7 @@ import java.lang.management.MemoryType
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
+import java.time.Duration
 import java.time.Instant
 import java.util.Locale
 import java.util.Properties
@@ -150,7 +153,11 @@ fun main(arguments: Array<String>) {
     println("Baseline and verified public-API outputs: ${settings.output.toAbsolutePath()}")
 }
 
-private fun exportOptions() = ExcelOptions(maxSheets = 16, maxCells = 250_000)
+private fun exportOptions() = ExcelOptions(
+    maxSheets = 16,
+    maxCells = 250_000,
+    reading = CalculationOptions(limits = RunLimits(maxDuration = Duration.ofMinutes(5))),
+)
 
 private fun measure(name: String, repetition: Int, operation: () -> Any): Sample {
     retained = null
@@ -205,6 +212,7 @@ private fun writeMetadata(settings: Settings) {
         "maxHeapBytes" to Runtime.getRuntime().maxMemory().toString(),
         "warmupPerOperation" to settings.warmup.toString(),
         "repetitionsPerOperation" to settings.repetitions.toString(),
+        "xlsxReadMaxDurationSeconds" to "300",
         "scenarios" to settings.scenarios.joinToString { "${it.name}:${it.lines}/${it.members}/${it.tableRows}" },
         "libraryAndHarnessSourceSha256" to sourceFingerprint(),
         "heapMethod" to (

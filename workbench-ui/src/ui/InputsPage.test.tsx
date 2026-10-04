@@ -15,23 +15,27 @@ const structure: Structure = {
   generalInputs: [{ id: 'amount', label: 'Amount', type: 'decimal', dims: [] }],
 }
 const run: Run = {
+  caseGraph: null,
+  usage: null,
+  failure: null,
   succeeded: true,
   validationPassed: true,
   members: {},
   diagnostics: [],
   values: {
-    amount: { '': { value: { n: '100.00' }, display: '100,00', active: true, origin: 'case' } },
+    amount: { '': { link: null, value: { n: '100.00' }, display: '100,00', active: true, origin: 'case' } },
   },
 }
 afterEach(cleanup)
 
 const businessFinding: Diagnostic = {
+  caseRevision: null,
   category: 'business',
   severity: 'error',
   code: 'MANTRA-INPUT-REQUIRED',
   message: 'Enter an explicit amount',
   location: null,
-  address: { node: 'amount' },
+  address: { case: null, node: 'amount' },
   related: [],
   rowIndex: null,
   column: null,
@@ -60,7 +64,9 @@ it('shows a business error beside the input and still saves a valid edit with fa
   fireEvent.change(input, { target: { value: '0' } })
   fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
   await waitFor(() => expect(saved).toHaveBeenCalledWith(difference))
-  expect(edit).toHaveBeenCalledWith('case.mantra', 'base', [{ op: 'setInput', address: { node: 'amount' }, text: '0' }])
+  expect(edit).toHaveBeenCalledWith('case.mantra', 'base', [
+    { op: 'setInput', address: { case: null, node: 'amount' }, text: '0' },
+  ])
   expect(screen.queryByRole('alert')).toBeNull()
 })
 
@@ -76,7 +82,7 @@ it.each([
     ...run,
     validationPassed: false,
     diagnostics: [businessFinding],
-    values: { amount: { '': { value, display: text, active: true, origin: 'implicit' } } },
+    values: { amount: { '': { link: null, value, display: text, active: true, origin: 'implicit' } } },
   }
   render(
     <InputsPage
@@ -93,7 +99,9 @@ it.each([
   expect(save.disabled).toBe(false)
   fireEvent.click(save)
   await waitFor(() => expect(saved).toHaveBeenCalledOnce())
-  expect(edit).toHaveBeenCalledWith('case.mantra', 'base', [{ op: 'setInput', address: { node: 'amount' }, text }])
+  expect(edit).toHaveBeenCalledWith('case.mantra', 'base', [
+    { op: 'setInput', address: { case: null, node: 'amount' }, text },
+  ])
 })
 
 it('focuses a diagnostic row position, displays the exact cell finding, and edits using its stable key', async () => {
@@ -122,7 +130,7 @@ it('focuses a diagnostic row position, displays the exact cell finding, and edit
     diagnostics: [
       {
         ...businessFinding,
-        address: { node: 'items', cell: { row: '0', column: 'amount' } },
+        address: { case: null, node: 'items', cell: { row: '0', column: 'amount' } },
         rowIndex: 0,
         column: 'amount',
       },
@@ -130,6 +138,7 @@ it('focuses a diagnostic row position, displays the exact cell finding, and edit
     values: {
       items: {
         '': {
+          link: null,
           value: [
             {
               map: [
@@ -159,7 +168,7 @@ it('focuses a diagnostic row position, displays the exact cell finding, and edit
       data={{ edit } as unknown as WorkbenchData}
       onSaved={saved}
       navigate={vi.fn()}
-      selectedAddress={{ node: 'items', cell: { row: '0', column: 'amount' } }}
+      selectedAddress={{ case: null, node: 'items', cell: { row: '0', column: 'amount' } }}
     />,
   )
   const target = screen.getByLabelText('amount · first')
@@ -173,7 +182,7 @@ it('focuses a diagnostic row position, displays the exact cell finding, and edit
   fireEvent.click(screen.getByRole('button', { name: 'Save amount · first' }))
   await waitFor(() => expect(saved).toHaveBeenCalledOnce())
   expect(edit).toHaveBeenCalledWith('case.mantra', 'base', [
-    { op: 'setInput', address: { node: 'items', cell: { row: 'first', column: 'amount' } }, text: '0' },
+    { op: 'setInput', address: { case: null, node: 'items', cell: { row: 'first', column: 'amount' } }, text: '0' },
   ])
 })
 
@@ -203,7 +212,7 @@ it('retains a nil whole-row placeholder so subsequent cell findings and delete o
     diagnostics: [
       {
         ...businessFinding,
-        address: { node: 'items', cell: { row: '2', column: 'amount' } },
+        address: { case: null, node: 'items', cell: { row: '2', column: 'amount' } },
         rowIndex: 2,
         column: 'amount',
       },
@@ -211,6 +220,7 @@ it('retains a nil whole-row placeholder so subsequent cell findings and delete o
     values: {
       items: {
         '': {
+          link: null,
           value: [
             {
               map: [
@@ -241,7 +251,7 @@ it('retains a nil whole-row placeholder so subsequent cell findings and delete o
       data={{ edit } as unknown as WorkbenchData}
       onSaved={saved}
       navigate={vi.fn()}
-      selectedAddress={{ node: 'items', cell: { row: '2', column: 'amount' } }}
+      selectedAddress={{ case: null, node: 'items', cell: { row: '2', column: 'amount' } }}
     />,
   )
   const target = screen.getByLabelText('amount · third')
@@ -284,13 +294,13 @@ it('submits raw text, preserves rejected input, and reports the server differenc
   expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Invalid decimal text')
   expect(input.value).toBe('1.234,xx')
   expect(edit).toHaveBeenCalledWith('case.mantra', '1234567890abcdef', [
-    { op: 'setInput', address: { node: 'amount' }, text: '1.234,xx' },
+    { op: 'setInput', address: { case: null, node: 'amount' }, text: '1.234,xx' },
   ])
   fireEvent.change(input, { target: { value: '1.234,56' } })
   fireEvent.click(screen.getByRole('button', { name: 'Speichern' }))
   await waitFor(() => expect(saved).toHaveBeenCalledOnce())
   expect(edit).toHaveBeenLastCalledWith('case.mantra', '1234567890abcdef', [
-    { op: 'setInput', address: { node: 'amount' }, text: '1.234,56' },
+    { op: 'setInput', address: { case: null, node: 'amount' }, text: '1.234,56' },
   ])
 })
 
@@ -318,6 +328,7 @@ it('uses the declared table key and sends new row text without parsing decimal i
     values: {
       items: {
         '': {
+          link: null,
           value: [
             {
               map: [
@@ -347,7 +358,11 @@ it('uses the declared table key and sends new row text without parsing decimal i
   fireEvent.click(screen.getByRole('button', { name: 'Save amount · first' }))
   await waitFor(() =>
     expect(edit).toHaveBeenCalledWith('case.mantra', '1234567890abcdef', [
-      { op: 'setInput', address: { node: 'items', cell: { row: 'first', column: 'amount' } }, text: '2,50' },
+      {
+        op: 'setInput',
+        address: { case: null, node: 'items', cell: { row: 'first', column: 'amount' } },
+        text: '2,50',
+      },
     ]),
   )
   const code = screen.getAllByLabelText('code').at(-1) as HTMLInputElement
@@ -360,4 +375,57 @@ it('uses the declared table key and sends new row text without parsing decimal i
       { op: 'insertRow', table: 'items', rowText: { code: 'second', amount: '1.234,56' } },
     ]),
   )
+})
+
+it.each([
+  { type: 'decimal', value: { n: '0' }, display: '0,00' },
+  { type: 'boolean', value: false, display: 'false' },
+])('keeps linked $display read only and opens its exact source snapshot', ({ type, value, display }) => {
+  const edit = vi.fn()
+  const navigate = vi.fn()
+  const source = {
+    case: 'source/case.mantra',
+    path: '../source/case.mantra',
+    caseId: 'source-facts',
+    schema: { id: 'neutral/source', version: '1' },
+    revision: 'source-revision',
+    address: { case: 'source/case.mantra', node: 'closing', coord: [] },
+  }
+  const linked: Run = {
+    ...run,
+    values: {
+      amount: {
+        '': {
+          value,
+          display,
+          active: true,
+          origin: 'LINK',
+          link: source,
+        },
+      },
+    },
+  }
+  render(
+    <InputsPage
+      caseId="root/case.mantra"
+      structure={{ ...structure, generalInputs: [{ id: 'amount', label: 'Amount', type }] }}
+      run={linked}
+      revision="root-revision"
+      data={{ edit } as unknown as WorkbenchData}
+      onSaved={vi.fn()}
+      navigate={navigate}
+    />,
+  )
+  expect(screen.getByLabelText('Amount').textContent).toBe(display)
+  expect(screen.queryByRole('textbox')).toBeNull()
+  expect(screen.queryByRole('checkbox')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Speichern' })).toBeNull()
+  const explanation = screen.getByRole('link', { name: /Quellwert erklären/ })
+  const path = new URL(explanation.getAttribute('href')!, 'http://localhost')
+  expect(path.pathname).toContain('/cases/root%2Fcase%2Emantra/provenance/')
+  expect(path.searchParams.get('case')).toBe('source/case.mantra')
+  expect(path.searchParams.get('expectedRevision')).toBe('source-revision')
+  fireEvent.click(explanation)
+  expect(navigate).toHaveBeenCalledWith(explanation.getAttribute('href'))
+  expect(edit).not.toHaveBeenCalled()
 })

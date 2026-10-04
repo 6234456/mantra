@@ -1,0 +1,11 @@
+(parameters de.gewst/2025-parameters
+  {:for "de.gewst/2025" :label "Historical 2025 selected trade-tax parameters" :valid-from "2025-01-01"}
+  (value debt-weight 1)
+  (value movable-rent-weight 0.2)
+  (value immovable-rent-weight 0.5)
+  (value licence-weight 0.25)
+  (value financing-allowance 200000)
+  (value financing-addition-rate 0.25)
+  (value personal-allowance 24500)
+  (value assessment-rate 0.035)
+  (value historical-minimum-hebesatz 200))

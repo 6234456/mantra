@@ -15,9 +15,9 @@ import com.xqiou.mantra.render.paper.WorkingPaper
 /** Standalone HTML working paper (A4-print friendly, light and dark themes). */
 object HtmlRenderer {
     fun render(paper: WorkingPaper): String = buildString {
-        // Row anchor ("t<table>-r<row>") → first audit entry of that row (entries of members add "-<key>").
+        val auditRows = auditRows(paper)
         val auditAnchors = linkedMapOf<String, String>().apply {
-            paper.audit.forEach { entry -> putIfAbsent(rowAnchor(entry.anchor), entry.anchor) }
+            paper.audit.forEach { entry -> auditRows[entry.anchor]?.let { putIfAbsent(it, entry.anchor) } }
         }
         appendLine("<!DOCTYPE html>")
         appendLine("<html lang=\"${if (paper.texts.total == "Gesamt") "de" else "en"}\">")
@@ -62,19 +62,60 @@ object HtmlRenderer {
             appendLine("</ol></nav>")
         }
         paper.tables.forEach { append(table(it, paper, auditAnchors)) }
-        if (paper.audit.isNotEmpty()) append(audit(paper))
+        if (paper.audit.isNotEmpty()) append(audit(paper, auditRows))
         append(footer(paper))
         appendLine("</main>")
         appendLine("</body>")
         appendLine("</html>")
     }
 
-    private fun rowAnchor(anchor: String): String = anchor.split('-').take(2).joinToString("-")
+    /** Resolve actual paper addresses; node/member identifiers may contain arbitrary hyphens. */
+    private fun auditRows(paper: WorkingPaper): Map<String, String> {
+        data class Address(
+            val table: String,
+            val node: String,
+            val coord: List<String>,
+            val fixed: Map<String, String>?,
+        )
+        val anchors = mutableSetOf<String>()
+        val values = linkedMapOf<Address, String>()
+        val nodes = linkedMapOf<Pair<String, String>, String>()
+        paper.tables.forEach { table ->
+            table.rows.forEach { row ->
+                val anchor = row.anchor ?: return@forEach
+                anchors.add(anchor)
+                row.nodeId?.let { nodes.putIfAbsent(table.ref to it, anchor) }
+                row.valueAddresses.filterNotNull().forEach { address ->
+                    values.putIfAbsent(
+                        Address(
+                            table.ref,
+                            address.nodeId,
+                            address.coord,
+                            address.fixed.takeIf {
+                                address.aggregate
+                            },
+                        ),
+                        anchor,
+                    )
+                    nodes.putIfAbsent(table.ref to address.nodeId, anchor)
+                }
+            }
+        }
+        val refs = paper.tables.mapTo(mutableSetOf()) { it.ref }
+        return paper.audit.mapNotNull { entry ->
+            var prefix = entry.anchor
+            while (prefix !in anchors && '-' in prefix) prefix = prefix.substringBeforeLast('-')
+            val ref = entry.anchor.substringBefore('-').removePrefix("t")
+            val fixed = (entry.reduction ?: entry.aggregate)?.fixed
+            val row = prefix.takeIf { it in anchors }
+                ?: entry.nodeId?.let { values[Address(ref, it, entry.coord, fixed)] ?: nodes[ref to it] }
+                ?: ref.takeIf { it in refs }?.let { "table-$it" }
+            row?.let { entry.anchor to it }
+        }.toMap()
+    }
 
     private fun structure(paper: WorkingPaper): String = buildString {
-        fun link(ref: String?, body: String) = if (ref ==
-            null
-        ) {
+        fun link(ref: String?, body: String) = if (ref == null || paper.tables.none { it.ref == ref }) {
             "<span class=\"card\">$body</span>"
         } else {
             "<a class=\"card\" href=\"#table-${esc(ref)}\">$body</a>"
@@ -173,9 +214,10 @@ object HtmlRenderer {
                     column.content == ColumnContent.Label -> {
                         val text = esc(raw)
                         // "(→ Tabelle 5)" at the end of a label links to that table.
-                        val linked = Regex("\\(→ [^)]*? (\\S+)\\)$").find(raw)?.groupValues?.get(1)?.let { target ->
-                            "$text <a class=\"xref\" href=\"#table-${esc(target)}\">↗</a>"
-                        } ?: text
+                        val linked = Regex("\\(→ [^)]*? (\\S+)\\)$").find(raw)?.groupValues?.get(1)
+                            ?.takeIf { target -> paper.tables.any { it.ref == target } }?.let { target ->
+                                "$text <a class=\"xref\" href=\"#table-${esc(target)}\">↗</a>"
+                            } ?: text
                         "<span class=\"label\" style=\"--depth:${row.depth}\">$linked</span>"
                     }
                     column.content == ColumnContent.RowNumber && raw.isNotEmpty() && row.anchor != null &&
@@ -220,7 +262,7 @@ object HtmlRenderer {
         return if (declarations.isEmpty()) "" else " style=\"${declarations.joinToString(";")}\""
     }
 
-    private fun audit(paper: WorkingPaper): String = buildString {
+    private fun audit(paper: WorkingPaper, auditRows: Map<String, String>): String = buildString {
         val texts = paper.texts
         appendLine("<section class=\"block audit\" id=\"audit\">")
         appendLine("<h2><span class=\"ref\">§</span>${esc(texts.audit)}</h2>")
@@ -239,7 +281,11 @@ object HtmlRenderer {
         paper.audit.forEach { entry ->
             appendLine("<tr id=\"audit-${esc(entry.anchor)}\">")
             appendLine(
-                "<td class=\"left cite\"><a href=\"#${esc(rowAnchor(entry.anchor))}\">${esc(entry.citation)}</a></td>",
+                "<td class=\"left cite\">" +
+                    (
+                        auditRows[entry.anchor]?.let { "<a href=\"#${esc(it)}\">${esc(entry.citation)}</a>" }
+                            ?: esc(entry.citation)
+                        ) + "</td>",
             )
             val member = entry.member?.let { " <span class=\"member\">${esc(it)}</span>" }.orEmpty()
             val ref = entry.reference?.let { "<div class=\"norm\">${esc(it)}</div>" }.orEmpty()

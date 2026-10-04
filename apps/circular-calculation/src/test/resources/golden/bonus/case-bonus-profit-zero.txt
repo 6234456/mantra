@@ -1,0 +1,36 @@
+Circular bonus — demonstration
+==============================
+Entity: Circular bonus: bonus-profit-zero
+Calculation schema: Circular bonus calculation v1.0 [demo.bonus]
+Bonus: –
+
+Structure of the calculation
+  Mainline 1: Declared seed and rounded fixed-point result [1]
+
+[1] Declared seed and rounded fixed-point result
+    Mainline › 1 Declared seed and rounded fixed-point result
+Line | Description                                       | EUR |
+-----+---------------------------------------------------+-----+--
+1    | Bonus                                             |   – |
+2    | Result less unrounded equation                    |   – |
+3    | Result less rounded equation                      |   – |
+4    | Profit after bonus                                |   – |
+5    | Returned amount also meets the equation tolerance |   ✓ | ✓
+
+Audit trail
+-----------
+1/1 Bonus
+    Formula: (calc/converge rounded-step seed maximum-calls tolerance)
+    Working: (defn rounded-step [^Decimal current] (decimal/round (* rate (- base current)) money-scale)) = [value unavailable] → (- base current) = 0 → (* rate (- base current)) = 0.00 → (decimal/round (* rate (- base current)) money-scale) = 0.00 → (calc/converge rounded-step seed maximum-calls tolerance) = 0.00 → (calc/converge rounded-step seed maximum-calls tolerance) = 0.00 = –
+1/2 Result less unrounded equation
+    Formula: (- converged-amount (* rate (- base converged-amount)))
+    Working: (- base converged-amount) = 0.00 → (* rate (- base converged-amount)) = 0.0000 → (- converged-amount (* rate (- base converged-amount))) = 0.0000 = –
+1/3 Result less rounded equation
+    Formula: (- converged-amount (rounded-step converged-amount))
+    Working: (defn rounded-step [^Decimal current] (decimal/round (* rate (- base current)) money-scale)) = [value unavailable] → (- base current) = 0.00 → (* rate (- base current)) = 0.0000 → (decimal/round (* rate (- base current)) money-scale) = 0.00 → (rounded-step converged-amount) = 0.00 → (- converged-amount (rounded-step converged-amount)) = 0.00 → (- converged-amount (rounded-step converged-amount)) = 0.00 = –
+1/4 Profit after bonus
+    Formula: (- base converged-amount)
+    Working: (- base converged-amount) = 0.00 = –
+1/5 Returned amount also meets the equation tolerance
+    Formula: (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance)
+    Working: (decimal/round money-equation-residual money-scale) = 0.00 → (abs (decimal/round money-equation-residual money-scale)) = 0.00 → (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance) = true = ✓

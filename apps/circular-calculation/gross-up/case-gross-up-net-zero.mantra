@@ -1,0 +1,7 @@
+;; Frozen fictional gross-up-net-zero; independent cent-orbit certificate is source evidence, never runtime trace.
+(case gross-up-net-zero
+  {:schema "demo.gross-up" :schema-version "1.0" :layout "demo.gross-up/working-paper"
+   :parameters ["demo.gross-up/parameters"] :title "Net-to-gross: gross-up-net-zero"
+   :expected-business []}
+  (inputs {:base 0 :rate 0.25 :seed 0
+           :maximum-calls 60 :tolerance 0}))

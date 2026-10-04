@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gewerbesteuer 2025 — demonstration</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Gewerbesteuer 2025 — demonstration</h1>
+</div>
+<dl class="wp-meta">
+<div><dt>Mandant</dt><dd>Gewerbesteuer 2025: rate 400 from typed CSV</dd></div>
+<div><dt>Zeitraum</dt><dd>2025</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Trade tax due</strong> 14.420,00</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Aufbau der Berechnung</h2>
+<ol class="mainline" aria-label="Hauptlinie">
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Hauptlinie 1</span><span class="title">Financing addition</span><span class="value"></span></a>
+<ul class="branches">
+<li><a class="card" href="#table-1"><span class="title">↳ Weighted financing expenses</span><span class="value"></span><span class="entry">→ 1 · Unweighted supplied expenses</span></a></li>
+</ul>
+</li>
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Hauptlinie 2</span><span class="title">Trade-tax assessment</span><span class="value">127.500,00</span></a>
+</li>
+</ol>
+<p class="aux"><strong>Nebeninformation:</strong> <a href="#table-2">Expense totals by category</a> </p>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> Weighted financing expenses</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Expense totals by category</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Financing addition</a></li>
+<li><a href="#table-4"><span class="ref">4</span> Trade-tax assessment</a></li>
+<li><a href="#audit"><span class="ref">§</span> Berechnungsnachweis</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Financing addition › „Unweighted supplied expenses“ › Weighted financing expenses</p>
+<h2><span class="ref">1</span>Weighted financing expenses</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">F1</th>
+<th class="right num c-member">F2</th>
+<th class="right num c-member">F3</th>
+<th class="right num c-member">F4</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t1-r1" data-section="financing-detail" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r1-aggregate" title="Berechnungsnachweis">1</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Supplied expense</span></td>
+<td class="right num c-member" data-column="memberscost-F1">150.000,00</td>
+<td class="right num c-member" data-column="memberscost-F2">100.000,00</td>
+<td class="right num c-member" data-column="memberscost-F3">100.000,00</td>
+<td class="right num c-member" data-column="memberscost-F4">40.000,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">390.000,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r2" data-section="financing-detail" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r2-F1" title="Berechnungsnachweis">2</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected statutory fraction</span></td>
+<td class="right num c-member" data-column="memberscost-F1">100,00 %</td>
+<td class="right num c-member" data-column="memberscost-F2">20,00 %</td>
+<td class="right num c-member" data-column="memberscost-F3">50,00 %</td>
+<td class="right num c-member" data-column="memberscost-F4">25,00 %</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r3" data-section="financing-detail" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r3-aggregate" title="Berechnungsnachweis">3</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected weighted expense</span></td>
+<td class="right num c-member" data-column="memberscost-F1">150.000,00</td>
+<td class="right num c-member" data-column="memberscost-F2">20.000,00</td>
+<td class="right num c-member" data-column="memberscost-F3">50.000,00</td>
+<td class="right num c-member" data-column="memberscost-F4">10.000,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">230.000,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r4" data-section="financing-detail" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r4-F1" title="Berechnungsnachweis">4</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Supplied financing expense is nonnegative</span></td>
+<td class="right num c-member" data-column="memberscost-F1">✓</td>
+<td class="right num c-member" data-column="memberscost-F2">✓</td>
+<td class="right num c-member" data-column="memberscost-F3">✓</td>
+<td class="right num c-member" data-column="memberscost-F4">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t1-r5" data-section="financing-detail" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t1-r5-F1" title="Berechnungsnachweis">5</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Supplied category is recognized</span></td>
+<td class="right num c-member" data-column="memberscost-F1">✓</td>
+<td class="right num c-member" data-column="memberscost-F2">✓</td>
+<td class="right num c-member" data-column="memberscost-F3">✓</td>
+<td class="right num c-member" data-column="memberscost-F4">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › Expense totals by category</p>
+<h2><span class="ref">2</span>Expense totals by category</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">debt</th>
+<th class="right num c-member">movable-rent</th>
+<th class="right num c-member">immovable-rent</th>
+<th class="right num c-member">licence</th>
+<th class="right num c-crosstotal">Gesamt</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t2-r1" data-section="category-summary" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r1-aggregate" title="Berechnungsnachweis">1</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Supplied expense in this category</span></td>
+<td class="right num c-member" data-column="membersfee-category-debt">150.000,00</td>
+<td class="right num c-member" data-column="membersfee-category-movable-rent">100.000,00</td>
+<td class="right num c-member" data-column="membersfee-category-immovable-rent">100.000,00</td>
+<td class="right num c-member" data-column="membersfee-category-licence">40.000,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">390.000,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Financing addition</p>
+<h2><span class="ref">3</span>Financing addition</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-label">
+<col class="c-main">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">EUR</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t3-r1" data-section="financing-summary" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t3-r1" title="Berechnungsnachweis">1</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Unweighted supplied expenses</span></td>
+<td class="right num c-main" data-column="main">390.000,00</td>
+</tr>
+<tr class="value info" id="t3-r2" data-section="financing-summary" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t3-r2" title="Berechnungsnachweis">2</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected weighted total</span></td>
+<td class="right num c-main" data-column="main">230.000,00</td>
+</tr>
+<tr class="value info" id="t3-r3" data-section="financing-summary" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t3-r3" title="Berechnungsnachweis">3</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Weighted total above allowance</span></td>
+<td class="right num c-main" data-column="main">30.000,00</td>
+</tr>
+<tr class="value info" id="t3-r4" data-section="financing-summary" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t3-r4" title="Berechnungsnachweis">4</a></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Financing addition</span></td>
+<td class="right num c-main" data-column="main">7.500,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Trade-tax assessment</p>
+<h2><span class="ref">4</span>Trade-tax assessment</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-rownumber" style="width:3.1em">
+<col class="c-operator">
+<col class="c-label">
+<col class="c-main">
+<col class="c-status">
+<col class="c-reference">
+</colgroup>
+<thead><tr>
+<th class="left c-rownumber">Zeile</th>
+<th class="center c-operator"></th>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-main">EUR</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Rechtsgrundlage</th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t4-r1" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-rownumber" data-column="row-number">1</td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Profit</span></td>
+<td class="right num c-main" data-column="main">120.000,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t4-r2" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-rownumber" data-column="row-number">2</td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected § 8 addition (→ Tabelle 3) <a class="xref" href="#table-3">↗</a></span></td>
+<td class="right num c-main" data-column="main">7.500,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="total grand" id="t4-r3" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator">=</td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade earnings before full-hundred rounding</span></td>
+<td class="right num c-main" data-column="main">127.500,00</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r4" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r4" title="Berechnungsnachweis">4</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade earnings floored to full hundreds</span></td>
+<td class="right num c-main" data-column="main">127.500,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">§ 11 Abs. 1 GewStG</td>
+</tr>
+<tr class="value info" id="t4-r5" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r5" title="Berechnungsnachweis">5</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected personal allowance actually used</span></td>
+<td class="right num c-main" data-column="main">24.500,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r6" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r6" title="Berechnungsnachweis">6</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Nonnegative assessment base</span></td>
+<td class="right num c-main" data-column="main">103.000,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r7" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r7" title="Berechnungsnachweis">7</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade-tax assessment amount</span></td>
+<td class="right num c-main" data-column="main">3.605,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r8" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r8" title="Berechnungsnachweis">8</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Trade tax due</span></td>
+<td class="right num c-main" data-column="main">14.420,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r9" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="9">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r9" title="Berechnungsnachweis">9</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Source profit less unchanged income-tax trade profit</span></td>
+<td class="right num c-main" data-column="main">0,00</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r10" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="10">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r10" title="Berechnungsnachweis">10</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Demonstration supports a natural-person sole proprietor</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r11" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="11">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r11" title="Berechnungsnachweis">11</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Hebesatz meets the historical 2025 minimum</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r12" data-section="trade-assessment" data-depth="1" data-height="0" data-row-index="12">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r12" title="Berechnungsnachweis">12</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected demonstration has no § 9 deduction</span></td>
+<td class="right num c-main" data-column="main">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Berechnungsnachweis</h2>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Supplied expense (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cost=F1] 150000 included; [cost=F2] 100000 included; [cost=F3] 100000 included; [cost=F4] 40000 included → 390000</div></td>
+<td class="right num">390.000,00</td>
+</tr>
+<tr id="audit-t1-r2-F1">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Selected statutory fraction <span class="member">F1</span></td>
+<td class="left"><code class="formula">(cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)</code><div class="working">(= cost.category :debt) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 1 → gewählter Zweig: debt-weight</div></td>
+<td class="right num">100,00 %</td>
+</tr>
+<tr id="audit-t1-r2-F2">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Selected statutory fraction <span class="member">F2</span></td>
+<td class="left"><code class="formula">(cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)</code><div class="working">(= cost.category :debt) = false → (= cost.category :movable-rent) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.2 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.2 → gewählter Zweig: movable-rent-weight</div></td>
+<td class="right num">20,00 %</td>
+</tr>
+<tr id="audit-t1-r2-F3">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Selected statutory fraction <span class="member">F3</span></td>
+<td class="left"><code class="formula">(cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)</code><div class="working">(= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.5 → gewählter Zweig: immovable-rent-weight</div></td>
+<td class="right num">50,00 %</td>
+</tr>
+<tr id="audit-t1-r2-F4">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Selected statutory fraction <span class="member">F4</span></td>
+<td class="left"><code class="formula">(cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0)</code><div class="working">(= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = false → (= cost.category :licence) = true → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → (cond (= cost.category :debt) debt-weight (= cost.category :movable-rent) movable-rent-weight (= cost.category :immovable-rent) immovable-rent-weight (= cost.category :licence) licence-weight :else 0) = 0.25 → gewählter Zweig: licence-weight</div></td>
+<td class="right num">25,00 %</td>
+</tr>
+<tr id="audit-t1-r3-aggregate">
+<td class="left cite"><a href="#t1-r3">1/3 Σ</a></td>
+<td class="left">Selected weighted expense (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cost=F1] 150000 included; [cost=F2] 20000.0 included; [cost=F3] 50000.0 included; [cost=F4] 10000.00 included → 230000.00</div></td>
+<td class="right num">230.000,00</td>
+</tr>
+<tr id="audit-t1-r3-F1">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Selected weighted expense <span class="member">F1</span></td>
+<td class="left"><code class="formula">(* fee-amount weighting-fraction)</code><div class="working">(* fee-amount weighting-fraction) = 150000</div></td>
+<td class="right num">150.000,00</td>
+</tr>
+<tr id="audit-t1-r3-F2">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Selected weighted expense <span class="member">F2</span></td>
+<td class="left"><code class="formula">(* fee-amount weighting-fraction)</code><div class="working">(* fee-amount weighting-fraction) = 20000.0</div></td>
+<td class="right num">20.000,00</td>
+</tr>
+<tr id="audit-t1-r3-F3">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Selected weighted expense <span class="member">F3</span></td>
+<td class="left"><code class="formula">(* fee-amount weighting-fraction)</code><div class="working">(* fee-amount weighting-fraction) = 50000.0</div></td>
+<td class="right num">50.000,00</td>
+</tr>
+<tr id="audit-t1-r3-F4">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Selected weighted expense <span class="member">F4</span></td>
+<td class="left"><code class="formula">(* fee-amount weighting-fraction)</code><div class="working">(* fee-amount weighting-fraction) = 10000.00</div></td>
+<td class="right num">10.000,00</td>
+</tr>
+<tr id="audit-t1-r4-F1">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Supplied financing expense is nonnegative <span class="member">F1</span></td>
+<td class="left"><code class="formula">(&gt;= fee-amount 0)</code><div class="working">(&gt;= fee-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-F2">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Supplied financing expense is nonnegative <span class="member">F2</span></td>
+<td class="left"><code class="formula">(&gt;= fee-amount 0)</code><div class="working">(&gt;= fee-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-F3">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Supplied financing expense is nonnegative <span class="member">F3</span></td>
+<td class="left"><code class="formula">(&gt;= fee-amount 0)</code><div class="working">(&gt;= fee-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-F4">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Supplied financing expense is nonnegative <span class="member">F4</span></td>
+<td class="left"><code class="formula">(&gt;= fee-amount 0)</code><div class="working">(&gt;= fee-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r5-F1">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Supplied category is recognized <span class="member">F1</span></td>
+<td class="left"><code class="formula">(or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))</code><div class="working">(= cost.category nil) = false → (= cost.category :debt) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r5-F2">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Supplied category is recognized <span class="member">F2</span></td>
+<td class="left"><code class="formula">(or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))</code><div class="working">(= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r5-F3">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Supplied category is recognized <span class="member">F3</span></td>
+<td class="left"><code class="formula">(or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))</code><div class="working">(= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r5-F4">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Supplied category is recognized <span class="member">F4</span></td>
+<td class="left"><code class="formula">(or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence))</code><div class="working">(= cost.category nil) = false → (= cost.category :debt) = false → (= cost.category :movable-rent) = false → (= cost.category :immovable-rent) = false → (= cost.category :licence) = true → (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent) (= cost.category :immovable-rent) (= cost.category :licence)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r1-aggregate">
+<td class="left cite"><a href="#t2-r1">2/1 Σ</a></td>
+<td class="left">Supplied expense in this category (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [fee-category=debt] 150000 included; [fee-category=movable-rent] 100000 included; [fee-category=immovable-rent] 100000 included; [fee-category=licence] 40000 included → 390000</div></td>
+<td class="right num">390.000,00</td>
+</tr>
+<tr id="audit-t2-r1-debt">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Supplied expense in this category <span class="member">debt</span></td>
+<td class="left"><code class="formula">(sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))</code><div class="working">(fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 150000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 150000 → gewählter Zweig: row.amount → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">150.000,00</td>
+</tr>
+<tr id="audit-t2-r1-movable-rent">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Supplied expense in this category <span class="member">movable-rent</span></td>
+<td class="left"><code class="formula">(sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))</code><div class="working">(fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 100000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 100000 → gewählter Zweig: 0 → gewählter Zweig: row.amount → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">100.000,00</td>
+</tr>
+<tr id="audit-t2-r1-immovable-rent">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Supplied expense in this category <span class="member">immovable-rent</span></td>
+<td class="left"><code class="formula">(sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))</code><div class="working">(fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 100000 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 100000 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: row.amount → gewählter Zweig: 0</div></td>
+<td class="right num">100.000,00</td>
+</tr>
+<tr id="audit-t2-r1-licence">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Supplied expense in this category <span class="member">licence</span></td>
+<td class="left"><code class="formula">(sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs))</code><div class="working">(fn [row] (if (= row.category fee-category.key) row.amount 0)) = [Wert nicht verfügbar] → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = false → (if (= row.category fee-category.key) row.amount 0) = 0 → (= row.category fee-category.key) = true → (if (= row.category fee-category.key) row.amount 0) = 40000 → (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs) = [Wert nicht verfügbar] → (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) = 40000 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: row.amount</div></td>
+<td class="right num">40.000,00</td>
+</tr>
+<tr id="audit-t3-r1">
+<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<td class="left">Unweighted supplied expenses</td>
+<td class="left"><code class="formula">(dim/sum all.fee-amount)</code><div class="working">(dim/sum all.fee-amount) = 390000</div></td>
+<td class="right num">390.000,00</td>
+</tr>
+<tr id="audit-t3-r2">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Selected weighted total</td>
+<td class="left"><code class="formula">(dim/sum all.weighted-fee)</code><div class="working">(dim/sum all.weighted-fee) = 230000.00</div></td>
+<td class="right num">230.000,00</td>
+</tr>
+<tr id="audit-t3-r3">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Weighted total above allowance</td>
+<td class="left"><code class="formula">(max (- weighted-financing-total financing-allowance) 0)</code><div class="working">(- weighted-financing-total financing-allowance) = 30000.00 → (max (- weighted-financing-total financing-allowance) 0) = 30000.00</div></td>
+<td class="right num">30.000,00</td>
+</tr>
+<tr id="audit-t3-r4">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Financing addition</td>
+<td class="left"><code class="formula">(* financing-excess financing-addition-rate)</code><div class="working">(* financing-excess financing-addition-rate) = 7500.0000</div></td>
+<td class="right num">7.500,00</td>
+</tr>
+<tr id="audit-t4-r3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Trade earnings before full-hundred rounding</td>
+<td class="left"><code class="formula">assessment-profit + assessment-addition − assessment-deductions</code><div class="working">120000 + 7500.0000 − 0</div></td>
+<td class="right num">127.500,00</td>
+</tr>
+<tr id="audit-t4-r4">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Trade earnings floored to full hundreds<div class="norm">§ 11 Abs. 1 GewStG</div></td>
+<td class="left"><code class="formula">(decimal/floor gewerbeertrag -2)</code><div class="working">(decimal/floor gewerbeertrag -2) = 127500</div></td>
+<td class="right num">127.500,00</td>
+</tr>
+<tr id="audit-t4-r5">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Selected personal allowance actually used</td>
+<td class="left"><code class="formula">(min personal-allowance (max gewerbeertrag-rounded-hundreds 0))</code><div class="working">(max gewerbeertrag-rounded-hundreds 0) = 127500 → (min personal-allowance (max gewerbeertrag-rounded-hundreds 0)) = 24500</div></td>
+<td class="right num">24.500,00</td>
+</tr>
+<tr id="audit-t4-r6">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Nonnegative assessment base</td>
+<td class="left"><code class="formula">(max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0)</code><div class="working">(- gewerbeertrag-rounded-hundreds applied-freibetrag) = 103000 → (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0) = 103000</div></td>
+<td class="right num">103.000,00</td>
+</tr>
+<tr id="audit-t4-r7">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Trade-tax assessment amount</td>
+<td class="left"><code class="formula">(* assessment-base assessment-rate)</code><div class="working">(* assessment-base assessment-rate) = 3605.000</div></td>
+<td class="right num">3.605,00</td>
+</tr>
+<tr id="audit-t4-r8">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Trade tax due</td>
+<td class="left"><code class="formula">(decimal/divide (* messbetrag hebesatz-percent) 100 2)</code><div class="working">(* messbetrag hebesatz-percent) = 1442000.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 14420.00</div></td>
+<td class="right num">14.420,00</td>
+</tr>
+<tr id="audit-t4-r9">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Source profit less unchanged income-tax trade profit</td>
+<td class="left"><code class="formula">(- profit assessment-profit)</code><div class="working">(- profit assessment-profit) = 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t4-r10">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Demonstration supports a natural-person sole proprietor</td>
+<td class="left"><code class="formula">(= entity :natural-person-sole-proprietor)</code><div class="working">(= entity :natural-person-sole-proprietor) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t4-r11">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Hebesatz meets the historical 2025 minimum</td>
+<td class="left"><code class="formula">(&gt;= hebesatz-percent historical-minimum-hebesatz)</code><div class="working">(&gt;= hebesatz-percent historical-minimum-hebesatz) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t4-r12">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Selected demonstration has no § 9 deduction</td>
+<td class="left"><code class="formula">(= section9-deductions 0)</code><div class="working">(= section9-deductions 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

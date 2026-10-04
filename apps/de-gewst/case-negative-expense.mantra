@@ -1,0 +1,8 @@
+;; Fictional already-deducted expenses from frozen trade/negative-expense.json.
+(case negative-expense
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: negative-expense"
+   :expected-business [{:code "MANTRA-CHECK-FAILED" :node "financing-cost-nonnegative" :severity :error :coord [:F1]}]}
+  (inputs {:profit 120000 :hebesatz-percent 400
+           :entity :natural-person-sole-proprietor :section9-deductions 0
+           :financing-costs [{:id :F1 :category :debt :amount -1}]}))

@@ -1,0 +1,63 @@
+Gewerbesteuer 2025 — demonstration
+==================================
+Mandant: Gewerbesteuer 2025: allowance-24600
+Zeitraum: 2025
+Berechnungsschema: Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]
+Trade tax due: 14,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Financing addition
+      ↳ Weighted financing expenses    → 1 · Unweighted supplied expenses
+  Hauptlinie 2: Trade-tax assessment [4]  24.600,00
+  Nebeninformation: Expense totals by category
+
+[4] Trade-tax assessment
+    Hauptlinie › 2 Trade-tax assessment
+Zeile |   | Bezeichnung                                             |       EUR |   | Rechtsgrundlage
+------+---+---------------------------------------------------------+-----------+---+-------------------
+1     |   | Profit                                                  | 24.600,00 |   |
+     -+- -+-                                                       -+-----------+- -+-
+2     | = | Trade earnings before full-hundred rounding             | 24.600,00 | Σ |
+     =+= =+=                                                       =+===========+= =+=
+3     |   | Trade earnings floored to full hundreds                 | 24.600,00 |   | § 11 Abs. 1 GewStG
+4     |   | Selected personal allowance actually used               | 24.500,00 |   |
+5     |   | Nonnegative assessment base                             |    100,00 |   |
+6     |   | Trade-tax assessment amount                             |      3,50 |   |
+7     |   | Trade tax due                                           |     14,00 |   |
+8     |   | Source profit less unchanged income-tax trade profit    |      0,00 |   |
+9     |   | Demonstration supports a natural-person sole proprietor |         ✓ | ✓ |
+10    |   | Hebesatz meets the historical 2025 minimum              |         ✓ | ✓ |
+11    |   | Selected demonstration has no § 9 deduction             |         ✓ | ✓ |
+
+Berechnungsnachweis
+-------------------
+4/2 Trade earnings before full-hundred rounding
+    Formel: assessment-profit + assessment-addition − assessment-deductions
+    Rechenweg: 24600 + 0.00 − 0 = 24.600,00
+4/3 Trade earnings floored to full hundreds
+    Formel: (decimal/floor gewerbeertrag -2)
+    Rechenweg: (decimal/floor gewerbeertrag -2) = 24600 = 24.600,00
+4/4 Selected personal allowance actually used
+    Formel: (min personal-allowance (max gewerbeertrag-rounded-hundreds 0))
+    Rechenweg: (max gewerbeertrag-rounded-hundreds 0) = 24600 → (min personal-allowance (max gewerbeertrag-rounded-hundreds 0)) = 24500 = 24.500,00
+4/5 Nonnegative assessment base
+    Formel: (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0)
+    Rechenweg: (- gewerbeertrag-rounded-hundreds applied-freibetrag) = 100 → (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0) = 100 = 100,00
+4/6 Trade-tax assessment amount
+    Formel: (* assessment-base assessment-rate)
+    Rechenweg: (* assessment-base assessment-rate) = 3.500 = 3,50
+4/7 Trade tax due
+    Formel: (decimal/divide (* messbetrag hebesatz-percent) 100 2)
+    Rechenweg: (* messbetrag hebesatz-percent) = 1400.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 14.00 = 14,00
+4/8 Source profit less unchanged income-tax trade profit
+    Formel: (- profit assessment-profit)
+    Rechenweg: (- profit assessment-profit) = 0 = 0,00
+4/9 Demonstration supports a natural-person sole proprietor
+    Formel: (= entity :natural-person-sole-proprietor)
+    Rechenweg: (= entity :natural-person-sole-proprietor) = true = ✓
+4/10 Hebesatz meets the historical 2025 minimum
+    Formel: (>= hebesatz-percent historical-minimum-hebesatz)
+    Rechenweg: (>= hebesatz-percent historical-minimum-hebesatz) = true = ✓
+4/11 Selected demonstration has no § 9 deduction
+    Formel: (= section9-deductions 0)
+    Rechenweg: (= section9-deductions 0) = true = ✓

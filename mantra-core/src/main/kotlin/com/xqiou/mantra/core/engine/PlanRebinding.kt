@@ -15,6 +15,7 @@ internal object PlanRebinding {
 
     fun bind(plan: CalculationPlan, case: CaseData, sets: List<ParameterSet>, sink: DiagnosticSink): CalculationPlan? {
         val schema = plan.schema
+        SchemaVersions.validate(schema, case, sink)
         val inputIds = schema.inputs.map { it.id }.toSet()
         case.inputs.keys.filter { it !in inputIds }.forEach {
             sink.error("MANTRA-CASE-INPUT-UNKNOWN", "Case supplies unknown input :$it")

@@ -209,4 +209,4 @@ Audit trail
     Working: 6000.0000 − 6000.0000 = –
 
 Findings
-  warning MANTRA-AUDIT-TRUNCATED at schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly
+  warning MANTRA-AUDIT-TRUNCATED at ifrs-leases/schema.mantra:32:7 [initial-liability]: Audit details reached a kernel or Mantra collection budget; truncated entries are marked explicitly

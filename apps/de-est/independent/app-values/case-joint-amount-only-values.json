@@ -1,0 +1,18 @@
+{
+  "opening-loss": "5000000",
+  "eligible-new-loss": "0",
+  "positive-income": "3000000",
+  "loss-allowance": "2000000",
+  "loss-deduction-cap": "2700000.00",
+  "loss-used": "2700000.00",
+  "selected-carryback": "0",
+  "closing-loss": "2300000.00",
+  "post-loss-positive-income": "300000.00",
+  "loss-crossfoot": "0.00",
+  "ledger-opening": "5000000",
+  "ledger-new": "0",
+  "ledger-used": "2700000.00",
+  "ledger-carryback": "0",
+  "verlustvortrag": "5000000",
+  "verbleibender-verlustvortrag": "2300000.00"
+}

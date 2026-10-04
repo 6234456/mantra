@@ -10,7 +10,12 @@ internal fun ExcelWorkbookBuilder.coordinates(dims: List<String>): List<Coord> =
         partial,
         dim,
     ->
-    partial.flatMap { prefix -> members[dim].orEmpty().map { prefix + it.key } }
+    partial.flatMap { prefix ->
+        members[dim].orEmpty().map {
+            reader.chargeCoordinateVisits()
+            prefix + it.key
+        }
+    }
 }
 
 /** Every original input coordinate remains editable, even when the paper presents only a slice. */

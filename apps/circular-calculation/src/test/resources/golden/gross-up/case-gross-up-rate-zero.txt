@@ -1,0 +1,44 @@
+Fictional net-to-gross — demonstration
+======================================
+Entity: Net-to-gross: gross-up-rate-zero
+Calculation schema: Fictional net-to-gross calculation v1.0 [demo.gross-up]
+Gross amount: 1,000.00
+
+Structure of the calculation
+  Mainline 1: Declared seed and rounded fixed-point result [1]
+
+[1] Declared seed and rounded fixed-point result
+    Mainline › 1 Declared seed and rounded fixed-point result
+Line | Description                                       |      EUR |
+-----+---------------------------------------------------+----------+--
+1    | Gross amount                                      | 1,000.00 |
+2    | Result less unrounded equation                    |        – |
+3    | Result less rounded equation                      |        – |
+4    | Fictional flat deduction                          |        – |
+5    | Gross less deduction                              |    1,000 |
+6    | Actual net less requested net                     |        – |
+7    | Returned amount also meets the equation tolerance |        ✓ | ✓
+
+Audit trail
+-----------
+1/1 Gross amount
+    Formula: (calc/converge rounded-step seed maximum-calls tolerance)
+    Working: (defn rounded-step [^Decimal current] (decimal/round (+ base (* rate current)) money-scale)) = [value unavailable] → (* rate current) = 0 → (+ base (* rate current)) = 1000 → (decimal/round (+ base (* rate current)) money-scale) = 1000.00 → (calc/converge rounded-step seed maximum-calls tolerance) = 1000.00 → (calc/converge rounded-step seed maximum-calls tolerance) = 1000.00 = 1,000.00
+1/2 Result less unrounded equation
+    Formula: (- converged-amount (+ base (* rate converged-amount)))
+    Working: (* rate converged-amount) = 0.00 → (+ base (* rate converged-amount)) = 1000.00 → (- converged-amount (+ base (* rate converged-amount))) = 0.00 = –
+1/3 Result less rounded equation
+    Formula: (- converged-amount (rounded-step converged-amount))
+    Working: (defn rounded-step [^Decimal current] (decimal/round (+ base (* rate current)) money-scale)) = [value unavailable] → (* rate current) = 0.00 → (+ base (* rate current)) = 1000.00 → (decimal/round (+ base (* rate current)) money-scale) = 1000.00 → (rounded-step converged-amount) = 1000.00 → (- converged-amount (rounded-step converged-amount)) = 0.00 → (- converged-amount (rounded-step converged-amount)) = 0.00 = –
+1/4 Fictional flat deduction
+    Formula: (decimal/round (* rate converged-amount) money-scale)
+    Working: (* rate converged-amount) = 0.00 → (decimal/round (* rate converged-amount) money-scale) = 0.00 = –
+1/5 Gross less deduction
+    Formula: (- converged-amount deduction)
+    Working: (- converged-amount deduction) = 1000.00 = 1,000
+1/6 Actual net less requested net
+    Formula: (- actual-net base)
+    Working: (- actual-net base) = 0.00 = –
+1/7 Returned amount also meets the equation tolerance
+    Formula: (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance)
+    Working: (decimal/round money-equation-residual money-scale) = 0.00 → (abs (decimal/round money-equation-residual money-scale)) = 0.00 → (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance) = true = ✓

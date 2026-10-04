@@ -66,7 +66,7 @@ assert json.loads((base / 'compare.json').read_text())['data']['mainline']
 assert json.loads((base / 'explain.json').read_text())['data']['steps']
 assert json.loads((base / 'workspace.json').read_text())['data']['cases']
 aggregate = json.loads((base / 'aggregate.json').read_text())
-assert aggregate['contract'] == 'mantra.workbench/3'
+assert aggregate['contract'] == 'mantra.workbench/4'
 assert aggregate['data']['aggregate']['result']['n'] == '0.249375'
 assert aggregate['data']['aggregate']['activeMemberCount'] == 2
 assert aggregate['data']['steps'] == []

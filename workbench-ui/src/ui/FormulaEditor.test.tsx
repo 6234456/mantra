@@ -11,7 +11,7 @@ it('checks a formula before saving and keeps the engine preview separate from th
   const formulaEdit = vi.fn().mockImplementation(async (_caseId, _revision, _operation, preview: boolean) => ({
     data: {
       preview,
-      run: { values: { weighting: { A: { value: { n: '2' }, display: '2,00', active: true } } } },
+      run: { values: { weighting: { A: { link: null, value: { n: '2' }, display: '2,00', active: true } } } },
       difference: { mainline: [], changes: [], parameterChanges: [], variant: { parameters: [] } },
     },
   }))

@@ -1,0 +1,11 @@
+;; Fictional already-deducted expenses from frozen trade/historical-minimum-rate.json.
+(case historical-minimum-rate
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: historical-minimum-rate"
+   :expected-business []}
+  (inputs {:profit 120000 :hebesatz-percent 200
+           :entity :natural-person-sole-proprietor :section9-deductions 0
+           :financing-costs [{:id :F1 :category :debt :amount 150000}
+                             {:id :F2 :category :movable-rent :amount 100000}
+                             {:id :F3 :category :immovable-rent :amount 100000}
+                             {:id :F4 :category :licence :amount 40000}]}))

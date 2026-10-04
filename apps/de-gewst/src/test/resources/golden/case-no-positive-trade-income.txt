@@ -1,0 +1,42 @@
+Gewerbesteuer 2025 — demonstration
+==================================
+Mandant: Gewerbesteuer 2025: no-positive-trade-income
+Zeitraum: 2025
+Berechnungsschema: Gewerbesteuer 2025 — fictional sole proprietor v2025.1 [de.gewst/2025]
+Trade tax due: 0,00
+
+Aufbau der Berechnung
+  Hauptlinie 1: Financing addition
+      ↳ Weighted financing expenses    → 1 · Unweighted supplied expenses
+  Hauptlinie 2: Trade-tax assessment [4]  0,00
+  Nebeninformation: Expense totals by category
+
+[4] Trade-tax assessment
+    Hauptlinie › 2 Trade-tax assessment
+Zeile |   | Bezeichnung                                             |  EUR |
+------+---+---------------------------------------------------------+------+--
+     -+- -+-                                                       -+------+-
+1     | = | Trade earnings before full-hundred rounding             | 0,00 | Σ
+     =+= =+=                                                       =+======+=
+2     |   | Trade tax due                                           | 0,00 |
+3     |   | Demonstration supports a natural-person sole proprietor |    ✓ | ✓
+4     |   | Hebesatz meets the historical 2025 minimum              |    ✓ | ✓
+5     |   | Selected demonstration has no § 9 deduction             |    ✓ | ✓
+
+Berechnungsnachweis
+-------------------
+4/1 Trade earnings before full-hundred rounding
+    Formel: assessment-profit + assessment-addition − assessment-deductions
+    Rechenweg: 0 + 0.00 − 0 = 0,00
+4/2 Trade tax due
+    Formel: (decimal/divide (* messbetrag hebesatz-percent) 100 2)
+    Rechenweg: (* messbetrag hebesatz-percent) = 0.000 → (decimal/divide (* messbetrag hebesatz-percent) 100 2) = 0.00 = 0,00
+4/3 Demonstration supports a natural-person sole proprietor
+    Formel: (= entity :natural-person-sole-proprietor)
+    Rechenweg: (= entity :natural-person-sole-proprietor) = true = ✓
+4/4 Hebesatz meets the historical 2025 minimum
+    Formel: (>= hebesatz-percent historical-minimum-hebesatz)
+    Rechenweg: (>= hebesatz-percent historical-minimum-hebesatz) = true = ✓
+4/5 Selected demonstration has no § 9 deduction
+    Formel: (= section9-deductions 0)
+    Rechenweg: (= section9-deductions 0) = true = ✓

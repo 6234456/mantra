@@ -1,12 +1,24 @@
 import type { Explain } from '../types'
 import { language, t } from '../i18n'
 import { AggregateEvidence } from './AggregateEvidence'
+import { LinkedSourceEvidence } from './LinkedSourceEvidence'
 
 const lang = language()
 
-export function ExplainDetails({ explain }: { explain: Explain }) {
+export function ExplainDetails({
+  explain,
+  rootCaseId,
+  navigate,
+}: {
+  explain: Explain
+  rootCaseId?: string
+  navigate?: (path: string) => void
+}) {
   return (
     <>
+      {explain.link && rootCaseId && (
+        <LinkedSourceEvidence source={explain.link} rootCaseId={rootCaseId} navigate={navigate} />
+      )}
       {explain.aggregate && <AggregateEvidence aggregate={explain.aggregate} />}
       {explain.steps.map((step, index) => (
         <div className="calculation-step" key={index}>

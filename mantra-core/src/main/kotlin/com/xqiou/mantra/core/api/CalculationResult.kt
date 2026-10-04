@@ -28,18 +28,24 @@ class CalculationResult internal constructor(
     internal val rawNodes: Map<String, NodeResult>,
     diagnostics: List<Diagnostic>,
     explainTrace: ExplainTrace? = null,
+    val usage: RunUsage? = null,
+    val runFailure: RunFailure? = null,
+    detachedView: CalculationView? = null,
+    detachedSchema: Schema? = null,
+    projectionScan: () -> Unit = {},
 ) {
     /** Findings retained with detached coordinate lists. */
     val diagnostics: List<Diagnostic> = frozenList(diagnostics.map { it.copy(coord = frozenList(it.coord)) })
 
     /** Source-level trace captured for an Explain request, when requested. */
-    val explainTrace: ExplainTrace? = explainTrace?.snapshot()
+    val explainTrace: ExplainTrace? = explainTrace?.snapshot(projectionScan)
 
     /** Detached schema document retained for reproducing this calculation. */
-    val schema: Schema = plan.schema.snapshot()
+    val schema: Schema = detachedSchema ?: plan.schema.snapshot(projectionScan)
 
     /** Detached, read-only snapshot captured before the calculation is returned to its caller. */
-    val view: CalculationView = CalculationView.fromResult(this)
+    val view: CalculationView =
+        detachedView?.withDiagnostics(this.diagnostics) ?: CalculationView.fromResult(this, projectionScan)
     val case: CaseData get() = view.case
     val tree: ViewSection get() = view.tree
     val members: Map<String, List<Member>> get() = view.members
@@ -52,6 +58,12 @@ class CalculationResult internal constructor(
     val validationPassed: Boolean get() = diagnostics.none {
         it.severity == Severity.ERROR && it.category == DiagnosticCategory.BUSINESS
     }
+
+    /** Append source-owned findings while preserving this exact detached numerical snapshot. */
+    internal fun withGraphMetadata(inherited: List<Diagnostic>, usage: RunUsage): CalculationResult = CalculationResult(
+        plan, rawMembers, rawNodes, (diagnostics + inherited).distinct(), explainTrace,
+        usage, runFailure, view, schema,
+    )
 
     /** Returns one node; an unknown id throws [NoSuchElementException]. */
     fun node(id: String): ViewNode = view.node(id)

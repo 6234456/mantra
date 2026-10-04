@@ -1,0 +1,51 @@
+{
+  "reference_scope": "closed-form-and-cent-orbit-certificate",
+  "outcome": "converged",
+  "exact_closed_form": {
+    "numerator": 4000,
+    "denominator": 3
+  },
+  "cent_fixed_points": [
+    "1333.33",
+    "1333.34"
+  ],
+  "certificate": {
+    "outcome": "converged",
+    "expected_callback_calls": 5,
+    "proof": "rational cent transition reaches the declared stopping relation",
+    "orbit_edges": [
+      [
+        "1000",
+        "1250"
+      ],
+      [
+        "1250",
+        "1312.5"
+      ],
+      [
+        "1312.5",
+        "1328.13"
+      ],
+      [
+        "1328.13",
+        "1332.03"
+      ],
+      [
+        "1332.03",
+        "1333.01"
+      ]
+    ]
+  },
+  "not_runtime_trace": true,
+  "expected_business": [
+    {
+      "category": "BUSINESS",
+      "code": "MANTRA-CHECK-FAILED",
+      "node": "equation-residual",
+      "severity": "error"
+    }
+  ],
+  "expected_evaluation_code": null,
+  "declared_domain_supported": true,
+  "validation_passed": false
+}

@@ -1,0 +1,16 @@
+;; Linked source facts and expected tax chain: frozen trade/rate-300.json.
+(case consumer-rate-300
+  {:schema "de.est/2025" :schema-version "2025.3" :layout "de.est/steuerberechnung-2025.3"
+   :parameters ["de.est/params-2025.3"] :title "Income tax 2025: linked trade case rate-300"
+   :expected-business []}
+  (inputs {:veranlagungsart :einzel :kinder 0 :alleinerziehend false
+           :gewinn-gewerbe {:A 120000}
+           :gewinn-selbstaendig {:A 0}
+           :vermietungsobjekte [] :kirchensteuersatz 0 :guenstigerpruefung-kap false
+           :verlustvortrag 0 :eligible-new-loss 0 :selected-carryback 0 :carryback-waived true})
+  (links {:path "../../../de-gewst/case-rate-300.mantra"
+          :schema "de.gewst/2025" :schema-version "2025.1"
+          :mappings [{:from {:node :messbetrag :coord []}
+                      :to {:input :gewst-messbetrag :coord [:A]}}
+                     {:from {:node :gewerbesteuer :coord []}
+                      :to {:input :gewst-due :coord [:A]}}]}))

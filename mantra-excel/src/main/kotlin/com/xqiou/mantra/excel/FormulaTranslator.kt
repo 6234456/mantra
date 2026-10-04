@@ -37,6 +37,22 @@ interface ExcelResolver {
         throw Untranslatable("continuous periods are unavailable")
 
     fun materialize(value: X.Scalar): X.Scalar = value
+
+    fun checkpoint() = Unit
+
+    fun chargeScans(amount: Long = 1) = Unit
+
+    /** A translated live computation may never be substituted with the generation-time value. */
+    fun requireDynamicFormula() = Unit
+
+    /** Unfold a bounded callback; implementations must gate every helper by [enabled] / run. */
+    fun convergence(
+        init: X.Scalar,
+        iterations: X.Scalar,
+        tolerance: X.Scalar,
+        enabled: X.Scalar,
+        callback: (previous: X.Scalar, run: X.Scalar) -> X.Scalar,
+    ): X.Scalar = throw Untranslatable("bounded convergence tables are unavailable")
 }
 
 /**
@@ -54,6 +70,41 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     }
 
     private class Defn(val params: List<String>, val body: DslForm)
+
+    // Per-translator lexical translation state; never a process-wide value or trace side channel.
+    private var lazyMaterializationGuard: X.Scalar? = null
+
+    private fun <T> withLazyGuard(guard: X.Scalar, body: () -> T): T {
+        val previous = lazyMaterializationGuard
+        lazyMaterializationGuard = previous?.let { Ex.iff(it, guard, Ex.FALSE) } ?: guard
+        return try {
+            body()
+        } finally {
+            lazyMaterializationGuard = previous
+        }
+    }
+
+    private fun materialize(value: X.Scalar): X.Scalar {
+        val guard = lazyMaterializationGuard ?: return resolver.materialize(value)
+        val gated = Ex.iff(guard, value, Ex.EMPTY).copy(
+            kind = value.kind,
+            numericOrNil = value.numericOrNil,
+            booleanOrNil = value.booleanOrNil,
+        )
+        return resolver.materialize(gated)
+    }
+
+    private fun eagerErrors(value: X, forceSequence: Boolean = false): X.Scalar =
+        excelEagerErrors(value, forceSequence, ::materialize)
+
+    private fun retainEagerErrors(errors: X.Scalar, body: X): X {
+        val compact = if (errors.text.length > 500) materialize(errors) else errors
+        return retainExcelEagerErrors(compact, body)
+    }
+
+    private fun guarded(form: DslForm, ctx: Ctx, guard: X.Scalar): X = withLazyGuard(guard) { translate(form, ctx) }
+
+    private fun not(guard: X.Scalar) = Ex.fn("NOT", guard, kind = XKind.BOOL)
 
     private val defns: Map<String, Defn> = functions.mapNotNull { decl ->
         val root =
@@ -75,6 +126,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     fun scalar(form: DslForm, ctx: Ctx): X.Scalar = toScalar(translate(form, ctx))
 
     fun translate(form: DslForm, ctx: Ctx): X {
+        resolver.chargeScans()
         form.number?.let { return Ex.num(it) }
         form.string?.let { return Ex.text(it) }
         form.keyword?.let { return Ex.text(it) }
@@ -146,6 +198,14 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             }
             throw Untranslatable("field access $name")
         }
+        val definition = defns[name] ?: defns[name.removePrefix("profile/")]
+        if (definition != null) {
+            return X.Callable { values ->
+                if (ctx.depth > 24) throw Untranslatable("recursion in $name")
+                if (definition.params.size != values.size) throw Untranslatable("$name arity")
+                translate(definition.body, ctx.call(definition.params.zip(values).toMap()))
+            }
+        }
         if (resolver.isNode(name)) return node(name, ctx)
         if (resolver.isDimension(name)) throw Untranslatable("member record $name used as a value")
         throw Untranslatable("unknown name $name")
@@ -192,27 +252,42 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             "some?" -> Ex.fn("NOT", isNil(s(0)), kind = XKind.BOOL)
             "nil?" -> isNil(s(0))
             "not" -> Ex.fn("NOT", truthy(s(0)), kind = XKind.BOOL)
-            "and" -> and(all())
-            "or" -> or(all())
+            "and", "or" -> {
+                var remaining = Ex.TRUE
+                val values = args.map { argument ->
+                    val value = toScalar(guarded(argument, ctx, remaining))
+                    val continues = truthy(value).let { if (head == "or") not(it) else it }
+                    remaining = Ex.iff(remaining, continues, Ex.FALSE)
+                    value
+                }
+                if (head == "and") and(values) else or(values)
+            }
             "if", "if-not" -> {
                 arity(2, 3)
                 val test = truthy(s(0)).let { if (head == "if-not") Ex.fn("NOT", it, kind = XKind.BOOL) else it }
-                branches(listOf(test to translate(args[1], ctx)), args.getOrNull(2)?.let { translate(it, ctx) })
+                branches(
+                    listOf(test to guarded(args[1], ctx, test)),
+                    args.getOrNull(2)?.let { guarded(it, ctx, not(test)) },
+                )
             }
             "when", "when-not" -> {
                 val test = truthy(s(0)).let { if (head == "when-not") Ex.fn("NOT", it, kind = XKind.BOOL) else it }
-                branches(listOf(test to translate(args.last(), ctx)), null)
+                branches(listOf(test to guarded(args.last(), ctx, test)), null)
             }
             "cond" -> {
                 val cases = mutableListOf<Pair<X.Scalar, X>>()
                 var default: X? = null
+                var remaining = Ex.TRUE
                 args.chunked(2).forEach { pair ->
                     if (pair.size != 2) throw Untranslatable("cond without result")
                     val (test, value) = pair
                     if (test.keyword == "else" || test.symbol == "true") {
-                        default = translate(value, ctx)
+                        default = guarded(value, ctx, remaining)
                     } else if (default == null) {
-                        cases += truthy(scalar(test, ctx)) to translate(value, ctx)
+                        val condition = truthy(toScalar(guarded(test, ctx, remaining)))
+                        val selected = Ex.iff(remaining, condition, Ex.FALSE)
+                        cases += condition to guarded(value, ctx, selected)
+                        remaining = Ex.iff(remaining, not(condition), Ex.FALSE)
                     }
                 }
                 branches(cases, default)
@@ -220,22 +295,49 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             "case" -> {
                 val subject = s(0)
                 val rest = args.drop(1)
+                var remaining = Ex.TRUE
                 val cases = rest.chunked(2).filter { it.size == 2 }.map { (key, value) ->
-                    Ex.cmp("=", subject, scalar(key, ctx)) to
-                        translate(value, ctx)
+                    val condition = Ex.cmp("=", subject, scalar(key, ctx))
+                    val selected = Ex.iff(remaining, condition, Ex.FALSE)
+                    val translated = guarded(value, ctx, selected)
+                    remaining = Ex.iff(remaining, not(condition), Ex.FALSE)
+                    condition to translated
                 }
-                branches(cases, if (rest.size % 2 == 1) translate(rest.last(), ctx) else null)
+                branches(cases, if (rest.size % 2 == 1) guarded(rest.last(), ctx, remaining) else null)
             }
             "let" -> {
                 val bindings =
                     (args.firstOrNull() as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
                         ?: throw Untranslatable("let without bindings")
+                if (bindings.size % 2 != 0) throw Untranslatable("odd let bindings")
                 var local = ctx
+                val errors = mutableListOf<X.Scalar>()
                 bindings.chunked(2).forEach { pair ->
                     val name = pair[0].symbol ?: throw Untranslatable("destructuring let")
-                    local = local.with(mapOf(name to translate(pair[1], local)))
+                    val preceding = excelOrderedErrors(errors, ::materialize)
+                    val enabled = if (preceding == Ex.ZERO) {
+                        Ex.TRUE
+                    } else {
+                        not(Ex.fn("ISERROR", preceding, kind = XKind.BOOL))
+                    }
+                    val value = withLazyGuard(enabled) {
+                        val binding = translate(pair[1], local)
+                        // Probe and body both read the eagerly computed binding. Hoist before
+                        // duplicating a long scalar into ISERROR, under both the enclosing
+                        // branch and preceding-binding success guard. Deferred producers stay
+                        // deferred and no helper evaluates after an earlier binding fails.
+                        if (binding is X.Scalar && binding.text.length > 500) materialize(binding) else binding
+                    }
+                    errors += eagerErrors(value)
+                    local = local.with(mapOf(name to value))
                 }
-                translate(args.last(), local)
+                val bindingErrors = excelOrderedErrors(errors, ::materialize)
+                val enabled = if (bindingErrors == Ex.ZERO) {
+                    Ex.TRUE
+                } else {
+                    not(Ex.fn("ISERROR", bindingErrors, kind = XKind.BOOL))
+                }
+                retainEagerErrors(bindingErrors, guarded(args.last(), local, enabled))
             }
             "fn" -> {
                 val parameters = (args.firstOrNull() as? DslForm.Sequence)
@@ -282,18 +384,22 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             "dim/sum" -> Ex.fn("SUM", dimensionSumArgs(translate(args[0], ctx)).ifEmpty { listOf(Ex.ZERO) })
             "sum" -> {
                 arity(1)
-                standardSum(translate(args[0], ctx), args[0], resolver::materialize)
+                standardSum(translate(args[0], ctx), args[0], ::materialize, resolver::chargeScans)
             }
             "map" -> {
                 arity(2)
                 val function = translate(args[0], ctx)
                 val source = translate(args[1], ctx) as? X.Vec ?: throw Untranslatable("map source must be a vector")
-                X.Vec(source.items.map { item -> invokeCallable(function, listOf(item)) })
+                X.Vec(
+                    DeferredExcelItems(source.items) { item -> invokeCallable(function, listOf(item)) },
+                    excelOrderedErrors(listOf(eagerErrors(function), eagerErrors(source)), ::materialize),
+                    deferred = true,
+                )
             }
             "vec" -> {
                 arity(1)
                 when (val source = translate(args[0], ctx)) {
-                    is X.Vec -> source
+                    is X.Vec -> X.Vec(source.items.toList(), source.creationErrors)
                     X.Nil -> X.Vec(emptyList())
                     else -> throw Untranslatable("vec cannot faithfully materialize ${source::class.simpleName}")
                 }
@@ -316,11 +422,15 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 is X.MapX -> X.Vec(m.values)
                 else -> throw Untranslatable("vals of ${m::class.simpleName}")
             }
-            "count" -> when (val c = translate(args[0], ctx)) {
-                is X.Range -> Ex.num(c.keys.size.toLong())
-                is X.Vec -> Ex.num(c.items.size.toLong())
-                is X.MapX -> Ex.num(c.keys.size.toLong())
-                else -> throw Untranslatable("count")
+            "count" -> {
+                val value = translate(args[0], ctx)
+                val length = when (value) {
+                    is X.Range -> value.keys.size
+                    is X.Vec -> value.items.size
+                    is X.MapX -> value.keys.size
+                    else -> throw Untranslatable("count")
+                }
+                retainEagerErrors(eagerErrors(value, forceSequence = true), Ex.num(length.toLong()))
             }
             "apply" -> {
                 val fnName = args.firstOrNull()?.symbol ?: throw Untranslatable("apply of computed function")
@@ -340,6 +450,25 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                     translate(it, ctx)
                 },
             )
+            "calc/converge" -> {
+                arity(4)
+                resolver.requireDynamicFormula()
+                val function = translate(args[0], ctx)
+                val initial = s(1)
+                val maximum = s(2)
+                val tolerance = s(3)
+                val creationErrors = eagerErrors(function)
+                val selected = lazyMaterializationGuard ?: Ex.TRUE
+                val enabled = if (creationErrors == Ex.ZERO) {
+                    selected
+                } else {
+                    Ex.iff(selected, not(Ex.fn("ISERROR", creationErrors, kind = XKind.BOOL)), Ex.FALSE)
+                }
+                val unfolded = resolver.convergence(initial, maximum, tolerance, enabled) { previous, run ->
+                    withLazyGuard(run) { toScalar(invokeCallable(function, listOf(previous))) }
+                }
+                retainEagerErrors(creationErrors, unfolded)
+            }
             "calc/stepwise" -> stepwise(s(0), translate(args[1], ctx))
             "alloc/pro-rata" -> proRata(s(0), translate(args[1], ctx), s(2))
             "alloc/capped" -> {
@@ -348,15 +477,19 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                     is X.Range -> X.MapX(value.keys, value.cells)
                     else -> throw Untranslatable("alloc/capped needs member maps")
                 }
-                cappedAllocation(s(0), memberMap(args[1]), memberMap(args[2]), s(3), resolver::materialize)
+                cappedAllocation(s(0), memberMap(args[1]), memberMap(args[2]), s(3), ::materialize)
             }
             "alloc/waterfall" -> waterfall(s(0), translate(args[1], ctx))
             "table/band" -> band(s(0), translate(args[1], ctx), args.getOrNull(2)?.let { scalar(it, ctx) })
-            "fin/npv" -> Ex.round(
-                Ex.fn("NPV", listOf(s(0)) + aggregateArgs(translate(args[1], ctx))),
-                s(2),
-                RoundingMode.HALF_UP,
-            )
+            "fin/npv" -> {
+                // Mapped lets retain construction errors before reaching this consumer. Keep
+                // those complete cash flows in live cells rather than duplicating their guards
+                // across one overlong NPV; materialize also honors the enclosing lazy IF/run.
+                val flows = aggregateArgs(translate(args[1], ctx)).map { flow ->
+                    if (flow.text.length > 500) materialize(flow) else flow
+                }
+                Ex.round(Ex.fn("NPV", listOf(s(0)) + flows), s(2), RoundingMode.HALF_UP)
+            }
             "fin/df" -> Ex.round(
                 Ex.div(Ex.num(1), Ex.bin("^", Ex.add(Ex.num(1), s(0)), s(1), Ex.POW)),
                 s(2),
@@ -368,7 +501,8 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 val defn = defns[head] ?: defns[head.removePrefix("profile/")] ?: throw Untranslatable("function $head")
                 if (ctx.depth > 24) throw Untranslatable("recursion in $head")
                 if (defn.params.size != args.size) throw Untranslatable("$head arity")
-                translate(defn.body, ctx.call(defn.params.zip(args.map { translate(it, ctx) }).toMap()))
+                val values = args.map { translate(it, ctx) }
+                translate(defn.body, ctx.call(defn.params.zip(values).toMap()))
             }
         }
     }
@@ -391,8 +525,10 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         is X.Callable -> throw Untranslatable("function used as a single value")
     }
 
-    private fun invokeCallable(function: X, values: List<X>): X = (function as? X.Callable)?.invoke?.invoke(values)
-        ?: throw Untranslatable("local value is not callable")
+    private fun invokeCallable(function: X, values: List<X>): X {
+        val callable = function as? X.Callable ?: throw Untranslatable("local value is not callable")
+        return retainEagerErrors(eagerErrors(callable), callable.invoke(values))
+    }
 
     private fun branches(cases: List<Pair<X.Scalar, X>>, default: X?): X {
         val all =
@@ -443,14 +579,34 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
 
     private fun aggregateArgs(x: X): List<X.Scalar> = when (x) {
         is X.Range -> listOf(Ex.atom(x.text))
-        is X.Vec -> x.items.flatMap(::aggregateArgs)
+        is X.Vec -> {
+            val values = x.items.flatMap(::aggregateArgs)
+            val errors = x.creationErrors ?: Ex.ZERO
+            if (values.isEmpty() && errors != Ex.ZERO) {
+                listOf(errors)
+            } else {
+                values.map {
+                    toScalar(retainEagerErrors(errors, it))
+                }
+            }
+        }
         is X.MapX -> x.values.flatMap(::aggregateArgs)
         else -> listOf(toScalar(x))
     }
 
     private fun dimensionSumArgs(x: X): List<X.Scalar> = when (x) {
         is X.Range -> listOf(Ex.atom(x.text))
-        is X.Vec -> x.items.flatMap(::dimensionSumArgs)
+        is X.Vec -> {
+            val values = x.items.flatMap(::dimensionSumArgs)
+            val errors = x.creationErrors ?: Ex.ZERO
+            if (values.isEmpty() && errors != Ex.ZERO) {
+                listOf(errors)
+            } else {
+                values.map {
+                    toScalar(retainEagerErrors(errors, it))
+                }
+            }
+        }
         is X.MapX -> x.values.flatMap(::dimensionSumArgs)
         X.Nil -> listOf(Ex.ZERO)
         is X.Scalar -> listOf(Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.ZERO, x))
@@ -480,7 +636,18 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     }
 
     private fun nth(v: X, index: Int, default: X?): X = when (v) {
-        is X.Vec -> v.items.getOrNull(index) ?: default ?: throw Untranslatable("nth out of range")
+        is X.Vec -> {
+            val selected = v.items.getOrNull(index) ?: default ?: throw Untranslatable("nth out of range")
+            val errors = if (v.deferred) {
+                excelOrderedErrors(
+                    listOf(v.creationErrors ?: Ex.ZERO) + v.items.take(index + 1).map { eagerErrors(it) },
+                    ::materialize,
+                )
+            } else {
+                eagerErrors(v)
+            }
+            retainEagerErrors(errors, selected)
+        }
         is X.Range -> v.cells.getOrNull(index) ?: default ?: throw Untranslatable("nth out of range")
         is X.Branches -> X.Branches(v.cases.map { (c, value) -> c to nth(value, index, default) }).let {
             if (it.cases.all { case -> case.second is X.Scalar || case.second == X.Nil }) toScalar(it) else it
@@ -544,7 +711,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                     val value = if (index < 0) Ex.EMPTY else amounts[index]
                     val selected = Ex.iff(Ex.fn("ISNUMBER", value, kind = XKind.BOOL), value, Ex.EMPTY)
                     val result = Ex.iff(Ex.cmp("=", parents[parentIndex], target), selected, rest)
-                    if (result.text.length > 1000) resolver.materialize(result) else result
+                    if (result.text.length > 1000) materialize(result) else result
                 }
             }
         }

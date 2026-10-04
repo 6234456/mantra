@@ -1,0 +1,15 @@
+{
+  "base": "1000",
+  "rate": "0.25",
+  "seed": "1000",
+  "tolerance": "0.01",
+  "converged-amount": "1333.33",
+  "exact-equation-residual": "-0.0025",
+  "money-equation-residual": "0",
+  "deduction": "333.33",
+  "actual-net": "1000",
+  "net-crossfoot": "0",
+  "maximum-calls": "60",
+  "money-scale": "2",
+  "residual-tolerance": "0.01"
+}

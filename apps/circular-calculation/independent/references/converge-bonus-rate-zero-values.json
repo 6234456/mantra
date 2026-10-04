@@ -1,0 +1,10 @@
+{
+  "base": "100000",
+  "rate": "0",
+  "seed": "0",
+  "tolerance": "0",
+  "converged-amount": "0",
+  "exact-equation-residual": "0",
+  "money-equation-residual": "0",
+  "retained-profit": "100000"
+}

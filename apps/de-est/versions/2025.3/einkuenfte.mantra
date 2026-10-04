@@ -1,0 +1,64 @@
+;; Nebenrechnung: Einkünfte aus den sieben Einkunftsarten (§ 2 Abs. 1 EStG).
+;; Jede Einkunftsart hat ihre eigene Ermittlungsstaffel; ihre Ergebnisse fließen in die
+;; Summe der Einkünfte (Gewinneinkünfte § 2 Abs. 2 Nr. 1, Überschusseinkünfte § 2 Abs. 2 Nr. 2 EStG).
+(fragment
+  (section einkuenfte "Einkünfte aus den einzelnen Einkunftsarten" {:display :schedule :reference "§ 2 Abs. 1, 2 EStG"}
+
+    (section luf "1. Land- und Forstwirtschaft" {:per person :reference "§§ 13–14a EStG"}
+      (field gewinn-luf "Gewinn" {:source "Anlage L"})
+      (total einkuenfte-luf "Einkünfte aus Land- und Forstwirtschaft"))
+
+    (section gewerbe "2. Gewerbebetrieb" {:per person :reference "§§ 15–17 EStG"}
+      (field gewinn-gewerbe "Gewinn" {:source "Anlage G"})
+      (total einkuenfte-gewerbe "Einkünfte aus Gewerbebetrieb"))
+
+    (section selbstaendig "3. Selbständige Arbeit" {:per person :reference "§ 18 EStG"}
+      (field gewinn-selbstaendig "Gewinn" {:source "Anlage S"})
+      (total einkuenfte-selbstaendig "Einkünfte aus selbständiger Arbeit"))
+
+    (section nichtselbstaendig "4. Nichtselbständige Arbeit" {:per person :reference "§ 19 EStG"}
+      (field bruttoarbeitslohn "Bruttoarbeitslohn" {:kz "110/111" :source "Anlage N"})
+      (field wk-nachgewiesen "Werbungskosten lt. Einzelnachweis" {:op :info :source "Anlage N"})
+      ;; Der Pauschbetrag darf keinen Verlust erzeugen, tatsächliche Werbungskosten schon.
+      (line werbungskosten "Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag"
+        (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
+        {:op :minus :reference "§ 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG"})
+      (total einkuenfte-nsa "Einkünfte aus nichtselbständiger Arbeit"))
+
+    ;; Kapitaleinkünfte unterliegen grundsätzlich der Abgeltungsteuer; sie gehen nur bei
+    ;; Günstigerprüfung (§ 32d Abs. 6 EStG) in die Summe der Einkünfte ein.
+    (section kapital "5. Kapitalvermögen" {:per person :op :info :reference "§ 20 EStG"}
+      (field kapitalertraege "Kapitalerträge" {:source "Anlage KAP"})
+      (line sparer-pauschbetrag-abzug "Sparer-Pauschbetrag" (min kapitalertraege sparer-pauschbetrag)
+        {:op :minus :reference "§ 20 Abs. 9 EStG"})
+      (total einkuenfte-kap "Einkünfte aus Kapitalvermögen"))
+    (line einkuenfte-kap-tariflich "Einkünfte aus Kapitalvermögen im Tarif (Günstigerprüfung)" einkuenfte-kap
+      {:per person :when guenstigerpruefung-kap :reference "§ 32d Abs. 6 EStG"})
+
+    (section vermietung "6. Vermietung und Verpachtung" {:reference "§ 21 EStG"}
+      (section objekte "Vermietete Objekte" {:per objekt :source "Anlage V"}
+        (line mieteinnahmen "Mieteinnahmen" objekt.mieten)
+        (line afa "Absetzung für Abnutzung" objekt.afa {:op :minus :reference "§ 7 Abs. 4 EStG"})
+        (line schuldzinsen "Schuldzinsen" objekt.schuldzinsen {:op :minus :reference "§ 9 Abs. 1 Satz 3 Nr. 1 EStG"})
+        (line sonstige-wk-vuv "Sonstige Werbungskosten" objekt.sonstige-wk {:op :minus})
+        (total einkuenfte-objekt "Einkünfte des Objekts"))
+      (total einkuenfte-vuv "Einkünfte aus Vermietung und Verpachtung"))
+
+    (section sonstige "7. Sonstige Einkünfte" {:per person :reference "§§ 22, 23 EStG"}
+      (field rente-jahresbetrag "Leibrenten: Jahresbetrag" {:op :info :source "Anlage R"})
+      (field rente-besteuerungsanteil "Besteuerungsanteil" {:op :info :format :percent :source "Anlage R"})
+      ;; Vereinfachung: Besteuerungsanteil statt festgeschriebenem Rentenfreibetrag.
+      (line rente-steuerpflichtig "Steuerpflichtiger Teil der Leibrenten"
+        (decimal/round (* rente-jahresbetrag rente-besteuerungsanteil) 2)
+        {:reference "§ 22 Nr. 1 Satz 3 Buchst. a Doppelbuchst. aa EStG"})
+      (line wk-renten "Werbungskosten, mindestens Pauschbetrag"
+        (if (pos? rente-steuerpflichtig) (min wk-pauschbetrag-renten rente-steuerpflichtig) 0)
+        {:op :minus :reference "§ 9a Satz 1 Nr. 3 EStG"})
+      (field veraeusserungsgewinn "Gewinn aus privaten Veräußerungsgeschäften" {:op :info :source "Anlage SO"})
+      ;; Freigrenze (nicht Freibetrag): unter 1.000 € steuerfrei, sonst voll steuerpflichtig.
+      (line veraeusserung-steuerpflichtig "Private Veräußerungsgeschäfte (Freigrenze)"
+        (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn)
+        {:reference "§ 23 Abs. 3 Satz 5 EStG"})
+      (total einkuenfte-sonstige "Sonstige Einkünfte"))
+
+    (total summe-der-einkuenfte "Summe der Einkünfte" {:reference "§ 2 Abs. 2 EStG"})))

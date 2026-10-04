@@ -1,5 +1,6 @@
 package com.xqiou.mantra.excel
 
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
@@ -24,6 +25,7 @@ internal class ExcelWorkbookBuilder(
     internal val options: ExcelOptions,
 ) : ExcelResolver {
     internal val view = result
+    internal lateinit var reader: CalculationReader
     internal val texts = layout.texts
     internal val de = texts.language == "de"
     internal val wb = XSSFWorkbook()
@@ -42,11 +44,20 @@ internal class ExcelWorkbookBuilder(
     internal class XMember(val key: String, val label: String, val index: Int)
 
     /** All declared members (static dimensions keep members that are inactive in this case). */
-    internal val members: Map<String, List<XMember>> = view.dimensions.mapValues { (id, decl) ->
-        if (decl.fromTable == null && decl.periods == null) {
-            decl.members.mapIndexed { i, m -> XMember(m.key, m.label, i) }
-        } else {
-            view.members[id].orEmpty().map { XMember(it.key, it.label, it.index) }
+    internal val members: Map<String, List<XMember>> by lazy {
+        view.dimensions.mapValues { (id, decl) ->
+            reader.chargeScans()
+            if (decl.fromTable == null && decl.periods == null) {
+                decl.members.mapIndexed { i, m ->
+                    reader.chargeScans()
+                    XMember(m.key, m.label, i)
+                }
+            } else {
+                view.members[id].orEmpty().map {
+                    reader.chargeScans()
+                    XMember(it.key, it.label, it.index)
+                }
+            }
         }
     }
 
@@ -69,6 +80,10 @@ internal class ExcelWorkbookBuilder(
     internal val rangeNames = hashMapOf<String, String>()
     internal val expressionSlots = linkedMapOf<X.Scalar, Slot>()
     internal var expressionSheet: XSSFSheet? = null
+    internal var convergenceSheet: XSSFSheet? = null
+    internal var convergenceNextRow: Int = 0
+    internal var convergenceSteps: Long = 0
+    internal var strictDynamicFormula: Boolean = false
     internal val usedNames = hashSetOf<String>()
     internal val tableSheets = linkedMapOf<String, XSSFSheet>()
     internal val sectionSheets = linkedMapOf<String, XSSFSheet>()
@@ -81,7 +96,9 @@ internal class ExcelWorkbookBuilder(
 
     fun build(): ExcelWorkbook {
         try {
-            val paper = Render.completePaper(result, layout)
+            reader = view.openReader(options.reading)
+            reader.checkpoint()
+            val paper = Render.completePaper(result, layout, reader)
             val overview = sheet(if (de) "Übersicht" else "Overview")
             paper.tables.forEach { layoutTable(it) }
             layoutInputs()
@@ -101,6 +118,7 @@ internal class ExcelWorkbookBuilder(
                 names = wb.allNames.size,
                 fallbacks = fallbacks.toList(),
                 evaluationErrors = errors,
+                readingUsage = reader.usage,
             )
             val addresses = nodeSlots.mapValues { (_, slots) -> slots.mapValues { (_, slot) -> slot.address } }
                 .toMutableMap()
@@ -114,6 +132,7 @@ internal class ExcelWorkbookBuilder(
                 addresses["aggregate.$id"] =
                     addresses["aggregate.$id"].orEmpty() + (emptyList<String>() to slot.address)
             }
+            reader.checkpoint()
             return ExcelWorkbook(
                 wb,
                 report,
@@ -127,6 +146,8 @@ internal class ExcelWorkbookBuilder(
         } catch (error: Exception) {
             runCatching { wb.close() }
             throw error
+        } finally {
+            if (::reader.isInitialized) reader.close()
         }
     }
 
@@ -148,6 +169,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     internal fun sheet(name: String): XSSFSheet {
+        reader.checkpoint()
         if (wb.numberOfSheets >= options.maxSheets) {
             throw ExcelExportLimitException("Workbook exceeds ${options.maxSheets} sheets")
         }
@@ -155,6 +177,7 @@ internal class ExcelWorkbookBuilder(
     }
 
     internal fun cell(sheet: XSSFSheet, row: Int, col: Int): XSSFCell {
+        reader.chargeScans()
         val existing = sheet.getRow(row)?.getCell(col)
         if (existing != null) return existing
         if (createdCells >= options.maxCells) {
@@ -186,6 +209,7 @@ internal class ExcelWorkbookBuilder(
     internal fun sanitize(raw: String): String = ExcelNames.sanitize(raw)
 
     internal fun define(name: String, refersTo: String): String? {
+        reader.chargeScans()
         if (!options.useNames) return null
         var candidate = sanitize(name).take(250)
         var counter = 2
@@ -293,7 +317,9 @@ internal class ExcelWorkbookBuilder(
     }
 
     override fun reference(nodeId: String, contextDims: List<String>, contextCoord: Coord): X? {
+        reader.checkpoint()
         val relation = view.dimensions.values.firstOrNull {
+            reader.chargeScans()
             it.parentDimension != null && "relation_${it.id}" == nodeId
         }
         if (relation != null) {
@@ -311,9 +337,14 @@ internal class ExcelWorkbookBuilder(
             val count = (view.case.inputs[nodeId] as? Value.Vec)?.items?.size ?: 0
             return X.Vec(
                 (0 until count).map { row ->
+                    reader.chargeScans()
                     X.MapX(
-                        vertex.input!!.columns.map { it.name },
+                        vertex.input!!.columns.map {
+                            reader.chargeScans()
+                            it.name
+                        },
                         vertex.input!!.columns.map { column ->
+                            reader.chargeScans()
                             val slot = tableSlots[Triple(nodeId, row, column.name)]
                                 ?: throw Untranslatable("$nodeId row $row has no ${column.name} cell")
                             ref(
@@ -346,31 +377,44 @@ internal class ExcelWorkbookBuilder(
         val slots = nodeSlots[nodeId] ?: throw Untranslatable("$nodeId has no cell")
         if (extra.isEmpty()) {
             val coord = vertex.dims.map { contextCoord[contextDims.indexOf(it)] }
+            reader.chargeCoordinateVisits()
             return slots[coord]?.let { ref(it, kindOf(vertex)) }
                 ?: throw Untranslatable("$nodeId has no cell for $coord")
         }
         val fixed = contextDims.zip(contextCoord).toMap()
         fun nested(index: Int, assignment: Map<String, String>): X {
             if (index == vertex.dims.size) {
+                reader.chargeCoordinateVisits()
                 val coordinate = vertex.dims.map(assignment::getValue)
                 return slots[coordinate]?.let { ref(it, kindOf(vertex)) }
                     ?: throw Untranslatable("$nodeId has no cell for $coordinate")
             }
             val dimension = vertex.dims[index]
             fixed[dimension]?.let { return nested(index + 1, assignment + (dimension to it)) }
-            val keys = members[dimension].orEmpty().map { it.key }
+            val keys = members[dimension].orEmpty().map {
+                reader.chargeScans()
+                it.key
+            }
             return X.MapX(keys, keys.map { nested(index + 1, assignment + (dimension to it)) })
         }
         return nested(0, emptyMap())
     }
 
     override fun record(dim: String, key: String, field: String): X? {
+        reader.checkpoint()
         val decl = view.dimensions[dim] ?: return null
         if (decl.periods != null) {
-            return view.members[dim].orEmpty().firstOrNull { it.key == key }?.record?.get(field)?.let(::literal)
+            val current = view.members[dim].orEmpty().firstOrNull {
+                reader.chargeScans()
+                it.key == key
+            }
+            return current?.record?.get(field)?.let(::literal)
         }
         if (decl.fromTable == null) {
-            val member = members[dim].orEmpty().firstOrNull { it.key == key } ?: return null
+            val member = members[dim].orEmpty().firstOrNull {
+                reader.chargeScans()
+                it.key == key
+            } ?: return null
             return when (field) {
                 "key" -> Ex.text(member.key)
                 "label" -> Ex.text(member.label)
@@ -380,10 +424,16 @@ internal class ExcelWorkbookBuilder(
         }
         val slot = recordSlots[Triple(dim, key, field)] ?: return when (field) {
             "key" -> Ex.text(key)
-            "label" -> members[dim]?.firstOrNull { it.key == key }?.label?.let(Ex::text)
+            "label" -> members[dim]?.firstOrNull {
+                reader.chargeScans()
+                it.key == key
+            }?.label?.let(Ex::text)
             else -> null
         }
-        val column = view.nodes[decl.fromTable]?.input?.columns?.firstOrNull { it.name == field }
+        val column = view.nodes[decl.fromTable]?.input?.columns?.firstOrNull {
+            reader.chargeScans()
+            it.name == field
+        }
         return ref(
             slot,
             when {
@@ -403,6 +453,22 @@ internal class ExcelWorkbookBuilder(
 
     override fun materialize(value: X.Scalar): X.Scalar = materializeExpression(value)
 
+    override fun checkpoint() = reader.checkpoint()
+
+    override fun chargeScans(amount: Long) = reader.chargeScans(amount)
+
+    override fun requireDynamicFormula() {
+        strictDynamicFormula = true
+    }
+
+    override fun convergence(
+        init: X.Scalar,
+        iterations: X.Scalar,
+        tolerance: X.Scalar,
+        enabled: X.Scalar,
+        callback: (previous: X.Scalar, run: X.Scalar) -> X.Scalar,
+    ): X.Scalar = unfoldConvergence(init, iterations, tolerance, enabled, callback)
+
     override fun isNode(nodeId: String): Boolean = nodeId in view.nodes ||
         view.dimensions.values.any { it.parentDimension != null && "relation_${it.id}" == nodeId }
 
@@ -417,12 +483,14 @@ internal class ExcelWorkbookBuilder(
             val sheet = wb.getSheetAt(s)
             for (row in sheet) {
                 for (c in row) {
+                    reader.chargeScans()
                     if (c.cellType != CellType.FORMULA) continue
                     try {
                         evaluator.evaluateFormulaCell(c)
                     } catch (e: Exception) {
                         errors += "${sheet.sheetName}!${c.address}: ${e.message?.take(200)}"
                     }
+                    reader.checkpoint()
                 }
             }
         }

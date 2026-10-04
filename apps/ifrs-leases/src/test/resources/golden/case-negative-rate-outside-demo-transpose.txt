@@ -127,4 +127,4 @@ Audit trail
     Working: 10203.39 − 10203.39 = –
 
 Findings
-  error MANTRA-CHECK-FAILED at schema.mantra:27:5 [lease-rate-supported]: Rate is within this demonstration's nonnegative-rate scope
+  error MANTRA-CHECK-FAILED at ifrs-leases/schema.mantra:27:5 [lease-rate-supported]: Rate is within this demonstration's nonnegative-rate scope

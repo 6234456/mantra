@@ -1,7 +1,9 @@
 package com.xqiou.mantra.benchmarks
 
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.api.CalculationOptions
 import com.xqiou.mantra.core.api.RecalculationStats
+import com.xqiou.mantra.core.api.RunLimits
 import com.xqiou.mantra.excel.ExcelExport
 import com.xqiou.mantra.excel.ExcelOptions
 import com.xqiou.mantra.render.Render
@@ -11,6 +13,7 @@ import java.lang.management.ManagementFactory
 import java.lang.management.MemoryType
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
 import java.util.Locale
 import kotlin.math.ceil
 
@@ -207,7 +210,11 @@ object PeriodPerformanceBaseline {
         )
     }
 
-    private fun exportOptions() = ExcelOptions(maxSheets = 16, maxCells = 250_000)
+    private fun exportOptions() = ExcelOptions(
+        maxSheets = 16,
+        maxCells = 250_000,
+        reading = CalculationOptions(limits = RunLimits(maxDuration = Duration.ofMinutes(5))),
+    )
     private fun number(value: Double) = String.format(Locale.ROOT, "%.3f", value)
     private fun settings(arguments: Array<String>): Settings {
         val options = arguments.toList().chunked(2).associate { pair ->

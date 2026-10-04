@@ -1,0 +1,16 @@
+;; Fictional facts copied from frozen loss/joint-amount-only.json. Demonstration only.
+;; Focused allowance amount test only; no spouse attribution or final tax reference is claimed.
+(case joint-amount-only
+  {:acceptance-role :focused-amount
+   :expected-values "../../../independent/app-values/case-joint-amount-only-values.json"
+   :schema "de.est/2025" :schema-version "2025.3"
+   :layout "de.est/steuerberechnung-2025.3"
+   :parameters ["de.est/params-2025.3"]
+   :title "Income tax 2025: joint-amount-only"
+   :expected-business []}
+  (inputs {:veranlagungsart :zusammen :kinder 0 :alleinerziehend false
+           :gewinn-selbstaendig {:A 3000000 :B 0}
+           :vermietungsobjekte [] :guenstigerpruefung-kap false :kirchensteuersatz 0
+           :eligible-new-loss 0 :selected-carryback 0
+           :carryback-waived true
+           :verlustvortrag 5000000}))

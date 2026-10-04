@@ -1,0 +1,28 @@
+;; Demonstration only. The coefficients and fictional flat deduction are supplied facts.
+;; Simplification: one flat deduction, without tax bands, social contributions or payroll law.
+;; The callback rounds every actual iteration to the declared currency precision.
+;; Technical non-convergence returns no approximate or invented zero amount.
+(schema demo.gross-up
+  {:title "Fictional net-to-gross calculation" :version "1.0"
+   :preset :ifrs-schedule :headline converged-amount :mainline [solution]}
+  (input base :decimal {:label "Requested net amount" :default 0})
+  (input rate :decimal {:label "Fictional flat deduction fraction" :default 0})
+  (input seed :decimal {:label "Declared initial iterate" :default 0})
+  (input maximum-calls :integer {:label "Maximum callback calls" :default 60 :min 1 :max 1000})
+  (input tolerance :decimal {:label "Adjacent-iterate stopping tolerance" :default 0 :min 0})
+  (param money-scale 2 {:label "Explicit rounding precision for every iteration"})
+  (param residual-tolerance 0.01 {:label "Separate equation crossfoot tolerance"})
+  (defn rounded-step [^Decimal current]
+    (decimal/round (+ base (* rate current)) money-scale))
+  (section solution "Declared seed and rounded fixed-point result" {:display :schedule}
+    (line converged-amount "Gross amount"
+      (calc/converge rounded-step seed maximum-calls tolerance) {:op :info :precision 2})
+    (line exact-equation-residual "Result less unrounded equation"
+      (- converged-amount (+ base (* rate converged-amount))) {:op :info :precision 4})
+    (line money-equation-residual "Result less rounded equation"
+      (- converged-amount (rounded-step converged-amount)) {:op :info :precision 2})
+    (line deduction "Fictional flat deduction" (decimal/round (* rate converged-amount) money-scale) {:op :info})
+    (line actual-net "Gross less deduction" (- converged-amount deduction) {:op :info})
+    (line net-crossfoot "Actual net less requested net" (- actual-net base) {:op :info})
+    (check equation-residual "Returned amount also meets the equation tolerance"
+      (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance))))

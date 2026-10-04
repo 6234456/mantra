@@ -58,7 +58,11 @@ internal class PlanTypes(
  * dimensions and section totals, compiles every formula with the Normein kernel against a typed
  * analysis scope for its dimension context, and orders all vertices topologically.
  */
-internal class Planner(private val sink: DiagnosticSink) {
+internal class Planner(
+    private val sink: DiagnosticSink,
+    private val context: RunContext? = null,
+    private val requireMaterializedLinks: Boolean = true,
+) {
     private val compiler = DslSemanticCompiler()
     private val environment = MantraKernel.environment
 
@@ -338,6 +342,7 @@ internal class Planner(private val sink: DiagnosticSink) {
     }
 
     private fun validateCase() {
+        SchemaVersions.validate(schema, case, sink, requireMaterializedLinks)
         case.schemaId?.takeIf { it != schema.id }?.let { declared ->
             sink.error(
                 "MANTRA-CASE-SCHEMA-MISMATCH",
@@ -410,7 +415,7 @@ internal class Planner(private val sink: DiagnosticSink) {
             val parent = decl.parentDimension
             val parentKey = decl.parentKeyColumn
             if (decl.periods != null) {
-                PeriodMemberResolver(sink).resolve(decl.id, decl.periods, decl.location)
+                PeriodMemberResolver(sink).resolve(decl.id, decl.periods, decl.location, context = context)
                 if (parent != null && dimensions[parent]?.periods == null) {
                     sink.error(
                         "MANTRA-PERIOD-PARENT",

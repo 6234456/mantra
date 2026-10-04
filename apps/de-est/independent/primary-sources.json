@@ -1,0 +1,23 @@
+{
+  "checked_on": "2026-10-04",
+  "notice": "Links and paraphrased selected applicability only. No statute download or copied official numerical example. Values in fixtures are project-authored fiction.",
+  "sources": [
+    {"id": "loss-2024", "year": 2024, "url": "https://esth.bundesfinanzministerium.de/esth/2024/A-Einkommensteuergesetz/II-Einkommen-2-24b/5-Sonderausgaben-10-10g/Paragraf-10d/inhalt.html", "selected_rule": "Full carryback waiver; residual loss definition and 1m/2m EUR base plus 70% excess for carryforward."},
+    {"id": "loss-2025", "year": 2025, "url": "https://esth.bundesfinanzministerium.de/esth/2025/A-Einkommensteuergesetz/II-Einkommen-2-24b/5-Sonderausgaben-10-10g/Paragraf-10d/inhalt.html", "selected_rule": "Same selected loss-cap and annual closing balance rules; no specially limited categories."},
+    {"id": "weighted-financing", "year": 2025, "url": "https://www.gesetze-im-internet.de/gewstg/__8.html", "selected_rule": "Selected ordinary financing weights 1, 1/5, 1/2, 1/4; weighted excess over 200000 times 1/4. Eligibility is given by fictional facts."},
+    {"id": "trade-base", "year": 2025, "url": "https://www.gesetze-im-internet.de/gewstg/BJNR009790936.html", "selected_rule": "Sections 7 and 11: given income-tax trade profit, selected additions; full-hundred floor, natural-person 24500 allowance, 3.5% assessment."},
+    {"id": "trade-base-historical", "year": 2024, "url": "https://amtliche-handbuecher.bundesfinanzministerium.de/gewsth/2024/A-Gewerbesteuergesetz/II-Bemessung-der-Gewerbesteuer/Paragraf-11/paragraf-11.html", "selected_rule": "Historical official handbook independently confirms selected floor, allowance and assessment rate."},
+    {"id": "hebesatz-historical", "year": 2024, "url": "https://ao.bundesfinanzministerium.de/gewsth/2024/A-Gewerbesteuergesetz/V-Entstehung-Festsetzung-und-Erhebung-der-Steuer/Paragraf-16/inhalt.html", "selected_rule": "Official historical minimum percentage is 200."},
+    {"id": "hebesatz-temporal", "year": 2027, "url": "https://www.gesetze-im-internet.de/gewstg/BJNR009790936.html", "selected_rule": "Section 36(5b): the section 16(4) 280% change made in June 2026 first applies to 2027; do not apply it to 2025."},
+    {"id": "income-credit-2025", "year": 2025, "url": "https://esth.bundesfinanzministerium.de/esth/2025/A-Einkommensteuergesetz/V-Steuerermaessigungen-34c-35c/3-Steuererm.-bei-Eink-aus-Gewerbebetrieb_35/Paragraf-35/paragraf-35.html", "selected_rule": "Fourfold assessment; positive-trade/all-positive income attribution cap; tax payable cap."},
+    {"id": "income-credit-administrative", "year": 2025, "url": "https://esth.bundesfinanzministerium.de/esth/2025/B-Anhaenge/Anhang-27b/I/inhalt.html", "selected_rule": "Tax payable refers to assessed trade liability, not cash paid. Historical 3.8-factor passages have explicit 2020-and-later factor-4 notes. Section35 credit reduces Soli base; no church-tax case included."},
+    {"id": "tariff-2025", "year": 2025, "url": "https://amtliche-handbuecher.bundesfinanzministerium.de/esth/2025/A-Einkommensteuergesetz/IV-Tarif-31-34b/Paragraf-32a/inhalt.html", "selected_rule": "Five statutory tariff zones and explicit full-EUR floor for taxable income and tariff."},
+    {"id": "special-expense-flat", "year": 2025, "url": "https://esth.bundesfinanzministerium.de/lsth/2025/A-Einkommensteuergesetz/II-Einkommen-2-24b/5-Sonderausgaben-10-10g/Paragraf-10c/inhalt.html", "selected_rule": "Single-assessment selected flat amount 36 EUR."},
+    {"id": "soli-2025", "year": 2025, "url": "https://lsth.bundesfinanzministerium.de/lsth/2025/B-Anhaenge/Anhang-27/I/inhalt.html", "selected_rule": "Official historical SolzG section3 threshold19950, section4 5.5%/11.9% taper and omit fractional cents. Current consolidated20350 is2026."}
+  ],
+  "unresolved_rules": [
+    "Final section35 credit rounding for a fractional attribution cap is not inferred; mixed170k fixture freezes intermediate values only.",
+    "Loss fixtures use integral EUR; no balance/used-loss fractional-cent legal rounding is asserted.",
+    "Converge examples are fictional money agreements and do not use real payroll or withholding tax rules."
+  ]
+}

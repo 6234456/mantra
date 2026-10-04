@@ -29,7 +29,8 @@
         "options",
         "reference",
         "truncated",
-        "aggregate"
+        "aggregate",
+        "link"
       ],
       "properties": {
         "address": {
@@ -126,7 +127,9 @@
               "value",
               "display",
               "location",
-              "rendered"
+              "rendered",
+              "eventId",
+              "invocationIndex"
             ],
             "properties": {
               "text": {
@@ -146,6 +149,23 @@
                   "string",
                   "null"
                 ]
+              },
+              "eventId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "invocationIndex": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^(0|[1-9][0-9]*)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -158,7 +178,9 @@
             "required": [
               "text",
               "selected",
-              "location"
+              "location",
+              "eventId",
+              "invocationIndex"
             ],
             "properties": {
               "text": {
@@ -169,6 +191,18 @@
               },
               "location": {
                 "$ref": "envelope.schema.json#/$defs/location"
+              },
+              "eventId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "invocationIndex": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -210,6 +244,9 @@
               },
               "explanation": {
                 "$ref": "#/$defs/explanation"
+              },
+              "revision": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -329,6 +366,20 @@
               "type": "null"
             }
           ]
+        },
+        "link": {
+          "oneOf": [
+            {
+              "$ref": "envelope.schema.json#/$defs/link"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}([0-9a-f]{48})?$"
         }
       },
       "additionalProperties": false

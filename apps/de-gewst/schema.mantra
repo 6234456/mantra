@@ -1,0 +1,67 @@
+;; Demonstration only: fictional 2025 natural-person sole proprietor.
+;; Simplification: eligibility of supplied financing expenses is a given fact. Expenses are
+;; already deducted from profit. No special § 8 categories, § 9 deduction or § 10a loss model.
+;; Unsupported facts remain visible with BUSINESS errors; signed facts are never silently clamped.
+(schema de.gewst/2025
+  {:title "Gewerbesteuer 2025 — fictional sole proprietor" :version "2025.1" :period "2025"
+   :preset :de-staffel-4 :headline gewerbesteuer :mainline [financing-summary trade-assessment]}
+  (input profit :decimal {:label "Profit before trade-tax adjustments" :default 0})
+  (input hebesatz-percent :decimal {:label "Fictional municipality Hebesatz (%)" :default 400})
+  (input entity :keyword {:label "Entity" :default :natural-person-sole-proprietor})
+  (input section9-deductions :decimal {:label "Selected § 9 deductions (scope: zero)" :default 0})
+  (input financing-costs :table
+    {:label "Expenses already deducted from profit" :default []
+     :columns {:id :keyword :category {:type :keyword? :required-when true} :amount :decimal}})
+  (dimension cost {:label "Financing expense" :from financing-costs :key :id})
+  (dimension fee-category {:label "Expense category" :members [:debt :movable-rent :immovable-rent :licence]})
+  (param debt-weight 1 {:reference "§ 8 Nr. 1 Buchst. a GewStG, selected ordinary debts"})
+  (param movable-rent-weight 0.2 {:reference "§ 8 Nr. 1 Buchst. d GewStG, selected ordinary movable assets"})
+  (param immovable-rent-weight 0.5 {:reference "§ 8 Nr. 1 Buchst. e GewStG"})
+  (param licence-weight 0.25 {:reference "§ 8 Nr. 1 Buchst. f GewStG, supplied eligible licences"})
+  (param financing-allowance 200000 {:reference "§ 8 Nr. 1 GewStG, historical 2025"})
+  (param financing-addition-rate 0.25 {:reference "§ 8 Nr. 1 GewStG"})
+  (param personal-allowance 24500 {:reference "§ 11 Abs. 1 Satz 3 Nr. 1 GewStG"})
+  (param assessment-rate 0.035 {:reference "§ 11 Abs. 2 GewStG"})
+  ;; Historical 2025 minimum is 200; the subsequently amended 280 does not apply to this fixture year.
+  (param historical-minimum-hebesatz 200 {:reference "§ 16 Abs. 4 Satz 2 GewStG, VZ 2025; § 36 transition"})
+  (section financing-detail "Weighted financing expenses" {:per cost :display :schedule :op :info}
+    (line fee-amount "Supplied expense" cost.amount {:op :info})
+    ;; Missing/unknown category is not guessed; only recognized supplied categories enter the subtotal.
+    (line weighting-fraction "Selected statutory fraction"
+      (cond (= cost.category :debt) debt-weight
+            (= cost.category :movable-rent) movable-rent-weight
+            (= cost.category :immovable-rent) immovable-rent-weight
+            (= cost.category :licence) licence-weight :else 0)
+      {:op :info :aggregate false :format :percent :precision 2})
+    (line weighted-fee "Selected weighted expense" (* fee-amount weighting-fraction) {:op :info})
+    (check financing-cost-nonnegative "Supplied financing expense is nonnegative" (>= fee-amount 0))
+    (check financing-category-supported "Supplied category is recognized"
+      (or (= cost.category nil) (= cost.category :debt) (= cost.category :movable-rent)
+          (= cost.category :immovable-rent) (= cost.category :licence))))
+  (section category-summary "Expense totals by category" {:per fee-category :display :schedule :op :info}
+    (line fee-total "Supplied expense in this category"
+      (sum (map (fn [row] (if (= row.category fee-category.key) row.amount 0)) financing-costs)) {:op :info}))
+  (section financing-summary "Financing addition" {:display :schedule :op :info}
+    (line raw-financing-expenses "Unweighted supplied expenses" (dim/sum all.fee-amount) {:op :info})
+    (line weighted-financing-total "Selected weighted total" (dim/sum all.weighted-fee) {:op :info})
+    (line financing-excess "Weighted total above allowance" (max (- weighted-financing-total financing-allowance) 0) {:op :info})
+    (line hinzurechnung "Financing addition" (* financing-excess financing-addition-rate) {:op :info}))
+  (section trade-assessment "Trade-tax assessment" {:display :schedule}
+    (line assessment-profit "Profit" profit)
+    (line assessment-addition "Selected § 8 addition" hinzurechnung)
+    (line assessment-deductions "Selected § 9 deductions" section9-deductions {:op :minus})
+    (total gewerbeertrag "Trade earnings before full-hundred rounding")
+    (line gewerbeertrag-rounded-hundreds "Trade earnings floored to full hundreds"
+      (decimal/floor gewerbeertrag -2) {:op :info :reference "§ 11 Abs. 1 GewStG"})
+    (line applied-freibetrag "Selected personal allowance actually used"
+      (min personal-allowance (max gewerbeertrag-rounded-hundreds 0)) {:op :info})
+    (line assessment-base "Nonnegative assessment base"
+      (max (- gewerbeertrag-rounded-hundreds applied-freibetrag) 0) {:op :info})
+    (line messbetrag "Trade-tax assessment amount" (* assessment-base assessment-rate) {:op :info})
+    (line gewerbesteuer "Trade tax due" (decimal/divide (* messbetrag hebesatz-percent) 100 2) {:op :info})
+    (line trade-income-match "Source profit less unchanged income-tax trade profit" (- profit assessment-profit) {:op :info})
+    (check entity-supported "Demonstration supports a natural-person sole proprietor"
+      (= entity :natural-person-sole-proprietor))
+    (check hebesatz-supported "Hebesatz meets the historical 2025 minimum"
+      (>= hebesatz-percent historical-minimum-hebesatz))
+    (check section9-scope "Selected demonstration has no § 9 deduction" (= section9-deductions 0))))

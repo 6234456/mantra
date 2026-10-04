@@ -1,0 +1,37 @@
+{
+  "legacy_est": {
+    "id": "de.est/2025",
+    "version": "2025.2",
+    "existing": true,
+    "policy": "Preserve old schema, includes, cases and expectations."
+  },
+  "loss_2024": {
+    "id": "de.est-loss/2024",
+    "version": "2024.1",
+    "existing": false,
+    "scope": "Loss ledger only; no 2024 income tax tariff."
+  },
+  "est_2025": {
+    "id": "de.est/2025",
+    "version": "2025.3",
+    "existing": false,
+    "scope": "New separate files; selected section 10d and section 35 corrections."
+  },
+  "trade_2025": {
+    "id": "de.gewst/2025",
+    "version": "2025.1",
+    "existing": false,
+    "scope": "One natural-person sole proprietor and one fictional municipality."
+  },
+  "bonus": {
+    "id": "demo.bonus",
+    "version": "1.0",
+    "existing": false
+  },
+  "grossup": {
+    "id": "demo.gross-up",
+    "version": "1.0",
+    "existing": false
+  },
+  "notice": "These are pinned proposed application identities, pending M3 work-package confirmation, not installed schemes."
+}

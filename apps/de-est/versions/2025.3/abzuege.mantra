@@ -1,0 +1,55 @@
+;; Nebenrechnungen: Sonderausgaben, außergewöhnliche Belastungen und Günstigerprüfung für Kinder.
+(fragment
+  (section sonderausgaben "Sonderausgaben" {:display :schedule :reference "§§ 10–10c EStG"}
+    (section vorsorge "Vorsorgeaufwendungen" {:per person :reference "§ 10 Abs. 1 Nr. 2, 3, 3a EStG"}
+      (field rv-beitraege "Beiträge zur gesetzlichen Rentenversicherung (Arbeitnehmer- und Arbeitgeberanteil)"
+        {:op :info :kz "300/400" :source "Anlage Vorsorgeaufwand"})
+      (field rv-ag-anteil "davon steuerfreier Arbeitgeberanteil" {:op :info})
+      (line altersvorsorge "Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil)"
+        (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil))
+        {:reference "§ 10 Abs. 1 Nr. 2, Abs. 3 EStG"})
+      (field kv-pv-basis "Beiträge zur Basis-Kranken- und Pflegeversicherung" {:op :info})
+      (field weitere-vorsorge "Weitere sonstige Vorsorgeaufwendungen" {:op :info})
+      (field steuerfreie-kv-zuschuesse "Anspruch auf steuerfreie Zuschüsse zur Krankenversicherung"
+        {:type :boolean :default true :op :info})
+      ;; Höchstbetrag 1.900 € / 2.800 €, mindestens die Basisabsicherung (§ 10 Abs. 4 Satz 4 EStG).
+      (line sonstige-vorsorge "Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung)"
+        (max kv-pv-basis
+             (min (+ kv-pv-basis weitere-vorsorge)
+                  (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)))
+        {:reference "§ 10 Abs. 4 EStG"})
+      (total vorsorgeaufwendungen "Abziehbare Vorsorgeaufwendungen"))
+    (field kirchensteuer-gezahlt "Gezahlte Kirchensteuer abzgl. Erstattungen" {:reference "§ 10 Abs. 1 Nr. 4 EStG"})
+    (field spenden "Zuwendungen lt. Zuwendungsbestätigungen" {:op :info})
+    (line spenden-abziehbar "Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Einkünfte)"
+      (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))
+      {:reference "§ 10b Abs. 1 Satz 1 Nr. 1 EStG"})
+    (line sa-pauschbetrag "Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)"
+      (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag)
+                (+ kirchensteuer-gezahlt spenden-abziehbar)))
+      {:reference "§ 10c EStG"})
+    (slot weitere-sonderausgaben "Weitere Sonderausgaben (benutzerdefiniert)")
+    (total sonderausgaben-summe "Sonderausgaben insgesamt"))
+
+  (section agb "Außergewöhnliche Belastungen" {:display :schedule :reference "§ 33 EStG"}
+    (field agb-aufwendungen "Aufwendungen (z. B. Krankheitskosten) abzgl. Erstattungen" {:op :info})
+    (line zumutbare-belastung "Zumutbare Belastung (stufenweise Berechnung)"
+      (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen))
+      {:op :info :when (pos? agb-aufwendungen) :reference "§ 33 Abs. 3 EStG; BFH VI R 75/14"})
+    (line agb-abziehbar "Abziehbare außergewöhnliche Belastungen" (max 0 (- agb-aufwendungen zumutbare-belastung)))
+    (total agb-summe "Außergewöhnliche Belastungen insgesamt"))
+
+  (section kinder-pruefung "Günstigerprüfung Kindergeld / Freibeträge für Kinder"
+    {:display :schedule :when (pos? kinder) :reference "§ 31 EStG"}
+    (line kfb-summe "Freibeträge für Kinder" (* kinder (if zusammen 2 1) (+ kinderfreibetrag bea-freibetrag))
+      {:op :info :reference "§ 32 Abs. 6 EStG"})
+    (line kindergeld-anspruch "Anspruch auf Kindergeld" (* kinder kindergeld-monat 12) {:op :info :reference "§ 66 Abs. 1 EStG"})
+    (line est-ohne-kfb "Tarifliche Einkommensteuer ohne Freibeträge für Kinder" (est-tarif einkommen zusammen) {:op :info})
+    (line est-mit-kfb "Tarifliche Einkommensteuer mit Freibeträgen für Kinder" (est-tarif (- einkommen kfb-summe) zusammen) {:op :info})
+    (line entlastung-kfb "Steuerliche Entlastung durch die Freibeträge" (- est-ohne-kfb est-mit-kfb) {:op :info})
+    (choice kinderentlastung "Geringere Belastung nach Günstigerprüfung" {:rule :min :op :info :reference "§ 31 Satz 4 EStG"}
+      (option :kindergeld "Kindergeld: Einkommensteuer ohne Freibeträge" est-ohne-kfb)
+      (option :freibetraege "Freibeträge: Einkommensteuer mit Freibeträgen zzgl. Kindergeld" (+ est-mit-kfb kindergeld-anspruch)))
+    (line kfb-guenstiger "Freibeträge für Kinder sind günstiger"
+      (< (+ est-mit-kfb kindergeld-anspruch) est-ohne-kfb)
+      {:type :boolean :op :info})))

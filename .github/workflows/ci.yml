@@ -105,6 +105,12 @@ jobs:
           python3 apps/ifrs-leases/verify_expected.py --case negative-payment --scale 4 --verify apps/ifrs-leases/build/out/case-negative-payment-precision-values.json
           python3 apps/ifrs-leases/verify_expected.py --case negative-rate-outside-demo --scale 2 --verify apps/ifrs-leases/build/out/case-negative-rate-outside-demo-values.json
           python3 apps/ifrs-leases/verify_expected.py --case negative-rate-outside-demo --scale 4 --verify apps/ifrs-leases/build/out/case-negative-rate-outside-demo-precision-values.json
+      # Independent M3 facts are checked against actual graph-based application outputs.
+      - name: Independent linked and bounded-iteration demonstrations
+        run: |
+          python3 apps/de-est/verify_m3_expected.py --outputs apps/de-est/build/out
+          python3 apps/de-gewst/verify_m3_expected.py --outputs apps/de-gewst/build/out
+          python3 apps/circular-calculation/verify_m3_expected.py --outputs apps/circular-calculation/build/out
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test

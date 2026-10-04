@@ -1,0 +1,5 @@
+(parameters de.est-loss/2024-parameters
+  {:for "de.est-loss/2024" :label "Selected 2024 loss rules" :valid-from "2024-01-01"}
+  (value loss-base 1000000)
+  (value loss-base-joint 2000000)
+  (value loss-excess-rate 0.7))

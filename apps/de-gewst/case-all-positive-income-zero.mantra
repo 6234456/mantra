@@ -1,0 +1,8 @@
+;; Fictional already-deducted expenses from frozen trade/all-positive-income-zero.json.
+(case all-positive-income-zero
+  {:schema "de.gewst/2025" :schema-version "2025.1" :layout "de.gewst/2025-working-paper"
+   :parameters ["de.gewst/2025-parameters"] :title "Gewerbesteuer 2025: all-positive-income-zero"
+   :expected-business []}
+  (inputs {:profit 0 :hebesatz-percent 400
+           :entity :natural-person-sole-proprietor :section9-deductions 0
+           :financing-costs []}))

@@ -5,6 +5,7 @@ import com.networknt.schema.SchemaLocation
 import com.networknt.schema.SchemaRegistry
 import com.networknt.schema.SpecificationVersion
 import com.xqiou.mantra.core.Mantra
+import com.xqiou.mantra.core.data.Json
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
@@ -19,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class FixtureContractTest {
@@ -33,12 +35,111 @@ class FixtureContractTest {
         "ifrs-leases" to "case-demo.mantra",
         "ifrs-impairment" to "case-discounted-viu.mantra",
         "ifrs-impairment" to "case-capped.mantra",
+        "de-est" to "versions/2025.3/case-consumer-2025.mantra",
+        "de-est" to "versions/2025.3/case-consumer-rate-400.mantra",
+        "de-gewst" to "case-rate-400.mantra",
+        "circular-calculation" to "bonus/case-bonus-main.mantra",
+        "circular-calculation" to "gross-up/case-gross-up-main.mantra",
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
 
+    private fun canonicalFixture(text: String): Value {
+        val stepsKey = Value.Kw("steps")
+        val branchesKey = Value.Kw("branches")
+        val eventKey = Value.Kw("eventId")
+        fun visit(value: Value): Value = when (value) {
+            is Value.Vec -> Value.Vec(value.items.map(::visit))
+            is Value.MapV -> {
+                val isTrace = value.entries[stepsKey] is Value.Vec && value.entries[branchesKey] is Value.Vec
+                // Opaque identities vary by attempt, but their sharing inside one trace is evidence.
+                val events = linkedMapOf<String, String>()
+                if (isTrace) {
+                    listOf(stepsKey, branchesKey).forEach { key ->
+                        (value.entries.getValue(key) as Value.Vec).items.forEach { entry ->
+                            val id = ((entry as? Value.MapV)?.entries?.get(eventKey) as? Value.Text)?.value
+                            if (id != null) events.getOrPut(id) { "event-${events.size}" }
+                        }
+                    }
+                }
+                fun event(entry: Value): Value = if (entry is Value.MapV) {
+                    Value.MapV(
+                        entry.entries.mapValues { (key, field) ->
+                            if (key == eventKey && field is Value.Text) {
+                                Value.Text(events.getOrPut(field.value) { "event-${events.size}" })
+                            } else {
+                                visit(field)
+                            }
+                        },
+                    )
+                } else {
+                    visit(entry)
+                }
+                Value.MapV(
+                    value.entries.mapValues { (key, field) ->
+                        if (isTrace && (key == stepsKey || key == branchesKey)) {
+                            Value.Vec((field as Value.Vec).items.map(::event))
+                        } else {
+                            visit(field)
+                        }
+                    },
+                )
+            }
+            else -> value
+        }
+        return visit(Json.parse(text))
+    }
+
     @Test
-    fun `fixture layout follows the case binding rather than a sibling file`() {
+    fun `golden canonicalization preserves invocation values and same-trace event associations`() {
+        fun document(
+            first: String,
+            second: String,
+            branch: String = second,
+            invocation: Long = 0,
+            result: String = "5",
+        ) = WorkbenchJson.write(
+            mapOf(
+                "data" to mapOf(
+                    "steps" to listOf(
+                        mapOf("text" to "(+ 2 3)", "eventId" to first, "invocationIndex" to 0),
+                        mapOf(
+                            "text" to "(next)",
+                            "eventId" to second,
+                            "invocationIndex" to invocation,
+                            "value" to mapOf("n" to result),
+                        ),
+                    ),
+                    "branches" to listOf(
+                        mapOf(
+                            "text" to "(next)",
+                            "eventId" to branch,
+                            "invocationIndex" to invocation,
+                            "selected" to true,
+                        ),
+                    ),
+                    "truncated" to false,
+                ),
+            ),
+        )
+        val expected = canonicalFixture(document("attempt-a/first", "attempt-a/next"))
+        assertEquals(expected, canonicalFixture(document("attempt-b/first", "attempt-b/next")))
+        assertNotEquals(
+            expected,
+            canonicalFixture(document("attempt-b/first", "attempt-b/next", branch = "attempt-b/first")),
+        )
+        assertNotEquals(expected, canonicalFixture(document("attempt-b/first", "attempt-b/next", invocation = 1)))
+        assertNotEquals(expected, canonicalFixture(document("attempt-b/first", "attempt-b/next", result = "6")))
+        val repeatedTrace = document("attempt-a/first", "attempt-a/next")
+        val independentTrace = document("attempt-c/first", "attempt-c/next")
+        assertEquals(
+            canonicalFixture("{\"one\":$repeatedTrace,\"two\":$repeatedTrace}"),
+            canonicalFixture("{\"one\":$repeatedTrace,\"two\":$independentTrace}"),
+        )
+    }
+
+    @Test
+    fun `fixture layout follows the authored binding or conventional schema layout`() {
         val temp = Files.createTempDirectory("mantra-fixture-layout-")
         try {
             val directory = temp.resolve("sample")
@@ -75,7 +176,7 @@ class FixtureContractTest {
                     ).value
             }
             writeCase(null)
-            assertEquals("Default paper", paperTitle())
+            assertEquals("Bound paper", paperTitle())
             writeCase("test/paper")
             assertEquals("Bound paper", paperTitle())
             writeCase("test/other")
@@ -114,7 +215,7 @@ class FixtureContractTest {
     }
 
     @Test
-    fun `all six applications generate stable browser fixtures satisfying their schemas`() {
+    fun `all eight applications generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
@@ -164,9 +265,29 @@ class FixtureContractTest {
                     "ifrs-impairment/case-capped.mantra" to listOf(
                         ExplainAddress("asset-allocated-loss", listOf("Workshop", "Machine")),
                     ),
+                    "de-est/versions/2025.3/case-consumer-2025.mantra" to listOf(
+                        ExplainAddress("verlustvortrag"),
+                        ExplainAddress("loss-used"),
+                        ExplainAddress("closing-loss"),
+                    ),
+                    "de-est/versions/2025.3/case-consumer-rate-400.mantra" to listOf(
+                        ExplainAddress("gewst-messbetrag", listOf("A")),
+                        ExplainAddress("gewst-due", listOf("A")),
+                        ExplainAddress("ermaessigung-35"),
+                    ),
+                    "circular-calculation/bonus/case-bonus-main.mantra" to listOf(ExplainAddress("converged-amount")),
+                    "circular-calculation/gross-up/case-gross-up-main.mantra" to
+                        listOf(ExplainAddress("converged-amount")),
                 ),
             )
-            assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
+            assertEquals(
+                examples.map { (directory, case) ->
+                    "$directory/$case"
+                },
+                entries.take(examples.size).map { it.id },
+            )
+            assertEquals("de-est/versions/2024.1/case-source-2024.mantra", entries.last().id)
+            assertEquals(examples.size + 1, entries.size)
             assertEquals("Eheleute Erika und Max Mustermann", entries.first().title)
             if (System.getenv("MANTRA_UPDATE_GOLDEN") == "1") {
                 Files.walk(temp).use { files ->
@@ -195,7 +316,11 @@ class FixtureContractTest {
                     val name = key.substringBefore(':')
                     val relative = (url as String).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
-                    assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$key changed")
+                    assertEquals(
+                        canonicalFixture(Files.readString(golden.resolve(relative))),
+                        canonicalFixture(generated),
+                        "${entry.id}/$key changed",
+                    )
                     val schema = registry.getSchema(
                         SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json"),
                     )
@@ -207,7 +332,11 @@ class FixtureContractTest {
                 explains.values.forEach { path ->
                     val relative = path.removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
-                    assertEquals(Files.readString(golden.resolve(relative)), generated, "${entry.id}/$relative changed")
+                    assertEquals(
+                        canonicalFixture(Files.readString(golden.resolve(relative))),
+                        canonicalFixture(generated),
+                        "${entry.id}/$relative changed",
+                    )
                     val schema = registry.getSchema(
                         SchemaLocation.of("https://mantra.local/workbench/schema/explain.schema.json"),
                     )
@@ -261,7 +390,7 @@ class FixtureContractTest {
         assertEquals(listOf("B"), finding.coord)
         val document = WorkbenchDocuments.diagnostics(result.diagnostics)
         val encoded = (document["diagnostics"] as List<*>).single() as Map<*, *>
-        assertEquals(mapOf("node" to "value", "coord" to listOf("B")), encoded["address"])
+        assertEquals(mapOf("case" to null, "node" to "value", "coord" to listOf("B")), encoded["address"])
     }
 
     @Test

@@ -7,12 +7,17 @@ import com.xqiou.normein.dsl.form.DslForm
 import com.xqiou.normein.dsl.form.DslFormSequenceKind
 
 /** Stdlib sum scans one sequence level, parses amount text, and returns nil without numeric items. */
-internal fun standardSum(source: X, form: DslForm, materialize: (X.Scalar) -> X.Scalar): X.Scalar {
+internal fun standardSum(
+    source: X,
+    form: DslForm,
+    materialize: (X.Scalar) -> X.Scalar,
+    chargeScans: (Long) -> Unit = {},
+): X.Scalar {
     if (source is X.Branches) {
         val default = source.cases.lastOrNull { it.first == null }?.second
-            ?.let { standardSum(it, form, materialize) } ?: Ex.EMPTY
+            ?.let { standardSum(it, form, materialize, chargeScans) } ?: Ex.EMPTY
         return source.cases.filter { it.first != null }.foldRight(default) { (condition, value), rest ->
-            Ex.iff(condition!!, standardSum(value, form, materialize), rest)
+            Ex.iff(condition!!, standardSum(value, form, materialize, chargeScans), rest)
         }
     }
     val literalItems = (form as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
@@ -29,6 +34,7 @@ internal fun standardSum(source: X, form: DslForm, materialize: (X.Scalar) -> X.
     fun compact(value: X.Scalar): X.Scalar =
         if (value.text.length > 500 && safeAggregateExpression(value.text)) materialize(value) else value
     fun contribution(item: X, literal: DslForm? = null): SumContribution {
+        chargeScans(1)
         if (item is X.Branches) {
             val default = item.cases.lastOrNull { it.first == null }?.second?.let { contribution(it) }
                 ?: SumContribution(Ex.ZERO, Ex.ZERO)
@@ -59,7 +65,7 @@ internal fun standardSum(source: X, form: DslForm, materialize: (X.Scalar) -> X.
             else -> null
         }
         if (numeric == null) {
-            val checked = ignoredSumErrors(item)
+            val checked = ignoredSumErrors(item, materialize)
             return SumContribution(checked, checked)
         }
         val value = compact(numeric)
@@ -71,17 +77,23 @@ internal fun standardSum(source: X, form: DslForm, materialize: (X.Scalar) -> X.
     val contributions = when (source) {
         // A map scans entry vectors, so its values do not contribute numbers, but their
         // eager evaluation errors still belong to the selected sum expression.
-        is X.MapX, is X.Range -> ignoredSumErrors(source).let { listOf(SumContribution(it, it)) }
+        is X.MapX, is X.Range -> ignoredSumErrors(source, materialize).let { listOf(SumContribution(it, it)) }
         else -> items.mapIndexed { index, item -> contribution(item, literalItems?.getOrNull(index)) }
     }
+    chargeScans(contributions.size.toLong() * 2)
     val terms = contributions.map { it.value }.filter { it != Ex.ZERO }
     val counts = contributions.map { it.count }.filter { it != Ex.ZERO }
-    if (counts.isEmpty()) return Ex.EMPTY
+    // Each contribution already preserves eagerly constructed items; a lazy vector's
+    // producer construction errors remain separate from its consumed elements.
+    val construction = (source as? X.Vec)?.creationErrors ?: Ex.ZERO
+    val constructionErrors = if (construction.text.length > 500) materialize(construction) else construction
+    if (counts.isEmpty()) return retainExcelEagerErrors(constructionErrors, Ex.EMPTY) as X.Scalar
     fun chunks(arguments: List<X.Scalar>, operation: String): List<X.Scalar> {
         val result = mutableListOf<X.Scalar>()
         var chunk = mutableListOf<X.Scalar>()
         var length = 0
         for (value in arguments) {
+            chargeScans(1)
             if (chunk.isNotEmpty() && (length + value.text.length > 4000 || chunk.size >= 200)) {
                 result += compact(Ex.fn(operation, chunk))
                 chunk = mutableListOf()
@@ -95,38 +107,15 @@ internal fun standardSum(source: X, form: DslForm, materialize: (X.Scalar) -> X.
     }
     val total = if (terms.isEmpty()) Ex.ZERO else compact(Ex.fn("SUM", chunks(terms, "SUM")))
     val count = compact(Ex.fn("SUM", chunks(counts, "SUM")))
-    return compact(Ex.iff(Ex.cmp("=", count, Ex.ZERO), Ex.EMPTY, total))
+    val summed = compact(Ex.iff(Ex.cmp("=", count, Ex.ZERO), Ex.EMPTY, total))
+    return retainExcelEagerErrors(constructionErrors, summed) as X.Scalar
 }
 
 private data class SumContribution(val value: X.Scalar, val count: X.Scalar)
 
 /** Excluded values still evaluate eagerly. Only literal constants can be omitted entirely. */
-private fun ignoredSumErrors(value: X): X.Scalar = when (value) {
-    is X.Scalar -> if (value.text.toBigDecimalOrNull() != null || value in listOf(Ex.TRUE, Ex.FALSE, Ex.EMPTY) ||
-        Ex.isTextLiteral(value)
-    ) {
-        Ex.ZERO
-    } else {
-        Ex.iff(Ex.fn("ISERROR", value, kind = XKind.BOOL), value, Ex.ZERO)
-            .copy(kind = XKind.NUM, numericOrNil = true, booleanOrNil = false)
-    }
-    is X.Vec -> ignoredSumCollectionErrors(value.items)
-    is X.MapX -> ignoredSumCollectionErrors(value.values)
-    is X.Range -> ignoredSumCollectionErrors(value.cells)
-    is X.Branches -> {
-        val default = value.cases.lastOrNull { it.first == null }?.second?.let(::ignoredSumErrors) ?: Ex.ZERO
-        value.cases.filter { it.first != null }.foldRight(default) { (condition, selected), rest ->
-            Ex.iff(condition!!, ignoredSumErrors(selected), rest)
-        }
-    }
-    // Constructing a lexical function does not execute its body.
-    X.Nil, is X.Callable -> Ex.ZERO
-}
-
-private fun ignoredSumCollectionErrors(values: List<X>): X.Scalar {
-    val checks = values.map(::ignoredSumErrors).filter { it != Ex.ZERO }
-    return if (checks.isEmpty()) Ex.ZERO else Ex.fn("SUM", checks)
-}
+private fun ignoredSumErrors(value: X, materialize: (X.Scalar) -> X.Scalar): X.Scalar =
+    excelEagerErrors(value, materialize = materialize)
 
 /** Hoist only total aggregate/selection expressions; arithmetic or arbitrary functions remain lazy. */
 private fun safeAggregateExpression(formula: String): Boolean {
@@ -154,7 +143,7 @@ private fun safeAggregateExpression(formula: String): Boolean {
     }
     val text = visible.toString()
     if (text.any { it in "+-*/^" }) return false
-    val totalFunctions = setOf("SUM", "COUNT", "IF", "ISNUMBER", "NOT", "AND", "OR")
+    val totalFunctions = setOf("SUM", "COUNT", "IF", "ISNUMBER", "ISERROR", "NOT", "AND", "OR")
     return Regex("([A-Za-z_][A-Za-z_0-9.]*)\\s*\\(").findAll(text).all {
         it.groupValues[1] in totalFunctions
     }

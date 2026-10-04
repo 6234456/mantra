@@ -11,7 +11,7 @@ Aufbau der Berechnung
       ↳ Einkünfte aus den einzelnen Einkunftsarten [5]  10.866,00  → 1 · Summe der Einkünfte
       ↳ Sonderausgaben [6]  36,00  → 1 · Sonderausgaben
       ↳ Außergewöhnliche Belastungen [7]  0,00  → 1 · Außergewöhnliche Belastungen
-      ↳ Günstigerprüfung Kindergeld / Freibeträge für Kinder [8]    → 1 · Freibeträge für Kinder (soweit günstiger als Kindergeld), → 2 · Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen), → 3 · Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
+      ↳ Günstigerprüfung Kindergeld / Freibeträge für Kinder    → 1 · Freibeträge für Kinder (soweit günstiger als Kindergeld), → 2 · Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen), → 3 · Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
   Hauptlinie 2: Ermittlung der festzusetzenden Einkommensteuer [2]  0,00
   Hauptlinie 3: Solidaritätszuschlag und Kirchensteuer [3]  0,00
   Hauptlinie 4: Abrechnung [4]  0,00

@@ -1,6 +1,6 @@
-# Mantra 工作台契约 v2
+# Mantra 工作台契约 v4
 
-> 状态：v1 基础功能已实现；M1 的 v2 扩展正在验收 · 2026-10-04
+> 状态：v1–v3 已交付；M3 的 v4 实现正在集成验收 · 2026-10-04
 > 相关文档：[架构](../architecture.md) · [引擎与应用职责契约](../engine-application-boundary.md) · [RFC 0001](../rfc/0001-normein-dsl-kernel-extensions.md) · [界面规格](ui-spec.md) · [工作包](work-packages.md) · [设计稿源文件](design/)
 
 ## 1. 定位
@@ -88,7 +88,7 @@ URL 中使用字符串形式 `节点[@成员/成员…][#行.列]`，例如 `bru
 
 ### 4.3 修订
 
-- **修订号 `revision`**：参与计算的全部文档内容的 SHA-256，取前 16 位十六进制。文档包括案例、方案及其 `include` 片段、参数集、版式和数据文件。
+- **修订号 `revision`**：参与案例图的全部文档内容生成完整的 SHA-256，案例修订为 64 位十六进制；旧工作区修订仍兼容 16 位。文档包括案例、方案及其 `include` 片段、参数集、版式和数据文件。
 - **读写校验**：所有读取响应都带 `revision`；所有写入请求都带 `baseRevision`，与当前修订不一致时返回 409（§9.3）。
 - **结果缓存键**：`revision` 加引擎指纹，即 Mantra 版本、`normein-build.lock` 中的 commit，以及内核语言、标准库和求值器版本。修订只标识文档状态，引擎升级不改变修订，但会使缓存失效。
 
@@ -409,7 +409,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   - 运行时错误（`MANTRA-EVALUATION`）不阻止写入，与现在返回部分结果的行为一致。
 - **预演**：`POST …/preview` 执行同样的步骤但不写入，返回结果和差异，用于公式编辑预览和假设分析。
 
-写请求的 JSON 外层为 `{"baseRevision":"16 位十六进制","operations":[…]}`，`operations` 为 1–100 个操作，顺序执行。撤销、重做只提交 `{"baseRevision":"…"}`。响应使用 §6 的统一外层；预演的外层 `revision` 是基准修订，`data.proposedRevision` 是候选修订；提交、撤销、重做的外层 `revision` 是写入后的修订。`data` 还包含 `document`、`preview`、`diagnostics`、`run` 和 `difference`。
+写请求的 JSON 外层为 `{"baseRevision":"案例的 64 位十六进制修订（旧工作区修订兼容 16 位）","operations":[…]}`，`operations` 为 1–100 个操作，顺序执行。撤销、重做只提交 `{"baseRevision":"…"}`。响应使用 §6 的统一外层；预演的外层 `revision` 是基准修订，`data.proposedRevision` 是候选修订；提交、撤销、重做的外层 `revision` 是写入后的修订。`data` 还包含 `document`、`preview`、`diagnostics`、`run` 和 `difference`。
 
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
@@ -703,7 +703,7 @@ M1 的诊断必填类别和 Explain 的可空步骤值改变了严格 v1 契约�
 不以相同版本偷偷改变含义。宿主DSL/库版本为0.2，`mantra.calc@1` 和锁定内核保持原版本。
 
 
-## M2 契约（实现前约定）
+## M2 契约（已交付）
 
 M2 升至 `mantra.workbench/3`，见 [工作包](../milestones/m2-work-packages.md)。汇总证据采用
 `kind: ratio|boundary|sum` 的严格联合；ratio 保留原字段，boundary 包含期间轴、首末选择、
@@ -725,10 +725,10 @@ Paper 和导出按需计算 FULL 审计；只在案例和参数完全相同时�
 XLSX 保留生成时的引擎审计快照；输入编辑后显示过期，恢复原输入后恢复有效，继续采用维护者已确认的行为。
 
 
-# M3 workbench contract draft
+## M3 workbench contract (implementation under acceptance)
 
-Draft prepared during the frozen M2 measurement. This document is not an implementation or
-acceptance record. The repository and pinned kernel remain unchanged.
+The v4 implementation is integrated into the repository; the pinned Normein kernel remains
+unchanged. Full acceptance, CI and performance are recorded in the M3 work packages after execution.
 
 ## Version and addresses
 
@@ -742,6 +742,7 @@ An input supplied by a link has typed `link` provenance:
 ```json
 {
   "case": "de-gewst/case-demo.mantra",
+  "path": "../de-gewst/case-demo.mantra",
   "caseId": "trade-demo",
   "schema": {"id": "de.gewst/2025", "version": "2025.1"},
   "revision": "source-content-revision",
@@ -828,3 +829,31 @@ together. Tests cover exact version coexistence, two mappings/one source calcula
 depth and shared limits, zero/false/Nil, conflicting facts, independent source parameters, same-value
 revision propagation, source BUSINESS and technical failures, source Explain staleness, SSE,
 generic editing/export and complete task browser/server cleanup.
+
+### Read epochs, exact revisions and event identities
+
+A workspace case graph has a 64 character SHA-256 revision. Every selected document, include,
+parameter, layout and imported file is hashed from the same captured bytes used to parse it;
+upstream graph revisions participate even when the linked amount is unchanged. Workspace-wide
+SSE stamps retain their existing 16 character revision. Both lengths are accepted by the v4
+wire envelope. Root edits accept nullable `address.case`; a non-null source selection is read-only.
+
+One Explain request captures a FULL graph once, then projects its bounded tree from those
+immutable source and root snapshots using one cumulative read session. Source `data.revision`
+is that source's actual graph revision; the envelope revision belongs to the selected root.
+`case` and `expectedRevision` select an existing participant; a changed source returns 409 with
+its current revision, and a case outside the graph returns 404. Neither references nor event
+identities are reconstructed from display labels.
+
+Kernel step/branch `eventId` is an opaque identity of an actual execution attempt;
+`invocationIndex` distinguishes repeated callbacks. Separate runs can have different event IDs
+with identical values and steps. Production documents retain the actual IDs. Golden comparisons
+normalize only their within-trace identity spelling while preserving event associations,
+invocation order, values, locations, selected branches and truncation.
+
+Run documents from a workspace include non-null `caseGraph` and `usage`; pure SDK projections
+without a resolver can use null for those fields. `failure.address` preserves nullable node IDs
+for loading failures. Read/render/export controls belong to an independent bounded request and
+never mutate the original calculation usage; multiple cells or source views share that read
+request's allowance. Formula or convergence failures publish nil with genuine failure evidence,
+not a neutral numeric zero. Business findings remain nonblocking and retain source case ownership.

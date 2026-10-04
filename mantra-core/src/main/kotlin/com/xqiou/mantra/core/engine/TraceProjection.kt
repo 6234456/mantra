@@ -21,7 +21,13 @@ internal object TraceProjection {
     data class Budget(val steps: Int, val branches: Int, val characters: Int, val items: Int = steps + branches)
     data class Projection(val trace: ExplainTrace, val events: Int, val characters: Int)
 
-    fun project(formula: CompiledFormula, root: DslTraceNode, kernelTruncated: Boolean, budget: Budget): Projection {
+    fun project(
+        formula: CompiledFormula,
+        root: DslTraceNode,
+        kernelTruncated: Boolean,
+        budget: Budget,
+        scan: () -> Unit = {},
+    ): Projection {
         val index = formula.authorSourceIndex
         val steps = mutableListOf<ExplainStep>()
         val branches = mutableListOf<ExplainBranch>()
@@ -29,18 +35,20 @@ internal object TraceProjection {
         var characters = 0
         val visited = mutableListOf<DslTraceNode>()
         fun walk(node: DslTraceNode) {
+            scan()
             if (node.summaryTruncated || node.resultSummary?.truncated == true) truncated = true
             node.children.forEach(::walk)
             visited += node
         }
         walk(root)
         fun executedChild(node: DslTraceNode, id: DslCanonicalNodeId): DslTraceNode? {
-            fun find(candidate: DslTraceNode): DslTraceNode? = if (candidate.kind == DslTraceNodeKind.AST_NODE &&
-                candidate.nodeId == id
-            ) {
-                candidate
-            } else {
-                candidate.children.firstNotNullOfOrNull(::find)
+            fun find(candidate: DslTraceNode): DslTraceNode? {
+                scan()
+                return if (candidate.kind == DslTraceNodeKind.AST_NODE && candidate.nodeId == id) {
+                    candidate
+                } else {
+                    candidate.children.firstNotNullOfOrNull(::find)
+                }
             }
             return node.children.firstNotNullOfOrNull(::find)
         }
@@ -72,7 +80,10 @@ internal object TraceProjection {
             characters += length
             return true
         }
-        for (node in visited.filter { it.kind == DslTraceNodeKind.AST_NODE }) {
+        for (node in visited.filter {
+            scan()
+            it.kind == DslTraceNodeKind.AST_NODE
+        }) {
             val (text, location) = snippet(node) ?: continue
             val nodeOrigin = index[node.nodeId]?.nodeOrigin
             val conditional = Regex("^\\s*\\((if|cond)(?=\\s|\\))").containsMatchIn(text) ||
@@ -84,8 +95,17 @@ internal object TraceProjection {
                 if (branch != null && branch.first != text &&
                     !Regex("^\\s*\\(cond(?=\\s|\\))").containsMatchIn(branch.first)
                 ) {
-                    if (branches.size < budget.branches && reserve(branch.first.length)) {
-                        branches += ExplainBranch(branch.first, true, branch.second)
+                    val identityCharacters = branchNode?.let {
+                        it.eventId.length + it.invocationIndex.toString().length
+                    } ?: 0
+                    if (branches.size < budget.branches && reserve(branch.first.length + identityCharacters)) {
+                        branches += ExplainBranch(
+                            branch.first,
+                            true,
+                            branch.second,
+                            branchNode?.eventId,
+                            branchNode?.invocationIndex,
+                        )
                     } else {
                         truncated = true
                     }
@@ -94,7 +114,8 @@ internal object TraceProjection {
             if (!text.trimStart().startsWith('(') && node !== root) continue
             val summary = node.resultSummary
             val rendered = summary?.rendered
-            if (steps.size < budget.steps && reserve(text.length + rendered.orEmpty().length)) {
+            val identityCharacters = node.eventId.length + node.invocationIndex.toString().length
+            if (steps.size < budget.steps && reserve(text.length + rendered.orEmpty().length + identityCharacters)) {
                 steps += ExplainStep(
                     text,
                     rendered?.takeUnless { summary?.truncated == true }?.let {
@@ -102,6 +123,8 @@ internal object TraceProjection {
                     },
                     location,
                     rendered,
+                    node.eventId,
+                    node.invocationIndex,
                 )
             } else {
                 truncated = true

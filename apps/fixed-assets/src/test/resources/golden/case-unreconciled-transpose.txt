@@ -363,4 +363,4 @@ Audit trail
     Working: 0 + 0 − 0 = –
 
 Findings
-  error MANTRA-RECONCILE-FAILED at schema.mantra:97:5 [period-carrying-reconciliation]: Computed and independently reported closing amounts agree: difference -0.02 exceeds tolerance 0.01
+  error MANTRA-RECONCILE-FAILED at fixed-assets/schema.mantra:97:5 [period-carrying-reconciliation]: Computed and independently reported closing amounts agree: difference -0.02 exceeds tolerance 0.01

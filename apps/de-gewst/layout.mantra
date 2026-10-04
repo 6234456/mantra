@@ -1,0 +1,8 @@
+(layout de.gewst/2025-working-paper
+  {:title "Gewerbesteuer 2025 — demonstration" :preset :de-staffel-4 :row-numbers :table}
+  (columns :tiered :operator :label (col :pre {:header "EUR"}) (col :main {:header "EUR"}) :status :reference)
+  (columns :matrix :operator :label (members cost) :cross-total :status :reference)
+  (table financing-detail {:style :matrix})
+  (table category-summary {:style :matrix} :label (members fee-category) :cross-total :status)
+  (table financing-summary {:style :tiered})
+  (table trade-assessment {:style :tiered}))

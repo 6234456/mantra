@@ -1,0 +1,36 @@
+Circular bonus — demonstration
+==============================
+Entity: Circular bonus: bonus-signed-profit
+Calculation schema: Circular bonus calculation v1.0 [demo.bonus]
+Bonus: (90.91)
+
+Structure of the calculation
+  Mainline 1: Declared seed and rounded fixed-point result [1]
+
+[1] Declared seed and rounded fixed-point result
+    Mainline › 1 Declared seed and rounded fixed-point result
+Line | Description                                       |      EUR |
+-----+---------------------------------------------------+----------+--
+1    | Bonus                                             |  (90.91) |
+2    | Result less unrounded equation                    | (0.0010) |
+3    | Result less rounded equation                      |        – |
+4    | Profit after bonus                                |    (909) |
+5    | Returned amount also meets the equation tolerance |        ✓ | ✓
+
+Audit trail
+-----------
+1/1 Bonus
+    Formula: (calc/converge rounded-step seed maximum-calls tolerance)
+    Working: (defn rounded-step [^Decimal current] (decimal/round (* rate (- base current)) money-scale)) = [value unavailable] → (- base current) = -1000 → (* rate (- base current)) = -100.00 → (decimal/round (* rate (- base current)) money-scale) = -100.00 → (- base current) = -900.00 → (* rate (- base current)) = -90.0000 → (decimal/round (* rate (- base current)) money-scale) = -90.00 → (- base current) = -910.00 → (* rate (- base current)) = -91.0000 → (decimal/round (* rate (- base current)) money-scale) = -91.00 → (- base current) = -909.00 → (* rate (- base current)) = -90.9000 → (decimal/round (* rate (- base current)) money-scale) = -90.90 → (- base current) = -909.10 → (* rate (- base current)) = -90.9100 → (decimal/round (* rate (- base current)) money-scale) = -90.91 → (- base current) = -909.09 → (* rate (- base current)) = -90.9090 → (decimal/round (* rate (- base current)) money-scale) = -90.91 → (calc/converge rounded-step seed maximum-calls tolerance) = -90.91 → (calc/converge rounded-step seed maximum-calls tolerance) = -90.91 = (90.91)
+1/2 Result less unrounded equation
+    Formula: (- converged-amount (* rate (- base converged-amount)))
+    Working: (- base converged-amount) = -909.09 → (* rate (- base converged-amount)) = -90.9090 → (- converged-amount (* rate (- base converged-amount))) = -0.0010 = (0.0010)
+1/3 Result less rounded equation
+    Formula: (- converged-amount (rounded-step converged-amount))
+    Working: (defn rounded-step [^Decimal current] (decimal/round (* rate (- base current)) money-scale)) = [value unavailable] → (- base current) = -909.09 → (* rate (- base current)) = -90.9090 → (decimal/round (* rate (- base current)) money-scale) = -90.91 → (rounded-step converged-amount) = -90.91 → (- converged-amount (rounded-step converged-amount)) = 0.00 → (- converged-amount (rounded-step converged-amount)) = 0.00 = –
+1/4 Profit after bonus
+    Formula: (- base converged-amount)
+    Working: (- base converged-amount) = -909.09 = (909)
+1/5 Returned amount also meets the equation tolerance
+    Formula: (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance)
+    Working: (decimal/round money-equation-residual money-scale) = 0.00 → (abs (decimal/round money-equation-residual money-scale)) = 0.00 → (<= (abs (decimal/round money-equation-residual money-scale)) residual-tolerance) = true = ✓

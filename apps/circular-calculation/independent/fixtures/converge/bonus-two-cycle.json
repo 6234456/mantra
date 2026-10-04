@@ -1,0 +1,15 @@
+{
+  "case": "bonus-two-cycle",
+  "domain": "bonus",
+  "currency": "EUR",
+  "base": "1",
+  "rate": "1",
+  "seed": "0",
+  "scale": 2,
+  "rounding": "half-up",
+  "maximum_calls": 60,
+  "tolerance": "0",
+  "expected_money": null,
+  "termination_certificate": "two-cycle",
+  "supported_domain": true
+}

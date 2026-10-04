@@ -5,6 +5,10 @@
     "input": "reported-closings",
     "delimiter": ",",
     "decimal": ".",
-    "grouping": ""
-  }
+    "grouping": "",
+    "path": "data/reported-closing.csv"
+  },
+  "case": "case-demo.mantra",
+  "schema": "assets/cost-model",
+  "schema-version": "0.1"
 }

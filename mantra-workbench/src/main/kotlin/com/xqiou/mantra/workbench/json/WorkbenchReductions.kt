@@ -1,9 +1,11 @@
 package com.xqiou.mantra.workbench.json
 
+import com.xqiou.mantra.core.api.CalculationReader
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.AggregateContribution
 import com.xqiou.mantra.core.view.AggregateTrace
+import com.xqiou.mantra.core.view.AggregationResult
 import com.xqiou.mantra.core.view.BoundaryAggregateTrace
 import com.xqiou.mantra.core.view.CalculationView
 import com.xqiou.mantra.core.view.RatioAggregateTrace
@@ -66,14 +68,18 @@ internal fun reductionExplanation(
     layout: LayoutSpec,
     nodeId: String,
     fixed: Map<String, String>,
+    reader: CalculationReader? = null,
+    captured: AggregationResult? = null,
 ): Map<String, Any?> {
+    if (reader == null) return view.openReader().use { reductionExplanation(view, layout, nodeId, fixed, it, captured) }
     val node = view.node(nodeId)
-    val reduced = view.reduce(nodeId, fixed)
+    val reduced = captured ?: reader.reduce(view, nodeId, fixed)
     val trace = requireNotNull(reduced.trace) { "No engine reduction evidence" }
     val formatter = NumberFormatter(layout.number)
-    fun address(id: String, coord: List<String>) = linkedMapOf<String, Any?>("node" to id).apply {
+    fun address(id: String, coord: List<String>) = linkedMapOf<String, Any?>("case" to null, "node" to id).apply {
         if (coord.isNotEmpty()) put("coord", coord)
     }
+    reader.chargeScans(trace.memberCount.toLong())
     val selected = when (trace) {
         is BoundaryAggregateTrace -> trace.selected
         is SumAggregateTrace -> trace.members.filter { it.selected }
@@ -99,7 +105,7 @@ internal fun reductionExplanation(
             "rounding" to null,
         ),
         "status" to if (trace.activeMemberCount > 0) "active" else "inactive", "reason" to trace.undefinedReason,
-        "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
+        "link" to null, "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
         "references" to selected.take(63).map { member ->
             linkedMapOf(
                 "address" to address(nodeId, member.coord),

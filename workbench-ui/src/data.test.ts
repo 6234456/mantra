@@ -11,7 +11,7 @@ describe('live comparison transport', () => {
   it('sends the selected parameter ids with the server session token', async () => {
     document.head.innerHTML = '<meta name="mantra-session-token" content="secret">'
     const response = {
-      contract: 'mantra.workbench/3',
+      contract: 'mantra.workbench/4',
       revision: '1234567890abcdef',
       engine: { mantra: 'test', normein: 'test' },
       data: { variant: { parameters: ['next'] }, mainline: [], changes: [], parameterChanges: [] },
@@ -34,7 +34,7 @@ describe('live comparison transport', () => {
   })
 })
 
-describe('workbench v2 transport', () => {
+describe('workbench v4 transport', () => {
   it('rejects an older wire contract for both live and fixture documents', async () => {
     vi.stubGlobal(
       'fetch',
@@ -58,22 +58,32 @@ describe('workbench v2 transport', () => {
   it('accepts a saved edit whose calculation succeeded while business checks remain open', async () => {
     document.head.innerHTML = '<meta name="mantra-session-token" content="secret">'
     const finding = {
+      caseRevision: null,
       severity: 'error',
       category: 'business',
       code: 'MANTRA-CHECK-FAILED',
       message: 'Needs review',
       location: null,
-      address: { node: 'check' },
+      address: { case: null, node: 'check' },
       related: [],
       rowIndex: null,
       column: null,
     }
     const response = {
-      contract: 'mantra.workbench/3',
+      contract: 'mantra.workbench/4',
       revision: 'new',
       engine: { mantra: 'test', normein: 'test' },
       data: {
-        run: { succeeded: true, validationPassed: false, members: {}, values: {}, diagnostics: [finding] },
+        run: {
+          caseGraph: null,
+          usage: null,
+          failure: null,
+          succeeded: true,
+          validationPassed: false,
+          members: {},
+          values: {},
+          diagnostics: [finding],
+        },
         diagnostics: [finding],
         difference: { variant: { parameters: [] }, mainline: [], changes: [], parameterChanges: [] },
       },
@@ -81,10 +91,67 @@ describe('workbench v2 transport', () => {
     const fetch = vi.fn(async () => ({ ok: true, json: async () => response }))
     vi.stubGlobal('fetch', fetch)
     const saved = await new LiveData().edit('case', 'base', [
-      { op: 'setInput', address: { node: 'amount' }, text: '0' },
+      { op: 'setInput', address: { case: null, node: 'amount' }, text: '0' },
     ])
     expect(saved.data.run.succeeded).toBe(true)
     expect(saved.data.run.validationPassed).toBe(false)
     expect(saved.data.diagnostics[0].category).toBe('business')
+  })
+})
+
+describe('linked Explain snapshot transport', () => {
+  it('keeps the root resource while sending the exact source case and revision', async () => {
+    const fetch = vi.fn(async (_url: string) => ({
+      ok: true,
+      json: async () => ({
+        contract: 'mantra.workbench/4',
+        revision: 'source-revision',
+        engine: { mantra: 'test', normein: 'test' },
+        data: {},
+      }),
+    }))
+    vi.stubGlobal('fetch', fetch)
+    await new LiveData().explain(
+      'root/case.mantra',
+      {
+        case: 'source/case.mantra',
+        node: 'closing',
+        coord: ['A/B'],
+      },
+      undefined,
+      'source-revision',
+    )
+    const url = new URL(String(fetch.mock.calls[0][0]), 'http://localhost')
+    expect(url.pathname).toBe('/api/v1/cases/root%2Fcase.mantra/explain')
+    expect(url.searchParams.get('case')).toBe('source/case.mantra')
+    expect(url.searchParams.get('expectedRevision')).toBe('source-revision')
+    expect(url.searchParams.get('address')).toBe('closing@A%2FB')
+  })
+
+  it('uses the source fixture instead of a same-named root node and rejects another revision', async () => {
+    const fetch = vi.fn(async (url: string) => ({
+      ok: true,
+      json: async () =>
+        url === '/fixtures/index.json'
+          ? {
+              cases: [
+                { id: 'root/case.mantra', files: { explains: { closing: '/root-closing.json' } } },
+                { id: 'source/case.mantra', files: { explains: { closing: '/source-closing.json' } } },
+              ],
+            }
+          : {
+              contract: 'mantra.workbench/4',
+              revision: 'source-revision',
+              engine: { mantra: 'test', normein: 'test' },
+              data: { result: { display: url } },
+            },
+    }))
+    vi.stubGlobal('fetch', fetch)
+    const data = new FixtureData()
+    const address = { case: 'source/case.mantra', node: 'closing' }
+    const response = await data.explain('root/case.mantra', address, undefined, 'source-revision')
+    expect(response.data.result.display).toBe('/source-closing.json')
+    expect(fetch).not.toHaveBeenCalledWith('/root-closing.json', expect.anything())
+    await expect(data.explain('root/case.mantra', address, undefined, 'old-revision')).rejects.toThrow('stale')
   })
 })

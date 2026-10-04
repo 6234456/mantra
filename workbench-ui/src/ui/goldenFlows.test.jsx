@@ -26,7 +26,7 @@ const scenarios = [
     result: '1.462,24',
     panel: 'zve',
     cell: '112.380,00',
-    address: { node: 'summe-einkuenfte' },
+    address: { case: null, node: 'summe-einkuenfte' },
   },
   {
     id: 'ifrs-impairment/case-demo.mantra',
@@ -34,7 +34,7 @@ const scenarios = [
     result: '121',
     panel: 'step-1',
     cell: '120',
-    address: { node: 'carrying-amount', coord: ['A'] },
+    address: { case: null, node: 'carrying-amount', coord: ['A'] },
   },
   {
     id: 'cost-accounting/case-demo.mantra',
@@ -42,7 +42,7 @@ const scenarios = [
     result: '1,140.00',
     panel: 'cost-sources',
     cell: '12,400.00',
-    address: { node: 'direct-primary-total' },
+    address: { case: null, node: 'direct-primary-total' },
   },
   {
     id: 'ifrs-income-taxes/case-demo.mantra',
@@ -50,7 +50,7 @@ const scenarios = [
     result: '79,800',
     panel: 'entity-tax',
     cell: '240,000',
-    address: { node: 'accounting-profit', coord: ['North'] },
+    address: { case: null, node: 'accounting-profit', coord: ['North'] },
   },
   {
     id: 'fixed-assets/case-demo.mantra',
@@ -59,7 +59,7 @@ const scenarios = [
     panel: 'carrying-flow',
     cell: '76,000.00',
     rowLabel: 'Closing carrying amount',
-    address: { node: 'carrying-closing', coord: ['Machine', 'P1'] },
+    address: { case: null, node: 'carrying-closing', coord: ['Machine', 'P1'] },
   },
   {
     id: 'ifrs-leases/case-demo.mantra',
@@ -68,7 +68,7 @@ const scenarios = [
     panel: 'liability-flow',
     cell: '9,523.81',
     rowLabel: 'Closing lease liability',
-    address: { node: 'liability-closing', coord: ['Office', 'P2'] },
+    address: { case: null, node: 'liability-closing', coord: ['Office', 'P2'] },
   },
 ]
 
@@ -94,7 +94,7 @@ afterEach(() => {
 describe('the six tracked applications, from overview to a selected Paper cell', () => {
   it('shows real Explain steps from the ESt golden on the provenance route', async () => {
     const id = 'de-est/case-mustermann.mantra'
-    const address = { node: 'ermaessigung-35a' }
+    const address = { case: null, node: 'ermaessigung-35a' }
     const entry = manifest.cases.find((item) => item.id === id)
     const goldenExplain = files[entry.files.explains[addressToPath(address)]].data
     serveGolden()
@@ -186,7 +186,7 @@ describe('the six tracked applications, from overview to a selected Paper cell',
 
   it('opens the IAS 12 weighted rate from its aggregate fixture without synthesizing formula steps', async () => {
     const id = 'ifrs-income-taxes/case-demo.mantra'
-    const address = { node: 'aggregate.effective-tax-rate' }
+    const address = { case: null, node: 'aggregate.effective-tax-rate' }
     const entry = manifest.cases.find((item) => item.id === id)
     const explanation = files[entry.files.explains[addressToPath(address)]].data
     expect(explanation.aggregate.result).toEqual({ n: '0.249375' })

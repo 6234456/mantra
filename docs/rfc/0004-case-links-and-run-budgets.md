@@ -15,6 +15,12 @@ Existing calculation semantics remain except the explicitly versioned new functi
 Keep source-compatible convenience APIs. Packages, version ranges, automatic migrations and batch repositories
 are M4 work and are not prerequisites for a link between two explicit cases.
 
+In this version, a true line/choice formula or kernel evaluation failure retains `Value.Nil` and
+`NodeTrace.Failed` at that coordinate. It cannot substitute numerical zero or select another successful
+choice after an option evaluation fails. Ordinary guard inactivity continues to use its neutral value.
+Independent SDK calculation rejects authored links that have not been materialized with typed provenance;
+it never silently ignores the declarations and selects an input default.
+
 ## 1. Exact schema versions
 
 Schemas already carry `:version` metadata. Expose it as a validated nonblank opaque string.

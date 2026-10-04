@@ -18,6 +18,8 @@ include(
     ":apps:ifrs-income-taxes",
     ":apps:fixed-assets",
     ":apps:ifrs-leases",
+    ":apps:de-gewst",
+    ":apps:circular-calculation",
 )
 
 // ── Normein DSL kernel (pinned composite build) ─────────────────────────────

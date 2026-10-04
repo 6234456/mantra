@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.api.AuditOptions
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
+import com.xqiou.mantra.core.view.ExplainTrace
 import com.xqiou.mantra.core.view.NodeTrace
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -19,8 +20,30 @@ class AuditTraceTest {
         SourceResolver { _, _ -> null },
     )
 
+    private fun assertSameSemantics(expected: ExplainTrace, actual: ExplainTrace) {
+        // Event identities belong to their own executions; source evidence and invocation order agree.
+        fun semantics(trace: ExplainTrace) = trace.copy(
+            steps = trace.steps.map { it.copy(eventId = null) },
+            branches = trace.branches.map { it.copy(eventId = null) },
+        )
+        assertEquals(semantics(expected), semantics(actual))
+        listOf(expected, actual).forEach { trace ->
+            trace.steps.forEach { step ->
+                assertTrue(assertNotNull(step.eventId).isNotBlank())
+                assertNotNull(step.invocationIndex)
+            }
+            trace.branches.forEach { branch ->
+                val eventId = assertNotNull(branch.eventId)
+                val step = trace.steps.single { it.eventId == eventId }
+                assertEquals(step.text, branch.text)
+                assertEquals(step.location, branch.location)
+                assertEquals(step.invocationIndex, branch.invocationIndex)
+            }
+        }
+    }
+
     @Test
-    fun `audit and Explain retain the same executed named function and branch steps`() {
+    fun `audit and Explain retain the same semantics and genuine execution event identities`() {
         val schema = schema(
             """
             (defn twice [^Decimal x] (if (> x 4) (* x 2) (- x 1)))
@@ -30,7 +53,7 @@ class AuditTraceTest {
         val audit = Mantra.calculateForAudit(schema)
         val explained = Mantra.calculateForExplain(schema, audit.case, emptyList(), "amount")
         val captured = assertNotNull((audit.node("amount").trace() as NodeTrace.Computed).explanation)
-        assertEquals(explained.explainTrace, captured)
+        assertSameSemantics(assertNotNull(explained.explainTrace), captured)
         assertEquals(Value.num(10), audit.value("amount"))
         assertFalse(captured.truncated)
         assertTrue(captured.steps.any { it.text == "(* x 2)" && it.value == Value.num(10) })
@@ -111,6 +134,6 @@ class AuditTraceTest {
         assertEquals(Value.num(5), result.value("portions", "B"))
         assertFailsWith<UnsupportedOperationException> { (a.steps as MutableList<*>).clear() }
         val explained = Mantra.calculateForExplain(schema, result.case, emptyList(), "portions", listOf("B"))
-        assertEquals(a, explained.explainTrace)
+        assertSameSemantics(a, assertNotNull(explained.explainTrace))
     }
 }
