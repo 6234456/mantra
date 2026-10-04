@@ -723,3 +723,108 @@ Paper 和导出按需计算 FULL 审计；只在案例和参数完全相同时�
 所请求节点的源码证据，不把 VALUE_ONLY 结果充当逐步审计。工作台关闭时关闭所有执行会话。
 
 XLSX 保留生成时的引擎审计快照；输入编辑后显示过期，恢复原输入后恢复有效，继续采用维护者已确认的行为。
+
+
+# M3 workbench contract draft
+
+Draft prepared during the frozen M2 measurement. This document is not an implementation or
+acceptance record. The repository and pinned kernel remain unchanged.
+
+## Version and addresses
+
+The envelope becomes `mantra.workbench/4`; numeric engine values retain the existing exact
+value encoding. Add required nullable `case` to every address. `null` means the case selected
+by the enclosing resource; a non-null value is the workspace-relative canonical case key.
+Node, coordinate, fixed aggregate and table-cell fields keep their M2 meaning.
+
+An input supplied by a link has typed `link` provenance:
+
+```json
+{
+  "case": "de-gewst/case-demo.mantra",
+  "caseId": "trade-demo",
+  "schema": {"id": "de.gewst/2025", "version": "2025.1"},
+  "revision": "source-content-revision",
+  "address": {"case": "de-gewst/case-demo.mantra", "node": "messbetrag", "coord": []}
+}
+```
+
+`origin` remains a display label; it must not be parsed to recover identity or version.
+Zero and false remain provided link facts. Nil, inactive and missing source values fail the
+request with `MANTRA-LINK-UNDEFINED`; they do not activate a consumer default.
+
+## Run and graph
+
+Run adds `caseGraph` and `usage`. A graph contains a root key, an ordered list of participating
+cases, and explicit edges with their from/to addresses. Each case records key, authored id,
+schema id/version, participating revision, technical success and validation success.
+A legacy uniquely bound unversioned root keeps version=null; links require a nonblank exact version.
+The same canonical source is listed once even when multiple mappings consume it.
+The root graph includes source BUSINESS findings with their original case/revision/address;
+they continue calculation and saving under R6, but BUSINESS ERROR makes validationPassed false.
+
+Usage contains host counters, peak coordinate product, peak link depth and separately reported
+cache reuse. Long counters and limits are nonnegative decimal strings to avoid JavaScript
+rounding; bounded row indices and coordinate offsets remain JSON integers. Counter units are
+defined by the M3 work package. Do not describe cost metrics or formula counts as exact cumulative
+VALUE_ONLY kernel counters. Nondeterministic wall-clock measurements are not required for this
+wire snapshot and are recorded separately by the performance harness.
+
+Technical control failures carry `stage`, `counter`, `limit`, `attempted` and the available
+case/node/coordinate. Cancellation and deadline are separate failure codes. A failed request
+never labels a prior cached result as the current successful result. Existing explicit stale
+snapshots remain distinguishable from current success.
+
+## Explain and revisions
+
+Explain for a linked input includes its original input value and typed link provenance.
+References point to the real source case, node and full coordinate. The UI follows that case's
+ordinary Explain resource, so it can expand source dependencies without special domain branches.
+The request carries the provenance source revision; a mismatch returns the existing stale/conflict
+response and never combines a new source span with an old execution snapshot.
+
+Source FULL steps retain actual kernel event identity and invocation index when projected.
+Invocation index is not relabelled as a convergence iteration number. VALUE_ONLY generates no
+synthetic steps. Trace truncation remains an evidence warning, separate from numerical failure.
+
+All actual case, schema/include, parameter, source-data and layout bytes consumed by each linked
+source participate in the root revision. Same-valued edits still change the revision. Source files
+are hashed from the same captured bytes that are parsed, not reread after calculation. SSE uses
+this downstream revision and alerts the currently opened consumer when an upstream source changes.
+
+## Editing and export
+
+Link values are read-only facts in the consumer. Editing link declarations is an explicit source
+document change; ordinary input editing must not silently override a mapped fact. Source input
+editing uses its own case resource. Save validation preserves syntax/type/reference rejection
+and the nonblocking effect of BUSINESS findings.
+
+Paper labels the source case and revision. XLSX exports linked values as generation-time input
+snapshots with provenance comments; it does not create external-workbook links. Changing workbook
+inputs marks its retained engine audit snapshot expired; restoring inputs restores validity.
+Editing a source file does not refresh an already exported workbook; a new export is required.
+
+Convergence uses an explicitly bounded hidden iteration table, with callback evaluation gated
+after stopping. Nonconvergence exposes a technical failure rather than a last approximation.
+Unsupported translations report capability/fallback; demonstration success cases require zero
+fallbacks and independently checked recalculable formulas. Hidden callback helpers retain the
+same stopping gate, so evaluateAll cannot execute a stopped or otherwise unselected callback.
+
+## Ownership and limits
+
+The core graph runtime owns SDK sessions and uses its hidden existing-context entry points.
+The workbench owner executor creates, reuses, replaces and closes that runtime. All linked
+calculations in one request share one context from source loading onward. Closing waits for owner
+termination and preserves original errors and interruption state.
+
+Immutable published views do not retain that mutable context. A render/export/aggregate read
+request has its own shared read-control epoch across all requested cells; it does not mutate
+the calculation's published usage. HTTP callers cannot remove configured host ceilings.
+
+## Required verification
+
+Strict schemas, generated TypeScript, deterministic fixtures and all address projections change
+together. Tests cover exact version coexistence, two mappings/one source calculation, alias cycles,
+depth and shared limits, zero/false/Nil, conflicting facts, independent source parameters, same-value
+revision propagation, source BUSINESS and technical failures, source Explain staleness, SSE,
+generic editing/export and complete task browser/server cleanup.

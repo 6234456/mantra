@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — v0.4 / M3 (implementation in progress)
+
+- Establish exact schema-version links, layered run controls and scalar bounded convergence contracts.
+  Workbench wire advances to 4 and mantra.calc to 2; implementation acceptance is pending.
+
 ## v0.3 / M2 (not published as library artifacts)
 
 - Cache scoped Excel reduction expressions and restore live range sums for complete unconditional scopes;
