@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Draft-independent application address checker; standard library only.
+"""Independent application address checker; standard library only.
 
 _reference.py is the byte-identical frozen source algorithm. This adapter first
 recomputes each frozen reference, then checks the independent address adaptation.
 No engine, renderer, workbook or JVM is imported, and no engine value is an oracle.
-UNCOMPILED APP DRAFT: this source check cannot establish engine acceptance.
+Source integrity and independently derived values are verified before actual rendered outputs.
 """
 import argparse, hashlib, importlib.util, json
 from decimal import Decimal
@@ -98,4 +98,4 @@ if __name__ == '__main__':
         count = compare_outputs(args.outputs)
         print(f'{count} independently sourced numeric output assertions')
     else:
-        print(f'{facts} frozen facts; {assertions} independent draft address assertions')
+        print(f'{facts} frozen facts; {assertions} independent address assertions')

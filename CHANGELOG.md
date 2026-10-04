@@ -1,9 +1,24 @@
 # Changelog
 
-## Unreleased — v0.4 / M3 (implementation in progress)
+## Unreleased — v0.5 / M4 (implementation in progress)
 
-- Establish exact schema-version links, layered run controls and scalar bounded convergence contracts.
-  Workbench wire advances to 4 and mantra.calc to 2; implementation acceptance is pending.
+- Compile-once workers, streamed batches, confined scheme packages, effective parameter selection,
+  explicit migrations, live table-shaped XLSX and public ABI checks are being implemented.
+
+## v0.4 / M3 (not published as library artifacts)
+
+- Add exact-version cross-case links with independently bound source parameters, shared runtime
+  budgets, cycle/depth/path checks and immutable provenance. Static CLI checking never evaluates
+  formulas; run/explain/diff use the same graph binding as the workbench.
+- Add scalar bounded `calc/converge`, real callback trace evidence and guarded XLSX iteration tables.
+  Advance mantra.calc to 2 and the strict workbench contract to 4.
+- Add cross-year loss carryforward, trade-tax and rounded circular-calculation demonstrations with
+  independent references, technical failure boundaries and real HTML/Text/XLSX comparisons.
+- Expose linked source Explain and content revisions; source changes require explicit refresh.
+  Preserve audit snapshots and mark them outdated after changes to editable facts.
+- Verify 601 JVM tests, 77 frontend tests, 57 independent checks, 11 browser flows and remote CI.
+  Archive 390 performance samples without dropping tails; existing device budgets pass, while
+  period/edit regressions and unresolved M2 XLSX tails remain documented for M6.
 
 ## v0.3 / M2 (not published as library artifacts)
 

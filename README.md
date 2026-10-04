@@ -177,7 +177,7 @@ Browser tests use an installed Chrome-compatible executable with a task-specific
 ## Documentation and community
 
 - [Architecture](docs/architecture.md) and [engine/application boundary](docs/engine-application-boundary.md)
-- [Performance baseline](docs/performance-baseline.md) and [kernel publication plan](docs/normein-publication.md)
+- [Performance baseline](docs/performance-baseline.md), [M3 measurements](docs/performance-m3.md) and [kernel publication plan](docs/normein-publication.md)
 - [DSL reference](docs/dsl-reference.md) and [Normein RFCs](docs/rfc/)
 - [Workbench contract](docs/workbench/contract.md), [UI specification](docs/workbench/ui-spec.md) and [work packages](docs/workbench/work-packages.md)
 - [Long-term roadmap and R1–R10 decisions](docs/roadmap.md)

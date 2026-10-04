@@ -1,0 +1,3 @@
+180 files; independently recomputed fingerprint db5909910a4db6891d4d4326a38969bebe96d1e94c4652bc23aa7826fa7acc1a
+m3-performance: 300 samples and 30 summaries independently verified; no samples dropped
+m3-period-performance: 90 samples and 9 summaries independently verified; no samples dropped
