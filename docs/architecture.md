@@ -1,6 +1,6 @@
 # Mantra 架构设计：财税计算方案（Berechnungsschema）的内核
 
-> 状态：M0、M1 完成；M2 连续期间实现中 · 2026-10-04
+> 状态：M0、M1 完成；M2 已完成 · 2026-10-04
 > 相关文档：[引擎与应用职责契约](engine-application-boundary.md) · [DSL 参考](dsl-reference.md) · [RFC 0001：Normein DSL 内核扩展需求](rfc/0001-normein-dsl-kernel-extensions.md) · [工作台契约](workbench/contract.md)
 
 ## 1. 目标与边界

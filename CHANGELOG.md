@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — v0.3 / M2 (implementation in progress)
+## v0.3 / M2 (not published as library artifacts)
 
 - Cache scoped Excel reduction expressions and restore live range sums for complete unconditional scopes;
   preserve editable guards, parent relations and declared period boundaries. Nested date predicates retain
@@ -12,6 +12,10 @@
   evidence. Kotlin APIs and host DSL advance to 0.3; clients and strict schemas migrate together.
 - Add fictional fixed-asset and lease demonstrations and extend impairment with cash-flow value in
   use and capped allocation. Independent source checks precede application/export acceptance.
+
+- Record 390 final performance samples and initial reference-device envelopes, preserving unresolved
+  XLSX tail latency and the first M2 measurements. Dynamic insertion/deletion of workbook table records
+  remains pending M4; the current workbook supports recalculation within its captured record set.
 
 ## v0.2 / M1 (not published as library artifacts)
 

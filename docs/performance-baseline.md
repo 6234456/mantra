@@ -225,3 +225,9 @@ the raw samples. The run took 12 minutes 56 seconds. Generated papers and workbo
 ```sh
 ./gradlew --no-daemon :benchmarks:run --args='--warmup 5 --repetitions 10 --output benchmarks/build/performance-m1'
 ```
+
+## Recorded M2 comparison
+
+The [M2 performance report](performance-m2.md) preserves the first and final measurements,
+390 final timing/heap samples, continuous-period reuse counters, unresolved export tails and the
+initial explicit reference-device budgets.

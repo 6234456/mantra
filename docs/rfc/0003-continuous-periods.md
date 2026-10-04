@@ -1,6 +1,6 @@
 # RFC 0003: continuous periods and execution sessions
 
-Status: accepted host design; integration tests in progress (2026-10-04).
+Status: accepted host design; implementation and contract tests complete (2026-10-04).
 
 M2 consumes the unchanged `normein-dsl` 0.3.0 commit in `normein-build.lock`. Period membership,
 coordinate dependencies, first/last stock aggregation and presentation belong to Mantra. The
