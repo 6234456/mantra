@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
 import { addressToPath, casePath } from '../address'
 import type { Envelope, Explain, Paper, Run, Structure, Diagnostic, RatioAggregate } from '../types'
@@ -174,6 +174,7 @@ function serve(documents: Record<string, unknown>) {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
   if (typeof window.localStorage?.clear === 'function') window.localStorage.clear()
   history.replaceState(null, '', '/')
 })
@@ -204,7 +205,10 @@ describe('fixture-backed workbench shell', () => {
     render(<App />)
     const table = await screen.findByRole('table')
     expect(within(table).getByRole('columnheader', { name: 'B' })).toBeTruthy()
-    fireEvent.click(within(table).getByRole('button', { name: 'B: 20.00' }))
+    const selectedCell = within(table).getByRole('button', { name: 'B: 20.00' })
+    fireEvent.click(selectedCell)
+    expect(selectedCell.classList.contains('selected')).toBe(true)
+    expect(new URLSearchParams(location.search).get('cell')).toBe('value@B')
     expect(await screen.findByText('Formula B')).toBeTruthy()
     expect(screen.queryByText('Formula A')).toBeNull()
     expect(location.search).toContain('cell=value%40B')
@@ -212,6 +216,63 @@ describe('fixture-backed workbench shell', () => {
     const chosen = screen.getByText(/Option one/, { selector: '.choice-option span' }).closest('.choice-option')!
     expect(chosen.classList.contains('chosen')).toBe(true)
     expect(within(chosen as HTMLElement).getByText('18.00')).toBeTruthy()
+  })
+
+  it('keeps an immediately selected matrix member after the server refresh remounts the Paper', async () => {
+    vi.stubEnv('VITE_WORKBENCH_MODE', 'live')
+    let documentChanged: ((event: MessageEvent) => void) | undefined
+    vi.stubGlobal(
+      'EventSource',
+      class {
+        addEventListener(name: string, listener: (event: MessageEvent) => void) {
+          if (name === 'documentChanged') documentChanged = listener
+        }
+        close() {}
+      },
+    )
+    const api = `/api/v1/cases/${encodeURIComponent(caseId)}`
+    serve({
+      '/api/v1/workspace': wrap({ cases: [{ id: caseId, title: 'Sample case' }], parameters: [] }),
+      [`${api}/structure`]: wrap(structure),
+      [`${api}/run`]: wrap(run),
+      [`${api}/paper?panel=detail`]: wrap(paper),
+    })
+    history.replaceState(null, '', `${base}/panels/detail`)
+    render(<App />)
+    const originalTable = await screen.findByRole('table')
+    fireEvent.click(within(originalTable).getByRole('button', { name: 'B: 20.00' }))
+    expect(await screen.findByText('Formula B')).toBeTruthy()
+    expect(documentChanged).toBeTypeOf('function')
+    act(() => documentChanged!(new MessageEvent('documentChanged', { data: '{"revision":"next"}' })))
+    await waitFor(() => expect(screen.getByRole('table')).not.toBe(originalTable))
+    expect(screen.getByRole('button', { name: 'B: 20.00' }).classList.contains('selected')).toBe(true)
+    expect(screen.getByText('Formula B')).toBeTruthy()
+    expect(screen.queryByText('Formula A')).toBeNull()
+    expect(new URLSearchParams(location.search).get('cell')).toBe('value@B')
+  })
+
+  it('restores and clears matrix selection when popstate changes the cell query', async () => {
+    serve(docs())
+    history.replaceState(null, '', `${base}/panels/detail?cell=value%40A`)
+    render(<App />)
+    expect(await screen.findByText('Formula A')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A: 10.00' }).classList.contains('selected')).toBe(true)
+
+    history.replaceState(null, '', `${base}/panels/detail?cell=value%40B`)
+    fireEvent.popState(window)
+    expect(await screen.findByText('Formula B')).toBeTruthy()
+    expect(screen.queryByText('Formula A')).toBeNull()
+    expect(screen.getByRole('button', { name: 'B: 20.00' }).classList.contains('selected')).toBe(true)
+
+    history.replaceState(null, '', `${base}/panels/detail`)
+    fireEvent.popState(window)
+    expect(document.querySelector('.cell-button.selected')).toBeNull()
+    expect(screen.queryByText('Formula B')).toBeNull()
+
+    history.replaceState(null, '', `${base}/panels/detail?cell=value%40A`)
+    fireEvent.popState(window)
+    expect(await screen.findByText('Formula A')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'A: 10.00' }).classList.contains('selected')).toBe(true)
   })
 
   it('shows a fixture error state without invented values', async () => {

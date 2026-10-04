@@ -86,7 +86,11 @@ function useRoute() {
     history.pushState(null, '', path)
     setCurrent(route())
   }
-  return [current, navigate] as const
+  const replace = (path: string) => {
+    history.replaceState(null, '', path)
+    setCurrent(route())
+  }
+  return [current, navigate, replace] as const
 }
 
 function useLoad<T>(
@@ -149,7 +153,7 @@ function Link({
 }
 
 export function App() {
-  const [current, navigate] = useRoute()
+  const [current, navigate, replace] = useRoute()
   const [refresh, setRefresh] = useState(0)
   const [editEffect, setEditEffect] = useState<Compare | undefined>()
   useEffect(() => setEditEffect(undefined), [current.caseId, current.groupId])
@@ -283,6 +287,7 @@ export function App() {
               data={data}
               onSaved={() => setRefresh((value) => value + 1)}
               navigate={navigate}
+              replaceRoute={replace}
             />
           ) : current.page === 'provenance' && current.address ? (
             <ProvenancePage
@@ -764,6 +769,7 @@ function PanelPage({
   data,
   onSaved,
   navigate,
+  replaceRoute,
 }: {
   structure: Structure
   run: Run
@@ -775,10 +781,10 @@ function PanelPage({
   data: WorkbenchData
   onSaved: () => void
   navigate: (path: string) => void
+  replaceRoute: (path: string) => void
 }) {
   const panel = structure.panels.find((item) => item.id === panelId)
-  const [focused, setFocused] = useState<Address | undefined>(selected)
-  useEffect(() => setFocused(selected), [selected])
+  const focused = selected
   const explanation = useLoad(
     (signal) => (focused ? data.explain(caseId, focused, signal) : Promise.reject(new Error('No selection'))),
     [data, caseId, focused && addressKey(focused)],
@@ -795,10 +801,9 @@ function PanelPage({
   const table = paper?.tables.find((item) => item.id === panel.id)
   const audit = auditForCell(paper, table?.rows, focused)
   function select(address: Address) {
-    setFocused(address)
     const url = new URL(location.href)
     url.searchParams.set('cell', addressToPath(address))
-    history.replaceState(null, '', url)
+    replaceRoute(`${url.pathname}${url.search}${url.hash}`)
   }
   return (
     <>

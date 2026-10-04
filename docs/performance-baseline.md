@@ -181,3 +181,47 @@ reports are retained for comparison. That run took 9 minutes 20 seconds; its com
 was 27,021.441 ms and p95 was 27,192.072 ms. Its source fingerprint independently matched the
 67 committed Kotlin/lock files:
 `54390c531c4d62eb91aabff00c6800ea8e790e95dcecc0f803416d7e767f9d53`.
+
+## Recorded M1 comparison
+
+M1 used clean calculation-source revision `45eaa0097881b504afcf90470954eca389aa6e7a`, starting at
+`2026-10-04T05:56:49.344125Z`. Machine, Java, Kotlin, heap settings, scenario order, five warmups
+and ten measured repetitions match M0. The additional `calculate-audit` operation brings the run to
+300 samples and 30 summaries. The source fingerprint was independently recomputed from 87
+Kotlin/lock files:
+`17dfb588123baa07c54fdfb9d0e7ea2f10bdcbe4b193c86c44b2d8639d9d4c15`.
+
+All 15,265 calculated coordinates passed independent arithmetic and cached XLSX comparisons;
+all five workbooks had zero formula fallbacks and zero evaluation errors. The combined workbook
+contains 13,806 formula cells, including live fact flags and the audit snapshot-status formula.
+Audit capture remains bounded, and omitted source steps are visibly marked as truncated.
+
+Median wall times in milliseconds:
+
+| Scenario | plan | calculate | calculate-audit | explain | paper | xlsx |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| small | 56.245 | 59.884 | 59.022 | 58.399 | 1.770 | 39.680 |
+| lines | 455.460 | 533.287 | 546.857 | 521.121 | 4.411 | 386.680 |
+| members | 47.906 | 74.917 | 83.649 | 73.650 | 3.414 | 349.253 |
+| table-rows | 47.775 | 56.012 | 57.475 | 56.098 | 0.653 | 248.330 |
+| combined | 437.928 | 1,241.992 | 1,303.466 | 1,245.524 | 30.493 | 39,916.599 |
+
+In the combined case, bounded audit capture adds 4.95% to the same-run ordinary calculation median.
+Ordinary calculation is 2.12% faster than the recorded M0 median; a single comparison does not
+establish a performance improvement. XLSX is 48.80% slower than M0, with p95 46,957.530 ms and
+maximum heap-pool peak 579.92 MiB. Its maximum peak increase over the before-sample heap is
+518.50 MiB. The M1 export includes source-level audit evidence, live provided-fact flags and
+type-sensitive snapshot comparisons, so the measured change includes new functionality. The
+1,000-row scenario also exposes that cost: XLSX rises from 30.802 to 248.330 ms. No profiler
+attribution is claimed from these end-to-end timings; export scaling remains a measured M4 target.
+
+The complete [environment](../benchmarks/baselines/m1-macos-aarch64/environment.txt),
+[300 samples](../benchmarks/baselines/m1-macos-aarch64/samples.csv),
+[30 summaries](../benchmarks/baselines/m1-macos-aarch64/summary.csv) and five numeric verification
+reports are archived. Medians, p95, extrema and heap statistics were independently checked against
+the raw samples. The run took 12 minutes 56 seconds. Generated papers and workbooks remain in
+`benchmarks/build/performance-m1/`; the benchmark JVM and its single-use Gradle daemon stopped.
+
+```sh
+./gradlew --no-daemon :benchmarks:run --args='--warmup 5 --repetitions 10 --output benchmarks/build/performance-m1'
+```
