@@ -1,0 +1,128 @@
+{
+  "case": "unreconciled",
+  "scale": 4,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "27232.4803",
+      "initial_rou": "27232.4803",
+      "commencement_cash": "0",
+      "final_liability": "0.0000",
+      "final_rou": "0.0000",
+      "total_interest": "2767.5197",
+      "total_payments": "30000",
+      "total_rou_depreciation": "27232.4803",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "27232.4803",
+          "interest": "1361.6240",
+          "payment": "10000",
+          "principal_reduction": "8638.3760",
+          "liability_closing": "18594.1043",
+          "rou_opening": "27232.4803",
+          "rou_depreciation": "9077.4934",
+          "rou_closing": "18154.9869",
+          "reported_liability_closing": "18594.10",
+          "difference": "0.0043"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "18594.1043",
+          "interest": "929.7052",
+          "payment": "10000",
+          "principal_reduction": "9070.2948",
+          "liability_closing": "9523.8095",
+          "rou_opening": "18154.9869",
+          "rou_depreciation": "9077.4934",
+          "rou_closing": "9077.4935",
+          "reported_liability_closing": "9523.83",
+          "difference": "-0.0205"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "9523.8095",
+          "interest": "476.1905",
+          "payment": "10000",
+          "principal_reduction": "9523.8095",
+          "liability_closing": "0.0000",
+          "rou_opening": "9077.4935",
+          "rou_depreciation": "9077.4935",
+          "rou_closing": "0.0000",
+          "reported_liability_closing": "0",
+          "difference": "0.0000"
+        }
+      ]
+    },
+    {
+      "lease": "Storage",
+      "initial_liability": "18000.0000",
+      "initial_rou": "18000.0000",
+      "commencement_cash": "0",
+      "final_liability": "0.0000",
+      "final_rou": "0.0000",
+      "total_interest": "0.0000",
+      "total_payments": "18000",
+      "total_rou_depreciation": "18000.0000",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "18000.0000",
+          "interest": "0.0000",
+          "payment": "6000",
+          "principal_reduction": "6000.0000",
+          "liability_closing": "12000.0000",
+          "rou_opening": "18000.0000",
+          "rou_depreciation": "6000.0000",
+          "rou_closing": "12000.0000",
+          "reported_liability_closing": "12000",
+          "difference": "0.0000"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "12000.0000",
+          "interest": "0.0000",
+          "payment": "6000",
+          "principal_reduction": "6000.0000",
+          "liability_closing": "6000.0000",
+          "rou_opening": "12000.0000",
+          "rou_depreciation": "6000.0000",
+          "rou_closing": "6000.0000",
+          "reported_liability_closing": "6000",
+          "difference": "0.0000"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "6000.0000",
+          "interest": "0.0000",
+          "payment": "6000",
+          "principal_reduction": "6000.0000",
+          "liability_closing": "0.0000",
+          "rou_opening": "6000.0000",
+          "rou_depreciation": "6000.0000",
+          "rou_closing": "0.0000",
+          "reported_liability_closing": "0",
+          "difference": "0.0000"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "45232.4803",
+  "combined_final_liability": "0.0000",
+  "combined_final_rou": "0.0000",
+  "interest_flow": "2767.5197",
+  "payment_flow": "48000",
+  "depreciation_flow": "45232.4803",
+  "validation_passed": false,
+  "expected_business": [
+    {
+      "code": "MANTRA-RECONCILE-FAILED",
+      "node": "liability-reconciliation",
+      "coord": [
+        "Office",
+        "P2"
+      ],
+      "severity": "error"
+    }
+  ]
+}

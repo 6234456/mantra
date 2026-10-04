@@ -1,0 +1,7 @@
+lease-id,period-id,payment
+Office,P1,10000
+Office,P2,10000
+Office,P3,10000
+Storage,P1,6000
+Storage,P2,6000
+Storage,P3,6000

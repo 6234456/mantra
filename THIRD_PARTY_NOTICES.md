@@ -68,7 +68,7 @@ declared dependencies or resolved runtime versions change.
 ### IAS 36 impairment demonstration
 
 The current `apps/ifrs-impairment` application uses independently authored fictional facts and
-project-authored formulas, comments and presentation. The three cases, CSV input sample, expected
+project-authored formulas, comments and presentation. The six cases, CSV input samples, expected
 values, generated golden papers and browser fixtures share those facts. They do not reproduce
 IAS 36 Illustrative Example 8. The pre-M0 dataset was replaced during the 2026-10-04 source review;
 historical commits and design notes may identify that former comparison.
@@ -82,7 +82,8 @@ requires a separate source and permission review under the Foundation's
 [website terms](https://www.ifrs.org/legal/terms-and-conditions/).
 
 The independent Fraction-arithmetic script verifies the fictional calculations and rounding.
-The application supplies recoverable amounts and implements only a simplified subset of the
+The application supplies recoverable amounts or independently discounts fictional cash flows,
+and implements only a simplified subset of the
 referenced accounting concepts. It is a demonstration, not an IFRS compliance product, and is
 not endorsed by the IFRS Foundation.
 
@@ -97,6 +98,19 @@ Paragraph identifiers, including 81(c) and 84–86, identify concepts; the appli
 standard text, official example facts, PDF, logo or publication. The same Foundation rights and
 future reproduction review described above apply. The application deliberately simplifies
 single-period tax-expense reconciliation and is neither an IFRS compliance product nor Foundation-endorsed.
+
+### Fixed-assets and lease demonstrations
+
+`apps/fixed-assets` and `apps/ifrs-leases` use project-authored fictional facts, schemas, layouts and
+independent Decimal verification. Their IAS 16 and IFRS 16 paragraph references identify the
+depreciation, reconciliation and lease-measurement concepts documented in their READMEs.
+Concept sources were reviewed on 2026-10-04 against the Foundation's
+[IAS 16 overview](https://www.ifrs.org/issued-standards/list-of-standards/ias-16-property-plant-and-equipment/),
+[IFRS 16 overview](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-16-leases/) and the
+[EU adopted text](https://eur-lex.europa.eu/eli/reg/2023/1803/oj/eng/pdf).
+The applications reproduce no standard wording, official illustrative-example dataset, PDF or logo.
+The same Foundation rights and future reproduction review described above apply. Each application
+documents its simplifications and is neither an IFRS compliance product nor Foundation-endorsed.
 
 ### German income-tax demonstration
 

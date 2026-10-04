@@ -52,6 +52,7 @@ class WorkbenchServer(
         running = false
         executor.shutdownNow()
         servers.forEach { it.stop(0) }
+        catalog.close()
     }
 
     private fun handle(exchange: HttpExchange) {

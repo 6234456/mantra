@@ -14,7 +14,12 @@
     (col :reference {:header "IAS 36" :width 16}))
 
   (table step-1 {:title "Schedule 1 – Allocation of the headquarters building"})
+  (table forecast {:style :matrix :row-dimension cgu :title "Fictional cash-flow value in use"}
+    :label (members year) :cross-total)
   (table step-2 {:title "Schedule 2 – Impairment test of CGUs A, B and C"})
   (table step-3 {:title "Schedule 3 – Allocation of the impairment losses"})
+  (table capped-assets {:style :transpose :row-dimension asset :title "Loss caps of individual assets"}
+    :label (node individual-carrying) (node individual-floor) (node asset-allocated-loss) (node individual-closing))
+  (table capped-controls {:title "Capped allocation capacity and cross-foot"})
   (table step-4 {:title "Schedule 4 – Impairment test of entity M (smallest group of CGUs)"})
   (table summary {:title "Schedule 5 – Summary"}))

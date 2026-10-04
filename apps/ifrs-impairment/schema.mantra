@@ -8,16 +8,26 @@
 (schema ifrs.ias36/corporate-assets
   {:title "IAS 36 – Impairment test with corporate assets"
    :subtitle "Allocation of corporate assets to CGUs, impairment test per CGU and for the smallest group of CGUs"
-   :version "0.2"
+   :version "0.3"
    :preset :ifrs-schedule
    :basis "IAS 36.100–108"
-   :mainline [step-1 step-2 step-3 step-4 summary]}
+   :mainline [forecast step-1 step-2 step-3 capped-assets capped-controls step-4 summary]}
 
   ;; ── Inputs ───────────────────────────────────────────────────────────────────────────────────
   (input cgus :table
     {:label "Cash-generating units" :min-rows 1
      :columns {:id :keyword :name :text :carrying-amount :decimal :goodwill :decimal?
-               :remaining-life :decimal :value-in-use :decimal :fvlcd :decimal?}})
+               :remaining-life :decimal :value-in-use :decimal? :fvlcd :decimal?
+               :use-forecast :boolean? :discount-rate :decimal? :use-asset-caps :boolean?}})
+  (input forecast-cashflows :table
+    {:label "Fictional pre-tax cash-flow forecast" :default []
+     :columns {:cgu-id :keyword :period-id :keyword :cash-flow :decimal}
+     :references {:cgu-id cgu :period-id year}})
+  (input cgu-assets :table
+    {:label "Individually capped assets" :default []
+     :columns {:id :keyword :title :text :cgu-id :keyword :carrying-amount :decimal
+               :asset-fvlcd :decimal? :asset-value-in-use :decimal?}
+     :references {:cgu-id cgu}})
   (input allocable-corporate :decimal
     {:label "Shared facilities allocated to units"})
   (input unallocable-corporate :decimal
@@ -26,8 +36,26 @@
     {:label "Recoverable amount of the smallest group of CGUs"})
   (input weight-by-life :boolean {:default true})
   (param rounding 0 {:label "Rounding scale of allocations"})
+  (param discount-factor-scale 18 {:label "Discount-factor calculation precision"})
 
   (dimension cgu {:label "CGU" :from cgus :key :id :title :name :total-label "Total"})
+  (dimension year {:label "Forecast year" :periods {:start "2026-01-01" :unit :year :count 3}})
+  (dimension asset {:label "Individual asset" :from cgu-assets :key :id :title :title
+                    :parent cgu :parent-key :cgu-id})
+
+  ;; End-of-year pre-tax cash flows from the asset's current condition. No terminal growth,
+  ;; financing, income tax or future restructuring; all facts are fictional.
+  (section forecast "Value in use from discounted cash flows"
+    {:per [cgu year] :when cgu.use-forecast :display :schedule}
+    (line forecast-cash-flow "Projected pre-tax cash flow"
+      (sum (map (fn [entry]
+                  (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0))
+                forecast-cashflows)) {:op :info :precision 2})
+    (line discount-factor "End-of-year discount factor"
+      (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+      {:op :info :format :number :precision 8 :aggregate false})
+    (line present-value "Discounted cash flow"
+      (decimal/round (* forecast-cash-flow discount-factor) rounding) {:op :info :precision 2}))
 
   ;; ── Step 1: allocate the allocable corporate asset (IAS 36.102(a)) ────────────────────
   (section step-1 "Step 1 – Shared-facility allocation"
@@ -53,9 +81,11 @@
   (section step-2 "Step 2 – Impairment test of each CGU"
     {:per cgu :display :schedule :reference "IAS 36.102(a)(ii)"}
     (line tested-amount "Carrying amount (including allocated corporate asset)" carrying-amount-allocated {:op :info})
+    (line measured-value-in-use "Value in use"
+      (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) {:op :info})
     (choice recoverable-amount "Recoverable amount (higher of value in use and FVLCD)"
       {:rule :max :op :info :reference "IAS 36.18"}
-      (option :viu "Value in use" cgu.value-in-use)
+      (option :viu "Value in use" measured-value-in-use)
       (option :fvlcd "Fair value less costs of disposal" cgu.fvlcd {:when (some? cgu.fvlcd)}))
     (line impairment-loss "Impairment loss" (max 0 (- tested-amount recoverable-amount))
       {:op :info :reference "IAS 36.59, 104"}))
@@ -77,6 +107,40 @@
     (reconcile cgu-loss-crossfoot "Impairment loss agrees to its allocation"
       impairment-loss loss-allocated {:tolerance 0.01}))
 
+  ;; Full contextual asset maps retain numeric zero for members of another CGU. This keeps the
+  ;; generic capped allocator independent from the visible section's applicability mask.
+  (section asset-capacities "Asset allocation bases and capacities" {:per [cgu asset] :display :hidden}
+    (line asset-base "Asset carrying amount used as allocation weight"
+      (if (= asset.cgu-id cgu.key) asset.carrying-amount 0) {:op :info})
+    (line asset-capacity "Maximum loss before the individual asset floor"
+      (if (= asset.cgu-id cgu.key)
+        (max 0 (- asset.carrying-amount (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)))) 0)
+      {:op :info}))
+  (section capped-assets "Step 3a – Individually capped allocation"
+    {:per [cgu asset] :when (and cgu.use-asset-caps (= asset.cgu-id cgu.key))
+     :display :schedule :reference "IAS 36.104–105"}
+    (line individual-carrying "Asset carrying amount before the loss" asset.carrying-amount {:precision 2})
+    (line individual-floor "Higher of FVLCD, value in use and zero"
+      (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) {:op :info :precision 2})
+    (line asset-allocated-loss "Loss after cap and redistribution"
+      (alloc/capped loss-to-own-assets asset-base asset-capacity rounding)
+      {:spread true :op :minus :precision 2})
+    (total individual-closing "Asset carrying amount after the capped allocation" {:precision 2})
+    (check individual-floor-respected "Loss does not reduce the asset below its floor"
+      (>= individual-closing individual-floor)))
+  (section capped-controls "Capped allocation control"
+    {:per cgu :when cgu.use-asset-caps :display :schedule}
+    (line own-loss-to-allocate "Loss assigned to own assets" loss-to-own-assets {:op :info})
+    (line own-capped-capacity "Available individual-asset loss capacity" (dim/sum asset-capacity) {:op :info})
+    (line own-capped-loss "Loss actually assigned within the asset caps" (dim/sum asset-allocated-loss) {:op :info})
+    (line own-unallocated-loss "Loss exceeding the available asset capacities"
+      (- own-loss-to-allocate own-capped-loss) {:op :info})
+    (line own-capped-closing "Own assets after capped loss allocation" (dim/sum individual-closing) {:op :info})
+    (check capped-capacity-sufficient "Individual asset caps can absorb the requested loss"
+      (>= own-capped-capacity own-loss-to-allocate))
+    (reconcile capped-loss-crossfoot "Requested loss agrees to the capped allocation"
+      own-loss-to-allocate own-capped-loss {:tolerance 0.01}))
+
   ;; ── Step 4: smallest group of CGUs including other shared assets (IAS 36.102(b)) ────────────
   (section step-4 "Step 4 – Combined recovery check"
     {:display :schedule :reference "IAS 36.102(b)"}
@@ -97,4 +161,5 @@
     (line summary-group "Additional loss at group level (shared assets)" group-loss)
     (total total-impairment "Total impairment loss")))
 
-;; Simplification: recoverable amounts are supplied; no full valuation or complete IAS 36 rule set.
+;; Simplification: legacy cases supply recoverable amounts; forecast cases use three fictional
+;; pre-tax year-end cash flows only. No full valuation, reversal or complete IAS 36 rule set.

@@ -33,6 +33,12 @@ layout='apps/de-est/layout.mantra'
 "$cli" explain "$schema" --case "$case_file" --address tarifliche-est --layout "$layout" --out "$task_dir/explain.json"
 "$cli" explain apps/ifrs-income-taxes/schema.mantra --case apps/ifrs-income-taxes/case-demo.mantra \
   --address aggregate.effective-tax-rate --out "$task_dir/aggregate.json"
+"$cli" run apps/fixed-assets/schema.mantra --case apps/fixed-assets/case-demo.mantra \
+  --layout apps/fixed-assets/layout-transpose.mantra --out "$task_dir/assets.txt"
+"$cli" explain apps/fixed-assets/schema.mantra --case apps/fixed-assets/case-demo.mantra \
+  --address carrying-opening --coord Machine,P2 --out "$task_dir/previous.json"
+"$cli" explain apps/fixed-assets/schema.mantra --case apps/fixed-assets/case-demo.mantra \
+  --address aggregate.carrying-closing --coord asset=Machine --out "$task_dir/stock.json"
 "$cli" run apps/ifrs-income-taxes/schema.mantra --case apps/ifrs-income-taxes/case-unreconciled.mantra \
   --out "$task_dir/business-failure.txt"
 "$cli" serve apps --port 0 > "$task_dir/server.log" 2>&1 &
@@ -49,6 +55,7 @@ curl --fail --silent "$server_url/api/v1/cases/ifrs-income-taxes%2Fcase-unreconc
   > "$task_dir/business-run.json"
 python3 - "$task_dir" <<'PY'
 import json
+from decimal import Decimal
 from pathlib import Path
 import sys
 base = Path(sys.argv[1])
@@ -59,10 +66,20 @@ assert json.loads((base / 'compare.json').read_text())['data']['mainline']
 assert json.loads((base / 'explain.json').read_text())['data']['steps']
 assert json.loads((base / 'workspace.json').read_text())['data']['cases']
 aggregate = json.loads((base / 'aggregate.json').read_text())
-assert aggregate['contract'] == 'mantra.workbench/2'
+assert aggregate['contract'] == 'mantra.workbench/3'
 assert aggregate['data']['aggregate']['result']['n'] == '0.249375'
 assert aggregate['data']['aggregate']['activeMemberCount'] == 2
 assert aggregate['data']['steps'] == []
+previous = json.loads((base / 'previous.json').read_text())['data']
+assert Decimal(previous['result']['value']['n']) == Decimal('76000')
+prior = next(item for item in previous['references'] if item['kind'] == 'previous')
+assert prior['address']['node'] == 'carrying-closing'
+assert prior['address']['coord'] == ['Machine', 'P1']
+stock = json.loads((base / 'stock.json').read_text())['data']['aggregate']
+assert stock['kind'] == 'boundary'
+assert stock['boundary'] == 'last'
+assert Decimal(stock['result']['n']) == Decimal('10000')
+assert (base / 'assets.txt').stat().st_size > 0
 business = json.loads((base / 'business-run.json').read_text())['data']
 assert business['succeeded'] and not business['validationPassed']
 assert len([item for item in business['diagnostics'] if item['category'] == 'business']) == 3

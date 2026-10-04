@@ -10,6 +10,7 @@ import com.xqiou.mantra.core.model.Item
 import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
+import com.xqiou.mantra.core.model.PeriodSpec
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.Schema
@@ -127,7 +128,14 @@ internal fun InputDecl.snapshot(): InputDecl = copy(
 
 internal fun ParamDecl.snapshot(): ParamDecl = copy(value = value.snapshot(), presentation = presentation.snapshot())
 
-internal fun DimensionDecl.snapshot(): DimensionDecl = copy(members = frozenList(members))
+internal fun DimensionDecl.snapshot(): DimensionDecl = copy(
+    members = frozenList(members),
+    periods = when (val spec = periods) {
+        is PeriodSpec.Generated -> spec
+        is PeriodSpec.Listed -> spec.copy(entries = frozenList(spec.entries))
+        null -> null
+    },
+)
 
 internal fun Member.snapshot(): Member = copy(record = frozenMap(record.mapValues { (_, value) -> value.snapshot() }))
 
@@ -140,7 +148,11 @@ internal fun NodeTrace.snapshot(
     is NodeTrace.Computed -> copy(
         references = frozenList(
             references.map {
-                it.copy(value = it.value.snapshot())
+                it.copy(
+                    value = it.value.snapshot(),
+                    coord = it.coord?.let { coord -> frozenList(coord) },
+                    fixed = it.fixed?.let { fixed -> frozenMap(fixed) },
+                )
             },
         ),
         raw = raw.snapshot(),
@@ -149,7 +161,13 @@ internal fun NodeTrace.snapshot(
     is NodeTrace.Sum -> copy(
         parts = frozenList(
             parts.map {
-                it.copy(aggregate = it.aggregate?.let(aggregateSnapshot))
+                it.copy(
+                    aggregate = it.aggregate?.let(aggregateSnapshot),
+                    reduction = when (val generic = it.reduction) {
+                        is RatioAggregateTrace -> aggregateSnapshot(generic)
+                        else -> generic?.snapshot()
+                    },
+                )
             },
         ),
     )
@@ -183,6 +201,25 @@ internal fun RatioAggregateTrace.snapshot(): RatioAggregateTrace = copy(
     fixed = frozenMap(fixed),
     members = frozenList(members.map { it.copy(coord = frozenList(it.coord)) }),
 )
+
+internal fun AggregateTrace.snapshot(): AggregateTrace = when (this) {
+    is RatioAggregateTrace -> snapshot()
+    is SumAggregateTrace -> copy(
+        dimensions = frozenList(dimensions),
+        fixed = frozenMap(fixed),
+        members = frozenList(members.map { it.copy(coord = frozenList(it.coord), value = it.value.snapshot()) }),
+    )
+    is BoundaryAggregateTrace -> copy(
+        dimensions = frozenList(dimensions),
+        fixed = frozenMap(fixed),
+        periodKeys = frozenList(periodKeys),
+        selected = frozenList(selected.map { it.copy(coord = frozenList(it.coord), value = it.value.snapshot()) }),
+        members = frozenList(members.map { it.copy(coord = frozenList(it.coord), value = it.value.snapshot()) }),
+    )
+}
+
+internal fun AggregationResult.snapshot(): AggregationResult =
+    copy(value = value?.snapshot(), trace = trace?.snapshot())
 
 internal fun SchemaMap.snapshot(): SchemaMap = SchemaMap(
     schemaId = schemaId,

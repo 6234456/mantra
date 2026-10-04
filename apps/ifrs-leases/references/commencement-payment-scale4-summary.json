@@ -1,0 +1,66 @@
+{
+  "case": "commencement-payment",
+  "scale": 4,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "18594.1043",
+      "initial_rou": "28594.1043",
+      "commencement_cash": "10000",
+      "final_liability": "0.0000",
+      "final_rou": "0.0000",
+      "total_interest": "1405.8957",
+      "total_payments": "20000",
+      "total_rou_depreciation": "28594.1043",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "18594.1043",
+          "interest": "929.7052",
+          "payment": "10000",
+          "principal_reduction": "9070.2948",
+          "liability_closing": "9523.8095",
+          "rou_opening": "28594.1043",
+          "rou_depreciation": "9531.3681",
+          "rou_closing": "19062.7362",
+          "reported_liability_closing": "9523.81",
+          "difference": "-0.0005"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "9523.8095",
+          "interest": "476.1905",
+          "payment": "10000",
+          "principal_reduction": "9523.8095",
+          "liability_closing": "0.0000",
+          "rou_opening": "19062.7362",
+          "rou_depreciation": "9531.3681",
+          "rou_closing": "9531.3681",
+          "reported_liability_closing": "0",
+          "difference": "0.0000"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "0.0000",
+          "interest": "0.0000",
+          "payment": "0",
+          "principal_reduction": "0.0000",
+          "liability_closing": "0.0000",
+          "rou_opening": "9531.3681",
+          "rou_depreciation": "9531.3681",
+          "rou_closing": "0.0000",
+          "reported_liability_closing": "0",
+          "difference": "0.0000"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "18594.1043",
+  "combined_final_liability": "0.0000",
+  "combined_final_rou": "0.0000",
+  "interest_flow": "1405.8957",
+  "payment_flow": "20000",
+  "depreciation_flow": "28594.1043",
+  "validation_passed": true,
+  "expected_business": []
+}

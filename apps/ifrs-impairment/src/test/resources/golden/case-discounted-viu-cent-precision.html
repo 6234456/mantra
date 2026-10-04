@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IAS 36 impairment test – corporate assets</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>IAS 36 impairment test – corporate assets</h1>
+<p class="subtitle">Working paper: allocation of corporate assets, CGU tests and group test</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Entity</dt><dd>Demo Facilities Ltd</dd></div>
+<div><dt>Period</dt><dd>2025-12-31</dd></div>
+<div><dt>Calculation schema</dt><dd>IAS 36 – Impairment test with corporate assets v0.3 [ifrs.ias36/corporate-assets]</dd></div>
+<div><dt>Prepared by</dt><dd>Mantra acceptance demonstration</dd></div>
+<div><dt>WP ref.</dt><dd>Project-authored fictional data</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Total impairment loss</strong> 121</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Structure of the calculation</h2>
+<ol class="mainline" aria-label="Mainline">
+<li class="step">
+<a class="card" href="#table-2"><span class="step-no">Mainline 1</span><span class="title">Value in use from discounted cash flows</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-1"><span class="step-no">Mainline 2</span><span class="title">Step 1 – Shared-facility allocation</span><span class="value">771</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Mainline 3</span><span class="title">Step 2 – Impairment test of each CGU</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Mainline 4</span><span class="title">Step 3 – Allocation of the impairment losses within the CGUs</span><span class="value">121</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-5"><span class="step-no">Mainline 5</span><span class="title">Step 3a – Individually capped allocation</span><span class="value">–</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-6"><span class="step-no">Mainline 6</span><span class="title">Capped allocation control</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-7"><span class="step-no">Mainline 7</span><span class="title">Step 4 – Combined recovery check</span><span class="value">723</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-8"><span class="step-no">Mainline 8</span><span class="title">Summary of impairment losses recognised</span><span class="value">121</span></a>
+</li>
+</ol>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> Schedule 1 – Allocation of the headquarters building</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Fictional cash-flow value in use</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Schedule 2 – Impairment test of CGUs A, B and C</a></li>
+<li><a href="#table-4"><span class="ref">4</span> Schedule 3 – Allocation of the impairment losses</a></li>
+<li><a href="#table-5"><span class="ref">5</span> Loss caps of individual assets</a></li>
+<li><a href="#table-7"><span class="ref">7</span> Schedule 4 – Impairment test of entity M (smallest group of CGUs)</a></li>
+<li><a href="#table-8"><span class="ref">8</span> Schedule 5 – Summary</a></li>
+<li><a href="#audit"><span class="ref">§</span> Audit trail</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 2 Step 1 – Shared-facility allocation</p>
+<h2><span class="ref">1</span>Schedule 1 – Allocation of the headquarters building</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-crosstotal" style="width:5.58em">
+<col class="c-status" style="width:1.8599999999999999em">
+<col class="c-reference" style="width:9.92em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-member">North</th>
+<th class="right num c-member">Central</th>
+<th class="right num c-member">South</th>
+<th class="right num c-crosstotal">Total</th>
+<th class="center c-status"></th>
+<th class="left c-reference">IAS 36</th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t1-r1" data-section="step-1" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount of the CGU</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">120</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">180</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">260</td>
+<td class="right num c-crosstotal" data-column="cross-total">560</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r2" data-section="step-1" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">CGU carrying amount is nonnegative</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r3" data-section="step-1" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Remaining useful life (years)</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">6</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">12</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">18</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r4" data-section="step-1" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Remaining useful life is positive</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r5" data-section="step-1" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Weighting based on useful life</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">1</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">2</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">3</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r6" data-section="step-1" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount after weighting</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">120</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">360</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">780</td>
+<td class="right num c-crosstotal" data-column="cross-total">1,260</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t1-r7" data-section="step-1" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Pro-rata allocation factor</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">9.5 %</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">28.6 %</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">61.9 %</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.0 %</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t1-r8" data-section="step-1" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Allocated shared facilities</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">20</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">60</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">131</td>
+<td class="right num c-crosstotal" data-column="cross-total">211</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.102(a)(i)</td>
+</tr>
+<tr class="total grand" id="t1-r9" data-section="step-1" data-depth="1" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount after allocation</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">140</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">240</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">391</td>
+<td class="right num c-crosstotal" data-column="cross-total">771</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 1 Value in use from discounted cash flows</p>
+<h2><span class="ref">2</span>Fictional cash-flow value in use</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t2-r1" data-section="forecast" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">North</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r2" data-section="forecast" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Projected pre-tax cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">66.00</td>
+<td class="right num c-member" data-column="membersyear-P2">72.60</td>
+<td class="right num c-member" data-column="membersyear-P3">79.86</td>
+<td class="right num c-crosstotal" data-column="cross-total">218.46</td>
+</tr>
+<tr class="value" id="t2-r3" data-section="forecast" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">End-of-year discount factor</span></td>
+<td class="right num c-member" data-column="membersyear-P1">0.90909091</td>
+<td class="right num c-member" data-column="membersyear-P2">0.82644628</td>
+<td class="right num c-member" data-column="membersyear-P3">0.75131480</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r4" data-section="forecast" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Discounted cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">60.00</td>
+<td class="right num c-member" data-column="membersyear-P2">60.00</td>
+<td class="right num c-member" data-column="membersyear-P3">60.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">180.00</td>
+</tr>
+<tr class="heading" id="t2-r5" data-section="forecast" data-depth="1" data-height="1" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Central</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r6" data-section="forecast" data-depth="2" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Projected pre-tax cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">77.00</td>
+<td class="right num c-member" data-column="membersyear-P2">84.70</td>
+<td class="right num c-member" data-column="membersyear-P3">93.17</td>
+<td class="right num c-crosstotal" data-column="cross-total">254.87</td>
+</tr>
+<tr class="value" id="t2-r7" data-section="forecast" data-depth="2" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">End-of-year discount factor</span></td>
+<td class="right num c-member" data-column="membersyear-P1">0.90909091</td>
+<td class="right num c-member" data-column="membersyear-P2">0.82644628</td>
+<td class="right num c-member" data-column="membersyear-P3">0.75131480</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r8" data-section="forecast" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Discounted cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">70.00</td>
+<td class="right num c-member" data-column="membersyear-P2">70.00</td>
+<td class="right num c-member" data-column="membersyear-P3">70.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">210.00</td>
+</tr>
+<tr class="heading" id="t2-r9" data-section="forecast" data-depth="1" data-height="1" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">South</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r10" data-section="forecast" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Projected pre-tax cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">110.00</td>
+<td class="right num c-member" data-column="membersyear-P2">121.00</td>
+<td class="right num c-member" data-column="membersyear-P3">133.10</td>
+<td class="right num c-crosstotal" data-column="cross-total">364.10</td>
+</tr>
+<tr class="value" id="t2-r11" data-section="forecast" data-depth="2" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">End-of-year discount factor</span></td>
+<td class="right num c-member" data-column="membersyear-P1">0.90909091</td>
+<td class="right num c-member" data-column="membersyear-P2">0.82644628</td>
+<td class="right num c-member" data-column="membersyear-P3">0.75131480</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r12" data-section="forecast" data-depth="2" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Discounted cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">300.00</td>
+</tr>
+<tr class="heading" id="t2-r13" data-section="forecast" data-depth="1" data-height="1" data-row-index="13">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r14" data-section="forecast" data-depth="2" data-height="0" data-row-index="14">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Projected pre-tax cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">253.00</td>
+<td class="right num c-member" data-column="membersyear-P2">278.30</td>
+<td class="right num c-member" data-column="membersyear-P3">306.13</td>
+<td class="right num c-crosstotal" data-column="cross-total">837.43</td>
+</tr>
+<tr class="value" id="t2-r15" data-section="forecast" data-depth="2" data-height="0" data-row-index="15">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">End-of-year discount factor</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r16" data-section="forecast" data-depth="2" data-height="0" data-row-index="16">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Discounted cash flow</span></td>
+<td class="right num c-member" data-column="membersyear-P1">230.00</td>
+<td class="right num c-member" data-column="membersyear-P2">230.00</td>
+<td class="right num c-member" data-column="membersyear-P3">230.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">690.00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 3 Step 2 – Impairment test of each CGU</p>
+<h2><span class="ref">3</span>Schedule 2 – Impairment test of CGUs A, B and C</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-crosstotal" style="width:5.58em">
+<col class="c-status" style="width:1.8599999999999999em">
+<col class="c-reference" style="width:9.92em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-member">North</th>
+<th class="right num c-member">Central</th>
+<th class="right num c-member">South</th>
+<th class="right num c-crosstotal">Total</th>
+<th class="center c-status"></th>
+<th class="left c-reference">IAS 36</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t3-r1" data-section="step-2" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount (including allocated corporate asset) (→ Table 1) <a class="xref" href="#table-1">↗</a></span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">140</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">240</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">391</td>
+<td class="right num c-crosstotal" data-column="cross-total">771</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t3-r2" data-section="step-2" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Value in use</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">180</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">210</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">300</td>
+<td class="right num c-crosstotal" data-column="cross-total">690</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t3-r3" data-section="step-2" data-depth="1" data-height="1" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Recoverable amount (higher of value in use and FVLCD)</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">180</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">210</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">300</td>
+<td class="right num c-crosstotal" data-column="cross-total">690</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.18</td>
+</tr>
+<tr class="option selected info" data-section="step-2" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Value in use</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">180 ✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">210 ✓</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">300 ✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference">IAS 36.18</td>
+</tr>
+<tr class="option info" data-section="step-2" data-depth="2" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Fair value less costs of disposal</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">n/a</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">n/a</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">n/a</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.18</td>
+</tr>
+<tr class="value info" id="t3-r4" data-section="step-2" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">30</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">91</td>
+<td class="right num c-crosstotal" data-column="cross-total">121</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.59, 104</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 4 Step 3 – Allocation of the impairment losses within the CGUs</p>
+<h2><span class="ref">4</span>Schedule 3 – Allocation of the impairment losses</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-member" style="width:5.58em">
+<col class="c-crosstotal" style="width:5.58em">
+<col class="c-status" style="width:1.8599999999999999em">
+<col class="c-reference" style="width:9.92em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-member">North</th>
+<th class="right num c-member">Central</th>
+<th class="right num c-member">South</th>
+<th class="right num c-crosstotal">Total</th>
+<th class="center c-status"></th>
+<th class="left c-reference">IAS 36</th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t4-r1" data-section="step-3" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">To goodwill</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.104(a)</td>
+</tr>
+<tr class="value" id="t4-r2" data-section="step-3" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Loss assigned to shared facilities</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">8</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">30</td>
+<td class="right num c-crosstotal" data-column="cross-total">38</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.104(b)</td>
+</tr>
+<tr class="value" id="t4-r3" data-section="step-3" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">To the other assets of the CGU</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">23</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">60</td>
+<td class="right num c-crosstotal" data-column="cross-total">83</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.104(b)</td>
+</tr>
+<tr class="total grand" id="t4-r4" data-section="step-3" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss allocated</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">30</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">91</td>
+<td class="right num c-crosstotal" data-column="cross-total">121</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t4-r5" data-section="step-3" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss agrees to its allocation</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">–</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">–</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-5">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 5 Step 3a – Individually capped allocation</p>
+<h2><span class="ref">5</span>Loss caps of individual assets</h2>
+<div class="table-wrap"><table class="calc transpose">
+<colgroup>
+<col class="c-label">
+<col class="c-node">
+<col class="c-node">
+<col class="c-node">
+<col class="c-node">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-node">Asset carrying amount before the loss</th>
+<th class="right num c-node">Higher of FVLCD, value in use and zero</th>
+<th class="right num c-node">Loss after cap and redistribution</th>
+<th class="right num c-node">Asset carrying amount after the capped allocation</th>
+</tr></thead>
+<tbody>
+</tbody></table></div>
+</section>
+<section class="block" id="table-7">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 7 Step 4 – Combined recovery check</p>
+<h2><span class="ref">7</span>Schedule 4 – Impairment test of entity M (smallest group of CGUs)</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-label">
+<col class="c-main" style="width:7.4399999999999995em">
+<col class="c-status" style="width:1.8599999999999999em">
+<col class="c-reference" style="width:9.92em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-main">CU</th>
+<th class="center c-status"></th>
+<th class="left c-reference">Reference</th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t7-r1" data-section="step-4" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount of the CGUs (A, B, C)</span></td>
+<td class="right num c-main" data-column="main">560</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t7-r2" data-section="step-4" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Shared facilities</span></td>
+<td class="right num c-main" data-column="main">211</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t7-r3" data-section="step-4" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Other shared assets</span></td>
+<td class="right num c-main" data-column="main">73</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="total" id="t7-r4" data-section="step-4" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount before step-1 losses</span></td>
+<td class="right num c-main" data-column="main">844</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value" id="t7-r5" data-section="step-4" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment losses recognised in steps 2–3</span></td>
+<td class="right num c-main" data-column="main">(121)</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="total grand" id="t7-r6" data-section="step-4" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount of the group after step 1</span></td>
+<td class="right num c-main" data-column="main">723</td>
+<td class="center c-status" data-column="status">Σ</td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t7-r7" data-section="step-4" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Recoverable amount of the group</span></td>
+<td class="right num c-main" data-column="main">900</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference">IAS 36.102(b)(iii)</td>
+</tr>
+<tr class="value info" id="t7-r8" data-section="step-4" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss of the group</span></td>
+<td class="right num c-main" data-column="main">–</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-8">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 8 Summary of impairment losses recognised</p>
+<h2><span class="ref">8</span>Schedule 5 – Summary</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-label">
+<col class="c-main" style="width:7.4399999999999995em">
+<col class="c-status" style="width:1.8599999999999999em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-main">CU</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t8-r1" data-section="summary" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Goodwill</span></td>
+<td class="right num c-main" data-column="main">–</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t8-r2" data-section="summary" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Other assets of the CGUs</span></td>
+<td class="right num c-main" data-column="main">83</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t8-r3" data-section="summary" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Shared facilities</span></td>
+<td class="right num c-main" data-column="main">38</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t8-r4" data-section="summary" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Additional loss at group level (shared assets) (→ Table 7) <a class="xref" href="#table-7">↗</a></span></td>
+<td class="right num c-main" data-column="main">–</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="total grand" id="t8-r5" data-section="summary" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total impairment loss</span></td>
+<td class="right num c-main" data-column="main">121</td>
+<td class="center c-status" data-column="status">Σ</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Audit trail</h2>
+<p class="intro">Evidence for every calculated line: schema formula, executed trace steps and result.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Carrying amount of the CGU (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 120 included; [cgu=B] 180 included; [cgu=C] 260 included → 560</div></td>
+<td class="right num">560</td>
+</tr>
+<tr id="audit-t1-r2-A">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">CGU carrying amount is nonnegative <span class="member">North</span></td>
+<td class="left"><code class="formula">(&gt;= carrying-amount 0)</code><div class="working">(&gt;= carrying-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r2-B">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">CGU carrying amount is nonnegative <span class="member">Central</span></td>
+<td class="left"><code class="formula">(&gt;= carrying-amount 0)</code><div class="working">(&gt;= carrying-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r2-C">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">CGU carrying amount is nonnegative <span class="member">South</span></td>
+<td class="left"><code class="formula">(&gt;= carrying-amount 0)</code><div class="working">(&gt;= carrying-amount 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-A">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Remaining useful life is positive <span class="member">North</span></td>
+<td class="left"><code class="formula">(&gt; remaining-life 0)</code><div class="working">(&gt; remaining-life 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-B">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Remaining useful life is positive <span class="member">Central</span></td>
+<td class="left"><code class="formula">(&gt; remaining-life 0)</code><div class="working">(&gt; remaining-life 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r4-C">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Remaining useful life is positive <span class="member">South</span></td>
+<td class="left"><code class="formula">(&gt; remaining-life 0)</code><div class="working">(&gt; remaining-life 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r5-A">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Weighting based on useful life <span class="member">North</span></td>
+<td class="left"><code class="formula">(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)</code><div class="working">(dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 1.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 1.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4)</div></td>
+<td class="right num">1</td>
+</tr>
+<tr id="audit-t1-r5-B">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Weighting based on useful life <span class="member">Central</span></td>
+<td class="left"><code class="formula">(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)</code><div class="working">(dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 2.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 2.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4)</div></td>
+<td class="right num">2</td>
+</tr>
+<tr id="audit-t1-r5-C">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Weighting based on useful life <span class="member">South</span></td>
+<td class="left"><code class="formula">(if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)</code><div class="working">(dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 3.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 3.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4)</div></td>
+<td class="right num">3</td>
+</tr>
+<tr id="audit-t1-r6-aggregate">
+<td class="left cite"><a href="#t1-r6">1/6 Σ</a></td>
+<td class="left">Carrying amount after weighting (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 120.0000 included; [cgu=B] 360.0000 included; [cgu=C] 780.0000 included → 1260.0000</div></td>
+<td class="right num">1,260</td>
+</tr>
+<tr id="audit-t1-r6-A">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Carrying amount after weighting <span class="member">North</span></td>
+<td class="left"><code class="formula">(* carrying-amount weighting)</code><div class="working">(* carrying-amount weighting) = 120.0000</div></td>
+<td class="right num">120</td>
+</tr>
+<tr id="audit-t1-r6-B">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Carrying amount after weighting <span class="member">Central</span></td>
+<td class="left"><code class="formula">(* carrying-amount weighting)</code><div class="working">(* carrying-amount weighting) = 360.0000</div></td>
+<td class="right num">360</td>
+</tr>
+<tr id="audit-t1-r6-C">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Carrying amount after weighting <span class="member">South</span></td>
+<td class="left"><code class="formula">(* carrying-amount weighting)</code><div class="working">(* carrying-amount weighting) = 780.0000</div></td>
+<td class="right num">780</td>
+</tr>
+<tr id="audit-t1-r7-aggregate">
+<td class="left cite"><a href="#t1-r7">1/7 Σ</a></td>
+<td class="left">Pro-rata allocation factor (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0.095238 included; [cgu=B] 0.285714 included; [cgu=C] 0.619048 included → 1.000000</div></td>
+<td class="right num">100.0 %</td>
+</tr>
+<tr id="audit-t1-r7-A">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Pro-rata allocation factor <span class="member">North</span></td>
+<td class="left"><code class="formula">(decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)</code><div class="working">(dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.095238</div></td>
+<td class="right num">9.5 %</td>
+</tr>
+<tr id="audit-t1-r7-B">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Pro-rata allocation factor <span class="member">Central</span></td>
+<td class="left"><code class="formula">(decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)</code><div class="working">(dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.285714</div></td>
+<td class="right num">28.6 %</td>
+</tr>
+<tr id="audit-t1-r7-C">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Pro-rata allocation factor <span class="member">South</span></td>
+<td class="left"><code class="formula">(decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)</code><div class="working">(dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.619048</div></td>
+<td class="right num">61.9 %</td>
+</tr>
+<tr id="audit-t1-r8-aggregate">
+<td class="left cite"><a href="#t1-r8">1/8 Σ</a></td>
+<td class="left">Allocated shared facilities (Total)<div class="norm">IAS 36.102(a)(i)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 20.09 included; [cgu=B] 60.29 included; [cgu=C] 130.62 included → 211.00</div></td>
+<td class="right num">211</td>
+</tr>
+<tr id="audit-t1-r8-A">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Allocated shared facilities <span class="member">North</span><div class="norm">IAS 36.102(a)(i)</div></td>
+<td class="left"><code class="formula">(alloc/pro-rata allocable-corporate all.weighted-amount rounding)</code><div class="working">(alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62}</div></td>
+<td class="right num">20</td>
+</tr>
+<tr id="audit-t1-r8-B">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Allocated shared facilities <span class="member">Central</span><div class="norm">IAS 36.102(a)(i)</div></td>
+<td class="left"><code class="formula">(alloc/pro-rata allocable-corporate all.weighted-amount rounding)</code><div class="working">(alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62}</div></td>
+<td class="right num">60</td>
+</tr>
+<tr id="audit-t1-r8-C">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Allocated shared facilities <span class="member">South</span><div class="norm">IAS 36.102(a)(i)</div></td>
+<td class="left"><code class="formula">(alloc/pro-rata allocable-corporate all.weighted-amount rounding)</code><div class="working">(alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62}</div></td>
+<td class="right num">131</td>
+</tr>
+<tr id="audit-t1-r9-aggregate">
+<td class="left cite"><a href="#t1-r9">1/9 Σ</a></td>
+<td class="left">Carrying amount after allocation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00</div></td>
+<td class="right num">771</td>
+</tr>
+<tr id="audit-t1-r9-A">
+<td class="left cite"><a href="#t1-r9">1/9</a></td>
+<td class="left">Carrying amount after allocation <span class="member">North</span></td>
+<td class="left"><code class="formula">carrying-amount + corporate-share</code><div class="working">120 + 20.09</div></td>
+<td class="right num">140</td>
+</tr>
+<tr id="audit-t1-r9-B">
+<td class="left cite"><a href="#t1-r9">1/9</a></td>
+<td class="left">Carrying amount after allocation <span class="member">Central</span></td>
+<td class="left"><code class="formula">carrying-amount + corporate-share</code><div class="working">180 + 60.29</div></td>
+<td class="right num">240</td>
+</tr>
+<tr id="audit-t1-r9-C">
+<td class="left cite"><a href="#t1-r9">1/9</a></td>
+<td class="left">Carrying amount after allocation <span class="member">South</span></td>
+<td class="left"><code class="formula">carrying-amount + corporate-share</code><div class="working">260 + 130.62</div></td>
+<td class="right num">391</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-aggregate">
+<td class="left cite"><a href="#t2-nforecast">2/1 Σ</a></td>
+<td class="left">Projected pre-tax cash flow (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 66 included; [cgu=A, year=P2] 72.6 included; [cgu=A, year=P3] 79.86 included; [cgu=B, year=P1] 77 included; [cgu=B, year=P2] 84.7 included; [cgu=B, year=P3] 93.17 included; [cgu=C, year=P1] 110 included; [cgu=C, year=P2] 121 included; [cgu=C, year=P3] 133.1 included → 837.43</div></td>
+<td class="right num">837.43</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-A-P1">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 66 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 66 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">66.00</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-A-P2">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 72.6 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 72.6 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">72.60</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-A-P3">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 79.86 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 79.86 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">79.86</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-B-P1">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 77 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 77 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">77.00</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-B-P2">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 84.7 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 84.7 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">84.70</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-B-P3">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 93.17 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 93.17 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">93.17</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-C-P1">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 110 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 110 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">110.00</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-C-P2">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 121 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 121 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0</div></td>
+<td class="right num">121.00</td>
+</tr>
+<tr id="audit-t2-nforecast-cash-flow-C-P3">
+<td class="left cite"><a href="#t2-nforecast">2/1</a></td>
+<td class="left">Projected pre-tax cash flow <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))</code><div class="working">(fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 133.1 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 133.1 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow</div></td>
+<td class="right num">133.10</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-A-P1">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
+<td class="right num">0.90909091</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-A-P2">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
+<td class="right num">0.82644628</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-A-P3">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
+<td class="right num">0.75131480</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-B-P1">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
+<td class="right num">0.90909091</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-B-P2">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
+<td class="right num">0.82644628</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-B-P3">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
+<td class="right num">0.75131480</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-C-P1">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091</div></td>
+<td class="right num">0.90909091</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-C-P2">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537</div></td>
+<td class="right num">0.82644628</td>
+</tr>
+<tr id="audit-t2-ndiscount-factor-C-P3">
+<td class="left cite"><a href="#t2-ndiscount">2/2</a></td>
+<td class="left">End-of-year discount factor <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)</code><div class="working">(+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761</div></td>
+<td class="right num">0.75131480</td>
+</tr>
+<tr id="audit-t2-npresent-value-aggregate">
+<td class="left cite"><a href="#t2-npresent">2/3 Σ</a></td>
+<td class="left">Discounted cash flow (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 60.00 included; [cgu=A, year=P2] 60.00 included; [cgu=A, year=P3] 60.00 included; [cgu=B, year=P1] 70.00 included; [cgu=B, year=P2] 70.00 included; [cgu=B, year=P3] 70.00 included; [cgu=C, year=P1] 100.00 included; [cgu=C, year=P2] 100.00 included; [cgu=C, year=P3] 100.00 included → 690.00</div></td>
+<td class="right num">690.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-A-P1">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">North / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 60.000000000000000006 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00</div></td>
+<td class="right num">60.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-A-P2">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">North / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 59.9999999999999999862 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00</div></td>
+<td class="right num">60.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-A-P3">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">North / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 59.99999999999999999346 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00</div></td>
+<td class="right num">60.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-B-P1">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">Central / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 70.000000000000000007 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00</div></td>
+<td class="right num">70.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-B-P2">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">Central / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 69.9999999999999999839 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00</div></td>
+<td class="right num">70.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-B-P3">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">Central / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 69.99999999999999999237 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00</div></td>
+<td class="right num">70.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-C-P1">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">South / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 100.000000000000000010 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-C-P2">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">South / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 99.999999999999999977 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t2-npresent-value-C-P3">
+<td class="left cite"><a href="#t2-npresent">2/3</a></td>
+<td class="left">Discounted cash flow <span class="member">South / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* forecast-cash-flow discount-factor) rounding)</code><div class="working">(* forecast-cash-flow discount-factor) = 99.9999999999999999891 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t3-r1-aggregate">
+<td class="left cite"><a href="#t3-r1">3/1 Σ</a></td>
+<td class="left">Carrying amount (including allocated corporate asset) (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00</div></td>
+<td class="right num">771</td>
+</tr>
+<tr id="audit-t3-r2-aggregate">
+<td class="left cite"><a href="#t3-r2">3/2 Σ</a></td>
+<td class="left">Value in use (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 180.00 included; [cgu=B] 210.00 included; [cgu=C] 300.00 included → 690.00</div></td>
+<td class="right num">690</td>
+</tr>
+<tr id="audit-t3-r2-A">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">North</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(dim/sum present-value) = 180.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 180.00 → selected branch: (dim/sum present-value)</div></td>
+<td class="right num">180</td>
+</tr>
+<tr id="audit-t3-r2-B">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">Central</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(dim/sum present-value) = 210.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 210.00 → selected branch: (dim/sum present-value)</div></td>
+<td class="right num">210</td>
+</tr>
+<tr id="audit-t3-r2-C">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">South</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(dim/sum present-value) = 300.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 300.00 → selected branch: (dim/sum present-value)</div></td>
+<td class="right num">300</td>
+</tr>
+<tr id="audit-t3-r3-aggregate">
+<td class="left cite"><a href="#t3-r3">3/3 Σ</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) (Total)<div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 180.00 included; [cgu=B] 210.00 included; [cgu=C] 300.00 included → 690.00</div></td>
+<td class="right num">690</td>
+</tr>
+<tr id="audit-t3-r3-A">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">North</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 180.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">180</td>
+</tr>
+<tr id="audit-t3-r3-B">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">Central</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 210.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">210</td>
+</tr>
+<tr id="audit-t3-r3-C">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">South</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 300.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">300</td>
+</tr>
+<tr id="audit-t3-r4-aggregate">
+<td class="left cite"><a href="#t3-r4">3/4 Σ</a></td>
+<td class="left">Impairment loss (Total)<div class="norm">IAS 36.59, 104</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91</div></td>
+<td class="right num">121</td>
+</tr>
+<tr id="audit-t3-r4-A">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Impairment loss <span class="member">North</span><div class="norm">IAS 36.59, 104</div></td>
+<td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = -39.91 → (max 0 (- tested-amount recoverable-amount)) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-r4-B">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Impairment loss <span class="member">Central</span><div class="norm">IAS 36.59, 104</div></td>
+<td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = 30.29 → (max 0 (- tested-amount recoverable-amount)) = 30.29</div></td>
+<td class="right num">30</td>
+</tr>
+<tr id="audit-t3-r4-C">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Impairment loss <span class="member">South</span><div class="norm">IAS 36.59, 104</div></td>
+<td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = 90.62 → (max 0 (- tested-amount recoverable-amount)) = 90.62</div></td>
+<td class="right num">91</td>
+</tr>
+<tr id="audit-t4-r1-aggregate">
+<td class="left cite"><a href="#t4-r1">4/1 Σ</a></td>
+<td class="left">To goodwill (Total)<div class="norm">IAS 36.104(a)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 0 included; [cgu=C] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r1-A">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">To goodwill <span class="member">North</span><div class="norm">IAS 36.104(a)</div></td>
+<td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r1-B">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">To goodwill <span class="member">Central</span><div class="norm">IAS 36.104(a)</div></td>
+<td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r1-C">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">To goodwill <span class="member">South</span><div class="norm">IAS 36.104(a)</div></td>
+<td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-aggregate">
+<td class="left cite"><a href="#t4-r2">4/2 Σ</a></td>
+<td class="left">Loss assigned to shared facilities (Total)<div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0.00 included; [cgu=B] 7.60 included; [cgu=C] 30.30 included → 37.90</div></td>
+<td class="right num">38</td>
+</tr>
+<tr id="audit-t4-r2-A">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Loss assigned to shared facilities <span class="member">North</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 0 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 120 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 0.00, :own 0.00} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-B">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Loss assigned to shared facilities <span class="member">Central</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 30.29 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 180 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 7.60, :own 22.69} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 7.60</div></td>
+<td class="right num">8</td>
+</tr>
+<tr id="audit-t4-r2-C">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Loss assigned to shared facilities <span class="member">South</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 90.62 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 260 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 30.30, :own 60.32} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 30.30</div></td>
+<td class="right num">30</td>
+</tr>
+<tr id="audit-t4-r3-aggregate">
+<td class="left cite"><a href="#t4-r3">4/3 Σ</a></td>
+<td class="left">To the other assets of the CGU (Total)<div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0.00 included; [cgu=B] 22.69 included; [cgu=C] 60.32 included → 83.01</div></td>
+<td class="right num">83</td>
+</tr>
+<tr id="audit-t4-r3-A">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">To the other assets of the CGU <span class="member">North</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-B">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">To the other assets of the CGU <span class="member">Central</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 22.69</div></td>
+<td class="right num">23</td>
+</tr>
+<tr id="audit-t4-r3-C">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">To the other assets of the CGU <span class="member">South</span><div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 60.32</div></td>
+<td class="right num">60</td>
+</tr>
+<tr id="audit-t4-r4-aggregate">
+<td class="left cite"><a href="#t4-r4">4/4 Σ</a></td>
+<td class="left">Impairment loss allocated (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0.00 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91</div></td>
+<td class="right num">121</td>
+</tr>
+<tr id="audit-t4-r4-A">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Impairment loss allocated <span class="member">North</span></td>
+<td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 0.00 + 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r4-B">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Impairment loss allocated <span class="member">Central</span></td>
+<td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 7.60 + 22.69</div></td>
+<td class="right num">30</td>
+</tr>
+<tr id="audit-t4-r4-C">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Impairment loss allocated <span class="member">South</span></td>
+<td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 30.30 + 60.32</div></td>
+<td class="right num">91</td>
+</tr>
+<tr id="audit-t4-r5-A">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Impairment loss agrees to its allocation <span class="member">North</span></td>
+<td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 0; loss-allocated = 0.00 → 0 − 0.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r5-B">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Impairment loss agrees to its allocation <span class="member">Central</span></td>
+<td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 30.29; loss-allocated = 30.29 → 30.29 − 30.29 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r5-C">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Impairment loss agrees to its allocation <span class="member">South</span></td>
+<td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 90.62; loss-allocated = 90.62 → 90.62 − 90.62 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nindividual-carrying-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/1 Σ</a></td>
+<td class="left">Asset carrying amount before the loss (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nindividual-floor-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/2 Σ</a></td>
+<td class="left">Higher of FVLCD, value in use and zero (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nasset-allocated-loss-aggregate">
+<td class="left cite"><a href="#t5-nasset">5/3 Σ</a></td>
+<td class="left">Loss after cap and redistribution (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nindividual-closing-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/4 Σ</a></td>
+<td class="left">Asset carrying amount after the capped allocation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t7-r1">
+<td class="left cite"><a href="#t7-r1">7/1</a></td>
+<td class="left">Carrying amount of the CGUs (A, B, C)</td>
+<td class="left"><code class="formula">(dim/sum carrying-amount)</code><div class="working">(dim/sum carrying-amount) = 560</div></td>
+<td class="right num">560</td>
+</tr>
+<tr id="audit-t7-r4">
+<td class="left cite"><a href="#t7-r4">7/4</a></td>
+<td class="left">Carrying amount before step-1 losses</td>
+<td class="left"><code class="formula">group-cgu-assets + group-building + group-research</code><div class="working">560 + 211 + 73</div></td>
+<td class="right num">844</td>
+</tr>
+<tr id="audit-t7-r5">
+<td class="left cite"><a href="#t7-r5">7/5</a></td>
+<td class="left">Impairment losses recognised in steps 2–3</td>
+<td class="left"><code class="formula">(dim/sum loss-allocated)</code><div class="working">(dim/sum loss-allocated) = 120.91</div></td>
+<td class="right num">121</td>
+</tr>
+<tr id="audit-t7-r6">
+<td class="left cite"><a href="#t7-r6">7/6</a></td>
+<td class="left">Carrying amount of the group after step 1</td>
+<td class="left"><code class="formula">group-before − group-step1-losses</code><div class="working">844 − 120.91</div></td>
+<td class="right num">723</td>
+</tr>
+<tr id="audit-t7-r8">
+<td class="left cite"><a href="#t7-r8">7/8</a></td>
+<td class="left">Impairment loss of the group</td>
+<td class="left"><code class="formula">(max 0 (- group-carrying-amount group-ra))</code><div class="working">(- group-carrying-amount group-ra) = -176.91 → (max 0 (- group-carrying-amount group-ra)) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t8-r1">
+<td class="left cite"><a href="#t8-r1">8/1</a></td>
+<td class="left">Goodwill</td>
+<td class="left"><code class="formula">(dim/sum loss-to-goodwill)</code><div class="working">(dim/sum loss-to-goodwill) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t8-r2">
+<td class="left cite"><a href="#t8-r2">8/2</a></td>
+<td class="left">Other assets of the CGUs</td>
+<td class="left"><code class="formula">(dim/sum loss-to-own-assets)</code><div class="working">(dim/sum loss-to-own-assets) = 83.01</div></td>
+<td class="right num">83</td>
+</tr>
+<tr id="audit-t8-r3">
+<td class="left cite"><a href="#t8-r3">8/3</a></td>
+<td class="left">Shared facilities</td>
+<td class="left"><code class="formula">(dim/sum loss-to-corporate)</code><div class="working">(dim/sum loss-to-corporate) = 37.90</div></td>
+<td class="right num">38</td>
+</tr>
+<tr id="audit-t8-r5">
+<td class="left cite"><a href="#t8-r5">8/5</a></td>
+<td class="left">Total impairment loss</td>
+<td class="left"><code class="formula">summary-goodwill + summary-own + summary-corporate + summary-group</code><div class="working">0 + 83.01 + 37.90 + 0</div></td>
+<td class="right num">121</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

@@ -218,6 +218,13 @@ class WorkingPaperBuilder(
 
     private fun buildTable(spec: TableSpec): PaperTable? {
         val section = sections[spec.sectionId] ?: return null
+        if (spec.rowDimension != null) {
+            return MultidimensionalPaperBuilder(
+                result, layout, spec, section,
+                tableRefs.getValue(section.id), breadcrumb(section.id), includeAll, ::recordAudit,
+                { (++documentRowNumber).toString() },
+            ).build()
+        }
         val dims = dimsIn(section)
         val style =
             spec.style ?: section.item.layout?.let { if (it == "matrix") TableStyle.MATRIX else TableStyle.TIERED }
@@ -438,6 +445,7 @@ class WorkingPaperBuilder(
                 ""
             }
             is ColumnContent.Members -> ""
+            is ColumnContent.Node -> ""
         }
 
     private fun attributeText(value: Value): String = when (value) {
@@ -746,30 +754,23 @@ class WorkingPaperBuilder(
             val dim = context.memberDim ?: return emptyMap()
             val index = node.dims.indexOf(dim)
             if (index < 0) return emptyMap()
-            val sums = linkedMapOf<String, BigDecimal>()
-            val activeKeys = mutableSetOf<String>()
-            val nonNumeric = linkedMapOf<String, Value>()
-            node.values.forEach { (coord, value) ->
-                val key = coord[index]
-                if (node.isActive(coord)) activeKeys += key
-                if (value is Value.Num) {
-                    sums[key] = (sums[key] ?: BigDecimal.ZERO) + value.value
-                } else {
-                    nonNumeric[key] =
-                        value
-                }
-            }
             return result.members[dim].orEmpty().associate { member ->
+                val coords = node.values.keys.filter { it[index] == member.key }
+                val active = coords.any(node::isActive)
+                val value = if (node.dims.size ==
+                    1
+                ) {
+                    node.value(listOf(member.key))
+                } else if (node.type.isNumeric) {
+                    result.reduce(node.id, mapOf(dim to member.key)).value
+                } else {
+                    coords.firstOrNull { node.isActive(it) }?.let(node::value)
+                }
                 val text = when {
-                    member.key !in activeKeys -> if (layout.showInactive &&
-                        node.values.keys.any { it[index] == member.key }
-                    ) {
-                        texts.notApplicable
-                    } else {
-                        ""
-                    }
-                    sums.containsKey(member.key) -> format(node, signed(Value.Num(sums.getValue(member.key)), negate))
-                    else -> format(node, nonNumeric[member.key] ?: Value.Nil)
+                    !active -> if (layout.showInactive && coords.isNotEmpty()) texts.notApplicable else ""
+                    value == null -> ""
+                    value == Value.Nil && node.type.isNumeric -> "undefined"
+                    else -> format(node, signed(value, negate))
                 }
                 member.key to text
             }
@@ -888,9 +889,9 @@ class WorkingPaperBuilder(
                 } else {
                     "+ "
                 }
-                val aggregate = part.aggregate
+                val aggregate = part.reduction ?: part.aggregate
                 sign + if (aggregate != null) {
-                    "(${RatioExplainer.explain(aggregate)})" +
+                    "(${ReductionExplainer.explain(aggregate)})" +
                         if (aggregate.undefinedReason == "no-active-members") " → 0 contribution" else ""
                 } else {
                     part.value?.toPlainString() ?: "undefined"
@@ -941,19 +942,20 @@ class WorkingPaperBuilder(
         "(${rounding.scale} ${rounding.mode.name.lowercase().replace('_', '-')})"
 
     private fun recordAudit(node: ViewNode, citation: String, anchor: String) {
-        val aggregate = node.aggregateTrace
+        val aggregate = if (node.dims.isEmpty()) null else result.reduce(node.id).trace
         if (aggregate != null) {
             audit += AuditEntry(
                 anchor = "$anchor-aggregate",
                 citation = "$citation Σ",
                 label = node.label + " (${texts.total})",
                 member = null,
-                formula = RatioExplainer.formula(aggregate),
-                working = RatioExplainer.explain(aggregate),
+                formula = ReductionExplainer.formula(aggregate),
+                working = ReductionExplainer.explain(aggregate),
                 result = aggregate.result?.let { format(node, Value.Num(it)) } ?: "undefined",
                 reference = presentationOf(node.id)?.reference,
                 nodeId = "aggregate.${node.id}",
-                aggregate = aggregate,
+                aggregate = aggregate as? com.xqiou.mantra.core.view.RatioAggregateTrace,
+                reduction = aggregate,
             )
         }
         if (node.line == null && node.choice == null && node.total == null &&

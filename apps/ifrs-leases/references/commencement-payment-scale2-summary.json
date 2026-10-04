@@ -1,0 +1,66 @@
+{
+  "case": "commencement-payment",
+  "scale": 2,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "18594.10",
+      "initial_rou": "28594.10",
+      "commencement_cash": "10000",
+      "final_liability": "0.00",
+      "final_rou": "0.00",
+      "total_interest": "1405.90",
+      "total_payments": "20000",
+      "total_rou_depreciation": "28594.10",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "18594.10",
+          "interest": "929.71",
+          "payment": "10000",
+          "principal_reduction": "9070.29",
+          "liability_closing": "9523.81",
+          "rou_opening": "28594.10",
+          "rou_depreciation": "9531.37",
+          "rou_closing": "19062.73",
+          "reported_liability_closing": "9523.81",
+          "difference": "0.00"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "9523.81",
+          "interest": "476.19",
+          "payment": "10000",
+          "principal_reduction": "9523.81",
+          "liability_closing": "0.00",
+          "rou_opening": "19062.73",
+          "rou_depreciation": "9531.37",
+          "rou_closing": "9531.36",
+          "reported_liability_closing": "0",
+          "difference": "0.00"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "0.00",
+          "interest": "0.00",
+          "payment": "0",
+          "principal_reduction": "0.00",
+          "liability_closing": "0.00",
+          "rou_opening": "9531.36",
+          "rou_depreciation": "9531.36",
+          "rou_closing": "0.00",
+          "reported_liability_closing": "0",
+          "difference": "0.00"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "18594.10",
+  "combined_final_liability": "0.00",
+  "combined_final_rou": "0.00",
+  "interest_flow": "1405.90",
+  "payment_flow": "20000",
+  "depreciation_flow": "28594.10",
+  "validation_passed": true,
+  "expected_business": []
+}

@@ -1,0 +1,4 @@
+id,title,cgu-id,carrying-amount,asset-fvlcd,asset-value-in-use
+Machine,Machine,Workshop,120,105,110
+Building,Building,Workshop,180,130,130
+Equipment,Equipment,Workshop,60,42,42

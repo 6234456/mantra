@@ -52,6 +52,24 @@ const scenarios = [
     cell: '240,000',
     address: { node: 'accounting-profit', coord: ['North'] },
   },
+  {
+    id: 'fixed-assets/case-demo.mantra',
+    heading: 'Fixed assets – cost and depreciation roll-forward',
+    result: '60,000.00',
+    panel: 'carrying-flow',
+    cell: '76,000.00',
+    rowLabel: 'Closing carrying amount',
+    address: { node: 'carrying-closing', coord: ['Machine', 'P1'] },
+  },
+  {
+    id: 'ifrs-leases/case-demo.mantra',
+    heading: 'IFRS 16 – annual lease roll-forward',
+    result: '–',
+    panel: 'liability-flow',
+    cell: '9,523.81',
+    rowLabel: 'Closing lease liability',
+    address: { node: 'liability-closing', coord: ['Office', 'P2'] },
+  },
 ]
 
 function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
@@ -73,7 +91,7 @@ afterEach(() => {
   history.replaceState(null, '', '/')
 })
 
-describe('the four tracked applications, from overview to a selected Paper cell', () => {
+describe('the six tracked applications, from overview to a selected Paper cell', () => {
   it('shows real Explain steps from the ESt golden on the provenance route', async () => {
     const id = 'de-est/case-mustermann.mantra'
     const address = { node: 'ermaessigung-35a' }
@@ -106,7 +124,11 @@ describe('the four tracked applications, from overview to a selected Paper cell'
     const table = await screen.findByRole('table')
     const cell = within(table)
       .getAllByRole('button')
-      .find((button) => button.textContent === scenario.cell)
+      .find(
+        (button) =>
+          button.textContent === scenario.cell &&
+          (!scenario.rowLabel || button.closest('tr')?.textContent.includes(scenario.rowLabel)),
+      )
     expect(cell).toBeTruthy()
     fireEvent.click(cell)
     expect(location.pathname).toBe(panelUrl)

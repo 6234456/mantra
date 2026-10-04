@@ -1,0 +1,415 @@
+IAS 36 impairment test – corporate assets
+Working paper: allocation of corporate assets, CGU tests and group test
+=========================================
+Entity: Demo Facilities Ltd
+Period: 2025-12-31
+Calculation schema: IAS 36 – Impairment test with corporate assets v0.3 [ifrs.ias36/corporate-assets]
+Prepared by: Mantra acceptance demonstration
+WP ref.: Project-authored fictional data
+Total impairment loss: 121
+
+Structure of the calculation
+  Mainline 1: Value in use from discounted cash flows [2]
+  Mainline 2: Step 1 – Shared-facility allocation [1]  771
+  Mainline 3: Step 2 – Impairment test of each CGU [3]
+  Mainline 4: Step 3 – Allocation of the impairment losses within the CGUs [4]  121
+  Mainline 5: Step 3a – Individually capped allocation [5]  –
+  Mainline 6: Capped allocation control [6]
+  Mainline 7: Step 4 – Combined recovery check [7]  723
+  Mainline 8: Summary of impairment losses recognised [8]  121
+
+[1] Schedule 1 – Allocation of the headquarters building
+    Mainline › 2 Step 1 – Shared-facility allocation
+                                   | North | Central |  South |   Total |   | IAS 36
+-----------------------------------+-------+---------+--------+---------+---+-----------------
+Carrying amount of the CGU         |   120 |     180 |    260 |     560 |   |
+CGU carrying amount is nonnegative |     ✓ |       ✓ |      ✓ |         | ✓ |
+Remaining useful life (years)      |     6 |      12 |     18 |         |   |
+Remaining useful life is positive  |     ✓ |       ✓ |      ✓ |         | ✓ |
+Weighting based on useful life     |     1 |       2 |      3 |         |   |
+Carrying amount after weighting    |   120 |     360 |    780 |   1,260 |   |
+Pro-rata allocation factor         | 9.5 % |  28.6 % | 61.9 % | 100.0 % |   |
+Allocated shared facilities        |    20 |      60 |    131 |     211 |   | IAS 36.102(a)(i)
+                                  -+-------+---------+--------+---------+- -+-
+Carrying amount after allocation   |   140 |     240 |    391 |     771 | Σ |
+                                  =+=======+=========+========+=========+= =+=
+
+[2] Fictional cash-flow value in use
+    Mainline › 1 Value in use from discounted cash flows
+Description                   | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 |  Total
+------------------------------+-------------------------+-------------------------+-------------------------+-------
+North                         |                         |                         |                         |
+  Projected pre-tax cash flow |                   66.00 |                   72.60 |                   79.86 | 218.46
+  End-of-year discount factor |              0.90909091 |              0.82644628 |              0.75131480 |
+  Discounted cash flow        |                   60.00 |                   60.00 |                   60.00 | 180.00
+Central                       |                         |                         |                         |
+  Projected pre-tax cash flow |                   77.00 |                   84.70 |                   93.17 | 254.87
+  End-of-year discount factor |              0.90909091 |              0.82644628 |              0.75131480 |
+  Discounted cash flow        |                   70.00 |                   70.00 |                   70.00 | 210.00
+South                         |                         |                         |                         |
+  Projected pre-tax cash flow |                  110.00 |                  121.00 |                  133.10 | 364.10
+  End-of-year discount factor |              0.90909091 |              0.82644628 |              0.75131480 |
+  Discounted cash flow        |                  100.00 |                  100.00 |                  100.00 | 300.00
+Total                         |                         |                         |                         |
+  Projected pre-tax cash flow |                  253.00 |                  278.30 |                  306.13 | 837.43
+  End-of-year discount factor |                         |                         |                         |
+  Discounted cash flow        |                  230.00 |                  230.00 |                  230.00 | 690.00
+
+[3] Schedule 2 – Impairment test of CGUs A, B and C
+    Mainline › 3 Step 2 – Impairment test of each CGU
+                                                                 | North | Central | South | Total |   | IAS 36
+-----------------------------------------------------------------+-------+---------+-------+-------+---+---------------
+Carrying amount (including allocated corporate asset) (→ Table … |   140 |     240 |   391 |   771 |   |
+Value in use                                                     |   180 |     210 |   300 |   690 |   |
+Recoverable amount (higher of value in use and FVLCD)            |   180 |     210 |   300 |   690 |   | IAS 36.18
+  Value in use                                                   | 180 ✓ |   210 ✓ | 300 ✓ |       | ✓ | IAS 36.18
+  Fair value less costs of disposal                              |   n/a |     n/a |   n/a |       |   | IAS 36.18
+Impairment loss                                                  |     – |      30 |    91 |   121 |   | IAS 36.59, 104
+
+[4] Schedule 3 – Allocation of the impairment losses
+    Mainline › 4 Step 3 – Allocation of the impairment losses within the CGUs
+                                         | North | Central | South | Total |   | IAS 36
+-----------------------------------------+-------+---------+-------+-------+---+--------------
+To goodwill                              |     – |       – |     – |     – |   | IAS 36.104(a)
+Loss assigned to shared facilities       |     – |       8 |    30 |    38 |   | IAS 36.104(b)
+To the other assets of the CGU           |     – |      23 |    60 |    83 |   | IAS 36.104(b)
+                                        -+-------+---------+-------+-------+- -+-
+Impairment loss allocated                |     – |      30 |    91 |   121 | Σ |
+                                        =+=======+=========+=======+=======+= =+=
+Impairment loss agrees to its allocation |     – |       – |     – |       | ✓ |
+
+[5] Loss caps of individual assets
+    Mainline › 5 Step 3a – Individually capped allocation
+Description | Asset carrying amount before the loss | Higher of FVLCD, value in use and zero | Loss after cap and redistribution | Asset carrying amount after the capped allocation
+------------+---------------------------------------+----------------------------------------+-----------------------------------+--------------------------------------------------
+
+[7] Schedule 4 – Impairment test of entity M (smallest group of CGUs)
+    Mainline › 7 Step 4 – Combined recovery check
+                                          |    CU |   | Reference
+------------------------------------------+-------+---+-------------------
+Carrying amount of the CGUs (A, B, C)     |   560 |   |
+Shared facilities                         |   211 |   |
+Other shared assets                       |    73 |   |
+                                         -+-------+- -+-
+Carrying amount before step-1 losses      |   844 | Σ |
+Impairment losses recognised in steps 2–3 | (121) |   |
+                                         -+-------+- -+-
+Carrying amount of the group after step 1 |   723 | Σ |
+                                         =+=======+= =+=
+Recoverable amount of the group           |   900 |   | IAS 36.102(b)(iii)
+Impairment loss of the group              |     – |   |
+
+[8] Schedule 5 – Summary
+    Mainline › 8 Summary of impairment losses recognised
+                                                           |  CU |
+-----------------------------------------------------------+-----+--
+Goodwill                                                   |   – |
+Other assets of the CGUs                                   |  83 |
+Shared facilities                                          |  38 |
+Additional loss at group level (shared assets) (→ Table 7) |   – |
+                                                          -+-----+-
+Total impairment loss                                      | 121 | Σ
+                                                          =+=====+=
+
+Audit trail
+-----------
+1/1 Σ Carrying amount of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 120 included; [cgu=B] 180 included; [cgu=C] 260 included → 560 = 560
+1/2 CGU carrying amount is nonnegative [North]
+    Formula: (>= carrying-amount 0)
+    Working: (>= carrying-amount 0) = true = ✓
+1/2 CGU carrying amount is nonnegative [Central]
+    Formula: (>= carrying-amount 0)
+    Working: (>= carrying-amount 0) = true = ✓
+1/2 CGU carrying amount is nonnegative [South]
+    Formula: (>= carrying-amount 0)
+    Working: (>= carrying-amount 0) = true = ✓
+1/4 Remaining useful life is positive [North]
+    Formula: (> remaining-life 0)
+    Working: (> remaining-life 0) = true = ✓
+1/4 Remaining useful life is positive [Central]
+    Formula: (> remaining-life 0)
+    Working: (> remaining-life 0) = true = ✓
+1/4 Remaining useful life is positive [South]
+    Formula: (> remaining-life 0)
+    Working: (> remaining-life 0) = true = ✓
+1/5 Weighting based on useful life [North]
+    Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
+    Working: (dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 1.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 1.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 1
+1/5 Weighting based on useful life [Central]
+    Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
+    Working: (dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 2.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 2.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 2
+1/5 Weighting based on useful life [South]
+    Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
+    Working: (dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 3.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 3.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 3
+1/6 Σ Carrying amount after weighting (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 120.0000 included; [cgu=B] 360.0000 included; [cgu=C] 780.0000 included → 1260.0000 = 1,260
+1/6 Carrying amount after weighting [North]
+    Formula: (* carrying-amount weighting)
+    Working: (* carrying-amount weighting) = 120.0000 = 120
+1/6 Carrying amount after weighting [Central]
+    Formula: (* carrying-amount weighting)
+    Working: (* carrying-amount weighting) = 360.0000 = 360
+1/6 Carrying amount after weighting [South]
+    Formula: (* carrying-amount weighting)
+    Working: (* carrying-amount weighting) = 780.0000 = 780
+1/7 Σ Pro-rata allocation factor (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.095238 included; [cgu=B] 0.285714 included; [cgu=C] 0.619048 included → 1.000000 = 100.0 %
+1/7 Pro-rata allocation factor [North]
+    Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
+    Working: (dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.095238 = 9.5 %
+1/7 Pro-rata allocation factor [Central]
+    Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
+    Working: (dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.285714 = 28.6 %
+1/7 Pro-rata allocation factor [South]
+    Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
+    Working: (dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.619048 = 61.9 %
+1/8 Σ Allocated shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 20.09 included; [cgu=B] 60.29 included; [cgu=C] 130.62 included → 211.00 = 211
+1/8 Allocated shared facilities [North]
+    Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
+    Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62} = 20
+1/8 Allocated shared facilities [Central]
+    Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
+    Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62} = 60
+1/8 Allocated shared facilities [South]
+    Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
+    Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62} = 131
+1/9 Σ Carrying amount after allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00 = 771
+1/9 Carrying amount after allocation [North]
+    Formula: carrying-amount + corporate-share
+    Working: 120 + 20.09 = 140
+1/9 Carrying amount after allocation [Central]
+    Formula: carrying-amount + corporate-share
+    Working: 180 + 60.29 = 240
+1/9 Carrying amount after allocation [South]
+    Formula: carrying-amount + corporate-share
+    Working: 260 + 130.62 = 391
+2/1 Σ Projected pre-tax cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A, year=P1] 66 included; [cgu=A, year=P2] 72.6 included; [cgu=A, year=P3] 79.86 included; [cgu=B, year=P1] 77 included; [cgu=B, year=P2] 84.7 included; [cgu=B, year=P3] 93.17 included; [cgu=C, year=P1] 110 included; [cgu=C, year=P2] 121 included; [cgu=C, year=P3] 133.1 included → 837.43 = 837.43
+2/1 Projected pre-tax cash flow [North / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 66 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 66 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 66.00
+2/1 Projected pre-tax cash flow [North / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 72.6 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 72.6 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 72.60
+2/1 Projected pre-tax cash flow [North / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 79.86 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 79.86 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 79.86
+2/1 Projected pre-tax cash flow [Central / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 77 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 77 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 77.00
+2/1 Projected pre-tax cash flow [Central / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 84.7 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 84.7 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 84.70
+2/1 Projected pre-tax cash flow [Central / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 93.17 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 93.17 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 → selected branch: 0 = 93.17
+2/1 Projected pre-tax cash flow [South / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 110 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 110 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 → selected branch: 0 = 110.00
+2/1 Projected pre-tax cash flow [South / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 121 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 121 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow → selected branch: 0 = 121.00
+2/1 Projected pre-tax cash flow [South / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows))
+    Working: (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) = [value unavailable] → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = false → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = false → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 0 → (= entry.cgu-id cgu.key) = true → (= entry.period-id year.key) = true → (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) = true → (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0) = 133.1 → (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.cgu-id cgu.key) (= entry.period-id year.key)) entry.cash-flow 0)) forecast-cashflows)) = 133.1 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.cash-flow = 133.10
+2/2 End-of-year discount factor [North / 2026-01-01 – 2026-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091 = 0.90909091
+2/2 End-of-year discount factor [North / 2027-01-01 – 2027-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537 = 0.82644628
+2/2 End-of-year discount factor [North / 2028-01-01 – 2028-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761 = 0.75131480
+2/2 End-of-year discount factor [Central / 2026-01-01 – 2026-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091 = 0.90909091
+2/2 End-of-year discount factor [Central / 2027-01-01 – 2027-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537 = 0.82644628
+2/2 End-of-year discount factor [Central / 2028-01-01 – 2028-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761 = 0.75131480
+2/2 End-of-year discount factor [South / 2026-01-01 – 2026-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 1 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.909090909090909091 = 0.90909091
+2/2 End-of-year discount factor [South / 2027-01-01 – 2027-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 2 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.826446280991735537 = 0.82644628
+2/2 End-of-year discount factor [South / 2028-01-01 – 2028-12-31]
+    Formula: (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale)
+    Working: (+ year.index 1) = 3 → (fin/df cgu.discount-rate (+ year.index 1) discount-factor-scale) = 0.751314800901577761 = 0.75131480
+2/3 Σ Discounted cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A, year=P1] 60.00 included; [cgu=A, year=P2] 60.00 included; [cgu=A, year=P3] 60.00 included; [cgu=B, year=P1] 70.00 included; [cgu=B, year=P2] 70.00 included; [cgu=B, year=P3] 70.00 included; [cgu=C, year=P1] 100.00 included; [cgu=C, year=P2] 100.00 included; [cgu=C, year=P3] 100.00 included → 690.00 = 690.00
+2/3 Discounted cash flow [North / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 60.000000000000000006 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00 = 60.00
+2/3 Discounted cash flow [North / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 59.9999999999999999862 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00 = 60.00
+2/3 Discounted cash flow [North / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 59.99999999999999999346 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 60.00 = 60.00
+2/3 Discounted cash flow [Central / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 70.000000000000000007 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00 = 70.00
+2/3 Discounted cash flow [Central / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 69.9999999999999999839 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00 = 70.00
+2/3 Discounted cash flow [Central / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 69.99999999999999999237 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 70.00 = 70.00
+2/3 Discounted cash flow [South / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 100.000000000000000010 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00 = 100.00
+2/3 Discounted cash flow [South / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 99.999999999999999977 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00 = 100.00
+2/3 Discounted cash flow [South / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* forecast-cash-flow discount-factor) rounding)
+    Working: (* forecast-cash-flow discount-factor) = 99.9999999999999999891 → (decimal/round (* forecast-cash-flow discount-factor) rounding) = 100.00 = 100.00
+3/1 Σ Carrying amount (including allocated corporate asset) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00 = 771
+3/2 Σ Value in use (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 180.00 included; [cgu=B] 210.00 included; [cgu=C] 300.00 included → 690.00 = 690
+3/2 Value in use [North]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (dim/sum present-value) = 180.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 180.00 → selected branch: (dim/sum present-value) = 180
+3/2 Value in use [Central]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (dim/sum present-value) = 210.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 210.00 → selected branch: (dim/sum present-value) = 210
+3/2 Value in use [South]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (dim/sum present-value) = 300.00 → (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 300.00 → selected branch: (dim/sum present-value) = 300
+3/3 Σ Recoverable amount (higher of value in use and FVLCD) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 180.00 included; [cgu=B] 210.00 included; [cgu=C] 300.00 included → 690.00 = 690
+3/3 Recoverable amount (higher of value in use and FVLCD) [North]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 180.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 180
+3/3 Recoverable amount (higher of value in use and FVLCD) [Central]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 210.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 210
+3/3 Recoverable amount (higher of value in use and FVLCD) [South]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 300.00; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 300
+3/4 Σ Impairment loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91 = 121
+3/4 Impairment loss [North]
+    Formula: (max 0 (- tested-amount recoverable-amount))
+    Working: (- tested-amount recoverable-amount) = -39.91 → (max 0 (- tested-amount recoverable-amount)) = 0 = –
+3/4 Impairment loss [Central]
+    Formula: (max 0 (- tested-amount recoverable-amount))
+    Working: (- tested-amount recoverable-amount) = 30.29 → (max 0 (- tested-amount recoverable-amount)) = 30.29 = 30
+3/4 Impairment loss [South]
+    Formula: (max 0 (- tested-amount recoverable-amount))
+    Working: (- tested-amount recoverable-amount) = 90.62 → (max 0 (- tested-amount recoverable-amount)) = 90.62 = 91
+4/1 Σ To goodwill (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0 included; [cgu=B] 0 included; [cgu=C] 0 included → 0 = –
+4/1 To goodwill [North]
+    Formula: (min impairment-loss (or cgu.goodwill 0))
+    Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
+4/1 To goodwill [Central]
+    Formula: (min impairment-loss (or cgu.goodwill 0))
+    Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
+4/1 To goodwill [South]
+    Formula: (min impairment-loss (or cgu.goodwill 0))
+    Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
+4/2 Σ Loss assigned to shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 7.60 included; [cgu=C] 30.30 included → 37.90 = 38
+4/2 Loss assigned to shared facilities [North]
+    Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
+    Working: (- impairment-loss loss-to-goodwill) = 0 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 120 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 0.00, :own 0.00} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 0.00 = –
+4/2 Loss assigned to shared facilities [Central]
+    Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
+    Working: (- impairment-loss loss-to-goodwill) = 30.29 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 180 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 7.60, :own 22.69} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 7.60 = 8
+4/2 Loss assigned to shared facilities [South]
+    Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
+    Working: (- impairment-loss loss-to-goodwill) = 90.62 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 260 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 30.30, :own 60.32} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 30.30 = 30
+4/3 Σ To the other assets of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 22.69 included; [cgu=C] 60.32 included → 83.01 = 83
+4/3 To the other assets of the CGU [North]
+    Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
+    Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 0.00 = –
+4/3 To the other assets of the CGU [Central]
+    Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
+    Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 22.69 = 23
+4/3 To the other assets of the CGU [South]
+    Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
+    Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 60.32 = 60
+4/4 Σ Impairment loss allocated (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91 = 121
+4/4 Impairment loss allocated [North]
+    Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
+    Working: 0 + 0.00 + 0.00 = –
+4/4 Impairment loss allocated [Central]
+    Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
+    Working: 0 + 7.60 + 22.69 = 30
+4/4 Impairment loss allocated [South]
+    Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
+    Working: 0 + 30.30 + 60.32 = 91
+4/5 Impairment loss agrees to its allocation [North]
+    Formula: impairment-loss ≈ loss-allocated (± 0.01)
+    Working: impairment-loss = 0; loss-allocated = 0.00 → 0 − 0.00 = 0.00 (± 0.01) = –
+4/5 Impairment loss agrees to its allocation [Central]
+    Formula: impairment-loss ≈ loss-allocated (± 0.01)
+    Working: impairment-loss = 30.29; loss-allocated = 30.29 → 30.29 − 30.29 = 0.00 (± 0.01) = –
+4/5 Impairment loss agrees to its allocation [South]
+    Formula: impairment-loss ≈ loss-allocated (± 0.01)
+    Working: impairment-loss = 90.62; loss-allocated = 90.62 → 90.62 − 90.62 = 0.00 (± 0.01) = –
+5/1 Σ Asset carrying amount before the loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/2 Σ Higher of FVLCD, value in use and zero (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/3 Σ Loss after cap and redistribution (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/4 Σ Asset carrying amount after the capped allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+7/1 Carrying amount of the CGUs (A, B, C)
+    Formula: (dim/sum carrying-amount)
+    Working: (dim/sum carrying-amount) = 560 = 560
+7/4 Carrying amount before step-1 losses
+    Formula: group-cgu-assets + group-building + group-research
+    Working: 560 + 211 + 73 = 844
+7/5 Impairment losses recognised in steps 2–3
+    Formula: (dim/sum loss-allocated)
+    Working: (dim/sum loss-allocated) = 120.91 = 121
+7/6 Carrying amount of the group after step 1
+    Formula: group-before − group-step1-losses
+    Working: 844 − 120.91 = 723
+7/8 Impairment loss of the group
+    Formula: (max 0 (- group-carrying-amount group-ra))
+    Working: (- group-carrying-amount group-ra) = -176.91 → (max 0 (- group-carrying-amount group-ra)) = 0 = –
+8/1 Goodwill
+    Formula: (dim/sum loss-to-goodwill)
+    Working: (dim/sum loss-to-goodwill) = 0 = –
+8/2 Other assets of the CGUs
+    Formula: (dim/sum loss-to-own-assets)
+    Working: (dim/sum loss-to-own-assets) = 83.01 = 83
+8/3 Shared facilities
+    Formula: (dim/sum loss-to-corporate)
+    Working: (dim/sum loss-to-corporate) = 37.90 = 38
+8/5 Total impairment loss
+    Formula: summary-goodwill + summary-own + summary-corporate + summary-group
+    Working: 0 + 83.01 + 37.90 + 0 = 121

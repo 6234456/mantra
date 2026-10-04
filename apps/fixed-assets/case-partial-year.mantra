@@ -1,0 +1,18 @@
+;; Independently authored fictional facts; standards support concepts only.
+(case fixed-assets-partial-year
+  {:schema "assets/cost-model" :layout "assets/working-paper" :title "Fixed assets: Equipment available mid-year" :subject "Fictional demonstration entity" :period "2026–2030" :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts"}
+  (inputs {
+    :assets [
+      {:id :Equipment :title "Finishing equipment" :category :machinery :depreciable true :opening-cost 0 :opening-accumulated-depreciation 0 :acquisition-cost 60000 :acquisition-period :P1 :available-from "2026-07-01" :remaining-months 36 :residual-value 0 :disposal-at-period-end nil}]
+    :reported-closings [
+      {:period :P1 :carrying-amount 50000}
+      {:period :P2 :carrying-amount 30000}
+      {:period :P3 :carrying-amount 10000}
+      {:period :P4 :carrying-amount 0}
+      {:period :P5 :carrying-amount 0}]
+    :calendar-periods [
+      {:id :P1 :start "2026-01-01" :end "2027-01-01"}
+      {:id :P2 :start "2027-01-01" :end "2028-01-01"}
+      {:id :P3 :start "2028-01-01" :end "2029-01-01"}
+      {:id :P4 :start "2029-01-01" :end "2030-01-01"}
+      {:id :P5 :start "2030-01-01" :end "2031-01-01"}]}))

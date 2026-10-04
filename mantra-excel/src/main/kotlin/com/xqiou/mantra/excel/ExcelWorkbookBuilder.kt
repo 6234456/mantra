@@ -43,7 +43,7 @@ internal class ExcelWorkbookBuilder(
 
     /** All declared members (static dimensions keep members that are inactive in this case). */
     internal val members: Map<String, List<XMember>> = view.dimensions.mapValues { (id, decl) ->
-        if (decl.fromTable == null) {
+        if (decl.fromTable == null && decl.periods == null) {
             decl.members.mapIndexed { i, m -> XMember(m.key, m.label, i) }
         } else {
             view.members[id].orEmpty().map { XMember(it.key, it.label, it.index) }
@@ -54,6 +54,7 @@ internal class ExcelWorkbookBuilder(
 
     /** First visible cell containing a node's aggregate over all member dimensions. */
     internal val aggregateSlots = linkedMapOf<String, Slot>()
+    internal val reductionSlots = linkedMapOf<Pair<String, Map<String, String>>, Slot>()
     internal val optionSlots = linkedMapOf<Pair<String, String>, LinkedHashMap<Coord, Slot>>()
     internal val guardSlots = linkedMapOf<String, LinkedHashMap<Coord, Slot>>()
     internal val activeSlots = linkedMapOf<Pair<String, String>, Slot>()
@@ -65,6 +66,8 @@ internal class ExcelWorkbookBuilder(
     internal val inputStatusSlots = mutableListOf<Pair<Slot, String>>()
     internal val slotNames = hashMapOf<Slot, String>()
     internal val rangeNames = hashMapOf<String, String>()
+    internal val expressionSlots = linkedMapOf<X.Scalar, Slot>()
+    internal var expressionSheet: XSSFSheet? = null
     internal val usedNames = hashSetOf<String>()
     internal val tableSheets = linkedMapOf<String, XSSFSheet>()
     internal val sectionSheets = linkedMapOf<String, XSSFSheet>()
@@ -100,8 +103,15 @@ internal class ExcelWorkbookBuilder(
             )
             val addresses = nodeSlots.mapValues { (_, slots) -> slots.mapValues { (_, slot) -> slot.address } }
                 .toMutableMap()
+            reductionSlots.forEach { (scope, slot) ->
+                val coord = view.node(scope.first).dims.filter { it in scope.second }.map(scope.second::getValue)
+                addresses.getOrPut("aggregate.${scope.first}") { emptyMap() }
+                addresses["aggregate.${scope.first}"] =
+                    addresses.getValue("aggregate.${scope.first}") + (coord to slot.address)
+            }
             aggregateSlots.forEach { (id, slot) ->
-                addresses["aggregate.$id"] = mapOf(emptyList<String>() to slot.address)
+                addresses["aggregate.$id"] =
+                    addresses["aggregate.$id"].orEmpty() + (emptyList<String>() to slot.address)
             }
             return ExcelWorkbook(
                 wb,
@@ -111,6 +121,7 @@ internal class ExcelWorkbookBuilder(
                     slot.address
                 },
                 tableSlots.mapValues { (_, slot) -> slot.address },
+                reductionSlots.mapValues { (_, slot) -> slot.address },
             )
         } catch (error: Exception) {
             runCatching { wb.close() }
@@ -254,10 +265,12 @@ internal class ExcelWorkbookBuilder(
         vertex.kind == NodeKind.PARAM -> when (vertex.parameterValue) {
             is Value.Bool -> XKind.BOOL
             is Value.Kw, is Value.Text -> XKind.TEXT
+            is Value.Date -> XKind.DATE
             else -> XKind.NUM
         }
         vertex.type == ValueType.BOOLEAN -> XKind.BOOL
         vertex.type == ValueType.KEYWORD || vertex.type == ValueType.TEXT -> XKind.TEXT
+        vertex.type == ValueType.DATE -> XKind.DATE
         vertex.type.isNumeric -> XKind.NUM
         else -> XKind.ANY
     }
@@ -275,7 +288,7 @@ internal class ExcelWorkbookBuilder(
             },
             value.entries.values.map(::literal),
         )
-        is Value.Date -> Ex.text(value.value.toString())
+        is Value.Date -> excelDate(value.value)
     }
 
     override fun reference(nodeId: String, contextDims: List<String>, contextCoord: Coord): X? {
@@ -287,7 +300,7 @@ internal class ExcelWorkbookBuilder(
             return X.MapX(
                 keys,
                 keys.map { key ->
-                    record(relation.id, key, relation.parentKeyColumn!!)
+                    record(relation.id, key, relation.parentKeyColumn ?: "parent-key")
                         ?: throw Untranslatable("$nodeId has no parent cell for $key")
                 },
             )
@@ -302,7 +315,16 @@ internal class ExcelWorkbookBuilder(
                         vertex.input!!.columns.map { column ->
                             val slot = tableSlots[Triple(nodeId, row, column.name)]
                                 ?: throw Untranslatable("$nodeId row $row has no ${column.name} cell")
-                            ref(slot, if (column.type.isNumeric) XKind.NUM else XKind.ANY)
+                            ref(
+                                slot,
+                                when {
+                                    column.type.isNumeric -> XKind.NUM
+                                    column.type == ValueType.DATE -> XKind.DATE
+                                    column.type == ValueType.BOOLEAN -> XKind.BOOL
+                                    column.type == ValueType.TEXT || column.type == ValueType.KEYWORD -> XKind.TEXT
+                                    else -> XKind.ANY
+                                },
+                            )
                         },
                     )
                 },
@@ -326,25 +348,26 @@ internal class ExcelWorkbookBuilder(
             return slots[coord]?.let { ref(it, kindOf(vertex)) }
                 ?: throw Untranslatable("$nodeId has no cell for $coord")
         }
-        if (vertex.dims.size == 1) {
-            val dim = vertex.dims.single()
-            val keys = members[dim].orEmpty().map { it.key }
-            val cells = keys.map { key ->
-                slots[listOf(key)]?.let { ref(it, kindOf(vertex)) }
-                    ?: throw Untranslatable("$nodeId has no cell for $key")
+        val fixed = contextDims.zip(contextCoord).toMap()
+        fun nested(index: Int, assignment: Map<String, String>): X {
+            if (index == vertex.dims.size) {
+                val coordinate = vertex.dims.map(assignment::getValue)
+                return slots[coordinate]?.let { ref(it, kindOf(vertex)) }
+                    ?: throw Untranslatable("$nodeId has no cell for $coordinate")
             }
-            val first = slots[listOf(keys.first())]!!
-            val last = slots[listOf(keys.last())]!!
-            val text =
-                rangeNames[nodeId]
-                    ?: (first.address + ":" + "\$${CellReference.convertNumToColString(last.col)}\$${last.row + 1}")
-            return X.Range(text, keys, cells)
+            val dimension = vertex.dims[index]
+            fixed[dimension]?.let { return nested(index + 1, assignment + (dimension to it)) }
+            val keys = members[dimension].orEmpty().map { it.key }
+            return X.MapX(keys, keys.map { nested(index + 1, assignment + (dimension to it)) })
         }
-        throw Untranslatable("$nodeId has more than one dimension")
+        return nested(0, emptyMap())
     }
 
     override fun record(dim: String, key: String, field: String): X? {
         val decl = view.dimensions[dim] ?: return null
+        if (decl.periods != null) {
+            return view.members[dim].orEmpty().firstOrNull { it.key == key }?.record?.get(field)?.let(::literal)
+        }
         if (decl.fromTable == null) {
             val member = members[dim].orEmpty().firstOrNull { it.key == key } ?: return null
             return when (field) {
@@ -360,8 +383,24 @@ internal class ExcelWorkbookBuilder(
             else -> null
         }
         val column = view.nodes[decl.fromTable]?.input?.columns?.firstOrNull { it.name == field }
-        return ref(slot, if (column?.type?.isNumeric == true) XKind.NUM else XKind.ANY)
+        return ref(
+            slot,
+            when {
+                column?.type == ValueType.DATE -> XKind.DATE
+                column?.type == ValueType.BOOLEAN -> XKind.BOOL
+                column?.type == ValueType.TEXT || column?.type == ValueType.KEYWORD -> XKind.TEXT
+                column?.type?.isNumeric == true -> XKind.NUM
+                else -> XKind.ANY
+            },
+        )
     }
+
+    override fun periodKeys(dimension: String): X.Vec? = periodKeyValues(dimension)
+
+    override fun previous(nodeId: String, contextDims: List<String>, contextCoord: Coord): ExcelPrevious =
+        previousReference(nodeId, contextDims, contextCoord)
+
+    override fun materialize(value: X.Scalar): X.Scalar = materializeExpression(value)
 
     override fun isNode(nodeId: String): Boolean = nodeId in view.nodes ||
         view.dimensions.values.any { it.parentDimension != null && "relation_${it.id}" == nodeId }

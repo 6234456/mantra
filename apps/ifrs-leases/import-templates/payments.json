@@ -1,0 +1,10 @@
+{
+  "name": "payments",
+  "format": "csv",
+  "options": {
+    "input": "lease-payments",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

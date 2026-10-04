@@ -1,0 +1,25 @@
+;; Independently authored fictional facts; standards support concepts only.
+(case ifrs-leases-demo
+  {:schema "ifrs.ifrs16/lessee-schedule" :layout "ifrs.ifrs16/working-paper" :title "Leases: Office and zero-rate storage" :subject "Fictional demonstration entity" :period "2026–2028" :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts"}
+  (inputs {
+    :leases [
+      {:id :Office :title "Office-space right of use" :annual-rate 0.05 :term-years 3 :commencement-payment 0 :initial-direct-costs 0 :commencement-incentive 0}
+      {:id :Storage :title "Zero-interest storage right of use" :annual-rate 0 :term-years 3 :commencement-payment 0 :initial-direct-costs 0 :commencement-incentive 0}]
+    :lease-payments [
+      {:lease-id :Office :period-id :P1 :payment 10000}
+      {:lease-id :Office :period-id :P2 :payment 10000}
+      {:lease-id :Office :period-id :P3 :payment 10000}
+      {:lease-id :Storage :period-id :P1 :payment 6000}
+      {:lease-id :Storage :period-id :P2 :payment 6000}
+      {:lease-id :Storage :period-id :P3 :payment 6000}]
+    :reported-closings [
+      {:lease-id :Office :period-id :P1 :liability-amount 18594.10}
+      {:lease-id :Office :period-id :P2 :liability-amount 9523.81}
+      {:lease-id :Office :period-id :P3 :liability-amount 0}
+      {:lease-id :Storage :period-id :P1 :liability-amount 12000}
+      {:lease-id :Storage :period-id :P2 :liability-amount 6000}
+      {:lease-id :Storage :period-id :P3 :liability-amount 0}]
+    :calendar-periods [
+      {:id :P1 :start "2026-01-01" :end "2027-01-01"}
+      {:id :P2 :start "2027-01-01" :end "2028-01-01"}
+      {:id :P3 :start "2028-01-01" :end "2029-01-01"}]}))

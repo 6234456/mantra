@@ -13,7 +13,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /** Business findings persist with the case, while malformed facts retain write rejection. */
-class BusinessValidationEditingTest {
+class BusinessValidationEditingTest : WorkspaceCatalogTestOwner() {
     @TempDir lateinit var directory: Path
     private val caseId = "case.mantra"
 
@@ -45,7 +45,7 @@ class BusinessValidationEditingTest {
                                  {:mode :direct :note "Allocated" :amount 3}]}))
             """.trimIndent(),
         )
-        return WorkspaceCatalog(directory)
+        return workspaceCatalog(directory)
     }
 
     private fun run(result: WorkspaceCatalog.DocumentResult): Map<*, *> = result.data["run"] as Map<*, *>

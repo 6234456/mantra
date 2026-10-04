@@ -1,0 +1,10 @@
+{
+  "name": "assets",
+  "format": "csv",
+  "options": {
+    "input": "assets",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

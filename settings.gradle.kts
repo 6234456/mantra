@@ -11,7 +11,14 @@ include(":benchmarks")
 
 // Complete domain demonstrations. Each owns its documents and acceptance tests and depends only
 // on library modules; applications are never published as Maven library artifacts.
-include(":apps:de-est", ":apps:ifrs-impairment", ":apps:cost-accounting", ":apps:ifrs-income-taxes")
+include(
+    ":apps:de-est",
+    ":apps:ifrs-impairment",
+    ":apps:cost-accounting",
+    ":apps:ifrs-income-taxes",
+    ":apps:fixed-assets",
+    ":apps:ifrs-leases",
+)
 
 // ── Normein DSL kernel (pinned composite build) ─────────────────────────────
 //

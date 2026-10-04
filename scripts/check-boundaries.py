@@ -15,7 +15,9 @@ DECLARATIONS = {
 }
 # These names also describe language/presentation concepts or ordinary programming operations.
 # They are never exemptions for schema IDs; adding domain names here needs boundary review.
-SHARED_VOCABULARY = {'order', 'orders', 'person', 'rounding', 'summary'}
+# M2 review: year is a public period unit; payment is already the generic fin/pmt argument.
+# Their appearance in a demonstration does not make these shared language terms domain logic.
+SHARED_VOCABULARY = {'order', 'orders', 'person', 'rounding', 'summary', 'year', 'payment'}
 TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|;[^\n]*|[(){}\[\]]|[^\s(){}\[\]";]+')
 SOURCE_TOKEN = re.compile(r'(?<![\w./-])[\w][\w./-]*(?![\w./-])')
 SUFFIXES = {'.kt', '.ts', '.tsx', '.js', '.jsx', '.mjs'}

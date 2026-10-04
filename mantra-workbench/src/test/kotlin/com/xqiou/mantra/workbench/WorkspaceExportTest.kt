@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class WorkspaceExportTest {
+class WorkspaceExportTest : WorkspaceCatalogTestOwner() {
     @TempDir lateinit var temp: Path
 
     @Test
@@ -30,7 +30,7 @@ class WorkspaceExportTest {
         assertTrue(result.succeeded, result.diagnostics.toString())
         assertEquals(7.0, result.decimal("answer").toDouble())
 
-        val catalog = WorkspaceCatalog(temp)
+        val catalog = workspaceCatalog(temp)
         val preview = assertFailsWith<WorkspaceException> { catalog.exportPreview("case.mantra") }
         val download = assertFailsWith<WorkspaceException> { catalog.export("case.mantra", "xlsx") }
         listOf(preview, download).forEach { error ->

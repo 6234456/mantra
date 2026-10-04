@@ -1,0 +1,10 @@
+{
+  "name": "leases",
+  "format": "csv",
+  "options": {
+    "input": "leases",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

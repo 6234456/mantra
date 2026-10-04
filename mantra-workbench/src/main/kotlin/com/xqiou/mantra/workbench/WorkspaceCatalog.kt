@@ -48,13 +48,13 @@ data class ExplainAddress(
     val cell: Pair<String, String>? = null,
 )
 
-/** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
+/** Reads workspace files on every request and owns bounded calculation sessions for dependency reuse. */
 class WorkspaceCatalog(
     directory: Path,
-    private val mantraVersion: String = "0.2.0-SNAPSHOT",
+    private val mantraVersion: String = "0.3.0-SNAPSHOT",
     normeinVersion: String? = null,
     private val exportBudget: ExportBudget = ExportBudget(),
-) {
+) : AutoCloseable {
     companion object {
         /** Serialize distinct catalog instances in this JVM; the channel lock covers other processes. */
         internal val writeLocks = ConcurrentHashMap<Path, Any>()
@@ -69,6 +69,9 @@ class WorkspaceCatalog(
         val redo: ArrayDeque<String> = ArrayDeque(),
     )
     internal val histories = ConcurrentHashMap<String, EditHistory>()
+    internal val sessions = WorkspaceSessions()
+
+    override fun close() = sessions.close()
 
     internal data class Indexed(
         val path: Path,
@@ -173,7 +176,7 @@ class WorkspaceCatalog(
     }
 
     fun document(caseId: String, name: String, panel: String? = null, layoutId: String? = null): DocumentResult {
-        val resolved = resolve(caseId, scan(), layoutId)
+        val resolved = resolve(caseId, scan(), layoutId, audit = name == "paper")
         val view = resolved.view
         val data = when (name) {
             "structure" -> WorkbenchDocuments.structure(view)
@@ -192,7 +195,7 @@ class WorkspaceCatalog(
     }
 
     fun exportPreview(caseId: String, sheet: String? = null, layoutId: String? = null): DocumentResult {
-        val resolved = resolve(caseId, scan(), layoutId)
+        val resolved = resolve(caseId, scan(), layoutId, audit = true)
         val export = exportWorkbook(resolved)
         export.use {
             val description = export.describe(sheet)
@@ -202,7 +205,7 @@ class WorkspaceCatalog(
     }
 
     fun export(caseId: String, format: String, layoutId: String? = null): ByteArray {
-        val resolved = resolve(caseId, scan(), layoutId)
+        val resolved = resolve(caseId, scan(), layoutId, audit = true)
         return when (format) {
             "xlsx" -> {
                 val export = exportWorkbook(resolved)
@@ -329,14 +332,15 @@ class WorkspaceCatalog(
             if (memberMap && node.dims.isEmpty()) {
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member map was not found")
             }
-            if (aggregate && node.line?.ratio == null) {
-                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain ratio aggregate was not found")
+            if (aggregate && (node.dims.isEmpty() || resolved.view.reduce(nodeId, emptyMap()).trace == null)) {
+                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain aggregate was not found")
             }
             val fixed = if (projected) {
                 val bindings = linkedMapOf<String, String>()
                 target.coord.forEach { part ->
                     val split = part.split('=', limit = 2)
-                    if (split.size != 2 || split.any(String::isBlank) || split[0] !in node.dims ||
+                    if (split.size != 2 || split.any(String::isBlank) ||
+                        split[0] !in (if (aggregate) resolved.view.dimensions.keys else node.dims) ||
                         bindings.put(split[0], split[1]) != null
                     ) {
                         throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
@@ -345,8 +349,16 @@ class WorkspaceCatalog(
                         throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member was not found")
                     }
                 }
-                if (target.coord != node.dims.mapNotNull { dim -> bindings[dim]?.let { "$dim=$it" } } ||
-                    bindings.size == node.dims.size
+                val dimensions = if (aggregate) {
+                    resolved.view.dimensionOrder(bindings.keys)
+                } else {
+                    node.dims.filter {
+                        it in
+                            bindings
+                    }
+                }
+                if (target.coord != dimensions.map { "$it=${bindings.getValue(it)}" } ||
+                    node.dims.all { it in bindings }
                 ) {
                     throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed member-map coordinate")
                 }

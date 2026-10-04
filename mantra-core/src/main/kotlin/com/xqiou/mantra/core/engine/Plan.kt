@@ -22,6 +22,8 @@ import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.mantra.core.view.ParameterLayer
 import com.xqiou.normein.dsl.compiler.DslCompiledExpression
 import com.xqiou.normein.dsl.compiler.DslNamedDefinition
+import com.xqiou.normein.dsl.compiler.DslSourceIndexEntry
+import com.xqiou.normein.dsl.identity.DslCanonicalNodeId
 import com.xqiou.normein.dsl.type.DslTypeSchema
 
 internal data class NamedSource(val source: String, val location: SourceLocation)
@@ -45,6 +47,14 @@ internal class CompiledFormula(
     val relationRefs: Map<String, String>,
     /** A typed table record supplied as the local `row` root, only for column validation. */
     val rowTable: String? = null,
+    /** Host-lowered prior-period inputs; their target references are never current-period roots. */
+    val previousBindings: List<PreviousBinding> = emptyList(),
+    /** Dependency occurrences retain first-only activation, including named-function calls. */
+    val dependencies: List<FormulaDependency> = emptyList(),
+    /** Original author ownership mapped onto the executable kernel's final canonical paths. */
+    val authorSourceIndex: Map<DslCanonicalNodeId, DslSourceIndexEntry> = expression.sourceIndex,
+    /** Continuous period domains read through periods.<dimension>.keys. */
+    val periodRefs: Set<String> = emptySet(),
 )
 
 internal sealed class Vertex(val id: String, val location: SourceLocation) {
@@ -70,6 +80,28 @@ internal sealed class ValueVertex(id: String, location: SourceLocation) : Vertex
     /** Section guards (ConditionVertex ids) that must all hold for this vertex to be active. */
     val guards: MutableList<String> = mutableListOf()
     var ownCondition: CompiledFormula? = null
+
+    val aggregate: com.xqiou.mantra.core.model.AggregateRule get() = when (this) {
+        is InputVertex -> decl.aggregate
+        is LineVertex -> item.aggregate
+        is TotalVertex -> item.aggregate
+        is ChoiceVertex -> item.aggregate
+        else -> com.xqiou.mantra.core.model.AggregateRule.NONE
+    }
+    val ratio: com.xqiou.mantra.core.model.RatioAggregation? get() = when (this) {
+        is InputVertex -> decl.ratio
+        is LineVertex -> item.ratio
+        is TotalVertex -> item.ratio
+        is ChoiceVertex -> item.ratio
+        else -> null
+    }
+    val boundary: com.xqiou.mantra.core.model.BoundaryAggregation? get() = when (this) {
+        is InputVertex -> decl.boundary
+        is LineVertex -> item.boundary
+        is TotalVertex -> item.boundary
+        is ChoiceVertex -> item.boundary
+        else -> null
+    }
 }
 
 /** A parameter; [source] is `schema`, the id of the parameter set that supplied it, or `case`. */
@@ -118,6 +150,8 @@ internal class ReconcileVertex(val item: ReconcileItem, override val dims: List<
 }
 
 internal val ValueVertex.isValidation: Boolean get() = this is CheckVertex || this is ReconcileVertex
+internal val ValueVertex.undefinedValues: Boolean get() = this is LineVertex &&
+    compiled?.previousBindings?.isNotEmpty() == true
 
 internal class LineVertex(val item: LineItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
     override val type: ValueType = item.type

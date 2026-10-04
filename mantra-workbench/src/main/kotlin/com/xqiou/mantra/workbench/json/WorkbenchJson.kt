@@ -4,7 +4,7 @@ import com.xqiou.mantra.core.model.Value
 
 /** JSON primitives used by the versioned workbench contract. */
 object WorkbenchJson {
-    const val CONTRACT = "mantra.workbench/2"
+    const val CONTRACT = "mantra.workbench/3"
 
     /** Keep engine decimals exact and distinguish keywords, dates, and ordered map keys. */
     fun value(value: Value): Any? = when (value) {

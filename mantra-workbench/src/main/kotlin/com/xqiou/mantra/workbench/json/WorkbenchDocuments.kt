@@ -21,9 +21,11 @@ import com.xqiou.mantra.core.view.headlineId
 import com.xqiou.mantra.core.view.signLabels
 import com.xqiou.mantra.render.Render
 import com.xqiou.mantra.render.layout.ColumnContent
+import com.xqiou.mantra.render.layout.ColumnSpec
 import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.render.layout.StyleSpec
 import com.xqiou.mantra.render.layout.TableSpec
+import com.xqiou.mantra.render.layout.TableStyle
 import com.xqiou.mantra.render.layout.styleRole
 import com.xqiou.mantra.render.paper.NumberFormatter
 import com.xqiou.mantra.render.paper.PaperTable
@@ -51,13 +53,18 @@ object WorkbenchDocuments {
         }
         val references = (trace as? NodeTrace.Computed)?.references.orEmpty().mapNotNull { ref ->
             val target = view.nodes[ref.id.removePrefix("all.")] ?: return@mapNotNull null
-            val memberMap = ref.kind == TraceRef.Kind.ALL || ref.kind == TraceRef.Kind.MEMBER_MAP
-            val targetCoord = when (ref.kind) {
-                TraceRef.Kind.ALL -> emptyList()
-                TraceRef.Kind.MEMBER_MAP -> target.dims.mapNotNull { dim ->
-                    node.dims.indexOf(dim).takeIf { it >= 0 }?.let { "$dim=${coord[it]}" }
+            val previousMap = ref.kind == TraceRef.Kind.PREVIOUS && ref.coord == null && ref.fixed != null
+            val memberMap = ref.kind == TraceRef.Kind.ALL || ref.kind == TraceRef.Kind.MEMBER_MAP || previousMap
+            val targetCoord = if (previousMap) {
+                target.dims.mapNotNull { dim -> ref.fixed!![dim]?.let { "$dim=$it" } }
+            } else {
+                when (ref.kind) {
+                    TraceRef.Kind.ALL -> emptyList()
+                    TraceRef.Kind.MEMBER_MAP -> target.dims.mapNotNull { dim ->
+                        node.dims.indexOf(dim).takeIf { it >= 0 }?.let { "$dim=${coord[it]}" }
+                    }
+                    else -> ref.coord ?: aligned(target)
                 }
-                else -> aligned(target)
             }
             val targetId = if (memberMap) "all.${target.id}" else target.id
             linkedMapOf<String, Any?>(
@@ -76,10 +83,10 @@ object WorkbenchDocuments {
         val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
             val target = view.nodes[part.id] ?: return@mapNotNull null
             linkedMapOf<String, Any?>(
-                "address" to if (part.aggregate != null) {
+                "address" to if (part.reduction != null || part.aggregate != null) {
                     address(
                         "aggregate.${part.id}",
-                        target.dims.mapNotNull { dim -> part.aggregate!!.fixed[dim]?.let { "$dim=$it" } },
+                        aggregateCoordinate(view, (part.reduction ?: part.aggregate)!!.fixed),
                     )
                 } else {
                     address(part.id, aligned(target))
@@ -89,7 +96,8 @@ object WorkbenchDocuments {
                 "value" to part.value?.let { WorkbenchJson.value(Value.Num(it)) },
                 "display" to (part.value?.let { display(Value.Num(it), target) } ?: "—"),
                 "crossFooted" to part.crossFooted,
-                "aggregate" to part.aggregate?.let { ratioDocument(it, layout, target.presentation) },
+                "aggregate" to
+                    (part.reduction ?: part.aggregate)?.let { reductionDocument(it, layout, target.presentation) },
             )
         }
         val choice = trace as? NodeTrace.Choice
@@ -314,7 +322,28 @@ object WorkbenchDocuments {
         val rendered = Render.paper(view, layout)
         if (panelId == null || rendered.tables.any { it.id == panelId }) return paper(rendered, view, panelId)
         require(view.structure.panels.any { it.id == panelId }) { "Unknown panel $panelId" }
-        val fallback = Render.paper(view, layout.copy(tables = listOf(TableSpec(panelId))))
+        val dimensions = view.dimensionOrder(
+            view.structure.panel(panelId).nodes.flatMap {
+                view.node(it).dims
+            }.distinct(),
+        )
+        val table = if (dimensions.size >
+            1
+        ) {
+            TableSpec(
+                panelId,
+                style = TableStyle.MATRIX,
+                rowDimension = dimensions.first(),
+                columns = listOf(
+                    ColumnSpec("label", null, ColumnContent.Label),
+                    ColumnSpec("members", null, ColumnContent.Members("*")),
+                    ColumnSpec("cross-total", null, ColumnContent.CrossTotal),
+                ),
+            )
+        } else {
+            TableSpec(panelId)
+        }
+        val fallback = Render.completePaper(view, layout.copy(tables = listOf(table)))
         return paper(fallback, view, panelId)
     }
 
@@ -383,7 +412,14 @@ object WorkbenchDocuments {
             "validationPassed" to view.validationPassed,
             "aggregates" to
                 view.nodes.mapNotNull { (id, node) ->
-                    node.aggregateTrace?.let { id to ratioDocument(it, layout, node.presentation) }
+                    if (node.dims.isEmpty()) {
+                        null
+                    } else {
+                        view.reduce(id, emptyMap()).trace?.let {
+                            id to
+                                reductionDocument(it, layout, node.presentation)
+                        }
+                    }
                 }.toMap(),
             "members" to view.members.mapValues { (_, members) ->
                 members.map { member -> linkedMapOf("key" to member.key, "label" to member.label) }
@@ -446,7 +482,7 @@ object WorkbenchDocuments {
                     "reference" to entry.reference,
                     "address" to entry.nodeId?.let { address(it, entry.coord) },
                     "explanation" to entry.explanation?.let(::auditExplanation),
-                    "aggregate" to entry.aggregate?.let { ratioDocument(it) },
+                    "aggregate" to (entry.reduction ?: entry.aggregate)?.let { reductionDocument(it) },
                 )
             },
             "legend" to paper.legend.map { (mark, meaning) -> listOf(mark, meaning) },
@@ -678,18 +714,25 @@ object WorkbenchDocuments {
                     val coord = (column.content as? ColumnContent.Member)?.let { listOf(it.key) }
                     val numeric = column.content.numeric
                     val hasExactCoord = node != null && (node.dims.isEmpty() || (coord != null && node.dims.size == 1))
+                    val explicit = row.valueAddresses.getOrNull(index)
+                    val cellNode = explicit?.nodeId?.let(view.nodes::get) ?: node
                     val cellAddress = when {
+                        explicit != null -> address(
+                            if (explicit.aggregate) "aggregate.${explicit.nodeId}" else explicit.nodeId,
+                            if (explicit.aggregate) aggregateCoordinate(view, explicit.fixed) else explicit.coord,
+                        )
                         numeric && node?.line?.ratio != null && coord == null && node.dims.isNotEmpty() ->
                             address("aggregate.${node.id}")
-                        numeric && hasExactCoord && node != null -> address(node.id, coord)
+                        numeric && hasExactCoord -> address(requireNotNull(node).id, coord)
                         else -> null
                     }
                     linkedMapOf(
                         "text" to cell,
                         "address" to cellAddress,
                         "editable" to (
-                            numeric && hasExactCoord && node?.kind == NodeKind.INPUT &&
-                                view.structure.panelOf(node.id)?.id == table.id
+                            numeric && (explicit?.aggregate == false || (explicit == null && hasExactCoord)) &&
+                                cellNode?.kind == NodeKind.INPUT &&
+                                view.structure.panelOf(cellNode.id)?.id == table.id
                             ),
                         "style" to style(row.cellStyles.getOrNull(index) ?: row.style),
                     )

@@ -1,0 +1,316 @@
+IAS 36 impairment test – corporate assets
+Working paper: allocation of corporate assets, CGU tests and group test
+=========================================
+Entity: Fictional workshop entity
+Period: 2025-12-31
+Calculation schema: IAS 36 – Impairment test with corporate assets v0.3 [ifrs.ias36/corporate-assets]
+Prepared by: Mantra demonstration
+WP ref.: Project-authored fictional facts
+Total impairment loss: 90
+
+Structure of the calculation
+  Mainline 1: Value in use from discounted cash flows [2]
+  Mainline 2: Step 1 – Shared-facility allocation [1]  390
+  Mainline 3: Step 2 – Impairment test of each CGU [3]
+  Mainline 4: Step 3 – Allocation of the impairment losses within the CGUs [4]  90
+  Mainline 5: Step 3a – Individually capped allocation [5]  300.00
+  Mainline 6: Capped allocation control [6]
+  Mainline 7: Step 4 – Combined recovery check [7]  300
+  Mainline 8: Summary of impairment losses recognised [8]  90
+
+[1] Schedule 1 – Allocation of the headquarters building
+    Mainline › 2 Step 1 – Shared-facility allocation
+                                   | Workshop CGU |   Total |   | IAS 36
+-----------------------------------+--------------+---------+---+-----------------
+Carrying amount of the CGU         |          390 |     390 |   |
+CGU carrying amount is nonnegative |            ✓ |         | ✓ |
+Remaining useful life (years)      |            6 |         |   |
+Remaining useful life is positive  |            ✓ |         | ✓ |
+Weighting based on useful life     |            1 |         |   |
+Carrying amount after weighting    |          390 |     390 |   |
+Pro-rata allocation factor         |      100.0 % | 100.0 % |   |
+Allocated shared facilities        |            – |       – |   | IAS 36.102(a)(i)
+                                  -+--------------+---------+- -+-
+Carrying amount after allocation   |          390 |     390 | Σ |
+                                  =+==============+=========+= =+=
+
+[2] Fictional cash-flow value in use
+    Mainline › 1 Value in use from discounted cash flows
+Description  | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | Total
+-------------+-------------------------+-------------------------+-------------------------+------
+Workshop CGU |                         |                         |                         |
+Total        |                         |                         |                         |
+
+[3] Schedule 2 – Impairment test of CGUs A, B and C
+    Mainline › 3 Step 2 – Impairment test of each CGU
+                                                                 | Workshop CGU | Total |   | IAS 36
+-----------------------------------------------------------------+--------------+-------+---+---------------
+Carrying amount (including allocated corporate asset) (→ Table … |          390 |   390 |   |
+Value in use                                                     |          300 |   300 |   |
+Recoverable amount (higher of value in use and FVLCD)            |          300 |   300 |   | IAS 36.18
+  Value in use                                                   |        300 ✓ |       | ✓ | IAS 36.18
+  Fair value less costs of disposal                              |          n/a |       |   | IAS 36.18
+Impairment loss                                                  |           90 |    90 |   | IAS 36.59, 104
+
+[4] Schedule 3 – Allocation of the impairment losses
+    Mainline › 4 Step 3 – Allocation of the impairment losses within the CGUs
+                                         | Workshop CGU | Total |   | IAS 36
+-----------------------------------------+--------------+-------+---+--------------
+To goodwill                              |           30 |    30 |   | IAS 36.104(a)
+Loss assigned to shared facilities       |            – |     – |   | IAS 36.104(b)
+To the other assets of the CGU           |           60 |    60 |   | IAS 36.104(b)
+                                        -+--------------+-------+- -+-
+Impairment loss allocated                |           90 |    90 | Σ |
+                                        =+==============+=======+= =+=
+Impairment loss agrees to its allocation |            – |       | ✓ |
+
+[5] Loss caps of individual assets
+    Mainline › 5 Step 3a – Individually capped allocation
+Description | Asset carrying amount before the loss | Higher of FVLCD, value in use and zero | Loss after cap and redistribution | Asset carrying amount after the capped allocation
+------------+---------------------------------------+----------------------------------------+-----------------------------------+--------------------------------------------------
+  Machine   |                                120.00 |                                 110.00 |                           (10.00) |                                            110.00
+  Building  |                                180.00 |                                 130.00 |                           (37.50) |                                            142.50
+  Equipment |                                 60.00 |                                  42.00 |                           (12.50) |                                             47.50
+           -+---------------------------------------+----------------------------------------+-----------------------------------+--------------------------------------------------
+  Total     |                                360.00 |                                 282.00 |                           (60.00) |                                            300.00
+
+[6] Capped allocation capacity and cross-foot
+    Mainline › 6 Capped allocation control
+                                                    | Workshop CGU | Total |
+----------------------------------------------------+--------------+-------+--
+Loss assigned to own assets (→ Table 4)             |           60 |    60 |
+Available individual-asset loss capacity            |           78 |    78 |
+Loss actually assigned within the asset caps        |           60 |    60 |
+Loss exceeding the available asset capacities       |            – |     – |
+Own assets after capped loss allocation             |          300 |   300 |
+Individual asset caps can absorb the requested loss |            ✓ |       | ✓
+Requested loss agrees to the capped allocation      |            – |       | ✓
+
+[7] Schedule 4 – Impairment test of entity M (smallest group of CGUs)
+    Mainline › 7 Step 4 – Combined recovery check
+                                          |   CU |   | Reference
+------------------------------------------+------+---+-------------------
+Carrying amount of the CGUs (A, B, C)     |  390 |   |
+Shared facilities                         |    – |   |
+Other shared assets                       |    – |   |
+                                         -+------+- -+-
+Carrying amount before step-1 losses      |  390 | Σ |
+Impairment losses recognised in steps 2–3 | (90) |   |
+                                         -+------+- -+-
+Carrying amount of the group after step 1 |  300 | Σ |
+                                         =+======+= =+=
+Recoverable amount of the group           |  300 |   | IAS 36.102(b)(iii)
+Impairment loss of the group              |    – |   |
+
+[8] Schedule 5 – Summary
+    Mainline › 8 Summary of impairment losses recognised
+                                                           | CU |
+-----------------------------------------------------------+----+--
+Goodwill                                                   | 30 |
+Other assets of the CGUs                                   | 60 |
+Shared facilities                                          |  – |
+Additional loss at group level (shared assets) (→ Table 7) |  – |
+                                                          -+----+-
+Total impairment loss                                      | 90 | Σ
+                                                          =+====+=
+
+Audit trail
+-----------
+1/1 Σ Carrying amount of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 390 included → 390 = 390
+1/2 CGU carrying amount is nonnegative [Workshop CGU]
+    Formula: (>= carrying-amount 0)
+    Working: (>= carrying-amount 0) = true = ✓
+1/4 Remaining useful life is positive [Workshop CGU]
+    Formula: (> remaining-life 0)
+    Working: (> remaining-life 0) = true = ✓
+1/5 Weighting based on useful life [Workshop CGU]
+    Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
+    Working: (dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 1.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 1.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 1
+1/6 Σ Carrying amount after weighting (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 390.0000 included → 390.0000 = 390
+1/6 Carrying amount after weighting [Workshop CGU]
+    Formula: (* carrying-amount weighting)
+    Working: (* carrying-amount weighting) = 390.0000 = 390
+1/7 Σ Pro-rata allocation factor (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 1.000000 included → 1.000000 = 100.0 %
+1/7 Pro-rata allocation factor [Workshop CGU]
+    Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
+    Working: (dim/sum all.weighted-amount) = 390.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 1.000000 = 100.0 %
+1/8 Σ Allocated shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 0.00 included → 0.00 = –
+1/8 Allocated shared facilities [Workshop CGU]
+    Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
+    Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:Workshop 0.00} = –
+1/9 Σ Carrying amount after allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 390.00 included → 390.00 = 390
+1/9 Carrying amount after allocation [Workshop CGU]
+    Formula: carrying-amount + corporate-share
+    Working: 390 + 0.00 = 390
+2/1 Σ Projected pre-tax cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, year=P1] 0 excluded; [cgu=Workshop, year=P2] 0 excluded; [cgu=Workshop, year=P3] 0 excluded → 0 = –
+2/3 Σ Discounted cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, year=P1] 0 excluded; [cgu=Workshop, year=P2] 0 excluded; [cgu=Workshop, year=P3] 0 excluded → 0 = –
+3/1 Σ Carrying amount (including allocated corporate asset) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 390.00 included → 390.00 = 390
+3/2 Σ Value in use (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 300 included → 300 = 300
+3/2 Value in use [Workshop CGU]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 300 → selected branch: cgu.value-in-use = 300
+3/3 Σ Recoverable amount (higher of value in use and FVLCD) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 300 included → 300 = 300
+3/3 Recoverable amount (higher of value in use and FVLCD) [Workshop CGU]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 300; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 300
+3/4 Σ Impairment loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 90.00 included → 90.00 = 90
+3/4 Impairment loss [Workshop CGU]
+    Formula: (max 0 (- tested-amount recoverable-amount))
+    Working: (- tested-amount recoverable-amount) = 90.00 → (max 0 (- tested-amount recoverable-amount)) = 90.00 = 90
+4/1 Σ To goodwill (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 30 included → 30 = 30
+4/1 To goodwill [Workshop CGU]
+    Formula: (min impairment-loss (or cgu.goodwill 0))
+    Working: (or cgu.goodwill 0) = 30 → (min impairment-loss (or cgu.goodwill 0)) = 30 = 30
+4/2 Σ Loss assigned to shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 0.00 included → 0.00 = –
+4/2 Loss assigned to shared facilities [Workshop CGU]
+    Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
+    Working: (- impairment-loss loss-to-goodwill) = 60.00 → (or cgu.goodwill 0) = 30 → (- carrying-amount (or cgu.goodwill 0)) = 360 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 0.00, :own 60.00} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 0.00 = –
+4/3 Σ To the other assets of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 60.00 included → 60.00 = 60
+4/3 To the other assets of the CGU [Workshop CGU]
+    Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
+    Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 60.00 = 60
+4/4 Σ Impairment loss allocated (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 90.00 included → 90.00 = 90
+4/4 Impairment loss allocated [Workshop CGU]
+    Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
+    Working: 30 + 0.00 + 60.00 = 90
+4/5 Impairment loss agrees to its allocation [Workshop CGU]
+    Formula: impairment-loss ≈ loss-allocated (± 0.01)
+    Working: impairment-loss = 90.00; loss-allocated = 90.00 → 90.00 − 90.00 = 0.00 (± 0.01) = –
+5/1 Σ Asset carrying amount before the loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, asset=Machine] 120 included; [cgu=Workshop, asset=Building] 180 included; [cgu=Workshop, asset=Equipment] 60 included → 360 = 360.00
+5/2 Σ Higher of FVLCD, value in use and zero (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, asset=Machine] 110 included; [cgu=Workshop, asset=Building] 130 included; [cgu=Workshop, asset=Equipment] 42 included → 282 = 282.00
+5/2 Higher of FVLCD, value in use and zero [Workshop CGU / Machine]
+    Formula: (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))
+    Working: (or asset.asset-fvlcd 0) = 105 → (or asset.asset-value-in-use 0) = 110 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 110 = 110.00
+5/2 Higher of FVLCD, value in use and zero [Workshop CGU / Building]
+    Formula: (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))
+    Working: (or asset.asset-fvlcd 0) = 130 → (or asset.asset-value-in-use 0) = 130 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 130 = 130.00
+5/2 Higher of FVLCD, value in use and zero [Workshop CGU / Equipment]
+    Formula: (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0))
+    Working: (or asset.asset-fvlcd 0) = 42 → (or asset.asset-value-in-use 0) = 42 → (max 0 (or asset.asset-fvlcd 0) (or asset.asset-value-in-use 0)) = 42 = 42.00
+5/3 Σ Loss after cap and redistribution (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, asset=Machine] 10.00 included; [cgu=Workshop, asset=Building] 37.50 included; [cgu=Workshop, asset=Equipment] 12.50 included → 60.00 = 60.00
+5/3 Loss after cap and redistribution [Workshop CGU / Machine]
+    Formula: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding)
+    Working: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 10.00, :Building 37.50, :Equipment 12.50} = 10.00
+5/3 Loss after cap and redistribution [Workshop CGU / Building]
+    Formula: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding)
+    Working: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 10.00, :Building 37.50, :Equipment 12.50} = 37.50
+5/3 Loss after cap and redistribution [Workshop CGU / Equipment]
+    Formula: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding)
+    Working: (alloc/capped loss-to-own-assets asset-base asset-capacity rounding) = {:Machine 10.00, :Building 37.50, :Equipment 12.50} = 12.50
+5/4 Σ Asset carrying amount after the capped allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop, asset=Machine] 110.00 included; [cgu=Workshop, asset=Building] 142.50 included; [cgu=Workshop, asset=Equipment] 47.50 included → 300.00 = 300.00
+5/4 Asset carrying amount after the capped allocation [Workshop CGU / Machine]
+    Formula: individual-carrying − asset-allocated-loss
+    Working: 120 − 10.00 = 110.00
+5/4 Asset carrying amount after the capped allocation [Workshop CGU / Building]
+    Formula: individual-carrying − asset-allocated-loss
+    Working: 180 − 37.50 = 142.50
+5/4 Asset carrying amount after the capped allocation [Workshop CGU / Equipment]
+    Formula: individual-carrying − asset-allocated-loss
+    Working: 60 − 12.50 = 47.50
+5/5 Loss does not reduce the asset below its floor [Workshop CGU / Machine]
+    Formula: (>= individual-closing individual-floor)
+    Working: (>= individual-closing individual-floor) = true = ✓
+5/5 Loss does not reduce the asset below its floor [Workshop CGU / Building]
+    Formula: (>= individual-closing individual-floor)
+    Working: (>= individual-closing individual-floor) = true = ✓
+5/5 Loss does not reduce the asset below its floor [Workshop CGU / Equipment]
+    Formula: (>= individual-closing individual-floor)
+    Working: (>= individual-closing individual-floor) = true = ✓
+6/1 Σ Loss assigned to own assets (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 60.00 included → 60.00 = 60
+6/2 Σ Available individual-asset loss capacity (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 78 included → 78 = 78
+6/2 Available individual-asset loss capacity [Workshop CGU]
+    Formula: (dim/sum asset-capacity)
+    Working: (dim/sum asset-capacity) = 78 = 78
+6/3 Σ Loss actually assigned within the asset caps (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 60.00 included → 60.00 = 60
+6/3 Loss actually assigned within the asset caps [Workshop CGU]
+    Formula: (dim/sum asset-allocated-loss)
+    Working: (dim/sum asset-allocated-loss) = 60.00 = 60
+6/4 Σ Loss exceeding the available asset capacities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 0.00 included → 0.00 = –
+6/4 Loss exceeding the available asset capacities [Workshop CGU]
+    Formula: (- own-loss-to-allocate own-capped-loss)
+    Working: (- own-loss-to-allocate own-capped-loss) = 0.00 = –
+6/5 Σ Own assets after capped loss allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=Workshop] 300.00 included → 300.00 = 300
+6/5 Own assets after capped loss allocation [Workshop CGU]
+    Formula: (dim/sum individual-closing)
+    Working: (dim/sum individual-closing) = 300.00 = 300
+6/6 Individual asset caps can absorb the requested loss [Workshop CGU]
+    Formula: (>= own-capped-capacity own-loss-to-allocate)
+    Working: (>= own-capped-capacity own-loss-to-allocate) = true = ✓
+6/7 Requested loss agrees to the capped allocation [Workshop CGU]
+    Formula: own-loss-to-allocate ≈ own-capped-loss (± 0.01)
+    Working: own-loss-to-allocate = 60.00; own-capped-loss = 60.00 → 60.00 − 60.00 = 0.00 (± 0.01) = –
+7/1 Carrying amount of the CGUs (A, B, C)
+    Formula: (dim/sum carrying-amount)
+    Working: (dim/sum carrying-amount) = 390 = 390
+7/4 Carrying amount before step-1 losses
+    Formula: group-cgu-assets + group-building + group-research
+    Working: 390 + 0 + 0 = 390
+7/5 Impairment losses recognised in steps 2–3
+    Formula: (dim/sum loss-allocated)
+    Working: (dim/sum loss-allocated) = 90.00 = 90
+7/6 Carrying amount of the group after step 1
+    Formula: group-before − group-step1-losses
+    Working: 390 − 90.00 = 300
+7/8 Impairment loss of the group
+    Formula: (max 0 (- group-carrying-amount group-ra))
+    Working: (- group-carrying-amount group-ra) = 0.00 → (max 0 (- group-carrying-amount group-ra)) = 0.00 = –
+8/1 Goodwill
+    Formula: (dim/sum loss-to-goodwill)
+    Working: (dim/sum loss-to-goodwill) = 30 = 30
+8/2 Other assets of the CGUs
+    Formula: (dim/sum loss-to-own-assets)
+    Working: (dim/sum loss-to-own-assets) = 60.00 = 60
+8/3 Shared facilities
+    Formula: (dim/sum loss-to-corporate)
+    Working: (dim/sum loss-to-corporate) = 0.00 = –
+8/5 Total impairment loss
+    Formula: summary-goodwill + summary-own + summary-corporate + summary-group
+    Working: 30 + 60.00 + 0.00 + 0.00 = 90

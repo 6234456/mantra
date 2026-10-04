@@ -7,6 +7,7 @@ import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.api.AuditOptions
 import com.xqiou.mantra.core.api.CalculationResult
+import com.xqiou.mantra.core.api.RecalculationStats
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.InputDecl
@@ -24,20 +25,10 @@ import com.xqiou.mantra.core.view.TraceOption
 import com.xqiou.mantra.core.view.TracePart
 import com.xqiou.mantra.core.view.TraceRef
 import com.xqiou.mantra.core.view.ValidationResult
-import com.xqiou.normein.dsl.runtime.DslEvaluationEngine
-import com.xqiou.normein.dsl.runtime.DslEvaluationInput
-import com.xqiou.normein.dsl.runtime.DslEvaluationOutcome
-import com.xqiou.normein.dsl.runtime.DslEvaluationRequest
 import com.xqiou.normein.dsl.runtime.DslInputCandidate
 import com.xqiou.normein.dsl.runtime.DslInputRootCandidate
-import com.xqiou.normein.dsl.trace.DslTraceLimits
-import com.xqiou.normein.dsl.trace.DslTracePolicy
-import com.xqiou.normein.dsl.trace.DslTraceStatus
-import com.xqiou.normein.dsl.type.DslType
 import com.xqiou.normein.dsl.type.DslTypes
-import com.xqiou.normein.dsl.value.DslValue
 import com.xqiou.normein.dsl.value.DslValueConstructionException
-import com.xqiou.normein.dsl.value.DslValueConstructionResult
 import com.xqiou.normein.dsl.value.DslValues
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -45,61 +36,183 @@ import java.time.format.DateTimeParseException
 
 /** Executes a [CalculationPlan] vertex by vertex in dependency order. */
 internal class Evaluator(
-    private val plan: CalculationPlan,
+    private var plan: CalculationPlan,
     private val sink: DiagnosticSink,
     private val explainTarget: Pair<String, Coord>? = null,
     auditOptions: AuditOptions? = null,
-) {
-    private val engine = DslEvaluationEngine()
-    private val environment = MantraKernel.environment
+) : AutoCloseable {
+    private val kernel = KernelExecution()
+    private val inputs = KernelInputs({ plan }, sink)
     private val inputIdentity = MantraKernel.inputIdentity(plan.case.id, plan.case.source + "|" + plan.schema.id)
     private val members = linkedMapOf<String, List<Member>>()
+    private data class MemberKeys(val domain: List<Member>, val keys: Set<String>)
+    private val memberKeyCache = hashMapOf<String, MemberKeys>()
     private val values = hashMapOf<String, MutableMap<Coord, Value>>()
     private val active = hashMapOf<String, MutableMap<Coord, Boolean>>()
-    private val ratios = RatioAggregation(sink, { values[it].orEmpty() }, { id, at -> active[id]?.get(at) == true })
+    private val periodDomains = linkedMapOf<String, ResolvedPeriodDimension>()
+    private val reductions = ReductionService(
+        { id -> reductionNode(plan.valueVertices.getValue(id)) },
+        { members[it].orEmpty() },
+        sink,
+        { id ->
+            plan.dimensions[id]?.parentDimension?.let { parent ->
+                val column = plan.dimensions.getValue(id).parentKeyColumn ?: "parent-key"
+                parent to members[id].orEmpty().mapNotNull { member ->
+                    memberKey(member.record[column])?.let { member.key to it }
+                }.toMap()
+            }
+        },
+    )
+    private val graph = MemberGraph(sink, { MemberPlanner.describe(plan, it) }, { MemberPlanner.location(plan, it) })
+    private val spreadOutcomes = hashMapOf<Pair<String, Coord>, Outcome?>()
+    private val spreadFailures = hashMapOf<Pair<String, Coord>, ExplainTrace?>()
     private val traces = hashMapOf<String, MutableMap<Coord, NodeTrace>>()
     private val guardValues = hashMapOf<String, MutableMap<Coord, Boolean>>()
     private var explainTrace: ExplainTrace? = null
     private val audit = AuditCapture(auditOptions, explainTarget, sink)
     private var lastFailedExplanation: ExplainTrace? = null
+    private val runOwner = Any()
+    private var invalidated = 0
+    private var fullRebuild = true
+    var lastRun = RecalculationStats(0, 0, 0, true, 0, 0)
+        private set
 
     private class Outcome(val value: Value, val references: List<TraceRef>, val explainTrace: ExplainTrace?)
 
     fun run(): CalculationResult {
-        for (vertex in plan.order) {
-            when (vertex) {
-                is DimensionVertex -> members[vertex.id] = resolveMembers(vertex)
-                is ConditionVertex -> evaluateGuard(vertex)
-                is ParamVertex -> store(vertex, emptyList(), vertex.value, NodeTrace.Param(vertex.source))
-                is InputVertex -> bindInput(vertex)
-                is LineVertex -> evaluateLine(vertex)
-                is TotalVertex -> evaluateTotal(vertex)
-                is ChoiceVertex -> evaluateChoice(vertex)
-                is CheckVertex -> evaluateCheck(vertex)
-                is ReconcileVertex -> evaluateReconcile(vertex)
-                is InputValidationVertex -> validateRequirements(vertex)
+        val evaluatedBefore = graph.evaluations
+        val formulasBefore = kernel.valueOnlyEvaluations + kernel.auditedEvaluations
+        val retained = graph.completedTasks.size
+        sink.removeOwned(setOf(runOwner))
+        plan.dimensions.keys.forEach(::ensureDomain)
+        for (vertex in plan.valueVertices.values) {
+            coords(vertex.dims).forEach { ensureValue(vertex, it) }
+        }
+        plan.vertices.values.filterIsInstance<InputValidationVertex>().forEach { vertex ->
+            coords(vertex.input.dims).forEach { coord ->
+                graph.ensure(MemberTask.Validation(vertex.input.id, coord)) {
+                    ensureValue(vertex.input, coord)
+                    validateRequirements(vertex, coord)
+                }
             }
         }
-        validateTableReferences()
-        val nodes = plan.valueVertices.values.associate { vertex ->
-            val aggregateTrace = if ((vertex as? LineVertex)?.item?.aggregate == AggregateRule.RATIO) {
-                ratios.aggregate(vertex, emptyList(), emptyList())
-            } else {
-                null
+        sink.scoped(runOwner) { validateTableReferences() }
+        val nodes = sink.scoped(runOwner) {
+            plan.valueVertices.values.associate { vertex ->
+                val reduction = reductions.reduce(vertex.id)
+                val aggregateTrace = reduction.trace as? com.xqiou.mantra.core.view.RatioAggregateTrace
+                vertex.id to NodeResult(
+                    vertex,
+                    values[vertex.id].orEmpty(),
+                    active[vertex.id].orEmpty(),
+                    traces[vertex.id].orEmpty(),
+                    aggregateTrace?.result,
+                    aggregateTrace,
+                    reduction,
+                )
             }
-            vertex.id to NodeResult(
-                vertex,
-                values[vertex.id].orEmpty(),
-                active[vertex.id].orEmpty(),
-                traces[vertex.id].orEmpty(),
-                aggregateTrace?.result,
-                aggregateTrace,
-            )
         }
+        lastRun = RecalculationStats(
+            graph.evaluations - evaluatedBefore,
+            retained,
+            invalidated,
+            fullRebuild,
+            kernel.valueOnlyEvaluations + kernel.auditedEvaluations - formulasBefore,
+            kernel.sessionCount,
+        )
+        invalidated = 0
+        fullRebuild = false
         return CalculationResult(plan, members, nodes, sink.all, explainTrace)
     }
 
-    // ── Dimensions and guards ──────────────────────────────────────────────────────────────────
+    fun recalculate(next: CalculationPlan, planningDiagnostics: List<Diagnostic>): CalculationResult {
+        check(explainTarget == null) { "Explain evaluators cannot be reused for editing" }
+        val changed = IncrementalInvalidation.changed(plan, next, graph.completedTasks)
+        val dirty = graph.invalidate(changed)
+        invalidated = dirty.size
+        sink.removeOwned(dirty)
+        sink.replaceUnowned(planningDiagnostics)
+        dirty.forEach { task ->
+            when (task) {
+                is MemberTask.Value -> {
+                    values[task.id]?.remove(task.coord)
+                    active[task.id]?.remove(task.coord)
+                    traces[task.id]?.remove(task.coord)
+                }
+                is MemberTask.Domain -> {
+                    members.remove(task.id)
+                    periodDomains.remove(task.id)
+                }
+                is MemberTask.Guard -> guardValues[task.id]?.remove(task.coord)
+                is MemberTask.Spread -> {
+                    spreadOutcomes.remove(task.id to task.coord)
+                    spreadFailures.remove(task.id to task.coord)
+                }
+                else -> Unit
+            }
+        }
+        reductions.clear()
+        plan = next
+        return run()
+    }
+
+    // Dimensions and guards
+
+    private fun ensureDomain(id: String) {
+        graph.ensure(MemberTask.Domain(id)) {
+            val vertex = plan.vertices.getValue(id) as DimensionVertex
+            val decl = vertex.decl
+            decl.parentDimension?.let(::ensureDomain)
+            val periodSpec = decl.periods
+            if (periodSpec != null) {
+                val resolved = PeriodMemberResolver(sink).resolve(
+                    id,
+                    periodSpec,
+                    decl.location,
+                    decl.parentDimension?.let(periodDomains::get),
+                )
+                sink.throwIfStructuralErrors()
+                periodDomains[id] = checkNotNull(resolved)
+                members[id] = resolved.members
+            } else {
+                decl.fromTable?.let { ensureSlice(plan.valueVertices.getValue(it), emptyMap()) }
+                members[id] = resolveMembers(vertex)
+            }
+        }
+    }
+
+    private fun ensureValue(vertex: ValueVertex, coord: Coord) {
+        graph.ensure(MemberTask.Value(vertex.id, coord)) {
+            vertex.dims.forEach(::ensureDomain)
+            vertex.ratio?.let { ratio ->
+                listOf(ratio.numerator, ratio.denominator).forEach { id ->
+                    ensureValue(plan.valueVertices.getValue(id), coord)
+                }
+            }
+            when (vertex) {
+                is ParamVertex -> store(vertex, coord, vertex.value, NodeTrace.Param(vertex.source))
+                is InputVertex -> bindInput(vertex, coord)
+                is LineVertex -> evaluateLine(vertex, coord)
+                is TotalVertex -> evaluateTotal(vertex, coord)
+                is ChoiceVertex -> evaluateChoice(vertex, coord)
+                is CheckVertex -> evaluateCheck(vertex, coord)
+                is ReconcileVertex -> evaluateReconcile(vertex, coord)
+            }
+        }
+    }
+
+    private fun ensureSlice(vertex: ValueVertex, fixed: Map<String, String>) {
+        val aligned = fixed.filterKeys { it in vertex.dims }.toMap()
+        graph.ensure(MemberTask.Slice(vertex.id, aligned)) {
+            coords(vertex.dims, aligned).forEach { ensureValue(vertex, it) }
+        }
+    }
+
+    private fun reductionNode(vertex: ValueVertex): ReductionNode = ReductionNode(
+        vertex.id, vertex.dims, vertex.type, vertex.aggregate, vertex.ratio, vertex.boundary,
+        values[vertex.id].orEmpty(), active[vertex.id].orEmpty(), vertex.location,
+        vertex.isValidation, vertex is TotalVertex, vertex.undefinedValues,
+    )
 
     private fun memberKey(raw: Value?): String? = when (raw) {
         is Value.Kw -> raw.name
@@ -150,7 +263,8 @@ internal class Evaluator(
                 if (target == null || members[parent].orEmpty().none { it.key == target }) {
                     sink.error(
                         "MANTRA-DIMENSION-PARENT",
-                        "Member $key of ${decl.id} refers to ${target ?: "no key"} in parent dimension $parent, which has no such member",
+                        "Member $key of ${decl.id} refers to ${target ?: "no key"} in parent dimension $parent, " +
+                            "which has no such member",
                         decl.location,
                     )
                 }
@@ -199,27 +313,48 @@ internal class Evaluator(
         }
     }
 
-    private fun coords(dims: List<String>): List<Coord> = dims.fold(listOf(emptyList())) { acc, dim ->
-        val keys = members[dim].orEmpty().map { it.key }
-        acc.flatMap { prefix -> keys.map { prefix + it } }
+    private fun memberKeys(id: String): Set<String> {
+        val domain = members[id].orEmpty()
+        val cached = memberKeyCache[id]
+        if (cached?.domain === domain) return cached.keys
+        return domain.map { it.key }.toSet().also { memberKeyCache[id] = MemberKeys(domain, it) }
+    }
+
+    private fun coords(dims: List<String>, fixed: Map<String, String> = emptyMap()): List<Coord> {
+        dims.forEach(::ensureDomain)
+        return dims.fold(listOf(emptyList())) { acc, dim ->
+            val selected = fixed[dim]
+            val keys = if (selected == null) {
+                members[dim].orEmpty().map { it.key }
+            } else {
+                if (selected in memberKeys(dim)) listOf(selected) else emptyList()
+            }
+            acc.flatMap { prefix -> keys.map { prefix + it } }
+        }
     }
 
     private fun project(coord: Coord, from: List<String>, to: List<String>): Coord = to.map { coord[from.indexOf(it)] }
 
-    private fun evaluateGuard(vertex: ConditionVertex) {
-        val target = guardValues.getOrPut(vertex.id) { linkedMapOf() }
-        val compiled = vertex.compiled ?: return
-        coords(vertex.dims).forEach { coord ->
-            target[coord] = evaluate(compiled, coord, vertex.sectionId)?.value?.truthy ?: false
+    private fun evaluateGuard(vertex: ConditionVertex, coord: Coord) {
+        graph.ensure(MemberTask.Guard(vertex.id, coord)) {
+            vertex.dims.forEach(::ensureDomain)
+            val compiled = vertex.compiled ?: return@ensure
+            guardValues.getOrPut(vertex.id) { linkedMapOf() }[coord] =
+                evaluate(compiled, coord, vertex.sectionId)?.value?.truthy ?: false
         }
     }
 
     private fun guardsHold(vertex: ValueVertex, coord: Coord): Boolean {
+        vertex.guards.forEach { id ->
+            (plan.vertices.getValue(id) as ConditionVertex).dims.forEach(::ensureDomain)
+        }
         val aligned = SectionGuards.align(plan, vertex, coord) { dim -> members[dim].orEmpty().map { it.key } }
         val inherited = aligned.assignments.any { assignment ->
             vertex.guards.all { guardId ->
                 val guard = plan.vertices.getValue(guardId) as ConditionVertex
-                guardValues[guardId]?.get(guard.dims.map(assignment::getValue)) == true
+                val guardCoord = guard.dims.map(assignment::getValue)
+                evaluateGuard(guard, guardCoord)
+                guardValues[guardId]?.get(guardCoord) == true
             }
         }
         if (!inherited) return false
@@ -227,7 +362,7 @@ internal class Evaluator(
         return evaluate(own, coord, vertex.id)?.value?.truthy ?: false
     }
 
-    // ── Value vertices ─────────────────────────────────────────────────────────────────────────
+    // Value vertices
 
     private fun store(vertex: ValueVertex, coord: Coord, value: Value, trace: NodeTrace, isActive: Boolean = true) {
         values.getOrPut(vertex.id) { linkedMapOf() }[coord] = value
@@ -240,10 +375,10 @@ internal class Evaluator(
 
     private fun neutral(type: ValueType): Value = if (type.isNumeric) Value.ZERO else Value.Nil
 
-    private fun bindInput(vertex: InputVertex) {
+    private fun bindInput(vertex: InputVertex, at: Coord) {
         val decl = vertex.decl
         val supplied = plan.case.inputs[vertex.id]
-        for (coord in coords(vertex.dims)) {
+        for (coord in listOf(at)) {
             if (!guardsHold(vertex, coord)) {
                 storeInactive(vertex, coord, "condition not met")
                 continue
@@ -349,9 +484,9 @@ internal class Evaluator(
     private fun isMissing(value: Value?): Boolean = value == null || value == Value.Nil ||
         value is Value.Text && value.value.isBlank()
 
-    private fun validateRequirements(vertex: InputValidationVertex) {
+    private fun validateRequirements(vertex: InputValidationVertex, at: Coord) {
         val input = vertex.input
-        for (coord in coords(input.dims)) {
+        for (coord in listOf(at)) {
             if (active[input.id]?.get(coord) != true) continue
             val supplied = if (input.dims.isEmpty()) {
                 plan.case.inputs[input.id]
@@ -397,9 +532,9 @@ internal class Evaluator(
         }
     }
 
-    private fun evaluateCheck(vertex: CheckVertex) {
+    private fun evaluateCheck(vertex: CheckVertex, at: Coord) {
         val formula = vertex.compiled ?: return
-        for (coord in coords(vertex.dims)) {
+        for (coord in listOf(at)) {
             if (!guardsHold(vertex, coord)) {
                 store(
                     vertex,
@@ -434,8 +569,8 @@ internal class Evaluator(
         }
     }
 
-    private fun evaluateReconcile(vertex: ReconcileVertex) {
-        for (coord in coords(vertex.dims)) {
+    private fun evaluateReconcile(vertex: ReconcileVertex, at: Coord) {
+        for (coord in listOf(at)) {
             if (!guardsHold(vertex, coord)) {
                 store(
                     vertex,
@@ -480,7 +615,8 @@ internal class Evaluator(
                 businessFinding(
                     vertex.item.severity,
                     "MANTRA-RECONCILE-FAILED",
-                    "${vertex.label}: difference ${reconciliation!!.difference.toPlainString()} exceeds tolerance ${vertex.item.tolerance}",
+                    "${vertex.label}: difference ${reconciliation!!.difference.toPlainString()} " +
+                        "exceeds tolerance ${vertex.item.tolerance}",
                     vertex.location,
                     vertex.id,
                     coord,
@@ -628,108 +764,68 @@ internal class Evaluator(
         return Value.MapV(converted)
     }
 
-    private fun evaluateLine(vertex: LineVertex) {
+    private fun evaluateLine(vertex: LineVertex, coord: Coord) {
         val compiled = vertex.compiled ?: return
         val item = vertex.item
-        if (item.spread) {
-            val context = vertex.dims.dropLast(1)
-            val spreadDim = vertex.dims.last()
-            for (ctx in coords(context)) {
-                val outcome = evaluate(compiled, ctx, vertex.id)
-                val failureTrace = lastFailedExplanation
-                val map = outcome?.value as? Value.MapV
-                for (member in members[spreadDim].orEmpty()) {
-                    val coord = ctx + member.key
-                    if (!guardsHold(vertex, coord)) {
-                        storeInactive(vertex, coord, "condition not met")
-                        continue
-                    }
-                    if (outcome == null) {
-                        store(
-                            vertex,
-                            coord,
-                            neutral(vertex.type),
-                            NodeTrace.Failed("formula failed", failureTrace),
-                            isActive = false,
-                        )
-                        continue
-                    }
-                    val raw = map?.entries?.get(Value.Kw(member.key)) ?: Value.ZERO
-                    store(
-                        vertex,
-                        coord,
-                        round(coerce(raw, vertex), item.rounding),
-                        NodeTrace.Computed(
-                            outcome.references,
-                            raw,
-                            item.rounding,
-                            spread = true,
-                            explanation = outcome.explainTrace,
-                        ),
-                    )
-                    if (explainTarget == (vertex.id to coord)) explainTrace = outcome.explainTrace
-                }
-            }
+        if (!guardsHold(vertex, coord)) {
+            storeInactive(vertex, coord, "condition not met")
             return
         }
-        for (coord in coords(vertex.dims)) {
-            if (!guardsHold(vertex, coord)) {
-                storeInactive(vertex, coord, "condition not met")
-                continue
+        val outcome = if (item.spread) {
+            val context = coord.dropLast(1)
+            val key = vertex.id to context
+            graph.ensure(MemberTask.Spread(vertex.id, context)) {
+                spreadOutcomes[key] = evaluate(compiled, context, vertex.id)
+                spreadFailures[key] = lastFailedExplanation
             }
-            val outcome = evaluate(compiled, coord, vertex.id)
-            if (outcome == null) {
-                store(
-                    vertex,
-                    coord,
-                    neutral(vertex.type),
-                    NodeTrace.Failed("formula failed", lastFailedExplanation),
-                    isActive = false,
-                )
-                continue
-            }
-            val value = round(coerce(outcome.value, vertex), item.rounding)
-            if (explainTarget == (vertex.id to coord)) explainTrace = outcome.explainTrace
-            store(
-                vertex,
-                coord,
-                value,
-                NodeTrace.Computed(
-                    outcome.references,
-                    outcome.value,
-                    item.rounding,
-                    spread = false,
-                    explanation = outcome.explainTrace,
-                ),
-            )
+            lastFailedExplanation = spreadFailures[key]
+            spreadOutcomes[key]
+        } else {
+            evaluate(compiled, coord, vertex.id)
         }
+        if (outcome == null) {
+            store(vertex, coord, neutral(vertex.type), NodeTrace.Failed("formula failed", lastFailedExplanation), false)
+            return
+        }
+        val raw = if (item.spread) {
+            (outcome.value as? Value.MapV)?.entries?.get(Value.Kw(coord.last())) ?: Value.ZERO
+        } else {
+            outcome.value
+        }
+        store(
+            vertex,
+            coord,
+            round(coerce(raw, vertex), item.rounding),
+            NodeTrace.Computed(outcome.references, raw, item.rounding, item.spread, outcome.explainTrace),
+        )
+        if (explainTarget == (vertex.id to coord)) explainTrace = outcome.explainTrace
     }
 
-    private fun evaluateTotal(vertex: TotalVertex) {
-        for (coord in coords(vertex.dims)) {
+    private fun evaluateTotal(vertex: TotalVertex, at: Coord) {
+        for (coord in listOf(at)) {
             if (!guardsHold(vertex, coord)) {
                 storeInactive(vertex, coord, "condition not met")
                 continue
             }
             val parts = vertex.components.map { component ->
                 val source = plan.valueVertices.getValue(component.vertexId)
-                val aggregate = if (source is LineVertex && source.item.ratio != null &&
-                    source.dims.size > vertex.dims.size
-                ) {
-                    ratios.aggregate(source, vertex.dims, coord)
-                } else {
-                    null
+                val fixed = vertex.dims.zip(coord).toMap()
+                ensureSlice(source, fixed)
+                val reduced = reductions.reduce(source.id, fixed)
+                val aggregate = reduced.trace as? com.xqiou.mantra.core.view.RatioAggregateTrace
+                val contribution = when {
+                    aggregate?.undefinedReason == "no-active-members" -> BigDecimal.ZERO
+                    reduced.value == null -> BigDecimal.ZERO
+                    reduced.value == Value.Nil -> null
+                    else -> (reduced.value as? Value.Num)?.value
                 }
                 TracePart(
                     component.vertexId,
                     component.sign,
-                    when {
-                        aggregate?.undefinedReason == "no-active-members" -> BigDecimal.ZERO
-                        aggregate != null -> aggregate.result
-                        else -> contribution(source, vertex.dims, coord)
-                    },
+                    contribution,
                     source.dims.size > vertex.dims.size,
                     aggregate,
+                    reduced.trace,
                 )
             }
             val sum = if (parts.any { it.value == null }) {
@@ -741,47 +837,15 @@ internal class Evaluator(
         }
     }
 
-    /** Value of [source] seen from context [dims] at [coord]; extra dimensions are cross-footed. */
-    private fun contribution(source: ValueVertex, dims: List<String>, coord: Coord): BigDecimal? {
-        if (source is LineVertex && source.item.ratio != null && source.dims.size > dims.size) {
-            val fixed = dims.zip(coord).toMap()
-            val anyApplicable = active[source.id].orEmpty().any { (at, applies) ->
-                applies &&
-                    source.dims.withIndex().all { (index, dim) -> fixed[dim]?.let { it == at[index] } ?: true }
-            }
-            if (!anyApplicable) return BigDecimal.ZERO
-            return ratios.aggregate(source, dims, coord).result
-        }
-        val stored = values[source.id].orEmpty()
-        if (source.dims.size == dims.size) {
-            val at = project(coord, dims, source.dims)
-            return if (undefined(source, at, stored[at])) null else stored[at].orZero()
-        }
-        val fixed = dims.mapIndexed { index, dim -> dim to coord[index] }.toMap()
-        val selected = stored.entries.filter { (sourceCoord, _) ->
-            source.dims.withIndex().all { (index, dim) ->
-                fixed[dim]?.let { it == sourceCoord[index] }
-                    ?: true
-            }
-        }
-        if (selected.any { (at, value) -> undefined(source, at, value) }) return null
-        return selected.fold(BigDecimal.ZERO) { acc, (_, value) -> acc + value.orZero() }
-    }
-
-    private fun undefined(source: ValueVertex, coord: Coord, value: Value?): Boolean = value == Value.Nil &&
-        active[source.id]?.get(coord) == true &&
-        (source is TotalVertex || source is LineVertex && source.item.ratio != null)
-
-    private fun Value?.orZero(): BigDecimal = (this as? Value.Num)?.value ?: BigDecimal.ZERO
-
-    private fun evaluateChoice(vertex: ChoiceVertex) {
+    private fun evaluateChoice(vertex: ChoiceVertex, at: Coord) {
         val item = vertex.item
-        for (coord in coords(vertex.dims)) {
+        for (coord in listOf(at)) {
             if (!guardsHold(vertex, coord)) {
                 storeInactive(vertex, coord, "condition not met")
                 continue
             }
             val references = mutableListOf<TraceRef>()
+            var undefinedCandidate = false
             val outcomes = vertex.options.map { option ->
                 val condition = option.condition?.let { evaluate(it, coord, vertex.id) }
                 val conditionTrace = if (option.condition !=
@@ -793,6 +857,7 @@ internal class Evaluator(
                 }
                 val available = option.condition == null || condition?.value?.truthy == true
                 val result = if (available) evaluate(option.formula, coord, vertex.id) else null
+                if (available && result?.value == Value.Nil) undefinedCandidate = true
                 val optionTrace = if (available) result?.explainTrace ?: lastFailedExplanation else null
                 result?.let { references += it.references }
                 TraceOption(
@@ -814,7 +879,11 @@ internal class Evaluator(
                 }
                 if (better) selected = candidate
             }
-            val raw = selected?.value ?: Value.ZERO
+            val raw = selected?.value ?: if (undefinedCandidate && (vertex.boundary != null || vertex.ratio != null)) {
+                Value.Nil
+            } else {
+                Value.ZERO
+            }
             if (explainTarget == (vertex.id to coord)) {
                 explainTrace = selected?.explanation
             }
@@ -829,7 +898,13 @@ internal class Evaluator(
 
     private fun coerce(value: Value, vertex: ValueVertex): Value {
         if (!vertex.type.isNumeric) return value
-        if (value == Value.Nil && vertex is LineVertex && vertex.item.ratio != null) return Value.Nil
+        if (value == Value.Nil && (
+                vertex.ratio != null || vertex.boundary != null ||
+                    vertex is LineVertex && vertex.compiled?.previousBindings?.isNotEmpty() == true
+                )
+        ) {
+            return Value.Nil
+        }
         return when (value) {
             is Value.Num -> value
             Value.Nil -> Value.ZERO
@@ -854,9 +929,10 @@ internal class Evaluator(
         value
     }
 
-    // ── Normein evaluation ─────────────────────────────────────────────────────────────────────
+    // Normein evaluation
 
     private fun rootValue(vertex: ValueVertex, contextDims: List<String>, coord: Coord): Value {
+        ensureSlice(vertex, contextDims.zip(coord).toMap())
         val stored = values[vertex.id].orEmpty()
         val extra = vertex.dims.filter { it !in contextDims }
         if (extra.isEmpty()) return stored[project(coord, contextDims, vertex.dims)] ?: neutral(vertex.type)
@@ -882,66 +958,6 @@ internal class Evaluator(
         }
         return build(extra, fixed.filterKeys { it in vertex.dims })
     }
-
-    private fun toDsl(vertex: ValueVertex, value: Value, depth: Int): DslValue {
-        if (depth > 0 && value is Value.MapV) {
-            return DslValues.map(value.entries.map { (k, v) -> Values.toDsl(k) to toDsl(vertex, v, depth - 1) })
-        }
-        return when {
-            vertex.type == ValueType.TABLE && value is Value.Vec -> structured(
-                value.items.map { row ->
-                    hostRecord(
-                        (row as Value.MapV).entries.entries.associate { (k, v) ->
-                            (k as Value.Kw).name to
-                                v
-                        },
-                        rowTypes(vertex),
-                    )
-                },
-                DslTypes.vector(DslTypes.ref(plan.types.tableRow.getValue(vertex.id))),
-                vertex.id,
-            )
-            vertex.type == ValueType.INTEGER && value is Value.Num -> Values.toIntegerDsl(value)
-            else -> Values.toDsl(value)
-        }
-    }
-
-    private fun hostRecord(fields: Map<String, Value>, types: Map<String, ValueType>): Map<String, Any?> =
-        fields.filterKeys {
-            it in
-                types
-        }.mapValues { (name, v) ->
-            when {
-                v == Value.Nil -> null
-                types[name] == ValueType.INTEGER && v is Value.Num -> Values.toIntegerDsl(v)
-                else -> Values.toDsl(v)
-            }
-        }
-
-    private val recordTypes: Map<String, Map<String, ValueType>> by lazy {
-        val base = mapOf("key" to ValueType.KEYWORD, "label" to ValueType.TEXT, "index" to ValueType.INTEGER)
-        plan.dimensions.values.associate { dim ->
-            val columns = dim.fromTable?.let { table ->
-                (plan.valueVertices[table] as? InputVertex)?.decl?.columns
-            }.orEmpty()
-            dim.id to (columns.associate { it.name to it.type } + base)
-        }
-    }
-
-    private fun rowTypes(vertex: ValueVertex): Map<String, ValueType> =
-        (vertex as? InputVertex)?.decl?.columns.orEmpty().associate {
-            it.name to
-                it.type
-        }
-
-    private fun structured(host: Any?, type: DslType, what: String): DslValue =
-        when (val result = DslValues.importStructuredHost(host, type, plan.typeSchema)) {
-            is DslValueConstructionResult.Success -> result.value
-            is DslValueConstructionResult.Failure -> {
-                sink.error("MANTRA-RECORD", "Cannot pass $what to the kernel: ${result.violation}")
-                DslValue.Nil
-            }
-        }
 
     private fun evaluate(
         formula: CompiledFormula,
@@ -973,7 +989,23 @@ internal class Evaluator(
     ): Outcome? {
         val roots = mutableListOf<DslInputRootCandidate>()
         val references = mutableListOf<TraceRef>()
+        val bindings = formula.previousBindings.associateBy { it.id }
+        fun isFirst(id: Int): Boolean {
+            val binding = bindings.getValue(id)
+            ensureDomain(binding.periodDimension)
+            val key = coord[formula.dims.indexOf(binding.periodDimension)]
+            return periodDomains.getValue(binding.periodDimension).periods.first().key == key
+        }
+        val dependencies = formula.dependencies.filter { dependency ->
+            dependency.firstFallbackGuards.all(::isFirst)
+        }
+        val currentRoots = dependencies.filter { it.kind == FormulaDependencyKind.CURRENT }.map { it.rootName }.toSet()
+        val allRefs = dependencies.filter { it.kind == FormulaDependencyKind.ALL }.map { it.targetNodeId }.toSet()
+        val dimensions = dependencies.filter { it.kind == FormulaDependencyKind.DIMENSION }
+            .map { it.targetNodeId }.toSet()
+        val relations = dependencies.filter { it.kind == FormulaDependencyKind.RELATION }.map { it.rootName }.toSet()
         for ((root, ref) in formula.rootNames) {
+            if (root !in currentRoots) continue
             val vertex = plan.valueVertices.getValue(ref)
             val value = rootValue(vertex, formula.dims, coord)
             val extra = vertex.dims.count { it !in formula.dims }
@@ -981,9 +1013,10 @@ internal class Evaluator(
                 references +=
                     TraceRef(ref, value, if (extra == 0) TraceRef.Kind.ALIGNED else TraceRef.Kind.MEMBER_MAP)
             }
-            roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(toDsl(vertex, value, extra)))
+            roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(inputs.toDsl(vertex, value, extra)))
         }
-        for (dim in formula.dimRefs) {
+        for (dim in formula.dimRefs.filter { it in dimensions }) {
+            ensureDomain(dim)
             val key = coord[formula.dims.indexOf(dim)]
             val member = members[dim].orEmpty().first { it.key == key }
             references += TraceRef(dim, Value.Text(member.label), TraceRef.Kind.MEMBER)
@@ -991,8 +1024,8 @@ internal class Evaluator(
                 DslInputRootCandidate(
                     dim,
                     DslInputCandidate.ControlledValue(
-                        structured(
-                            hostRecord(member.record, recordTypes.getValue(dim)),
+                        inputs.structured(
+                            inputs.hostRecord(member.record, inputs.recordTypes.getValue(dim)),
                             DslTypes.ref(plan.types.dimensionRecord.getValue(dim)),
                             "member $key of $dim",
                         ),
@@ -1000,7 +1033,9 @@ internal class Evaluator(
                 )
         }
         formula.relationRefs.forEach { (root, dim) ->
-            val column = plan.dimensions.getValue(dim).parentKeyColumn!!
+            if (root !in relations) return@forEach
+            ensureDomain(dim)
+            val column = plan.dimensions.getValue(dim).parentKeyColumn ?: "parent-key"
             val relation = Value.MapV(
                 linkedMapOf<Value, Value>().apply {
                     members[dim].orEmpty().forEach { member ->
@@ -1017,19 +1052,60 @@ internal class Evaluator(
             references += TraceRef(root, relation, TraceRef.Kind.MEMBER_MAP)
             roots += DslInputRootCandidate(root, DslInputCandidate.ControlledValue(Values.toDsl(relation)))
         }
-        if (formula.allRefs.isNotEmpty()) {
+        if (allRefs.isNotEmpty()) {
             val host = linkedMapOf<String, Any?>()
-            formula.allRefs.forEach { ref ->
+            allRefs.forEach { ref ->
                 val vertex = plan.valueVertices.getValue(ref)
                 val full = rootValue(vertex, emptyList(), emptyList())
                 references += TraceRef("all.$ref", full, TraceRef.Kind.ALL)
-                host[ref] = toDsl(vertex, full, vertex.dims.size)
+                host[ref] = inputs.toDsl(vertex, full, vertex.dims.size)
             }
             roots +=
                 DslInputRootCandidate(
                     "all",
-                    DslInputCandidate.ControlledValue(structured(host, DslTypes.ref(plan.types.all), "all")),
+                    DslInputCandidate.ControlledValue(inputs.structured(host, DslTypes.ref(plan.types.all), "all")),
                 )
+        }
+        dependencies.mapNotNull { it.previousBindingId }.distinct().forEach { id ->
+            val binding = bindings.getValue(id)
+            val first = isFirst(id)
+            val prior = coord.toMutableList()
+            val at = formula.dims.indexOf(binding.periodDimension)
+            val domain = periodDomains.getValue(binding.periodDimension)
+            val previous = if (first) null else domain.previous(coord[at])
+            if (previous != null) prior[at] = previous.key
+            val vertex = plan.valueVertices.getValue(binding.targetNodeId)
+            val value = if (first) Value.Nil else rootValue(vertex, formula.dims, prior)
+            val extra = vertex.dims.count { it !in formula.dims }
+            roots += DslInputRootCandidate(
+                binding.syntheticRoot,
+                DslInputCandidate.ControlledValue(inputs.toDsl(vertex, value, extra)),
+            )
+            roots += DslInputRootCandidate(
+                binding.firstPeriodRoot,
+                DslInputCandidate.ControlledValue(Values.toDsl(Value.Bool(first))),
+            )
+            if (!first) {
+                references += TraceRef(
+                    binding.targetNodeId,
+                    value,
+                    TraceRef.Kind.PREVIOUS,
+                    if (extra == 0) project(prior, formula.dims, vertex.dims) else null,
+                    if (extra == 0) null else formula.dims.zip(prior).filter { it.first in vertex.dims }.toMap(),
+                )
+            }
+        }
+        if (formula.periodRefs.isNotEmpty()) {
+            val host = formula.periodRefs.associateWith { id ->
+                ensureDomain(id)
+                mapOf("keys" to DslValues.sequential(members[id].orEmpty().map { Values.toDsl(Value.Kw(it.key)) }))
+            }
+            roots += DslInputRootCandidate(
+                "periods",
+                DslInputCandidate.ControlledValue(
+                    inputs.structured(host, periodsRootType(plan.dimensions.values), "periods"),
+                ),
+            )
         }
         formula.rowTable?.let { table ->
             val input = plan.valueVertices.getValue(table)
@@ -1039,8 +1115,8 @@ internal class Evaluator(
             roots += DslInputRootCandidate(
                 "row",
                 DslInputCandidate.ControlledValue(
-                    structured(
-                        hostRecord(fields, rowTypes(input)),
+                    inputs.structured(
+                        inputs.hostRecord(fields, inputs.rowTypes(input)),
                         DslTypes.ref(plan.types.tableRow.getValue(table)),
                         "row of $table",
                     ),
@@ -1048,64 +1124,30 @@ internal class Evaluator(
             )
         }
         val capture = audit.request(nodeId, coord, captureTrace)
-        val request = DslEvaluationRequest(
-            expression = formula.expression,
-            environment = environment,
-            input = DslEvaluationInput(
-                roots = roots,
-                bindings = emptyList(),
-                inputIdentity = inputIdentity,
-                tracePolicy = if (capture?.enabled == true) {
-                    DslTracePolicy.FULL
-                } else {
-                    DslTracePolicy.NONE
-                },
-            ),
-            kernelArtifact = MantraKernel.kernelArtifact,
-            traceLimits = capture?.kernelLimits ?: DslTraceLimits(),
-        )
-        return when (val outcome = engine.evaluate(request)) {
-            is DslEvaluationOutcome.Success -> Outcome(
-                Values.fromDsl(outcome.value),
-                references,
-                audit.finish(
-                    capture,
-                    formula,
-                    outcome.trace,
-                    outcome.receipt.traceStatus == DslTraceStatus.TRUNCATED,
-                    nodeId,
-                    coord,
-                ),
+        val outcome = kernel.evaluate(formula, roots, inputIdentity, capture)
+        val explanation = audit.finish(capture, formula, outcome.trace, outcome.truncated, nodeId, coord)
+        if (outcome.value != null) return Outcome(Values.fromDsl(outcome.value), references, explanation)
+        lastFailedExplanation = explanation
+        if (explainTarget == (nodeId to coord)) explainTrace = explanation
+        outcome.diagnostics.forEach { diagnostic ->
+            val span = diagnostic.span
+            val base = formula.formula.location
+            val location = span?.let {
+                SourceLocation(base.source, it.line, it.column, it.startOffset, it.endOffset)
+            } ?: base
+            sink.error(
+                "MANTRA-EVALUATION",
+                "${diagnostic.code}: ${diagnostic.message}${coordText(formula.dims, coord)}",
+                location,
+                nodeId,
+                coord,
+                category = DiagnosticCategory.EVALUATION,
             )
-            is DslEvaluationOutcome.Failure -> {
-                lastFailedExplanation = audit.finish(
-                    capture,
-                    formula,
-                    outcome.partialTrace,
-                    outcome.receipt.traceStatus == DslTraceStatus.TRUNCATED,
-                    nodeId,
-                    coord,
-                )
-                if (explainTarget == (nodeId to coord)) explainTrace = lastFailedExplanation
-                outcome.diagnostics.forEach { diagnostic ->
-                    val span = diagnostic.span
-                    val base = formula.formula.location
-                    val location = span?.let {
-                        SourceLocation(base.source, it.line, it.column, it.startOffset, it.endOffset)
-                    } ?: base
-                    sink.error(
-                        "MANTRA-EVALUATION",
-                        "${diagnostic.code}: ${diagnostic.message}${coordText(formula.dims, coord)}",
-                        location,
-                        nodeId,
-                        coord,
-                        category = DiagnosticCategory.EVALUATION,
-                    )
-                }
-                null
-            }
         }
+        return null
     }
+
+    override fun close() = kernel.close()
 
     private fun coordText(dims: List<String>, coord: Coord): String = if (coord.isEmpty()) {
         ""

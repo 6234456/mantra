@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased — v0.2 / M1
+## Unreleased — v0.3 / M2 (implementation in progress)
+
+- Add continuous static/generated periods, member-level previous-period dependencies and explicit
+  first/last stock aggregation. Flow reductions remain additive; public evidence comes from the core.
+- Add grouped two-dimensional and transposed working papers with exact per-cell addresses.
+- Advance the workbench contract to `mantra.workbench/3` with discriminated ratio/boundary/sum
+  evidence. Kotlin APIs and host DSL advance to 0.3; clients and strict schemas migrate together.
+- Add fictional fixed-asset and lease demonstrations and extend impairment with cash-flow value in
+  use and capped allocation. Independent source checks precede application/export acceptance.
+
+## v0.2 / M1 (not published as library artifacts)
 
 - Add nonblocking `check` and `reconcile` items, conditional required inputs/columns and minimum
   table row counts. Business findings retain severity, category and precise table-cell locations;

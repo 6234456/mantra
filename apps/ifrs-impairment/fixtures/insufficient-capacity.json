@@ -1,0 +1,29 @@
+{
+  "notice": "Deliberately unsupported allocation: preserve the unallocated loss and fail the capacity controls.",
+  "cgu_carrying": "390",
+  "goodwill": "30",
+  "recoverable": "300",
+  "remaining_life": "6",
+  "assets": [
+    {"id": "Machine", "carrying": "120", "fvlcd": "115", "viu": "115"},
+    {"id": "Building", "carrying": "180", "fvlcd": "175", "viu": "175"},
+    {"id": "Equipment", "carrying": "60", "fvlcd": "55", "viu": "55"}
+  ],
+  "own_loss": "60",
+  "carrying": [
+    "120",
+    "180",
+    "60"
+  ],
+  "floors": [
+    "115",
+    "175",
+    "55"
+  ],
+  "allocated": [
+    "5",
+    "5",
+    "5"
+  ],
+  "unallocated": "45"
+}

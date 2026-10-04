@@ -17,7 +17,11 @@ object FunctionCatalog {
 
     /** Functions provided by Mantra, in their documented registration order. */
     val functions: List<LibraryFunction> by lazy {
-        frozenList(MantraLibrary.functions.map { LibraryFunction(it.name, it.documentation.summary) })
+        frozenList(
+            MantraLibrary.functions.filterNot {
+                it.name.startsWith("mantra-internal/")
+            }.map { LibraryFunction(it.name, it.documentation.summary) },
+        )
     }
 
     /** Number of callable functions after composing Mantra and the Normein standard libraries. */

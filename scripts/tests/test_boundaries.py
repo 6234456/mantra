@@ -31,6 +31,14 @@ class BoundaryTests(unittest.TestCase):
         self.write('mantra-core/src/main/kotlin/Code.kt', 'val path = "demo/calculation"')
         self.assertEqual(1, len(boundaries.check(self.root)))
 
+    def test_period_units_and_financial_arguments_remain_shared_but_schema_ids_do_not(self):
+        self.write('apps/demo/schema.mantra', '(schema year (dimension year {}) (line payment "Payment" 1))')
+        self.write('mantra-core/src/main/kotlin/Code.kt', 'val unit = "year"\nval argument = "payment"')
+        # The declaration named year is still a schema identifier and cannot be exempted.
+        self.assertEqual(1, len(boundaries.check(self.root)))
+        self.write('apps/demo/schema.mantra', '(schema demo/calculation (dimension year {}) (line payment "Payment" 1))')
+        self.assertEqual([], boundaries.check(self.root))
+
     def test_qualified_internal_references_caught_in_consumer_tests(self):
         self.write('mantra-excel/src/test/kotlin/Code.kt', 'val a: com.xqiou.mantra.core.engine.Coord')
         self.assertEqual(1, len(boundaries.check(self.root)))

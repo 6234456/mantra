@@ -1,0 +1,379 @@
+{
+  "prepared_on": "2026-10-04",
+  "notice": "Independent arithmetic and source-serialization checks only; no Mantra or XLSX implementation has been invoked.",
+  "files_sha256": {
+    "MIGRATION.md": "c386bc9c05b64bfe45ee48b212801442ef61eb318ec63e07ca8ca4f9e6d8e529",
+    "README.md": "7772e4ec2f660e2c008abf980a3befc7fc81a1b778074b98ebda399329da6068",
+    "fixed-assets/README.md": "fd065495815901e2e622c174ed6d4cb45a08e44873d7f483094c8fcba45b087b",
+    "fixed-assets/data/assets.csv": "02af6b0b7477d38c801f30d559104a45d225ffe4fdbb8de6da80c7e2ad09dc27",
+    "fixed-assets/data/periods.csv": "fdafa3146de5d69a875fb24cd63a02e306e2d5884dbc3926e64526d000f7d13f",
+    "fixed-assets/data/reported-closing.csv": "b128695116a1f82343e12f4483e2bf94090a7444b31b36e477704a3b6602e95d",
+    "fixed-assets/fixtures/demo.json": "278038f9fbcfa48db082f3d6516b7df46560ab0038e00e2d979e13290c70cdeb",
+    "fixed-assets/fixtures/fully-depreciated.json": "2fd736f6568deb7acaf421bc1873ffef67b41fda886bec2735e834fd2cbace49",
+    "fixed-assets/fixtures/partial-year.json": "43d3854b7bc6d45c1f0bb5ee5f806b84edae9842e30fd106bcb074f6dcfb7a6f",
+    "fixed-assets/fixtures/residual-floor.json": "9e53cd0a28476658bdc0fe200e73487090361aec0156e7c4af97baa7b2c3e0a0",
+    "fixed-assets/fixtures/rounding-residue.json": "6bdc350cc2cf2b7bd670562f0f587c899ab9dfa5f45df648c853360e75ddcdfd",
+    "fixed-assets/fixtures/unreconciled.json": "ba50b0e4bb98b8e1f7aa00830ec995a2bcb77a0281c4e8d2b4070d1afce02b87",
+    "fixed-assets/parameters.json": "dddd0cb936cd582de2fbb5ccf5db65c779d7a84d60629ea193d831c1d59699be",
+    "fixed-assets/references/demo-scale2-summary.json": "b2d31b33550ac1283fd2e9d2df5ce4fc58a57056508fc95755ad5891c6c4b163",
+    "fixed-assets/references/demo-scale2-values.json": "b6116b6dba38f751c6e3947e379a0bd60658f22a06c7dec54de5f219190a54f1",
+    "fixed-assets/references/demo-scale4-summary.json": "7eb59db3d53ce15a8fb5a57ed0efdc71186e19cf3b2b428eb362a10ab0c23506",
+    "fixed-assets/references/demo-scale4-values.json": "8c88dc55d86b382a3c6f16d2b34feef1cb9ffad6465ed8fc0c184062e892880b",
+    "fixed-assets/references/fully-depreciated-scale2-summary.json": "21ad9d8b92e66c0b10a1011765157c83e83bd91e0f88c831623a2903e9e72c9e",
+    "fixed-assets/references/fully-depreciated-scale2-values.json": "1dfcc3af6067f4056a44dc4ff4deb90b7ea81917cc5c23027f2a0378c6eee3f4",
+    "fixed-assets/references/fully-depreciated-scale4-summary.json": "c142cac9196d3a23e1e9a9deabd1b7e56c75c5ba1043d716138d64571e2b3984",
+    "fixed-assets/references/fully-depreciated-scale4-values.json": "1dfcc3af6067f4056a44dc4ff4deb90b7ea81917cc5c23027f2a0378c6eee3f4",
+    "fixed-assets/references/partial-year-scale2-summary.json": "3ef1235b603a1cb3f838c3bda25eab906ae768faf3e85ab0cc6c74c9eac994a8",
+    "fixed-assets/references/partial-year-scale2-values.json": "8a742b010646db4af8d9d0b1ae1ef8375421f3141341629e39e2518a433edd74",
+    "fixed-assets/references/partial-year-scale4-summary.json": "af213bb252ebccec0489f8dc31256ba8831fc07c2870faed63953899b37574bc",
+    "fixed-assets/references/partial-year-scale4-values.json": "0d2c52ca0c19bb7b0780c897e7beced2fc48f59705f07e173d02b2d1bdbaf19a",
+    "fixed-assets/references/residual-floor-scale2-summary.json": "9e78d149eefc297152a0c329ef9b09526f89225156a15ad00ca9c2aa6998fbaa",
+    "fixed-assets/references/residual-floor-scale2-values.json": "f2c4944267beafb189604d39f109635f0b4b00e3563ccd24f9c7cc9552b95f1b",
+    "fixed-assets/references/residual-floor-scale4-summary.json": "1b06898217f6d13c4237fcfca729b3e04cb556f338b99ef88af7f0e8b9cf5391",
+    "fixed-assets/references/residual-floor-scale4-values.json": "f2c4944267beafb189604d39f109635f0b4b00e3563ccd24f9c7cc9552b95f1b",
+    "fixed-assets/references/rounding-residue-scale2-summary.json": "aaf70f1039eb841c77dc13e7c0db2794c1518ed460b3155037ddaab9c7152fa1",
+    "fixed-assets/references/rounding-residue-scale2-values.json": "cea53418171ede7794a1a3cea11cd6dda0d761fbb6ba0e601cac2e6e315de3e8",
+    "fixed-assets/references/rounding-residue-scale4-summary.json": "c62235f060149ef8ef0bde7038aef30582292b4a777923f9ef4ec4bfa8889c31",
+    "fixed-assets/references/rounding-residue-scale4-values.json": "a6842e6f89e19ed84077a0cf176bf9f965c68441300b799c23881c9a986a3937",
+    "fixed-assets/references/unreconciled-scale2-summary.json": "5ae1bdaba366181ebb41e160b54c5eb5684ffadc84662d30905fd5568aed1cb2",
+    "fixed-assets/references/unreconciled-scale2-values.json": "104f1073aa5aa6718606d4033bf39c548cb9335d7d15d8a1c8fee9a3e02ed99a",
+    "fixed-assets/references/unreconciled-scale4-summary.json": "29f7fd72532da2dc79164a2d95caa80e9185668016b96d44fd2048abea8c4004",
+    "fixed-assets/references/unreconciled-scale4-values.json": "540cbd4f0c299f3e50c5946f950670604ce78ee68efd0d1a031ee2812bc419b3",
+    "fixed-assets/verify_expected.py": "638131b45f0ff3c198afb380dca15207926ab443696590c11b21fe3bef5db423",
+    "ifrs-leases/README.md": "6bb664314bf4ad78b1ae4474d50fc6902062a253a1ae4e6c0ab4cdeb8bd569d2",
+    "ifrs-leases/data/leases.csv": "9b4028b9c2c3e2bfb68058e70a49450e5d2aac30a2a5601557af5770e2b5439d",
+    "ifrs-leases/data/payments.csv": "fed92d9a47004c57a9687b06decb319b322f98f2d28f42c6686038f855cd386a",
+    "ifrs-leases/data/periods.csv": "c3cfdfddb381b1ef9e5796e33ee02204e35313b3ed301a63ecda34d67d81563c",
+    "ifrs-leases/data/reported-closing.csv": "6a6ee5b93127f9b5fb7a2d57eb7ec6fba810af3a39bfa1075fe6688e5353d6a3",
+    "ifrs-leases/fixtures/commencement-payment.json": "4a1c292ad95accd219d8e216f53ab2cc6e0067a2427fa250488d0c0e59852337",
+    "ifrs-leases/fixtures/demo.json": "1d060811ae1192ed6124bfcd7ec6ca99464f09e3b86d87a611fe4eddfdbe8400",
+    "ifrs-leases/fixtures/negative-payment.json": "1bcd914b3a0ccb16df206b1796635fb9e20ef7c0d4aee64879f7574882263f86",
+    "ifrs-leases/fixtures/negative-rate-outside-demo.json": "be99f4e52c3c07991eb311f7a5ace09381802158a74c97f89032d2c53f888f66",
+    "ifrs-leases/fixtures/single-period.json": "9993ba11faade3afae9e6dc23199bd2e231d6acf2afbe8d20f0dfe42ba35d155",
+    "ifrs-leases/fixtures/unreconciled.json": "0e82d41ae6740417cd955c4e8b72ee097ecd75123aff980bc6e50b1c3b5ba3d7",
+    "ifrs-leases/parameters.json": "dddd0cb936cd582de2fbb5ccf5db65c779d7a84d60629ea193d831c1d59699be",
+    "ifrs-leases/references/commencement-payment-scale2-summary.json": "37528234caf020f21926a60e2c2811a9a5de2831bc6fdcffce4a45775649cc57",
+    "ifrs-leases/references/commencement-payment-scale2-values.json": "d471d4c29d9509c64cbbd97fd2f9f76c0ef0e0624732546fc79d9ba826016983",
+    "ifrs-leases/references/commencement-payment-scale4-summary.json": "2861ac5695000ea092280db0c4cb66550457715632cf9ad7618a746e678fee20",
+    "ifrs-leases/references/commencement-payment-scale4-values.json": "532325f50827f97d539c6e1aaea5a82e7975e1e8298b1cfacf66fe62db66e10f",
+    "ifrs-leases/references/demo-scale2-summary.json": "d51bbe9123d4ca5171857c4fa42de24bf31966b3549c9490c20f98cf968bac05",
+    "ifrs-leases/references/demo-scale2-values.json": "f6ef274075070f97be533d6f13027ffe869830a166a03f3f61b08fa982baf603",
+    "ifrs-leases/references/demo-scale4-summary.json": "262c167eff65c0f98525a99772788b5a740159ca9945286a2a08851ffd701d97",
+    "ifrs-leases/references/demo-scale4-values.json": "f72c4506266419421d39be72a81df8046d7eda8d959e344dd046abbe20b4d675",
+    "ifrs-leases/references/negative-payment-scale2-summary.json": "426f7ea2458a9278b855ad7d9410363f9cbd59a91fe994e2e4d101c8f87b02b1",
+    "ifrs-leases/references/negative-payment-scale2-values.json": "7d90e589f2d2bc1040ccf6aed8a2a9377006935861abd1d1f4b3a84c1b0327aa",
+    "ifrs-leases/references/negative-payment-scale4-summary.json": "38c660ac66605f1a2960f6d5a0ba6383b9cdc961ccd5a9925363f08e58e6d71d",
+    "ifrs-leases/references/negative-payment-scale4-values.json": "83b569df2dab4049e539fd1bde2b97cf044c4b4da0f20d0b2b78d8da2dada9e5",
+    "ifrs-leases/references/negative-rate-outside-demo-scale2-summary.json": "aee5947fd56e3d56a39d3e96fae5aca78b9f837940b7d364c3a05fd40c1d7d4f",
+    "ifrs-leases/references/negative-rate-outside-demo-scale2-values.json": "9c88736de56695d53afa472a68fd35d140902c6a96a5e664b8d6cda92a6d8c8b",
+    "ifrs-leases/references/negative-rate-outside-demo-scale4-summary.json": "9327a5c822813d2bd8d9440df3323281ef0375a5707b7809d2d1bb8f222db2d1",
+    "ifrs-leases/references/negative-rate-outside-demo-scale4-values.json": "088bdee7e5c627c523259cb5be5f4309c2003b9b0d2b7e67ec9898a18402cddb",
+    "ifrs-leases/references/single-period-scale2-summary.json": "46daa4072b5c688238354265b403527cb5836020a73e9ae6e64943ea690301a5",
+    "ifrs-leases/references/single-period-scale2-values.json": "33ac2f204f656cb079ab845cc82346bda39f9ff9d7f5e0644812329d81ff28cd",
+    "ifrs-leases/references/single-period-scale4-summary.json": "55146981616f46a380f6cd9fcb0a771e3e36dadfbb1dba8e28c10c6c14d442fa",
+    "ifrs-leases/references/single-period-scale4-values.json": "af02ce139a00c9acbc1f55e9763643578e804fd2a6d326b9e91c62d9a572269e",
+    "ifrs-leases/references/unreconciled-scale2-summary.json": "c15edc795d0b6196cbbd8e2442fd6dcf4e0bf18fe7a2016257c14b0a8d05eaa1",
+    "ifrs-leases/references/unreconciled-scale2-values.json": "f5b556291a223e32abbcf259985ce27897e85f99d98581312544753fc2d722dc",
+    "ifrs-leases/references/unreconciled-scale4-summary.json": "e0f36a74a7daaf0d7c3e6c991232644438a645f9d4eee90a33629a6d8abbff21",
+    "ifrs-leases/references/unreconciled-scale4-values.json": "8cac7bff458f4aed13332836ecd9888f384a843da2b0e738ee7e8d4d5fcdb237",
+    "ifrs-leases/verify_expected.py": "39ab47cffb9be0c171e0a406038b44806ec2081e8852b51717202374258da65f"
+  },
+  "checks": [
+    {
+      "domain": "fixed-assets",
+      "case": "demo",
+      "scale": 2,
+      "amounts": 256,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 256 independent asset amounts (demo, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "demo",
+      "scale": 4,
+      "amounts": 256,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 256 independent asset amounts (demo, scale 4)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "fully-depreciated",
+      "scale": 2,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (fully-depreciated, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "fully-depreciated",
+      "scale": 4,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (fully-depreciated, scale 4)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "partial-year",
+      "scale": 2,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (partial-year, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "partial-year",
+      "scale": 4,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (partial-year, scale 4)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "residual-floor",
+      "scale": 2,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (residual-floor, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "residual-floor",
+      "scale": 4,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (residual-floor, scale 4)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "rounding-residue",
+      "scale": 2,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (rounding-residue, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "rounding-residue",
+      "scale": 4,
+      "amounts": 136,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 136 independent asset amounts (rounding-residue, scale 4)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "unreconciled",
+      "scale": 2,
+      "amounts": 256,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-RECONCILE-FAILED",
+          "node": "period-carrying-reconciliation",
+          "coord": [
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 256 independent asset amounts (unreconciled, scale 2)"
+    },
+    {
+      "domain": "fixed-assets",
+      "case": "unreconciled",
+      "scale": 4,
+      "amounts": 256,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-RECONCILE-FAILED",
+          "node": "period-carrying-reconciliation",
+          "coord": [
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 256 independent asset amounts (unreconciled, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "commencement-payment",
+      "scale": 2,
+      "amounts": 70,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 70 independent lease amounts (commencement-payment, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "commencement-payment",
+      "scale": 4,
+      "amounts": 70,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 70 independent lease amounts (commencement-payment, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "demo",
+      "scale": 2,
+      "amounts": 109,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 109 independent lease amounts (demo, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "demo",
+      "scale": 4,
+      "amounts": 109,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 109 independent lease amounts (demo, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "negative-payment",
+      "scale": 2,
+      "amounts": 70,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-CHECK-FAILED",
+          "node": "payment-nonnegative",
+          "coord": [
+            "Office",
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 70 independent lease amounts (negative-payment, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "negative-payment",
+      "scale": 4,
+      "amounts": 70,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-CHECK-FAILED",
+          "node": "payment-nonnegative",
+          "coord": [
+            "Office",
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 70 independent lease amounts (negative-payment, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "negative-rate-outside-demo",
+      "scale": 2,
+      "amounts": 70,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-CHECK-FAILED",
+          "node": "lease-rate-supported",
+          "coord": [
+            "Office"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 70 independent lease amounts (negative-rate-outside-demo, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "negative-rate-outside-demo",
+      "scale": 4,
+      "amounts": 70,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-CHECK-FAILED",
+          "node": "lease-rate-supported",
+          "coord": [
+            "Office"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 70 independent lease amounts (negative-rate-outside-demo, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "single-period",
+      "scale": 2,
+      "amounts": 34,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 34 independent lease amounts (single-period, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "single-period",
+      "scale": 4,
+      "amounts": 34,
+      "validation_passed": true,
+      "expected_business": [],
+      "serialization_check": "Verified 34 independent lease amounts (single-period, scale 4)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "unreconciled",
+      "scale": 2,
+      "amounts": 109,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-RECONCILE-FAILED",
+          "node": "liability-reconciliation",
+          "coord": [
+            "Office",
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 109 independent lease amounts (unreconciled, scale 2)"
+    },
+    {
+      "domain": "ifrs-leases",
+      "case": "unreconciled",
+      "scale": 4,
+      "amounts": 109,
+      "validation_passed": false,
+      "expected_business": [
+        {
+          "code": "MANTRA-RECONCILE-FAILED",
+          "node": "liability-reconciliation",
+          "coord": [
+            "Office",
+            "FY2027"
+          ],
+          "severity": "error"
+        }
+      ],
+      "serialization_check": "Verified 109 independent lease amounts (unreconciled, scale 4)"
+    }
+  ],
+  "extra_checks": [
+    "each domain rejects non-contiguous periods",
+    "each case has the same expected business findings under scale2 and scale4"
+  ]
+}

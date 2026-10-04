@@ -3,20 +3,23 @@ Working paper: allocation of corporate assets, CGU tests and group test
 =========================================
 Entity: Demo Facilities Ltd
 Period: 2025-12-31
-Calculation schema: IAS 36 – Impairment test with corporate assets v0.2 [ifrs.ias36/corporate-assets]
+Calculation schema: IAS 36 – Impairment test with corporate assets v0.3 [ifrs.ias36/corporate-assets]
 Prepared by: Mantra acceptance demonstration
 WP ref.: Project-authored fictional data
 Total impairment loss: 121
 
 Structure of the calculation
-  Mainline 1: Step 1 – Shared-facility allocation [1]  771
-  Mainline 2: Step 2 – Impairment test of each CGU [2]
-  Mainline 3: Step 3 – Allocation of the impairment losses within the CGUs [3]  121
-  Mainline 4: Step 4 – Combined recovery check [4]  723
-  Mainline 5: Summary of impairment losses recognised [5]  121
+  Mainline 1: Value in use from discounted cash flows [2]
+  Mainline 2: Step 1 – Shared-facility allocation [1]  771
+  Mainline 3: Step 2 – Impairment test of each CGU [3]
+  Mainline 4: Step 3 – Allocation of the impairment losses within the CGUs [4]  121
+  Mainline 5: Step 3a – Individually capped allocation [5]  –
+  Mainline 6: Capped allocation control [6]
+  Mainline 7: Step 4 – Combined recovery check [7]  723
+  Mainline 8: Summary of impairment losses recognised [8]  121
 
 [1] Schedule 1 – Allocation of the headquarters building
-    Mainline › 1 Step 1 – Shared-facility allocation
+    Mainline › 2 Step 1 – Shared-facility allocation
                                    | North | Central |  South |   Total |   | IAS 36
 -----------------------------------+-------+---------+--------+---------+---+-----------------
 Carrying amount of the CGU         |   120 |     180 |    260 |     560 |   |
@@ -31,18 +34,28 @@ Allocated shared facilities        |    20 |      60 |    131 |     211 |   | IA
 Carrying amount after allocation   |   140 |     240 |    391 |     771 | Σ |
                                   =+=======+=========+========+=========+= =+=
 
-[2] Schedule 2 – Impairment test of CGUs A, B and C
-    Mainline › 2 Step 2 – Impairment test of each CGU
+[2] Fictional cash-flow value in use
+    Mainline › 1 Value in use from discounted cash flows
+Description | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | Total
+------------+-------------------------+-------------------------+-------------------------+------
+North       |                         |                         |                         |
+Central     |                         |                         |                         |
+South       |                         |                         |                         |
+Total       |                         |                         |                         |
+
+[3] Schedule 2 – Impairment test of CGUs A, B and C
+    Mainline › 3 Step 2 – Impairment test of each CGU
                                                                  | North | Central | South | Total |   | IAS 36
 -----------------------------------------------------------------+-------+---------+-------+-------+---+---------------
 Carrying amount (including allocated corporate asset) (→ Table … |   140 |     240 |   391 |   771 |   |
+Value in use                                                     |   180 |     210 |   300 |   690 |   |
 Recoverable amount (higher of value in use and FVLCD)            |   180 |     210 |   300 |   690 |   | IAS 36.18
   Value in use                                                   | 180 ✓ |   210 ✓ | 300 ✓ |       | ✓ | IAS 36.18
   Fair value less costs of disposal                              |   n/a |     n/a |   n/a |       |   | IAS 36.18
 Impairment loss                                                  |     – |      30 |    91 |   121 |   | IAS 36.59, 104
 
-[3] Schedule 3 – Allocation of the impairment losses
-    Mainline › 3 Step 3 – Allocation of the impairment losses within the CGUs
+[4] Schedule 3 – Allocation of the impairment losses
+    Mainline › 4 Step 3 – Allocation of the impairment losses within the CGUs
                                          | North | Central | South | Total |   | IAS 36
 -----------------------------------------+-------+---------+-------+-------+---+--------------
 To goodwill                              |     – |       – |     – |     – |   | IAS 36.104(a)
@@ -53,8 +66,13 @@ Impairment loss allocated                |     – |      30 |    91 |   121 | �
                                         =+=======+=========+=======+=======+= =+=
 Impairment loss agrees to its allocation |     – |       – |     – |       | ✓ |
 
-[4] Schedule 4 – Impairment test of entity M (smallest group of CGUs)
-    Mainline › 4 Step 4 – Combined recovery check
+[5] Loss caps of individual assets
+    Mainline › 5 Step 3a – Individually capped allocation
+Description | Asset carrying amount before the loss | Higher of FVLCD, value in use and zero | Loss after cap and redistribution | Asset carrying amount after the capped allocation
+------------+---------------------------------------+----------------------------------------+-----------------------------------+--------------------------------------------------
+
+[7] Schedule 4 – Impairment test of entity M (smallest group of CGUs)
+    Mainline › 7 Step 4 – Combined recovery check
                                           |    CU |   | Reference
 ------------------------------------------+-------+---+-------------------
 Carrying amount of the CGUs (A, B, C)     |   560 |   |
@@ -69,20 +87,23 @@ Carrying amount of the group after step 1 |   723 | Σ |
 Recoverable amount of the group           |   900 |   | IAS 36.102(b)(iii)
 Impairment loss of the group              |     – |   |
 
-[5] Schedule 5 – Summary
-    Mainline › 5 Summary of impairment losses recognised
+[8] Schedule 5 – Summary
+    Mainline › 8 Summary of impairment losses recognised
                                                            |  CU |
 -----------------------------------------------------------+-----+--
 Goodwill                                                   |   – |
 Other assets of the CGUs                                   |  83 |
 Shared facilities                                          |  38 |
-Additional loss at group level (shared assets) (→ Table 4) |   – |
+Additional loss at group level (shared assets) (→ Table 7) |   – |
                                                           -+-----+-
 Total impairment loss                                      | 121 | Σ
                                                           =+=====+=
 
 Audit trail
 -----------
+1/1 Σ Carrying amount of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 120 included; [cgu=B] 180 included; [cgu=C] 260 included → 560 = 560
 1/2 CGU carrying amount is nonnegative [North]
     Formula: (>= carrying-amount 0)
     Working: (>= carrying-amount 0) = true = ✓
@@ -110,6 +131,9 @@ Audit trail
 1/5 Weighting based on useful life [South]
     Formula: (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
     Working: (dim/min all.remaining-life) = 6 → (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 3.0000 → (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1) = 3.0000 → selected branch: (decimal/divide remaining-life (dim/min all.remaining-life) 4) = 3
+1/6 Σ Carrying amount after weighting (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 120.0000 included; [cgu=B] 360.0000 included; [cgu=C] 780.0000 included → 1260.0000 = 1,260
 1/6 Carrying amount after weighting [North]
     Formula: (* carrying-amount weighting)
     Working: (* carrying-amount weighting) = 120.0000 = 120
@@ -119,6 +143,9 @@ Audit trail
 1/6 Carrying amount after weighting [South]
     Formula: (* carrying-amount weighting)
     Working: (* carrying-amount weighting) = 780.0000 = 780
+1/7 Σ Pro-rata allocation factor (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.095238 included; [cgu=B] 0.285714 included; [cgu=C] 0.619048 included → 1.000000 = 100.0 %
 1/7 Pro-rata allocation factor [North]
     Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
     Working: (dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.095238 = 9.5 %
@@ -128,6 +155,9 @@ Audit trail
 1/7 Pro-rata allocation factor [South]
     Formula: (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)
     Working: (dim/sum all.weighted-amount) = 1260.0000 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.619048 = 61.9 %
+1/8 Σ Allocated shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 20.09 included; [cgu=B] 60.29 included; [cgu=C] 130.62 included → 211.00 = 211
 1/8 Allocated shared facilities [North]
     Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
     Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62} = 20
@@ -137,6 +167,9 @@ Audit trail
 1/8 Allocated shared facilities [South]
     Formula: (alloc/pro-rata allocable-corporate all.weighted-amount rounding)
     Working: (alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 20.09, :B 60.29, :C 130.62} = 131
+1/9 Σ Carrying amount after allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00 = 771
 1/9 Carrying amount after allocation [North]
     Formula: carrying-amount + corporate-share
     Working: 120 + 20.09 = 140
@@ -146,93 +179,144 @@ Audit trail
 1/9 Carrying amount after allocation [South]
     Formula: carrying-amount + corporate-share
     Working: 260 + 130.62 = 391
-2/2 Recoverable amount (higher of value in use and FVLCD) [North]
-    Formula: max(cgu.value-in-use; cgu.fvlcd)
-    Working: max(Value in use cgu.value-in-use = 180; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 180
-2/2 Recoverable amount (higher of value in use and FVLCD) [Central]
-    Formula: max(cgu.value-in-use; cgu.fvlcd)
-    Working: max(Value in use cgu.value-in-use = 210; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 210
-2/2 Recoverable amount (higher of value in use and FVLCD) [South]
-    Formula: max(cgu.value-in-use; cgu.fvlcd)
-    Working: max(Value in use cgu.value-in-use = 300; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 300
-2/3 Impairment loss [North]
+2/1 Σ Projected pre-tax cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A, year=P1] 0 excluded; [cgu=A, year=P2] 0 excluded; [cgu=A, year=P3] 0 excluded; [cgu=B, year=P1] 0 excluded; [cgu=B, year=P2] 0 excluded; [cgu=B, year=P3] 0 excluded; [cgu=C, year=P1] 0 excluded; [cgu=C, year=P2] 0 excluded; [cgu=C, year=P3] 0 excluded → 0 = –
+2/3 Σ Discounted cash flow (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A, year=P1] 0 excluded; [cgu=A, year=P2] 0 excluded; [cgu=A, year=P3] 0 excluded; [cgu=B, year=P1] 0 excluded; [cgu=B, year=P2] 0 excluded; [cgu=B, year=P3] 0 excluded; [cgu=C, year=P1] 0 excluded; [cgu=C, year=P2] 0 excluded; [cgu=C, year=P3] 0 excluded → 0 = –
+3/1 Σ Carrying amount (including allocated corporate asset) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 140.09 included; [cgu=B] 240.29 included; [cgu=C] 390.62 included → 771.00 = 771
+3/2 Σ Value in use (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 180 included; [cgu=B] 210 included; [cgu=C] 300 included → 690 = 690
+3/2 Value in use [North]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 180 → selected branch: cgu.value-in-use = 180
+3/2 Value in use [Central]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 210 → selected branch: cgu.value-in-use = 210
+3/2 Value in use [South]
+    Formula: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)
+    Working: (if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 300 → selected branch: cgu.value-in-use = 300
+3/3 Σ Recoverable amount (higher of value in use and FVLCD) (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 180 included; [cgu=B] 210 included; [cgu=C] 300 included → 690 = 690
+3/3 Recoverable amount (higher of value in use and FVLCD) [North]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 180; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 180
+3/3 Recoverable amount (higher of value in use and FVLCD) [Central]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 210; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 210
+3/3 Recoverable amount (higher of value in use and FVLCD) [South]
+    Formula: max(measured-value-in-use; cgu.fvlcd)
+    Working: max(Value in use measured-value-in-use = 300; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use = 300
+3/4 Σ Impairment loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91 = 121
+3/4 Impairment loss [North]
     Formula: (max 0 (- tested-amount recoverable-amount))
     Working: (- tested-amount recoverable-amount) = -39.91 → (max 0 (- tested-amount recoverable-amount)) = 0 = –
-2/3 Impairment loss [Central]
+3/4 Impairment loss [Central]
     Formula: (max 0 (- tested-amount recoverable-amount))
     Working: (- tested-amount recoverable-amount) = 30.29 → (max 0 (- tested-amount recoverable-amount)) = 30.29 = 30
-2/3 Impairment loss [South]
+3/4 Impairment loss [South]
     Formula: (max 0 (- tested-amount recoverable-amount))
     Working: (- tested-amount recoverable-amount) = 90.62 → (max 0 (- tested-amount recoverable-amount)) = 90.62 = 91
-3/1 To goodwill [North]
+4/1 Σ To goodwill (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0 included; [cgu=B] 0 included; [cgu=C] 0 included → 0 = –
+4/1 To goodwill [North]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
-3/1 To goodwill [Central]
+4/1 To goodwill [Central]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
-3/1 To goodwill [South]
+4/1 To goodwill [South]
     Formula: (min impairment-loss (or cgu.goodwill 0))
     Working: (or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0 = –
-3/2 Loss assigned to shared facilities [North]
+4/2 Σ Loss assigned to shared facilities (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 7.60 included; [cgu=C] 30.30 included → 37.90 = 38
+4/2 Loss assigned to shared facilities [North]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
     Working: (- impairment-loss loss-to-goodwill) = 0 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 120 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 0.00, :own 0.00} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 0.00 = –
-3/2 Loss assigned to shared facilities [Central]
+4/2 Loss assigned to shared facilities [Central]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
     Working: (- impairment-loss loss-to-goodwill) = 30.29 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 180 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 7.60, :own 22.69} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 7.60 = 8
-3/2 Loss assigned to shared facilities [South]
+4/2 Loss assigned to shared facilities [South]
     Formula: (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)
     Working: (- impairment-loss loss-to-goodwill) = 90.62 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 260 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 30.30, :own 60.32} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 30.30 = 30
-3/3 To the other assets of the CGU [North]
+4/3 Σ To the other assets of the CGU (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 22.69 included; [cgu=C] 60.32 included → 83.01 = 83
+4/3 To the other assets of the CGU [North]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 0.00 = –
-3/3 To the other assets of the CGU [Central]
+4/3 To the other assets of the CGU [Central]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 22.69 = 23
-3/3 To the other assets of the CGU [South]
+4/3 To the other assets of the CGU [South]
     Formula: (- impairment-loss loss-to-goodwill loss-to-corporate)
     Working: (- impairment-loss loss-to-goodwill loss-to-corporate) = 60.32 = 60
-3/4 Impairment loss allocated [North]
+4/4 Σ Impairment loss allocated (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [cgu=A] 0.00 included; [cgu=B] 30.29 included; [cgu=C] 90.62 included → 120.91 = 121
+4/4 Impairment loss allocated [North]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 0.00 + 0.00 = –
-3/4 Impairment loss allocated [Central]
+4/4 Impairment loss allocated [Central]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 7.60 + 22.69 = 30
-3/4 Impairment loss allocated [South]
+4/4 Impairment loss allocated [South]
     Formula: loss-to-goodwill + loss-to-corporate + loss-to-own-assets
     Working: 0 + 30.30 + 60.32 = 91
-3/5 Impairment loss agrees to its allocation [North]
+4/5 Impairment loss agrees to its allocation [North]
     Formula: impairment-loss ≈ loss-allocated (± 0.01)
     Working: impairment-loss = 0; loss-allocated = 0.00 → 0 − 0.00 = 0.00 (± 0.01) = –
-3/5 Impairment loss agrees to its allocation [Central]
+4/5 Impairment loss agrees to its allocation [Central]
     Formula: impairment-loss ≈ loss-allocated (± 0.01)
     Working: impairment-loss = 30.29; loss-allocated = 30.29 → 30.29 − 30.29 = 0.00 (± 0.01) = –
-3/5 Impairment loss agrees to its allocation [South]
+4/5 Impairment loss agrees to its allocation [South]
     Formula: impairment-loss ≈ loss-allocated (± 0.01)
     Working: impairment-loss = 90.62; loss-allocated = 90.62 → 90.62 − 90.62 = 0.00 (± 0.01) = –
-4/1 Carrying amount of the CGUs (A, B, C)
+5/1 Σ Asset carrying amount before the loss (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/2 Σ Higher of FVLCD, value in use and zero (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/3 Σ Loss after cap and redistribution (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+5/4 Σ Asset carrying amount after the capped allocation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions:  → 0 = –
+7/1 Carrying amount of the CGUs (A, B, C)
     Formula: (dim/sum carrying-amount)
     Working: (dim/sum carrying-amount) = 560 = 560
-4/4 Carrying amount before step-1 losses
+7/4 Carrying amount before step-1 losses
     Formula: group-cgu-assets + group-building + group-research
     Working: 560 + 211 + 73 = 844
-4/5 Impairment losses recognised in steps 2–3
+7/5 Impairment losses recognised in steps 2–3
     Formula: (dim/sum loss-allocated)
     Working: (dim/sum loss-allocated) = 120.91 = 121
-4/6 Carrying amount of the group after step 1
+7/6 Carrying amount of the group after step 1
     Formula: group-before − group-step1-losses
     Working: 844 − 120.91 = 723
-4/8 Impairment loss of the group
+7/8 Impairment loss of the group
     Formula: (max 0 (- group-carrying-amount group-ra))
     Working: (- group-carrying-amount group-ra) = -176.91 → (max 0 (- group-carrying-amount group-ra)) = 0 = –
-5/1 Goodwill
+8/1 Goodwill
     Formula: (dim/sum loss-to-goodwill)
     Working: (dim/sum loss-to-goodwill) = 0 = –
-5/2 Other assets of the CGUs
+8/2 Other assets of the CGUs
     Formula: (dim/sum loss-to-own-assets)
     Working: (dim/sum loss-to-own-assets) = 83.01 = 83
-5/3 Shared facilities
+8/3 Shared facilities
     Formula: (dim/sum loss-to-corporate)
     Working: (dim/sum loss-to-corporate) = 37.90 = 38
-5/5 Total impairment loss
+8/5 Total impairment loss
     Formula: summary-goodwill + summary-own + summary-corporate + summary-group
     Working: 0 + 83.01 + 37.90 + 0 = 121

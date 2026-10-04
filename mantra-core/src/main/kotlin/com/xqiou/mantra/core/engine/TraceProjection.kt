@@ -22,7 +22,7 @@ internal object TraceProjection {
     data class Projection(val trace: ExplainTrace, val events: Int, val characters: Int)
 
     fun project(formula: CompiledFormula, root: DslTraceNode, kernelTruncated: Boolean, budget: Budget): Projection {
-        val index = formula.expression.sourceIndex
+        val index = formula.authorSourceIndex
         val steps = mutableListOf<ExplainStep>()
         val branches = mutableListOf<ExplainBranch>()
         var truncated = kernelTruncated

@@ -60,6 +60,7 @@ internal object MantraLibrary {
     private val decimalMap: DslType = DslTypes.map(DslType.Keyword, DslType.Decimal)
 
     val functions: List<DslFunctionSpec> = listOf(
+        PrevLowering.selectHelperSpec(),
         function(
             "alloc/pro-rata",
             "Allocates an amount over the keys of a weight map, rounded to a scale with the largest-remainder method so that the parts add up to the rounded amount.",
@@ -149,23 +150,61 @@ internal object MantraLibrary {
         },
         function(
             "dim/rollup",
-            "Sums a source-member amount map for one parent key using a declared source-to-parent relation map.",
+            "Reduces source members into one parent: sum, or first/last in the explicitly supplied declared period order.",
             signature(
                 "values" to numberMap,
                 "parents" to DslTypes.map(DslType.Keyword, DslType.Keyword),
                 "target" to DslType.Keyword,
                 returns = DslType.Decimal,
             ),
+            signature(
+                "values" to DslTypes.map(DslType.Keyword, DslTypes.nullable(numberType)),
+                "parents" to DslTypes.map(DslType.Keyword, DslType.Keyword),
+                "target" to DslType.Keyword,
+                "boundary" to DslType.Keyword,
+                "period-order" to DslTypes.union(DslTypes.sequence(DslType.Keyword), DslTypes.vector(DslType.Keyword)),
+                returns = DslTypes.nullable(DslType.Decimal),
+            ),
         ) { args ->
             val parents = args[1].entries().associate { (source, parent) -> keyText(source) to keyText(parent) }
             val target = keyText(args[2])
-            DslValues.decimal(
-                args[0].numberMap().fold(BigDecimal.ZERO) { acc, (source, value) ->
-                    val parent = parents[keyText(source)]
-                        ?: fail("DSL-MANTRA-ROLLUP-KEY", "No parent relation for source member ${keyText(source)}")
-                    if (parent == target) acc + value else acc
-                },
-            )
+            if (args.size == 5) {
+                val order = when (val sequence = args[4]) {
+                    is DslValue.VectorValue -> sequence.values
+                    is DslValue.SequentialValue -> sequence.values
+                    else -> fail("DSL-MANTRA-ROLLUP-ORDER", "Period order must be a concrete ordered sequence")
+                }.map(::keyText)
+                if (order.distinct().size != order.size || parents.keys.any { it !in order }) {
+                    fail("DSL-MANTRA-ROLLUP-ORDER", "Period order must contain each related period exactly once")
+                }
+                args[0].entries().forEach { (source, _) ->
+                    if (keyText(source) !in
+                        parents
+                    ) {
+                        fail("DSL-MANTRA-ROLLUP-KEY", "No parent relation for source member ${keyText(source)}")
+                    }
+                }
+                val scoped = order.filter { parents[it] == target }
+                val selected = when (keyText(args[3])) {
+                    "first" -> scoped.firstOrNull()
+                    "last" -> scoped.lastOrNull()
+                    else -> fail("DSL-MANTRA-ROLLUP-BOUNDARY", "Boundary must be :first or :last")
+                }
+                val value = args[0].entries().firstOrNull { keyText(it.first) == selected }?.second
+                if (selected == null) {
+                    DslValues.decimal(BigDecimal.ZERO)
+                } else {
+                    value?.numberOrNull()?.let(DslValues::decimal) ?: DslValue.Nil
+                }
+            } else {
+                DslValues.decimal(
+                    args[0].numberMap().fold(BigDecimal.ZERO) { acc, (source, value) ->
+                        val parent = parents[keyText(source)]
+                            ?: fail("DSL-MANTRA-ROLLUP-KEY", "No parent relation for source member ${keyText(source)}")
+                        if (parent == target) acc + value else acc
+                    },
+                )
+            }
         },
         function(
             "dim/min",

@@ -1,0 +1,86 @@
+;; Fictional lessee demonstration: supplied annual payments in arrears and one commencement.
+;; No hidden closing-liability clamp or adjustment of the supplied payment schedule.
+(schema ifrs.ifrs16/lessee-schedule
+  {:title "IFRS 16 – annual lease roll-forward"
+   :subtitle "Discounted unpaid payments, interest, repayments and right-of-use depreciation"
+   :version "0.1" :preset :ifrs-schedule :basis "IFRS 16.24, 26, 31–32, 36–37"
+   :mainline [initial-measurement liability-flow rou-flow period-summary]}
+  (input leases :table
+    {:label "Lease register" :min-rows 1
+     :columns {:id :keyword :title :text :annual-rate :decimal :term-years :integer
+               :commencement-payment :decimal :initial-direct-costs :decimal :commencement-incentive :decimal}})
+  (input lease-payments :table
+    {:label "Contractual annual payments" :columns {:lease-id :keyword :period-id :keyword :payment :decimal}
+     :references {:lease-id lease :period-id year}})
+  (input reported-closings :table
+    {:label "Independently reported liability balances"
+     :columns {:lease-id :keyword :period-id :keyword :liability-amount :decimal}
+     :references {:lease-id lease :period-id year}})
+  (input calendar-periods :table
+    {:label "Source calendar" :columns {:id :keyword :start :date :end :date} :references {:id year}})
+  (param currency-scale 2 {:label "Currency calculation precision"})
+  (dimension lease {:label "Lease" :from leases :key :id :title :title :total-label "All leases"})
+  (dimension year {:label "Year" :periods {:start "2026-01-01" :unit :year :count 3}
+                   :total-label "First / last stock or total flow"})
+
+  (section initial-measurement "Measurement at commencement" {:per lease :display :schedule}
+    (check lease-rate-supported "Rate is within this demonstration's nonnegative-rate scope"
+      (>= lease.annual-rate 0))
+    (check lease-term-supported "Term fits the demonstration horizon"
+      (and (> lease.term-years 0) (<= lease.term-years 3)))
+    (line initial-liability "Present value of unpaid future payments"
+      (fin/npv lease.annual-rate
+        (vec (map (fn [period-key]
+               ;; The empty schedule contributes numeric zero; fin/npv accepts only numeric flows.
+               (let [cash-flow (sum (map (fn [entry]
+                                          (if (and (= entry.lease-id lease.key) (= entry.period-id period-key)) entry.payment 0))
+                                        lease-payments))]
+                 (if (nil? cash-flow) 0 cash-flow))) periods.year.keys)) currency-scale)
+      {:op :info})
+    (line initial-rou-cost "Initial right-of-use cost"
+      (- (+ initial-liability lease.commencement-payment lease.initial-direct-costs) lease.commencement-incentive)
+      {:op :info})
+    (check initial-rou-nonnegative "Initial right-of-use cost is nonnegative" (>= initial-rou-cost 0)))
+
+  (section liability-flow "Lease liability" {:per [lease year] :display :schedule}
+    (line liability-opening "Opening lease liability" (prev liability-closing initial-liability)
+      {:aggregate {:first year}})
+    (line interest "Interest for the period"
+      (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0))
+    (line payment "Supplied end-of-period payment"
+      (sum (map (fn [entry]
+                  (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))
+      {:op :minus})
+    (check payment-nonnegative "Supplied payment is nonnegative" (>= payment 0))
+    (total liability-closing "Closing lease liability" {:aggregate {:last year}})
+    (line principal-reduction "Payment less interest" (- payment interest) {:op :info})
+    (line reported-liability-closing "Reported closing lease liability"
+      (sum (map (fn [entry]
+                  (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0))
+                reported-closings)) {:op :info :aggregate {:last year}})
+    (reconcile liability-reconciliation "Computed and independently reported liability balances agree"
+      liability-closing reported-liability-closing {:tolerance 0.01}))
+
+  (section rou-flow "Right-of-use asset" {:per [lease year] :display :schedule}
+    (line rou-opening "Opening right-of-use carrying amount" (prev rou-closing initial-rou-cost)
+      {:aggregate {:first year}})
+    (line rou-depreciation "Right-of-use depreciation"
+      (if (< year.index lease.term-years)
+        (if (= (+ year.index 1) lease.term-years) rou-opening
+          (min rou-opening (decimal/divide initial-rou-cost lease.term-years currency-scale))) 0)
+      {:op :minus})
+    (total rou-closing "Closing right-of-use carrying amount" {:aggregate {:last year}}))
+
+  (section period-summary "All-lease period totals" {:per year :display :schedule}
+    (line period-liability-opening "Opening lease liabilities" (dim/sum liability-opening) {:aggregate {:first year}})
+    (line period-interest "Interest" (dim/sum interest))
+    (line period-payment "Payments" (dim/sum payment) {:op :minus})
+    (total period-liability-closing "Closing lease liabilities" {:aggregate {:last year}})
+    (line period-principal-reduction "Principal reduction" (dim/sum principal-reduction) {:op :info})
+    (line period-rou-opening "Opening right-of-use assets" (dim/sum rou-opening) {:op :info :aggregate {:first year}})
+    (line period-rou-depreciation "Right-of-use depreciation" (dim/sum rou-depreciation) {:op :info})
+    (line period-rou-closing "Closing right-of-use assets" (dim/sum rou-closing) {:op :info :aggregate {:last year}})))
+
+;; Simplifications: full annual periods and supplied rates; no reassessments, modifications, options,
+;; restoration, index changes, FX, tax, exemptions, lessor accounting or professional judgments.
+;; A negative rate greater than -1 is evaluated faithfully and gets a demo-scope business finding.

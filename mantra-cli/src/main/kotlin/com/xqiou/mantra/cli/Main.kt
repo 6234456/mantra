@@ -223,7 +223,7 @@ private fun diff(options: Options) {
         }
         directory = directory.parent
     }
-    val envelope = WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, document)
+    val envelope = WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, document)
     val output = when (options.named["format"] ?: "json") {
         "json" -> WorkbenchJson.write(envelope)
         "text" -> buildString {
@@ -295,14 +295,22 @@ private fun explain(options: Options) {
         fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
     }
     val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
-    if (aggregate &&
-        coord.isNotEmpty()
-    ) {
-        fail("Aggregate CLI Explain currently accepts the complete active set; omit --coord")
-    }
     val document = if (aggregate) {
-        if (node.aggregateTrace == null) fail("Explain ratio aggregate was not found: $nodeId")
-        WorkbenchDocuments.aggregate(view, layout, nodeId)
+        val fixed = coord.associate { binding ->
+            val parts = binding.split('=', limit = 2)
+            if (parts.size != 2 || parts.any(String::isBlank)) fail("Aggregate --coord requires dimension=member")
+            parts[0] to parts[1]
+        }
+        if (fixed.size != coord.size || view.dimensionOrder(fixed.keys).map { "$it=${fixed.getValue(it)}" } != coord) {
+            fail("Aggregate --coord must contain unique dimensions in schema declaration order")
+        }
+        val reduced = try {
+            view.reduce(nodeId, fixed)
+        } catch (failure: IllegalArgumentException) {
+            fail(failure.message ?: "Aggregate coordinate was not found")
+        }
+        if (reduced.trace == null) fail("Explain aggregate was not found: $nodeId")
+        WorkbenchDocuments.aggregate(view, layout, nodeId, fixed)
     } else {
         WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
     }
@@ -328,7 +336,7 @@ private fun explain(options: Options) {
         directory = directory.parent
     }
     val output = when (options.named["format"] ?: "json") {
-        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, document))
+        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, document))
         "text" -> buildString {
             appendLine("${document["label"]}: ${(document["result"] as Map<*, *>) ["display"]}")
             @Suppress("UNCHECKED_CAST")
@@ -337,8 +345,12 @@ private fun explain(options: Options) {
             }
             (document["aggregate"] as? Map<*, *>)?.let { trace ->
                 val display = trace["display"] as Map<*, *>
-                appendLine("  Σ ${trace["numeratorId"]}: ${display["numeratorTotal"]}")
-                appendLine("  Σ ${trace["denominatorId"]}: ${display["denominatorTotal"]}")
+                if (trace["kind"] == "ratio") {
+                    appendLine("  Σ ${trace["numeratorId"]}: ${display["numeratorTotal"]}")
+                    appendLine("  Σ ${trace["denominatorId"]}: ${display["denominatorTotal"]}")
+                } else if (trace["kind"] == "boundary") {
+                    appendLine("  ${trace["boundary"]} period of ${trace["dimension"]}")
+                }
                 appendLine("  active members: ${trace["activeMemberCount"]}/${trace["memberCount"]}")
                 trace["undefinedReason"]?.let { appendLine("  undefined: $it") }
             }
@@ -405,8 +417,9 @@ private fun catalog() {
         "(include \"path\")" to "include a fragment",
         "(param id literal {opts})" to "template parameter, overridable per case",
         "(input id :type {opts})" to "user fact (:decimal :integer :boolean :keyword :text :date :table)",
-        "(dimension id {:members [...] | :from table})" to
-            "members; table dimensions may declare :parent and :parent-key",
+        "(dimension id {:members [...] | :from table | :periods spec})" to
+            "members or continuous periods; may declare :parent and :parent-key",
+        "(prev node first-expression)" to "previous period at matching coordinates; lazy first-period fallback",
         "(defn name [^Type arg] body)" to "helper function in Normein DSL",
         "(section id \"Label\" {opts} item*)" to "grouping; with a total it has a running sum",
         "(field id \"Label\" {opts})" to "input shown in place",
@@ -422,6 +435,7 @@ private fun catalog() {
     ).forEach { (form, text) -> println("  %-64s %s".format(form, text)) }
     println("  item options: :op :plus|:minus|:info  :per dim|[dims]  :when expr  :round n|[n :mode]  :spread true")
     println("                :reference :note :source :format :precision :hidden :type :class")
+    println("                :aggregate :sum|:none|{:ratio [numerator denominator]}|{:first period}|{:last period}")
     println("                application attributes (for example :kz or :zeile) pass through unchanged")
     println()
     println(
@@ -435,6 +449,7 @@ private fun catalog() {
         "  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)",
     )
     println("  (operators {...})  (columns :tiered|:matrix col*)  (table section-id {opts} col*)")
+    println("  table axes: :style :matrix|:transpose  :row-dimension dim  :fixed {:dimension :member}")
     println("  (attribute :name {opts}?)  application metadata column")
     println("  (schedule id*)  (inline id*)  (hide id*)")
     println("  (col id {:content <content> :header \"…\" :width n :align …})  (members dim)  (member dim :key)")

@@ -1,0 +1,18 @@
+;; Independently authored fictional facts; standards support concepts only.
+(case fixed-assets-residual-floor
+  {:schema "assets/cost-model" :layout "assets/working-paper" :title "Fixed assets: Tool at residual-value floor" :subject "Fictional demonstration entity" :period "2026–2030" :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts"}
+  (inputs {
+    :assets [
+      {:id :Tool :title "Tool at its residual value" :category :machinery :depreciable true :opening-cost 100 :opening-accumulated-depreciation 80 :acquisition-cost 0 :acquisition-period nil :available-from "2026-01-01" :remaining-months 36 :residual-value 20 :disposal-at-period-end nil}]
+    :reported-closings [
+      {:period :P1 :carrying-amount 20}
+      {:period :P2 :carrying-amount 20}
+      {:period :P3 :carrying-amount 20}
+      {:period :P4 :carrying-amount 20}
+      {:period :P5 :carrying-amount 20}]
+    :calendar-periods [
+      {:id :P1 :start "2026-01-01" :end "2027-01-01"}
+      {:id :P2 :start "2027-01-01" :end "2028-01-01"}
+      {:id :P3 :start "2028-01-01" :end "2029-01-01"}
+      {:id :P4 :start "2029-01-01" :end "2030-01-01"}
+      {:id :P5 :start "2030-01-01" :end "2031-01-01"}]}))

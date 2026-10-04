@@ -2,6 +2,7 @@ package com.xqiou.mantra.core
 
 import com.xqiou.mantra.core.api.AuditOptions
 import com.xqiou.mantra.core.api.CalculationResult
+import com.xqiou.mantra.core.api.CalculationSession
 import com.xqiou.mantra.core.engine.CalculationPlan
 import com.xqiou.mantra.core.engine.Evaluator
 import com.xqiou.mantra.core.engine.Planner
@@ -85,10 +86,19 @@ object Mantra {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink).run()
+        return Evaluator(checkNotNull(plan), sink).use { it.run() }
     }
 
-    internal fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).run()
+    /** Opens a reusable VALUE_ONLY runtime; recalculate and close it on this thread after the last edit. */
+    fun openSession(
+        schema: Schema,
+        case: CaseData = CaseData.empty(),
+        parameters: List<ParameterSet> = emptyList(),
+    ): CalculationSession = CalculationSession(schema, case, parameters)
+
+    internal fun calculate(plan: CalculationPlan): CalculationResult = Evaluator(plan, DiagnosticSink()).use {
+        it.run()
+    }
 
     /**
      * Evaluates once while retaining bounded source-level evidence for paper and workbook audits.
@@ -104,7 +114,7 @@ object Mantra {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink, auditOptions = options).run()
+        return Evaluator(checkNotNull(plan), sink, auditOptions = options).use { it.run() }
     }
 
     /** Recalculates one case while collecting a bounded FULL trace only for the requested value. */
@@ -118,7 +128,7 @@ object Mantra {
         val sink = DiagnosticSink()
         val plan = Planner(sink).plan(schema, case, parameters)
         sink.throwIfErrors()
-        return Evaluator(checkNotNull(plan), sink, node to coord).run()
+        return Evaluator(checkNotNull(plan), sink, node to coord).use { it.run() }
     }
 }
 

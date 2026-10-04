@@ -19,16 +19,16 @@ data class RatioContribution(
 data class RatioAggregateTrace(
     val numeratorId: String,
     val denominatorId: String,
-    val dimensions: List<String>,
-    val fixed: Map<String, String>,
+    override val dimensions: List<String>,
+    override val fixed: Map<String, String>,
     val members: List<RatioContribution>,
-    val memberCount: Int,
-    val activeMemberCount: Int,
+    override val memberCount: Int,
+    override val activeMemberCount: Int,
     val numeratorTotal: BigDecimal,
     val denominatorTotal: BigDecimal,
     val rounding: Rounding?,
-    val result: BigDecimal?,
+    override val result: BigDecimal?,
     /** Stable reason: no-active-members, zero-denominator or rounding-required. */
-    val undefinedReason: String?,
-    val truncated: Boolean,
-)
+    override val undefinedReason: String?,
+    override val truncated: Boolean,
+) : AggregateTrace

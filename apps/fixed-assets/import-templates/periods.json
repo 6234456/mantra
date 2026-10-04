@@ -1,0 +1,10 @@
+{
+  "name": "periods",
+  "format": "csv",
+  "options": {
+    "input": "calendar-periods",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

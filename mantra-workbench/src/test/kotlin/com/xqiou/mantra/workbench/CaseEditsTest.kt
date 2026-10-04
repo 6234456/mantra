@@ -12,7 +12,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class CaseEditsTest {
+class CaseEditsTest : WorkspaceCatalogTestOwner() {
     @TempDir lateinit var temp: Path
     private fun copyExample(name: String): Pair<Path, String> {
         val source = Path.of("apps/$name")
@@ -41,7 +41,7 @@ class CaseEditsTest {
             """.trimIndent(),
         )
         Files.writeString(dir.resolve("case.mantra"), "(case sample {:schema \"test/date\"})")
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         assertEquals(
             Value.Date(LocalDate.of(2025, 12, 31)),
             catalog.parseEditText("case.mantra", "report-date", false, "31.12.2025"),
@@ -52,7 +52,7 @@ class CaseEditsTest {
     @Test
     fun `preview leaves bytes intact and commit undo redo check revisions`() {
         val (dir, case) = copyExample("de-est")
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readAllBytes(file)
         val revision = catalog.document(case, "run").revision
@@ -77,7 +77,7 @@ class CaseEditsTest {
     @Test
     fun `invalid second edit rejects whole batch without changing file`() {
         val (dir, case) = copyExample("de-est")
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readAllBytes(file)
         val revision = catalog.document(case, "run").revision
@@ -100,7 +100,7 @@ class CaseEditsTest {
     fun `IAS and SAP cases preview table edits without writing`() {
         for ((domain, table) in listOf("ifrs-impairment" to "cgus", "cost-accounting" to "products")) {
             val (dir, case) = copyExample(domain)
-            val catalog = WorkspaceCatalog(dir)
+            val catalog = workspaceCatalog(dir)
             val original = Files.readAllBytes(dir.resolve(case))
             val revision = catalog.document(case, "run").revision
             val candidate = if (table == "cgus") {
@@ -134,7 +134,7 @@ class CaseEditsTest {
             file,
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val change = listOf(
             CaseTextEditor.Operation.SetInput("veranlagungsart", Value.Kw("zusammen")),
@@ -155,7 +155,7 @@ class CaseEditsTest {
             file,
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val operations = listOf(
             CaseTextEditor.Operation.BindFormula("missing-slot", "(+ 1 2)"),
@@ -182,7 +182,7 @@ class CaseEditsTest {
             file,
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val setB = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("32000"), listOf("B"))
         val problem = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(setB)) }
@@ -203,7 +203,7 @@ class CaseEditsTest {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         val original = Files.readString(file)
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val scalar = CaseTextEditor.Operation.SetInput("bruttoarbeitslohn", Value.num("40000"))
         val rejected = assertFailsWith<WorkspaceException> { catalog.previewEdits(case, revision, listOf(scalar)) }
@@ -230,7 +230,7 @@ class CaseEditsTest {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
         val original = Files.readString(file)
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val unknownMember = CaseTextEditor.Operation.SetInput(
             "bruttoarbeitslohn",
@@ -261,7 +261,7 @@ class CaseEditsTest {
     @Test
     fun `batch may repair an intermediate invalid layout before final validation`() {
         val (dir, case) = copyExample("de-est")
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val file = dir.resolve(case)
         val original = Files.readString(file)
         val revision = catalog.document(case, "run").revision
@@ -286,7 +286,7 @@ class CaseEditsTest {
             file,
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val result = catalog.previewEdits(
             case,
@@ -309,7 +309,7 @@ class CaseEditsTest {
             file,
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val operations = listOf(
             CaseTextEditor.Operation.SetBindings(listOf("missing/parameters"), null),
@@ -334,7 +334,7 @@ class CaseEditsTest {
             Files.readString(file).replace(":veranlagungsart :zusammen", ":veranlagungsart :einzel"),
         )
         Files.writeString(dir.resolve("temp-invalid.mantra"), "(parameters temp/invalid (bad))")
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         val preview = catalog.previewEdits(
             case,
@@ -353,7 +353,7 @@ class CaseEditsTest {
     fun `external case edit before final replace returns conflict without overwriting it`() {
         val (dir, case) = copyExample("de-est")
         val file = dir.resolve(case)
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val revision = catalog.document(case, "run").revision
         catalog.beforeWriteCheck = {
             Files.writeString(file, Files.readString(file).replace(":spenden 450", ":spenden 999"))
@@ -378,7 +378,7 @@ class CaseEditsTest {
                 ":layout \"de.est/steuerberechnung\"\n   :parameters [\"de.est/params-2026\"]",
             ),
         )
-        val catalog = WorkspaceCatalog(dir)
+        val catalog = workspaceCatalog(dir)
         val original = Files.readString(file)
         val revision = catalog.document(case, "run").revision
         val parameterFile = dir.resolve("params-2026.mantra")

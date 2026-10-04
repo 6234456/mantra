@@ -1,0 +1,12 @@
+(layout assets/working-paper
+  {:preset :ifrs-schedule :precision 2 :title "Fixed-asset working paper"
+   :subtitle "First and last stocks; total additions, disposals and depreciation"
+   :header [:subject :period :schema :prepared-by :reference]}
+  (table gross-flow {:style :matrix :row-dimension asset :title "Gross cost by asset and year"}
+    :label (members year) :cross-total)
+  (table accumulated-flow {:style :matrix :row-dimension asset :title "Accumulated depreciation by asset and year"}
+    :label (members year) :cross-total)
+  (table carrying-flow {:style :matrix :row-dimension asset :title "Net carrying amounts by asset and year"}
+    :label (members year) :cross-total)
+  (table period-summary {:style :matrix :title "All-asset carrying bridge"}
+    :label (members year) :cross-total))

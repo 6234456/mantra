@@ -1,0 +1,12 @@
+;; Fictional facts authored independently; no IFRS illustrative-example data.
+(case ias36-capped
+  {:schema "ifrs.ias36/corporate-assets" :layout "ifrs.ias36/working-paper"
+   :title "IAS 36: Workshop impairment with asset caps" :subject "Fictional workshop entity" :period "2025-12-31"
+   :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts"}
+  (inputs
+    {:cgus [{:id :Workshop :name "Workshop CGU" :carrying-amount 390 :goodwill 30
+             :remaining-life 6 :value-in-use 300 :use-asset-caps true}]
+     :cgu-assets [{:id :Machine :title "Machine" :cgu-id :Workshop :carrying-amount 120 :asset-fvlcd 105 :asset-value-in-use 110}
+       {:id :Building :title "Building" :cgu-id :Workshop :carrying-amount 180 :asset-fvlcd 130 :asset-value-in-use 130}
+       {:id :Equipment :title "Equipment" :cgu-id :Workshop :carrying-amount 60 :asset-fvlcd 42 :asset-value-in-use 42}]
+     :allocable-corporate 0 :unallocable-corporate 0 :group-recoverable-amount 300}))

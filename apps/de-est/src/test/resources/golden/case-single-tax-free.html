@@ -378,7 +378,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left c-reference" data-column="reference">§ 19 EStG</td>
 </tr>
 <tr class="value" id="t5-r1" data-section="nichtselbstaendig" data-depth="2" data-height="0" data-row-index="2">
-<td class="left c-rownumber" data-column="row-number">1</td>
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r1-aggregate" title="Berechnungsnachweis">1</a></td>
 <td class="center c-operator" data-column="operator">+</td>
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Bruttoarbeitslohn</span></td>
 <td class="right num c-member" data-column="membersperson-A">12.096,00</td>
@@ -387,7 +387,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left c-reference" data-column="reference"></td>
 </tr>
 <tr class="value" id="t5-r2" data-section="nichtselbstaendig" data-depth="2" data-height="0" data-row-index="3">
-<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r2-A" title="Berechnungsnachweis">2</a></td>
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r2-aggregate" title="Berechnungsnachweis">2</a></td>
 <td class="center c-operator" data-column="operator">./.</td>
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag</span></td>
 <td class="right num c-member" data-column="membersperson-A">1.230,00</td>
@@ -396,7 +396,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left c-reference" data-column="reference">§ 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG</td>
 </tr>
 <tr class="result" id="t5-r3" data-section="nichtselbstaendig" data-depth="2" data-height="0" data-row-index="4">
-<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r3-A" title="Berechnungsnachweis">3</a></td>
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t5-r3-aggregate" title="Berechnungsnachweis">3</a></td>
 <td class="center c-operator" data-column="operator">=</td>
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Einkünfte aus nichtselbständiger Arbeit</span></td>
 <td class="right num c-member" data-column="membersperson-A">10.866,00</td>
@@ -457,7 +457,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left c-reference" data-column="reference"></td>
 </tr>
 <tr class="result" id="t6-r2" data-section="vorsorge" data-depth="2" data-height="0" data-row-index="3">
-<td class="left c-rownumber" data-column="row-number"><a href="#audit-t6-r2-A" title="Berechnungsnachweis">2</a></td>
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t6-r2-aggregate" title="Berechnungsnachweis">2</a></td>
 <td class="center c-operator" data-column="operator">=</td>
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Abziehbare Vorsorgeaufwendungen</span></td>
 <td class="right num c-member" data-column="membersperson-A">0,00</td>
@@ -559,7 +559,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t1-r2">
 <td class="left cite"><a href="#t1-r2">1/2</a></td>
 <td class="left">Gesamtbetrag der Einkünfte<div class="norm">§ 2 Abs. 3 EStG</div></td>
-<td class="left"><code class="formula">summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug</code><div class="working">10866.00 − 0 − 0 − 0</div></td>
+<td class="left"><code class="formula">summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug</code><div class="working">10866.00 − (Σ contributions: [person=A] 0 excluded → 0) − 0 − 0</div></td>
 <td class="right num">10.866,00</td>
 </tr>
 <tr id="audit-t1-r4">
@@ -613,7 +613,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t4-r2">
 <td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Nachzahlung (+) / Erstattung (−)</td>
-<td class="left"><code class="formula">festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen</code><div class="working">0.00 − 0 − 0 − 0 − 0</div></td>
+<td class="left"><code class="formula">festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen</code><div class="working">0.00 − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − 0</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t4-r3">
@@ -622,11 +622,29 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left"><code class="formula">abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)</code><div class="working">abrechnungsergebnis = 0.00; (dim/sum lohnsteuer) = 0 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 0 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">0,00</td>
 </tr>
+<tr id="audit-t5-r1-aggregate">
+<td class="left cite"><a href="#t5-r1">5/1 Σ</a></td>
+<td class="left">Bruttoarbeitslohn (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [person=A] 12096 included → 12096</div></td>
+<td class="right num">12.096,00</td>
+</tr>
+<tr id="audit-t5-r2-aggregate">
+<td class="left cite"><a href="#t5-r2">5/2 Σ</a></td>
+<td class="left">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag (Gesamt)<div class="norm">§ 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [person=A] 1230 included → 1230</div></td>
+<td class="right num">1.230,00</td>
+</tr>
 <tr id="audit-t5-r2-A">
 <td class="left cite"><a href="#t5-r2">5/2</a></td>
 <td class="left">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag <span class="member">Person A</span><div class="norm">§ 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG</div></td>
 <td class="left"><code class="formula">(if (&gt; wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))</code><div class="working">(&gt; wk-nachgewiesen an-pauschbetrag) = false → (min an-pauschbetrag bruttoarbeitslohn) = 1230 → (if (&gt; wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 1230 → gewählter Zweig: (min an-pauschbetrag bruttoarbeitslohn)</div></td>
 <td class="right num">1.230,00</td>
+</tr>
+<tr id="audit-t5-r3-aggregate">
+<td class="left cite"><a href="#t5-r3">5/3 Σ</a></td>
+<td class="left">Einkünfte aus nichtselbständiger Arbeit (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [person=A] 10866 included → 10866</div></td>
+<td class="right num">10.866,00</td>
 </tr>
 <tr id="audit-t5-r3-A">
 <td class="left cite"><a href="#t5-r3">5/3</a></td>
@@ -637,8 +655,14 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t5-r4">
 <td class="left cite"><a href="#t5-r4">5/4</a></td>
 <td class="left">Summe der Einkünfte<div class="norm">§ 2 Abs. 2 EStG</div></td>
-<td class="left"><code class="formula">einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige</code><div class="working">0 + 0 + 0 + 10866 + 0 + 0 + 0.00</div></td>
+<td class="left"><code class="formula">einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige</code><div class="working">(Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 10866 included → 10866) + (Σ contributions: [person=A] 0 excluded → 0) + 0 + (Σ contributions: [person=A] 0.00 included → 0.00)</div></td>
 <td class="right num">10.866,00</td>
+</tr>
+<tr id="audit-t6-r2-aggregate">
+<td class="left cite"><a href="#t6-r2">6/2 Σ</a></td>
+<td class="left">Abziehbare Vorsorgeaufwendungen (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [person=A] 0 included → 0</div></td>
+<td class="right num">0,00</td>
 </tr>
 <tr id="audit-t6-r2-A">
 <td class="left cite"><a href="#t6-r2">6/2</a></td>
@@ -661,7 +685,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t6-r5">
 <td class="left cite"><a href="#t6-r5">6/5</a></td>
 <td class="left">Sonderausgaben insgesamt</td>
-<td class="left"><code class="formula">vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag</code><div class="working">0 + 0 + 0 + 36</div></td>
+<td class="left"><code class="formula">vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag</code><div class="working">(Σ contributions: [person=A] 0 included → 0) + 0 + 0 + 36</div></td>
 <td class="right num">36,00</td>
 </tr>
 <tr id="audit-t9-r1">

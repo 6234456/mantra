@@ -302,7 +302,7 @@ Business diagnostics have category `business` and never make `succeeded` false. 
 `parsing`, `structural` and `evaluation`; callers choose whether a finding should block their own
 workflow. See the complete [diagnostic directory](diagnostics.md).
 
-Continuous periods, previous-period references and linked cases are planned for later milestones;
+Continuous periods and previous-period references are introduced by M2 below; linked cases remain planned for M3;
 they are not v0.2 DSL forms.
 See the [roadmap](roadmap.md) for accepted decisions and completion criteria.
 
@@ -326,3 +326,49 @@ records in the workbench and regenerate the workbook.
 `mantra check` compiles and inspects structure; it does not run business validations. `run`/export
 report business findings while retaining technical success. The workbench wire version is
 `mantra.workbench/2`; upgrade strict v1 clients together with the server.
+
+
+## 6. Continuous periods and multidimensional papers (M2 / v0.3)
+
+Implementation and verification are tracked in [M2 work packages](milestones/m2-work-packages.md).
+
+```clojure
+(dimension year {:periods {:start "2026-01-01" :unit :year :count 5}})
+(dimension fiscal-year
+  {:periods [{:key :FY2026 :start "2026-07-01" :end "2027-07-01"}
+             {:key :FY2027 :start "2027-07-01" :end "2028-07-01"}]})
+(section balance "Balance" {:per [asset year]}
+  (line opening "Opening" (prev closing first-opening) {:aggregate {:first year}})
+  (line change "Change" period-change)
+  (total closing "Closing" {:aggregate {:last year}}))
+```
+
+Periods are ordered half-open intervals: end is exclusive, and adjacent boundaries must match.
+Generated units are `:month`, `:quarter` and `:year`, with keys `P1` through `Pn`. Each boundary is
+computed from the original start, avoiding iterative month-end drift. The current period record
+provides key, zero-based index, start, end-exclusive and previous-key. Node applicability may vary;
+period membership cannot filter away intermediate periods. Non-calendar fiscal years use the same rules.
+
+The global `(prev node first-expression)` selects the same other coordinates in the preceding
+period. Only the first period executes the explicit fallback; later nil stays nil. Local or named
+functions called prev keep normal lexical semantics. Ordinary current-period and domain cycles
+remain errors, with coordinate paths in diagnostics. Each closing balance is independently addressable.
+
+Numeric inputs, fields, lines, totals and choices support `:aggregate {:first year}` or `{:last year}`.
+Removing the period axis selects its declared boundary in each other-coordinate group; other axes
+sum. The rule never searches for the last nonzero or active value. `CalculationView.reduce(nodeId,
+fixed)` exposes the immutable value and bounded ratio/boundary/sum evidence used by consumers.
+
+A period `:parent` relation uses full interval containment. The original three-argument dim/rollup
+remains additive. Its five-argument overload supplies an explicit first/last rule and ordered source
+keys; a function never guesses stock semantics from the referenced node's name.
+
+```clojure
+(table bridge {:style :matrix :row-dimension asset} :label (members year) :cross-total)
+(table bridge {:style :transpose :row-dimension asset} :label (node opening) (node change) (node closing))
+```
+
+Use separate layouts for these alternative views. A fixed slice such as `:fixed {:year :P3}` can select
+a particular period. Every numeric cell retains its exact node/coordinate or aggregate fixed slice;
+layouts do not recalculate amounts. XLSX previous references and stock reductions retain formulas.
+The generation-time audit snapshot and automatic outdated status continue to follow section 5.

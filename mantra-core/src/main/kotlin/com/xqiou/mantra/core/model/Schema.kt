@@ -95,6 +95,9 @@ data class InputDecl(
     val references: Map<String, String> = emptyMap(),
     val requiredWhen: Formula? = null,
     val minRows: Int? = null,
+    val aggregate: AggregateRule = AggregateRule.SUM,
+    val ratio: RatioAggregation? = null,
+    val boundary: BoundaryAggregation? = null,
 )
 
 data class MemberDecl(val key: String, val label: String, val condition: Formula?)
@@ -111,6 +114,7 @@ data class DimensionDecl(
     val parentKeyColumn: String?,
     val totalLabel: String,
     val location: SourceLocation,
+    val periods: PeriodSpec? = null,
 )
 
 /** `(defn name [^Type arg ...] body)` helper made available to every formula of the schema. */
@@ -167,6 +171,7 @@ data class LineItem(
     /** A unit rate is usually NONE; its cross total must be expressed by a separate formula. */
     val aggregate: AggregateRule = AggregateRule.SUM,
     val ratio: RatioAggregation? = null,
+    val boundary: BoundaryAggregation? = null,
 ) : NodeItem
 
 /** An input shown at its place in the computation (`field` form). */
@@ -187,6 +192,9 @@ data class TotalItem(
     override val presentation: Presentation,
     override val location: SourceLocation,
     override val userDefined: Boolean = false,
+    val aggregate: AggregateRule = AggregateRule.SUM,
+    val ratio: RatioAggregation? = null,
+    val boundary: BoundaryAggregation? = null,
 ) : NodeItem
 
 /** Alternatives with a selection rule (Günstigerprüfung, higher-of tests). */
@@ -202,6 +210,9 @@ data class ChoiceItem(
     override val presentation: Presentation,
     override val location: SourceLocation,
     override val userDefined: Boolean = false,
+    val aggregate: AggregateRule = AggregateRule.SUM,
+    val ratio: RatioAggregation? = null,
+    val boundary: BoundaryAggregation? = null,
 ) : NodeItem
 
 data class SectionItem(

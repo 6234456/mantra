@@ -1,0 +1,38 @@
+{
+  "notice": "Fictional facts independently authored; no IFRS illustrative data.",
+  "cgu_carrying": "390",
+  "goodwill": "30",
+  "recoverable": "300",
+  "remaining_life": "6",
+  "own_loss": "60",
+  "assets": [
+    {
+      "id": "Machine",
+      "carrying": "120",
+      "fvlcd": "105",
+      "viu": "110"
+    },
+    {
+      "id": "Building",
+      "carrying": "180",
+      "fvlcd": "130",
+      "viu": "130"
+    },
+    {
+      "id": "Equipment",
+      "carrying": "60",
+      "fvlcd": "42",
+      "viu": "42"
+    }
+  ],
+  "expected_currency0": [
+    "10",
+    "38",
+    "12"
+  ],
+  "expected_currency2": [
+    "10",
+    "37.50",
+    "12.50"
+  ]
+}

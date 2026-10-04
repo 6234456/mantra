@@ -136,7 +136,8 @@
               "style": {
                 "enum": [
                   "tiered",
-                  "matrix"
+                  "matrix",
+                  "transpose"
                 ]
               },
               "columns": {
@@ -383,7 +384,7 @@
               "aggregate": {
                 "oneOf": [
                   {
-                    "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+                    "$ref": "envelope.schema.json#/$defs/aggregate"
                   },
                   {
                     "type": "null"

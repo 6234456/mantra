@@ -1,0 +1,4 @@
+;; Explicit alternative calculation precision; no change to supplied facts.
+(parameters assets/precision
+  {:for "assets/cost-model" :label "Four-place currency precision"}
+  (value currency-scale 4))

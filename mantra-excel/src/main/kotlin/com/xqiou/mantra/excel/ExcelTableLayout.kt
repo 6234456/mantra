@@ -23,6 +23,10 @@ import org.apache.poi.ss.util.CellRangeAddress
 private class XColumn(val content: ColumnContent, val header: String, val width: Int, val grouped: Boolean = false)
 
 internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
+    if (table.rows.any { row -> row.valueAddresses.any { it != null } }) {
+        layoutAddressedTable(table)
+        return
+    }
     val sheet = sheet("${table.ref} ${table.title}")
     tableSheets[table.ref] = sheet
     sectionSheets[table.id] = sheet

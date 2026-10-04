@@ -1,0 +1,31 @@
+{
+  "notice": "Project-authored fictional facts; independent Fraction/Decimal sources, never generated from engine values.",
+  "files_sha256": {
+    "README.md": "5b4b9d79699c1952c383a3c49ee53619eaf09e2dff7abfd90ce6cf885049cf42",
+    "case-capped.mantra": "609a67a0d63ec477ff42f3c1fd0882ce8848ee913340e8d7cd63b1796992a625",
+    "case-custom-weight.mantra": "ba7e6ed5c74c82754afabd0efc9f84af7aaa81a2ef4a57ddd0c0913abac236d4",
+    "case-demo.mantra": "8308fc49549b6055e8ea09c48dabd63e087678e7d92d379b3b778ff34f59a014",
+    "case-discounted-viu.mantra": "c85e4af72f03f1cb27f1b9f271696c69448dde237d86c1b4eb1832f253909bd2",
+    "case-insufficient-capacity.mantra": "55fa59af6c7fdf1334eca21d2199fce3ecc26b2f6eff3441129e20d4b1050c19",
+    "case-no-impairment.mantra": "33648cbaa2c98da7cacd5ebfb23f4567e711aae09e3644ff8c21ab8294680f2a",
+    "data/cgu-assets.csv": "673dcef2aef85f7e1bb848c80eeaef6683c3fe10c6d7b7f5f0a272b0b100d900",
+    "data/cgus.csv": "efc76196c68c2fe1f98511b6a4773d5cb0a35eeef137fbf2a66130639beb3d03",
+    "data/forecast-cashflows.csv": "16bae18303d8d6f67c1e6b80f9e987028ae4fb24ac2545f57d33f74a066e6c0f",
+    "fixtures/capped.json": "32142ce896b07c2d2601f2c67a4c2ad8407a2e9c2ad20bb1953324553745c06e",
+    "fixtures/discounted-viu.json": "5d6cc2456dcb7a6eadf4116ed0bcab081090d045bf102ae92192924a7b9c61c4",
+    "fixtures/insufficient-capacity.json": "3fdde78104f4c28d56d3c0c1902fd82770444489c95b3c1428fcd2b42e277454",
+    "import-templates/cgu-assets.json": "83c816452480c1fa66f54ce1f9cd729eb7ea910f48823a2fb630c40ca035824d",
+    "import-templates/cgus.json": "aac5212e0edbd7fbb949c18e37d9d05cceed53ca7995a7bf04f1cb95153b9c1b",
+    "import-templates/forecast-cashflows.json": "572e1fb0210fe955613be90ee5cb563d4f4ec590c8956b1cd76f9a988b143267",
+    "layout.mantra": "3b312613dfd282eaf2e68cf67f802c1e45b69d9c6e2223c53bc62c2b58cc26c9",
+    "params-cent-precision.mantra": "191a605e74dcc0fffa0e44cc3b05aa067f245a512c599385f25ce6cd2494a1a4",
+    "references/capped-scale0-values.json": "c1ec75921047fd1c76fc015fb66b702c5a0360a83b5cc08766288800c667ef8e",
+    "references/capped-scale2-values.json": "3edd82d7a958ded29257a197b4cc14b7cda1945866aeb2bee12d95e1c7875030",
+    "references/discounted-viu-scale0-values.json": "fa408dcd2bf8627078cec98e27cb3f6536feb6ce0006115ee0f119bea84b8dc7",
+    "references/discounted-viu-scale2-values.json": "092d17be230ec472e5418e600b36eff8e2f115b5988db2f4944f7d8c4a845e74",
+    "references/insufficient-capacity-scale0-values.json": "ae2137bc46f1dcae6305b8e9440644c45836f15f2fd327f89b3741cb9d9ea366",
+    "references/insufficient-capacity-scale2-values.json": "eb0f5b20d714d1d4ccc0539b71ebe67be40f2f17d66d0c23babdd6b44ff9ac9c",
+    "schema.mantra": "dde30e78e4047795bc05c69a54089aab7ea7661ed78467a6ba61fbb1142d578d",
+    "verify_expected.py": "b2fc6c593893f3095aa19f137a302022632cd23f2db7504312b2763cbcede8f4"
+  }
+}

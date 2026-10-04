@@ -126,7 +126,7 @@ def compute(p):
 def verify_compare(path):
     """Check the engine's Compare golden against this independent statutory recomputation."""
     golden = json.loads(path.read_text())
-    assert golden["contract"] == "mantra.workbench/2"
+    assert golden["contract"] == "mantra.workbench/3"
     observed = golden["data"]
     year = {y: dict(compute(PARAMS[y])) for y in (2025, 2026)}
     for y in year:

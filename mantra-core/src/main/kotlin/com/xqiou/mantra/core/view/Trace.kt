@@ -14,9 +14,15 @@ data class Member(val key: String, val label: String, val index: Int, val record
 enum class InputOrigin { CASE, SOURCE, DEFAULT, IMPLICIT }
 
 /** One referenced node or member record, with its value in the evaluation context. */
-data class TraceRef(val id: String, val value: Value, val kind: Kind) {
+data class TraceRef(
+    val id: String,
+    val value: Value,
+    val kind: Kind,
+    val coord: Coord? = null,
+    val fixed: Map<String, String>? = null,
+) {
     /** How the reference was aligned to the formula's dimensions. */
-    enum class Kind { ALIGNED, MEMBER_MAP, ALL, MEMBER }
+    enum class Kind { ALIGNED, MEMBER_MAP, ALL, MEMBER, PREVIOUS }
 }
 
 /** Signed contribution to a total, including whether more dimensions were cross-footed. */
@@ -27,6 +33,7 @@ data class TracePart(
     val crossFooted: Boolean,
     /** Evidence when a weighted ratio was cross-footed into this contribution. */
     val aggregate: RatioAggregateTrace? = null,
+    val reduction: AggregateTrace? = null,
 )
 
 /** Evaluated outcome of one choice option, including its availability. */

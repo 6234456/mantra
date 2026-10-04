@@ -3,7 +3,7 @@ package com.xqiou.mantra.render.layout
 import java.util.Locale
 
 /** How a table places values: tiered lead/main columns or one column per member. */
-enum class TableStyle { TIERED, MATRIX }
+enum class TableStyle { TIERED, MATRIX, TRANSPOSE }
 
 enum class NegativeStyle { MINUS, PARENTHESES }
 
@@ -131,6 +131,11 @@ sealed interface ColumnContent {
         override val numeric = true
     }
 
+    /** A selected calculation item, used as a column in a transposed table. */
+    data class Node(val nodeId: String) : ColumnContent {
+        override val numeric = true
+    }
+
     companion object {
         fun of(keyword: String): ColumnContent? = when (keyword) {
             "label" -> Label
@@ -152,7 +157,7 @@ sealed interface ColumnContent {
         val catalog: List<String> = listOf(
             "label", "operator", "row-number", "reference", "note", "source", "status",
             "formula", "explain", "value", "pre", "main", "cross-total", "(attribute :name)",
-            "(member <dim> :key)", "(members <dim>)",
+            "(member <dim> :key)", "(members <dim>)", "(node <id>)",
         )
     }
 }
@@ -174,6 +179,7 @@ fun ColumnContent.styleRole(): String = when (this) {
     ColumnContent.CrossTotal -> "cross-total"
     is ColumnContent.Member -> "member"
     is ColumnContent.Members -> "members"
+    is ColumnContent.Node -> "node"
 }
 
 data class ColumnSpec(
@@ -291,6 +297,10 @@ data class TableSpec(
     val style: TableStyle? = null,
     val columns: List<ColumnSpec>? = null,
     val expandMembers: Boolean? = null,
+    /** Dimension grouped as rows; the matrix member dimension remains on columns. */
+    val rowDimension: String? = null,
+    /** Fixed member slice, independent of either visible axis. */
+    val fixed: Map<String, String> = emptyMap(),
 )
 
 /** Complete presentation settings; produced from a preset and refined by a layout document. */

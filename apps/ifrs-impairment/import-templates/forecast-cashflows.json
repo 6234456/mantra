@@ -1,0 +1,10 @@
+{
+  "name": "forecast-cashflows",
+  "format": "csv",
+  "options": {
+    "input": "forecast-cashflows",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

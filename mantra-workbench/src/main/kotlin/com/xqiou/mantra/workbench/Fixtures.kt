@@ -82,7 +82,7 @@ object Fixtures {
             val file = "$name.json"
             Files.writeString(
                 target.resolve(file),
-                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, data)) + "\n",
             )
             files[name] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
@@ -120,9 +120,20 @@ object Fixtures {
                 require(
                     node != null && (
                         if (projected) {
-                            node.dims.isNotEmpty() && fixed.size < node.dims.size &&
-                                (!aggregate || node.line?.ratio != null) &&
-                                address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
+                            node.dims.isNotEmpty() && !node.dims.all { it in fixed } &&
+                                (!aggregate || explainedView.reduce(nodeId, fixed).trace != null) &&
+                                address.coord ==
+                                (
+                                    if (aggregate) {
+                                        explainedView.dimensionOrder(fixed.keys)
+                                    } else {
+                                        node.dims.filter {
+                                            it in
+                                                fixed
+                                        }
+                                    }
+                                    )
+                                    .map { "$it=${fixed.getValue(it)}" } &&
                                 fixed.all { (dim, member) ->
                                     explainedView.members[dim].orEmpty().any { it.key == member }
                                 }
@@ -152,7 +163,7 @@ object Fixtures {
                 }
                 Files.writeString(
                     target.resolve(file),
-                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
+                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, data)) + "\n",
                 )
                 explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"
             }
@@ -162,7 +173,7 @@ object Fixtures {
             val file = "export-preview-$index.json"
             Files.writeString(
                 target.resolve(file),
-                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.3.0-SNAPSHOT", normein, data)) + "\n",
             )
             files["export-preview:$name"] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }

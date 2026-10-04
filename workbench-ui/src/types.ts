@@ -4,6 +4,7 @@ import type {
   EnvelopeAddress,
   EnvelopeDiagnostic,
   EnvelopeRatioAggregate,
+  EnvelopeAggregate,
   ExportPreview as WireExportPreview,
   Paper as WirePaper,
   Run as WireRun,
@@ -156,7 +157,7 @@ export interface AuditEntry {
   result: string
   reference?: string | null
   address?: Address | null
-  aggregate?: RatioAggregate | null
+  aggregate?: Aggregate | null
 }
 export type Paper = Pick<WirePaper['data'], 'title' | 'header' | 'overview' | 'auxiliary' | 'legend'> & {
   subtitle?: string | null
@@ -198,14 +199,15 @@ export interface Explain {
     value: Value
     display: string
     crossFooted: boolean
-    aggregate?: RatioAggregate | null
+    aggregate?: Aggregate | null
   }>
   options: ExplainOption[]
   reference?: string
   truncated?: boolean
-  aggregate?: RatioAggregate | null
+  aggregate?: Aggregate | null
 }
 export type RatioAggregate = EnvelopeRatioAggregate
+export type Aggregate = EnvelopeAggregate
 export type CaseSummary = Pick<WireWorkspace['data']['cases'][number], 'id' | 'title'> & {
   period?: string | null
   schema?: string | null

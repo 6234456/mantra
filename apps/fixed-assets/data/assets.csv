@@ -1,0 +1,4 @@
+id,title,category,depreciable,opening-cost,opening-accumulated-depreciation,acquisition-cost,acquisition-period,available-from,remaining-months,residual-value,disposal-at-period-end
+Machine,Workshop machine,machinery,true,120000,22000,0,,2026-01-01,48,10000,
+Equipment,Finishing equipment,machinery,true,0,0,60000,P2,2027-01-01,36,0,P3
+Land,Workshop land,land,false,50000,0,0,,2026-01-01,,0,

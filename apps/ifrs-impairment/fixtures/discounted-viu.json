@@ -1,0 +1,39 @@
+{
+  "notice": "Fictional facts independently authored; IAS36 concepts only.",
+  "annual_pre_tax_rate": "0.10",
+  "cgus": [
+    {"id": "A", "carrying": "120", "remaining_life": "6"},
+    {"id": "B", "carrying": "180", "remaining_life": "12"},
+    {"id": "C", "carrying": "260", "remaining_life": "18"}
+  ],
+  "allocable_corporate": "211",
+  "unallocable_corporate": "73",
+  "group_recoverable": "900",
+  "periods": [
+    "P1",
+    "P2",
+    "P3"
+  ],
+  "cashflows": {
+    "A": [
+      "66",
+      "72.6",
+      "79.86"
+    ],
+    "B": [
+      "77",
+      "84.7",
+      "93.17"
+    ],
+    "C": [
+      "110",
+      "121",
+      "133.1"
+    ]
+  },
+  "expected_viu": {
+    "A": "180",
+    "B": "210",
+    "C": "300"
+  }
+}

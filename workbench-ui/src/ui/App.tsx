@@ -10,7 +10,7 @@ import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
 import { SourcesPage } from './SourcesPage'
 import { ExplainDetails } from './ExplainDetails'
-import { RatioAggregateEvidence } from './RatioAggregateEvidence'
+import { AggregateEvidence } from './AggregateEvidence'
 import { ValidationEvidence } from './ValidationEvidence'
 import type { Validation } from './ValidationEvidence'
 const ExtensionsPage = lazy(() => import('./AuthoringPages').then((module) => ({ default: module.ExtensionsPage })))
@@ -997,7 +997,7 @@ function Inspector({
           {audit?.working && !explain && <p>{audit.working}</p>}
           {validation && <ValidationEvidence validation={validation} />}
           {explain && <ExplainDetails explain={explain} />}
-          {!explain && audit?.aggregate && <RatioAggregateEvidence aggregate={audit.aggregate} />}
+          {!explain && audit?.aggregate && <AggregateEvidence aggregate={audit.aggregate} />}
           {explain?.references.map((ref, i) => (
             <div className="reference-item" key={i}>
               <span>{ref.label}</span>
@@ -1139,7 +1139,14 @@ function ProvenanceNode({
     (signal) => (open ? data.explain(caseId, address, signal) : Promise.reject(new Error('Closed'))),
     [data, caseId, addressKey(address), open],
   )
-  const references = explain.data?.data.references ?? []
+  const children = Array.from(
+    new Map(
+      [...(explain.data?.data.references ?? []), ...(explain.data?.data.parts ?? [])].map(({ address }) => [
+        addressKey(address),
+        address,
+      ]),
+    ).values(),
+  )
   return (
     <div className="tree-node" style={{ marginLeft: Math.min(depth, 5) * 18 }}>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}>
@@ -1147,21 +1154,15 @@ function ProvenanceNode({
         <strong>{explain.data?.data.result.display}</strong>
       </button>
       {open && explain.error && <p className="muted">{t('unavailable', lang)}</p>}
-      {open && depth >= 5 && references.length > 0 && !continued && (
+      {open && depth >= 5 && children.length > 0 && !continued && (
         <button type="button" className="continue-tree" onClick={() => setContinued(true)}>
           {t('continueTree', lang)}
         </button>
       )}
       {open &&
         (depth < 5 || continued) &&
-        references.map((ref, i) => (
-          <ProvenanceNode
-            key={`${addressKey(ref.address)}-${i}`}
-            address={ref.address}
-            caseId={caseId}
-            data={data}
-            depth={depth + 1}
-          />
+        children.map((child) => (
+          <ProvenanceNode key={addressKey(child)} address={child} caseId={caseId} data={data} depth={depth + 1} />
         ))}
       {open && explain.data?.data.truncated && <p className="muted">{t('traceTruncated', lang)}</p>}
     </div>

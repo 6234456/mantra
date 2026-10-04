@@ -29,6 +29,7 @@ internal fun ratioDocument(
         presentation?.precision,
     ) ?: value.toPlainString()
     return linkedMapOf(
+        "kind" to "ratio",
         "numeratorId" to trace.numeratorId,
         "denominatorId" to trace.denominatorId,
 
@@ -81,16 +82,7 @@ internal fun CalculationView.ratioTrace(
         String,
         String,
         >,
-): RatioAggregateTrace? {
-    if (fixed.isEmpty()) return node(nodeId).aggregateTrace
-    return nodes.values.firstNotNullOfOrNull { checkpoint ->
-        checkpoint.values.keys.firstNotNullOfOrNull { coord ->
-            (checkpoint.trace(coord) as? NodeTrace.Sum)?.parts?.firstNotNullOfOrNull { part ->
-                part.aggregate?.takeIf { part.id == nodeId && it.fixed == fixed }
-            }
-        }
-    }
-}
+): RatioAggregateTrace? = reduce(nodeId, fixed).trace as? RatioAggregateTrace
 
 internal fun aggregateExplanation(
     view: CalculationView,
@@ -105,6 +97,8 @@ internal fun aggregateExplanation(
     Any?,
     > {
     val node = view.node(nodeId)
+    val reduction = view.reduce(nodeId, fixed)
+    if (reduction.trace !is RatioAggregateTrace) return reductionExplanation(view, layout, nodeId, fixed)
     val trace = requireNotNull(
         view.ratioTrace(
             nodeId,
@@ -156,7 +150,7 @@ internal fun aggregateExplanation(
     return linkedMapOf(
         "address" to address(
             "aggregate.$nodeId",
-            node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } },
+            aggregateCoordinate(view, fixed),
         ),
 
         "label" to node.label,

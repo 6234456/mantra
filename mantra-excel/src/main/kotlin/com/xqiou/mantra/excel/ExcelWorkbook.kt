@@ -53,6 +53,7 @@ class ExcelWorkbook internal constructor(
     private val nodeAddresses: Map<String, Map<Coord, String>>,
     private val recordAddresses: Map<Triple<String, String, String>, String>,
     private val tableAddresses: Map<Triple<String, Int, String>, String>,
+    private val aggregateAddresses: Map<Pair<String, Map<String, String>>, String> = emptyMap(),
 ) : AutoCloseable {
     override fun close() = workbook.close()
 
@@ -128,6 +129,10 @@ class ExcelWorkbook internal constructor(
      * `aggregate.<nodeId>` with an empty coordinate addresses the first visible cross-total cell.
      */
     fun address(nodeId: String, coord: Coord = emptyList()): String? = nodeAddresses[nodeId]?.get(coord)
+
+    /** A1 address of an exported reduction, with dimensions explicitly fixed to member keys. */
+    fun aggregateAddress(nodeId: String, fixed: Map<String, String> = emptyMap()): String? =
+        aggregateAddresses[nodeId to fixed] ?: if (fixed.isEmpty()) address("aggregate.$nodeId") else null
 
     /** A1 address of a table-input cell: row identified by the member key of a dimension drawn from the table. */
     fun recordAddress(dimension: String, key: String, column: String): String? =

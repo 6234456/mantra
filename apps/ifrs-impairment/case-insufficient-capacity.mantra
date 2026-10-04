@@ -1,0 +1,14 @@
+;; Fictional facts authored independently; no IFRS illustrative-example data.
+(case ias36-insufficient-capacity
+  {:schema "ifrs.ias36/corporate-assets" :layout "ifrs.ias36/working-paper"
+   :title "IAS 36: Insufficient workshop asset capacity" :subject "Fictional workshop entity" :period "2025-12-31"
+   :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts"
+   :expected-business [{:code "MANTRA-CHECK-FAILED" :node "capped-capacity-sufficient" :coord [:Workshop] :severity :error}
+                       {:code "MANTRA-RECONCILE-FAILED" :node "capped-loss-crossfoot" :coord [:Workshop] :severity :error}]}
+  (inputs
+    {:cgus [{:id :Workshop :name "Workshop CGU" :carrying-amount 390 :goodwill 30
+             :remaining-life 6 :value-in-use 300 :use-asset-caps true}]
+     :cgu-assets [{:id :Machine :title "Machine" :cgu-id :Workshop :carrying-amount 120 :asset-fvlcd 115 :asset-value-in-use 115}
+       {:id :Building :title "Building" :cgu-id :Workshop :carrying-amount 180 :asset-fvlcd 175 :asset-value-in-use 175}
+       {:id :Equipment :title "Equipment" :cgu-id :Workshop :carrying-amount 60 :asset-fvlcd 55 :asset-value-in-use 55}]
+     :allocable-corporate 0 :unallocable-corporate 0 :group-recoverable-amount 300}))

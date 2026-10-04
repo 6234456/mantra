@@ -279,16 +279,34 @@ code.formula { font-size: 11px; color: var(--muted); }
 <div class="table-wrap"><table class="audit-table">
 <thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
 <tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Accounting profit before tax (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-entity=North] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
 <tr id="audit-t1-r3-North">
 <td class="left cite"><a href="#t1-r3">1/3</a></td>
 <td class="left">Applicable rate is between zero and one <span class="member">Zero-profit entity</span></td>
 <td class="left"><code class="formula">(and (&gt;= applicable-tax-rate 0) (&lt;= applicable-tax-rate 1))</code><div class="working">(&gt;= applicable-tax-rate 0) = true → (&lt;= applicable-tax-rate 1) = true → (and (&gt;= applicable-tax-rate 0) (&lt;= applicable-tax-rate 1)) = true</div></td>
 <td class="right num">✓</td>
 </tr>
+<tr id="audit-t1-r4-aggregate">
+<td class="left cite"><a href="#t1-r4">1/4 Σ</a></td>
+<td class="left">Tax at the supplied applicable rate (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-entity=North] 0.00 included → 0.00</div></td>
+<td class="right num">–</td>
+</tr>
 <tr id="audit-t1-r4-North">
 <td class="left cite"><a href="#t1-r4">1/4</a></td>
 <td class="left">Tax at the supplied applicable rate <span class="member">Zero-profit entity</span></td>
 <td class="left"><code class="formula">(decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale)</code><div class="working">(* accounting-profit applicable-tax-rate) = 0.00 → (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-r5-aggregate">
+<td class="left cite"><a href="#t1-r5">1/5 Σ</a></td>
+<td class="left">Total supplied tax effects (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-entity=North] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-r5-North">
@@ -297,10 +315,22 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left"><code class="formula">(dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key)</code><div class="working">(dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key) = 0</div></td>
 <td class="right num">–</td>
 </tr>
+<tr id="audit-t1-r6-aggregate">
+<td class="left cite"><a href="#t1-r6">1/6 Σ</a></td>
+<td class="left">Tax explained by expected tax and effects (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-entity=North] 0.00 included → 0.00</div></td>
+<td class="right num">–</td>
+</tr>
 <tr id="audit-t1-r6-North">
 <td class="left cite"><a href="#t1-r6">1/6</a></td>
 <td class="left">Tax explained by expected tax and effects <span class="member">Zero-profit entity</span></td>
 <td class="left"><code class="formula">expected-tax + tax-effect-total</code><div class="working">0.00 + 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-r7-aggregate">
+<td class="left cite"><a href="#t1-r7">1/7 Σ</a></td>
+<td class="left">Booked tax expense or benefit (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-entity=North] 0 included → 0</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t1-r8-North">
@@ -320,6 +350,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left">Effective tax rate <span class="member">Zero-profit entity</span></td>
 <td class="left"><code class="formula">(if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6))</code><div class="working">(= accounting-profit 0) = true → (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6)) = nil → selected branch: nil</div></td>
 <td class="right num">undefined</td>
+</tr>
+<tr id="audit-t2-r1-aggregate">
+<td class="left cite"><a href="#t2-r1">2/1 Σ</a></td>
+<td class="left">Tax effect (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [tax-adjustment=N1] 0 included → 0</div></td>
+<td class="right num">–</td>
 </tr>
 <tr id="audit-t3-r1">
 <td class="left cite"><a href="#t3-r1">3/1</a></td>

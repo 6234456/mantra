@@ -35,7 +35,7 @@ class RatioAggregateExplainTest {
                     "(case c {:schema \"test/ratio\"} (inputs {:charge {:G1 {:A 20 :B 100} :G2 {:A 90 :B 500}} :units {:G1 {:A 100 :B 100} :G2 {:A 300 :B 300}}}))"
                 },
             )
-            test(WorkspaceCatalog(root))
+            WorkspaceCatalog(root).use(test)
         } finally {
             Files.walk(root).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) }
         }
@@ -79,16 +79,17 @@ class RatioAggregateExplainTest {
 
     @Test
     fun `IAS 12 weighted evidence preserves the declared percentage precision in Run and Explain`() {
-        val catalog = WorkspaceCatalog(Path.of("apps/ifrs-income-taxes"))
-        val explanation = catalog.explain("case-demo.mantra", ExplainAddress("aggregate.effective-tax-rate")).data
-        val displayed = (explanation["result"] as Map<*, *>)["display"]
-        val evidence = explanation["aggregate"] as Map<*, *>
-        assertEquals("24.9375 %", displayed)
-        assertEquals(displayed, (evidence["display"] as Map<*, *>)["result"])
-        assertEquals("0.249375", number(evidence["result"]))
-        val run = catalog.document("case-demo.mantra", "run").data
-        val aggregate = (run["aggregates"] as Map<*, *>)["effective-tax-rate"] as Map<*, *>
-        assertEquals(displayed, (aggregate["display"] as Map<*, *>)["result"])
+        WorkspaceCatalog(Path.of("apps/ifrs-income-taxes")).use { catalog ->
+            val explanation = catalog.explain("case-demo.mantra", ExplainAddress("aggregate.effective-tax-rate")).data
+            val displayed = (explanation["result"] as Map<*, *>)["display"]
+            val evidence = explanation["aggregate"] as Map<*, *>
+            assertEquals("24.9375 %", displayed)
+            assertEquals(displayed, (evidence["display"] as Map<*, *>)["result"])
+            assertEquals("0.249375", number(evidence["result"]))
+            val run = catalog.document("case-demo.mantra", "run").data
+            val aggregate = (run["aggregates"] as Map<*, *>)["effective-tax-rate"] as Map<*, *>
+            assertEquals(displayed, (aggregate["display"] as Map<*, *>)["result"])
+        }
     }
 
     @Test
@@ -101,7 +102,6 @@ class RatioAggregateExplainTest {
             assertEquals(null, (full["result"] as Map<*, *>)["value"])
             assertEquals("0", number(trace["denominatorTotal"]))
             for (address in listOf(
-                ExplainAddress("aggregate.charge"),
                 ExplainAddress("aggregate.rate", listOf("other=G1")),
                 ExplainAddress("aggregate.rate", listOf("group=missing")),
                 ExplainAddress("aggregate.rate", listOf("member=A", "group=G1")),

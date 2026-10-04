@@ -1,0 +1,10 @@
+{
+  "name": "reported-closing",
+  "format": "csv",
+  "options": {
+    "input": "reported-closings",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

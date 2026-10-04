@@ -73,6 +73,38 @@ jobs:
           python3 apps/ifrs-income-taxes/verify_expected.py --case zero-profit --verify apps/ifrs-income-taxes/build/out/case-zero-profit-precision-values.json
           python3 apps/ifrs-income-taxes/verify_expected.py --case unreconciled --verify apps/ifrs-income-taxes/build/out/case-unreconciled-values.json
           python3 apps/ifrs-income-taxes/verify_expected.py --case unreconciled --verify apps/ifrs-income-taxes/build/out/case-unreconciled-precision-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case discounted-viu --scale 0 --verify apps/ifrs-impairment/build/out/case-discounted-viu-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case discounted-viu --scale 2 --verify apps/ifrs-impairment/build/out/case-discounted-viu-cent-precision-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case capped --scale 0 --verify apps/ifrs-impairment/build/out/case-capped-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case capped --scale 2 --verify apps/ifrs-impairment/build/out/case-capped-cent-precision-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case insufficient-capacity --scale 0 --verify apps/ifrs-impairment/build/out/case-insufficient-capacity-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case insufficient-capacity --scale 2 --verify apps/ifrs-impairment/build/out/case-insufficient-capacity-cent-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --self-test
+          python3 apps/fixed-assets/verify_expected.py --case demo --scale 2 --verify apps/fixed-assets/build/out/case-demo-values.json
+          python3 apps/fixed-assets/verify_expected.py --case demo --scale 4 --verify apps/fixed-assets/build/out/case-demo-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --case unreconciled --scale 2 --verify apps/fixed-assets/build/out/case-unreconciled-values.json
+          python3 apps/fixed-assets/verify_expected.py --case unreconciled --scale 4 --verify apps/fixed-assets/build/out/case-unreconciled-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --case partial-year --scale 2 --verify apps/fixed-assets/build/out/case-partial-year-values.json
+          python3 apps/fixed-assets/verify_expected.py --case partial-year --scale 4 --verify apps/fixed-assets/build/out/case-partial-year-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --case rounding-residue --scale 2 --verify apps/fixed-assets/build/out/case-rounding-residue-values.json
+          python3 apps/fixed-assets/verify_expected.py --case rounding-residue --scale 4 --verify apps/fixed-assets/build/out/case-rounding-residue-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --case fully-depreciated --scale 2 --verify apps/fixed-assets/build/out/case-fully-depreciated-values.json
+          python3 apps/fixed-assets/verify_expected.py --case fully-depreciated --scale 4 --verify apps/fixed-assets/build/out/case-fully-depreciated-precision-values.json
+          python3 apps/fixed-assets/verify_expected.py --case residual-floor --scale 2 --verify apps/fixed-assets/build/out/case-residual-floor-values.json
+          python3 apps/fixed-assets/verify_expected.py --case residual-floor --scale 4 --verify apps/fixed-assets/build/out/case-residual-floor-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --self-test
+          python3 apps/ifrs-leases/verify_expected.py --case demo --scale 2 --verify apps/ifrs-leases/build/out/case-demo-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case demo --scale 4 --verify apps/ifrs-leases/build/out/case-demo-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case unreconciled --scale 2 --verify apps/ifrs-leases/build/out/case-unreconciled-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case unreconciled --scale 4 --verify apps/ifrs-leases/build/out/case-unreconciled-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case single-period --scale 2 --verify apps/ifrs-leases/build/out/case-single-period-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case single-period --scale 4 --verify apps/ifrs-leases/build/out/case-single-period-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case commencement-payment --scale 2 --verify apps/ifrs-leases/build/out/case-commencement-payment-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case commencement-payment --scale 4 --verify apps/ifrs-leases/build/out/case-commencement-payment-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case negative-payment --scale 2 --verify apps/ifrs-leases/build/out/case-negative-payment-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case negative-payment --scale 4 --verify apps/ifrs-leases/build/out/case-negative-payment-precision-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case negative-rate-outside-demo --scale 2 --verify apps/ifrs-leases/build/out/case-negative-rate-outside-demo-values.json
+          python3 apps/ifrs-leases/verify_expected.py --case negative-rate-outside-demo --scale 4 --verify apps/ifrs-leases/build/out/case-negative-rate-outside-demo-precision-values.json
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test

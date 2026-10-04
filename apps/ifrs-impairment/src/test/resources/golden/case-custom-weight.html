@@ -110,7 +110,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <dl class="wp-meta">
 <div><dt>Entity</dt><dd>Demo Facilities Ltd</dd></div>
 <div><dt>Period</dt><dd>2025-12-31</dd></div>
-<div><dt>Calculation schema</dt><dd>IAS 36 – Impairment test with corporate assets v0.2 [ifrs.ias36/corporate-assets]</dd></div>
+<div><dt>Calculation schema</dt><dd>IAS 36 – Impairment test with corporate assets v0.3 [ifrs.ias36/corporate-assets]</dd></div>
 <div><dt>Prepared by</dt><dd>Mantra acceptance demonstration</dd></div>
 <div><dt>WP ref.</dt><dd>Project-authored fictional data</dd></div>
 </dl>
@@ -120,32 +120,43 @@ code.formula { font-size: 11px; color: var(--muted); }
 <h2><span class="ref">⌂</span>Structure of the calculation</h2>
 <ol class="mainline" aria-label="Mainline">
 <li class="step">
-<a class="card" href="#table-1"><span class="step-no">Mainline 1</span><span class="title">Step 1 – Shared-facility allocation</span><span class="value">771</span></a>
+<a class="card" href="#table-2"><span class="step-no">Mainline 1</span><span class="title">Value in use from discounted cash flows</span><span class="value"></span></a>
 </li>
 <li class="step">
-<a class="card" href="#table-2"><span class="step-no">Mainline 2</span><span class="title">Step 2 – Impairment test of each CGU</span><span class="value"></span></a>
+<a class="card" href="#table-1"><span class="step-no">Mainline 2</span><span class="title">Step 1 – Shared-facility allocation</span><span class="value">771</span></a>
 </li>
 <li class="step">
-<a class="card" href="#table-3"><span class="step-no">Mainline 3</span><span class="title">Step 3 – Allocation of the impairment losses within the CGUs</span><span class="value">133</span></a>
+<a class="card" href="#table-3"><span class="step-no">Mainline 3</span><span class="title">Step 2 – Impairment test of each CGU</span><span class="value"></span></a>
 </li>
 <li class="step">
-<a class="card" href="#table-4"><span class="step-no">Mainline 4</span><span class="title">Step 4 – Combined recovery check</span><span class="value">711</span></a>
+<a class="card" href="#table-4"><span class="step-no">Mainline 4</span><span class="title">Step 3 – Allocation of the impairment losses within the CGUs</span><span class="value">133</span></a>
 </li>
 <li class="step">
-<a class="card" href="#table-5"><span class="step-no">Mainline 5</span><span class="title">Summary of impairment losses recognised</span><span class="value">133</span></a>
+<a class="card" href="#table-5"><span class="step-no">Mainline 5</span><span class="title">Step 3a – Individually capped allocation</span><span class="value">–</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-6"><span class="step-no">Mainline 6</span><span class="title">Capped allocation control</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-7"><span class="step-no">Mainline 7</span><span class="title">Step 4 – Combined recovery check</span><span class="value">711</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-8"><span class="step-no">Mainline 8</span><span class="title">Summary of impairment losses recognised</span><span class="value">133</span></a>
 </li>
 </ol>
 </section>
 <nav class="toc"><ol>
 <li><a href="#table-1"><span class="ref">1</span> Schedule 1 – Allocation of the headquarters building</a></li>
-<li><a href="#table-2"><span class="ref">2</span> Schedule 2 – Impairment test of CGUs A, B and C</a></li>
-<li><a href="#table-3"><span class="ref">3</span> Schedule 3 – Allocation of the impairment losses</a></li>
-<li><a href="#table-4"><span class="ref">4</span> Schedule 4 – Impairment test of entity M (smallest group of CGUs)</a></li>
-<li><a href="#table-5"><span class="ref">5</span> Schedule 5 – Summary</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Fictional cash-flow value in use</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Schedule 2 – Impairment test of CGUs A, B and C</a></li>
+<li><a href="#table-4"><span class="ref">4</span> Schedule 3 – Allocation of the impairment losses</a></li>
+<li><a href="#table-5"><span class="ref">5</span> Loss caps of individual assets</a></li>
+<li><a href="#table-7"><span class="ref">7</span> Schedule 4 – Impairment test of entity M (smallest group of CGUs)</a></li>
+<li><a href="#table-8"><span class="ref">8</span> Schedule 5 – Summary</a></li>
 <li><a href="#audit"><span class="ref">§</span> Audit trail</a></li>
 </ol></nav>
 <section class="block" id="table-1">
-<p class="crumb"><a href="#structure">⌂</a> Mainline › 1 Step 1 – Shared-facility allocation</p>
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 2 Step 1 – Shared-facility allocation</p>
 <h2><span class="ref">1</span>Schedule 1 – Allocation of the headquarters building</h2>
 <div class="table-wrap"><table class="calc matrix">
 <colgroup>
@@ -251,8 +262,57 @@ code.formula { font-size: 11px; color: var(--muted); }
 </tbody></table></div>
 </section>
 <section class="block" id="table-2">
-<p class="crumb"><a href="#structure">⌂</a> Mainline › 2 Step 2 – Impairment test of each CGU</p>
-<h2><span class="ref">2</span>Schedule 2 – Impairment test of CGUs A, B and C</h2>
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 1 Value in use from discounted cash flows</p>
+<h2><span class="ref">2</span>Fictional cash-flow value in use</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t2-r1" data-section="forecast" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">North</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="heading" id="t2-r2" data-section="forecast" data-depth="1" data-height="1" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Central</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="heading" id="t2-r3" data-section="forecast" data-depth="1" data-height="1" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">South</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="heading" id="t2-r4" data-section="forecast" data-depth="1" data-height="1" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 3 Step 2 – Impairment test of each CGU</p>
+<h2><span class="ref">3</span>Schedule 2 – Impairment test of CGUs A, B and C</h2>
 <div class="table-wrap"><table class="calc matrix">
 <colgroup>
 <col class="c-label">
@@ -273,7 +333,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <th class="left c-reference">IAS 36</th>
 </tr></thead>
 <tbody>
-<tr class="value info" id="t2-r1" data-section="step-2" data-depth="1" data-height="0" data-row-index="1">
+<tr class="value info" id="t3-r1" data-section="step-2" data-depth="1" data-height="0" data-row-index="1">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount (including allocated corporate asset) (→ Table 1) <a class="xref" href="#table-1">↗</a></span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">128</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">228</td>
@@ -282,7 +342,16 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value info" id="t2-r2" data-section="step-2" data-depth="1" data-height="1" data-row-index="2">
+<tr class="value info" id="t3-r2" data-section="step-2" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Value in use</span></td>
+<td class="right num c-member" data-column="memberscguwidth9-A">180</td>
+<td class="right num c-member" data-column="memberscguwidth9-B">210</td>
+<td class="right num c-member" data-column="memberscguwidth9-C">300</td>
+<td class="right num c-crosstotal" data-column="cross-total">690</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
+<tr class="value info" id="t3-r3" data-section="step-2" data-depth="1" data-height="1" data-row-index="3">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Recoverable amount (higher of value in use and FVLCD)</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">180</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">210</td>
@@ -291,7 +360,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.18</td>
 </tr>
-<tr class="option selected info" data-section="step-2" data-depth="2" data-height="0" data-row-index="3">
+<tr class="option selected info" data-section="step-2" data-depth="2" data-height="0" data-row-index="4">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Value in use</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">180 ✓</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">210 ✓</td>
@@ -300,7 +369,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status">✓</td>
 <td class="left c-reference" data-column="reference">IAS 36.18</td>
 </tr>
-<tr class="option info" data-section="step-2" data-depth="2" data-height="0" data-row-index="4">
+<tr class="option info" data-section="step-2" data-depth="2" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:1">Fair value less costs of disposal</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">n/a</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">n/a</td>
@@ -309,7 +378,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.18</td>
 </tr>
-<tr class="value info" id="t2-r3" data-section="step-2" data-depth="1" data-height="0" data-row-index="5">
+<tr class="value info" id="t3-r4" data-section="step-2" data-depth="1" data-height="0" data-row-index="6">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">18</td>
@@ -320,9 +389,9 @@ code.formula { font-size: 11px; color: var(--muted); }
 </tr>
 </tbody></table></div>
 </section>
-<section class="block" id="table-3">
-<p class="crumb"><a href="#structure">⌂</a> Mainline › 3 Step 3 – Allocation of the impairment losses within the CGUs</p>
-<h2><span class="ref">3</span>Schedule 3 – Allocation of the impairment losses</h2>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 4 Step 3 – Allocation of the impairment losses within the CGUs</p>
+<h2><span class="ref">4</span>Schedule 3 – Allocation of the impairment losses</h2>
 <div class="table-wrap"><table class="calc matrix">
 <colgroup>
 <col class="c-label">
@@ -343,7 +412,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <th class="left c-reference">IAS 36</th>
 </tr></thead>
 <tbody>
-<tr class="value" id="t3-r1" data-section="step-3" data-depth="1" data-height="0" data-row-index="1">
+<tr class="value" id="t4-r1" data-section="step-3" data-depth="1" data-height="0" data-row-index="1">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">To goodwill</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">–</td>
@@ -352,7 +421,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.104(a)</td>
 </tr>
-<tr class="value" id="t3-r2" data-section="step-3" data-depth="1" data-height="0" data-row-index="2">
+<tr class="value" id="t4-r2" data-section="step-3" data-depth="1" data-height="0" data-row-index="2">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Loss assigned to shared facilities</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">4</td>
@@ -361,7 +430,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.104(b)</td>
 </tr>
-<tr class="value" id="t3-r3" data-section="step-3" data-depth="1" data-height="0" data-row-index="3">
+<tr class="value" id="t4-r3" data-section="step-3" data-depth="1" data-height="0" data-row-index="3">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">To the other assets of the CGU</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">14</td>
@@ -370,7 +439,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.104(b)</td>
 </tr>
-<tr class="total grand" id="t3-r4" data-section="step-3" data-depth="1" data-height="0" data-row-index="4">
+<tr class="total grand" id="t4-r4" data-section="step-3" data-depth="1" data-height="0" data-row-index="4">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss allocated</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">18</td>
@@ -379,7 +448,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status">Σ</td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value info" id="t3-r5" data-section="step-3" data-depth="1" data-height="0" data-row-index="5">
+<tr class="value info" id="t4-r5" data-section="step-3" data-depth="1" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss agrees to its allocation</span></td>
 <td class="right num c-member" data-column="memberscguwidth9-A">–</td>
 <td class="right num c-member" data-column="memberscguwidth9-B">–</td>
@@ -390,9 +459,30 @@ code.formula { font-size: 11px; color: var(--muted); }
 </tr>
 </tbody></table></div>
 </section>
-<section class="block" id="table-4">
-<p class="crumb"><a href="#structure">⌂</a> Mainline › 4 Step 4 – Combined recovery check</p>
-<h2><span class="ref">4</span>Schedule 4 – Impairment test of entity M (smallest group of CGUs)</h2>
+<section class="block" id="table-5">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 5 Step 3a – Individually capped allocation</p>
+<h2><span class="ref">5</span>Loss caps of individual assets</h2>
+<div class="table-wrap"><table class="calc transpose">
+<colgroup>
+<col class="c-label">
+<col class="c-node">
+<col class="c-node">
+<col class="c-node">
+<col class="c-node">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-node">Asset carrying amount before the loss</th>
+<th class="right num c-node">Higher of FVLCD, value in use and zero</th>
+<th class="right num c-node">Loss after cap and redistribution</th>
+<th class="right num c-node">Asset carrying amount after the capped allocation</th>
+</tr></thead>
+<tbody>
+</tbody></table></div>
+</section>
+<section class="block" id="table-7">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 7 Step 4 – Combined recovery check</p>
+<h2><span class="ref">7</span>Schedule 4 – Impairment test of entity M (smallest group of CGUs)</h2>
 <div class="table-wrap"><table class="calc tiered">
 <colgroup>
 <col class="c-label">
@@ -407,49 +497,49 @@ code.formula { font-size: 11px; color: var(--muted); }
 <th class="left c-reference">Reference</th>
 </tr></thead>
 <tbody>
-<tr class="value" id="t4-r1" data-section="step-4" data-depth="1" data-height="0" data-row-index="1">
+<tr class="value" id="t7-r1" data-section="step-4" data-depth="1" data-height="0" data-row-index="1">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount of the CGUs (A, B, C)</span></td>
 <td class="right num c-main" data-column="main">560</td>
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value" id="t4-r2" data-section="step-4" data-depth="1" data-height="0" data-row-index="2">
+<tr class="value" id="t7-r2" data-section="step-4" data-depth="1" data-height="0" data-row-index="2">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Shared facilities</span></td>
 <td class="right num c-main" data-column="main">211</td>
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value" id="t4-r3" data-section="step-4" data-depth="1" data-height="0" data-row-index="3">
+<tr class="value" id="t7-r3" data-section="step-4" data-depth="1" data-height="0" data-row-index="3">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Other shared assets</span></td>
 <td class="right num c-main" data-column="main">73</td>
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="total" id="t4-r4" data-section="step-4" data-depth="1" data-height="0" data-row-index="4">
+<tr class="total" id="t7-r4" data-section="step-4" data-depth="1" data-height="0" data-row-index="4">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount before step-1 losses</span></td>
 <td class="right num c-main" data-column="main">844</td>
 <td class="center c-status" data-column="status">Σ</td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value" id="t4-r5" data-section="step-4" data-depth="1" data-height="0" data-row-index="5">
+<tr class="value" id="t7-r5" data-section="step-4" data-depth="1" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment losses recognised in steps 2–3</span></td>
 <td class="right num c-main" data-column="main">(133)</td>
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="total grand" id="t4-r6" data-section="step-4" data-depth="1" data-height="0" data-row-index="6">
+<tr class="total grand" id="t7-r6" data-section="step-4" data-depth="1" data-height="0" data-row-index="6">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Carrying amount of the group after step 1</span></td>
 <td class="right num c-main" data-column="main">711</td>
 <td class="center c-status" data-column="status">Σ</td>
 <td class="left c-reference" data-column="reference"></td>
 </tr>
-<tr class="value info" id="t4-r7" data-section="step-4" data-depth="1" data-height="0" data-row-index="7">
+<tr class="value info" id="t7-r7" data-section="step-4" data-depth="1" data-height="0" data-row-index="7">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Recoverable amount of the group</span></td>
 <td class="right num c-main" data-column="main">900</td>
 <td class="center c-status" data-column="status"></td>
 <td class="left c-reference" data-column="reference">IAS 36.102(b)(iii)</td>
 </tr>
-<tr class="value info" id="t4-r8" data-section="step-4" data-depth="1" data-height="0" data-row-index="8">
+<tr class="value info" id="t7-r8" data-section="step-4" data-depth="1" data-height="0" data-row-index="8">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Impairment loss of the group</span></td>
 <td class="right num c-main" data-column="main">–</td>
 <td class="center c-status" data-column="status"></td>
@@ -457,9 +547,9 @@ code.formula { font-size: 11px; color: var(--muted); }
 </tr>
 </tbody></table></div>
 </section>
-<section class="block" id="table-5">
-<p class="crumb"><a href="#structure">⌂</a> Mainline › 5 Summary of impairment losses recognised</p>
-<h2><span class="ref">5</span>Schedule 5 – Summary</h2>
+<section class="block" id="table-8">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 8 Summary of impairment losses recognised</p>
+<h2><span class="ref">8</span>Schedule 5 – Summary</h2>
 <div class="table-wrap"><table class="calc tiered">
 <colgroup>
 <col class="c-label">
@@ -472,27 +562,27 @@ code.formula { font-size: 11px; color: var(--muted); }
 <th class="center c-status"></th>
 </tr></thead>
 <tbody>
-<tr class="value" id="t5-r1" data-section="summary" data-depth="1" data-height="0" data-row-index="1">
+<tr class="value" id="t8-r1" data-section="summary" data-depth="1" data-height="0" data-row-index="1">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Goodwill</span></td>
 <td class="right num c-main" data-column="main">–</td>
 <td class="center c-status" data-column="status"></td>
 </tr>
-<tr class="value" id="t5-r2" data-section="summary" data-depth="1" data-height="0" data-row-index="2">
+<tr class="value" id="t8-r2" data-section="summary" data-depth="1" data-height="0" data-row-index="2">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Other assets of the CGUs</span></td>
 <td class="right num c-main" data-column="main">86</td>
 <td class="center c-status" data-column="status"></td>
 </tr>
-<tr class="value" id="t5-r3" data-section="summary" data-depth="1" data-height="0" data-row-index="3">
+<tr class="value" id="t8-r3" data-section="summary" data-depth="1" data-height="0" data-row-index="3">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Shared facilities</span></td>
 <td class="right num c-main" data-column="main">47</td>
 <td class="center c-status" data-column="status"></td>
 </tr>
-<tr class="value" id="t5-r4" data-section="summary" data-depth="1" data-height="0" data-row-index="4">
-<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Additional loss at group level (shared assets) (→ Table 4) <a class="xref" href="#table-4">↗</a></span></td>
+<tr class="value" id="t8-r4" data-section="summary" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Additional loss at group level (shared assets) (→ Table 7) <a class="xref" href="#table-7">↗</a></span></td>
 <td class="right num c-main" data-column="main">–</td>
 <td class="center c-status" data-column="status"></td>
 </tr>
-<tr class="total grand" id="t5-r5" data-section="summary" data-depth="1" data-height="0" data-row-index="5">
+<tr class="total grand" id="t8-r5" data-section="summary" data-depth="1" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total impairment loss</span></td>
 <td class="right num c-main" data-column="main">133</td>
 <td class="center c-status" data-column="status">Σ</td>
@@ -505,6 +595,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <div class="table-wrap"><table class="audit-table">
 <thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
 <tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Carrying amount of the CGU (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 120 included; [cgu=B] 180 included; [cgu=C] 260 included → 560</div></td>
+<td class="right num">560</td>
+</tr>
 <tr id="audit-t1-r2-A">
 <td class="left cite"><a href="#t1-r2">1/2</a></td>
 <td class="left">CGU carrying amount is nonnegative <span class="member">North</span></td>
@@ -559,6 +655,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left"><code class="formula">(* remaining-life remaining-life)</code><div class="working">(* remaining-life remaining-life) = 324</div></td>
 <td class="right num">324</td>
 </tr>
+<tr id="audit-t1-r6-aggregate">
+<td class="left cite"><a href="#t1-r6">1/6 Σ</a></td>
+<td class="left">Carrying amount after weighting (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 4320 included; [cgu=B] 25920 included; [cgu=C] 84240 included → 114480</div></td>
+<td class="right num">114,480</td>
+</tr>
 <tr id="audit-t1-r6-A">
 <td class="left cite"><a href="#t1-r6">1/6</a></td>
 <td class="left">Carrying amount after weighting <span class="member">North</span></td>
@@ -576,6 +678,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left">Carrying amount after weighting <span class="member">South</span></td>
 <td class="left"><code class="formula">(* carrying-amount weighting)</code><div class="working">(* carrying-amount weighting) = 84240</div></td>
 <td class="right num">84,240</td>
+</tr>
+<tr id="audit-t1-r7-aggregate">
+<td class="left cite"><a href="#t1-r7">1/7 Σ</a></td>
+<td class="left">Pro-rata allocation factor (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0.037736 included; [cgu=B] 0.226415 included; [cgu=C] 0.735849 included → 1.000000</div></td>
+<td class="right num">100.0 %</td>
 </tr>
 <tr id="audit-t1-r7-A">
 <td class="left cite"><a href="#t1-r7">1/7</a></td>
@@ -595,6 +703,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left"><code class="formula">(decimal/divide weighted-amount (dim/sum all.weighted-amount) 6)</code><div class="working">(dim/sum all.weighted-amount) = 114480 → (decimal/divide weighted-amount (dim/sum all.weighted-amount) 6) = 0.735849</div></td>
 <td class="right num">73.6 %</td>
 </tr>
+<tr id="audit-t1-r8-aggregate">
+<td class="left cite"><a href="#t1-r8">1/8 Σ</a></td>
+<td class="left">Allocated shared facilities (Total)<div class="norm">IAS 36.102(a)(i)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 8 included; [cgu=B] 48 included; [cgu=C] 155 included → 211</div></td>
+<td class="right num">211</td>
+</tr>
 <tr id="audit-t1-r8-A">
 <td class="left cite"><a href="#t1-r8">1/8</a></td>
 <td class="left">Allocated shared facilities <span class="member">North</span><div class="norm">IAS 36.102(a)(i)</div></td>
@@ -612,6 +726,12 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left">Allocated shared facilities <span class="member">South</span><div class="norm">IAS 36.102(a)(i)</div></td>
 <td class="left"><code class="formula">(alloc/pro-rata allocable-corporate all.weighted-amount rounding)</code><div class="working">(alloc/pro-rata allocable-corporate all.weighted-amount rounding) = {:A 8, :B 48, :C 155}</div></td>
 <td class="right num">155</td>
+</tr>
+<tr id="audit-t1-r9-aggregate">
+<td class="left cite"><a href="#t1-r9">1/9 Σ</a></td>
+<td class="left">Carrying amount after allocation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 128 included; [cgu=B] 228 included; [cgu=C] 415 included → 771</div></td>
+<td class="right num">771</td>
 </tr>
 <tr id="audit-t1-r9-A">
 <td class="left cite"><a href="#t1-r9">1/9</a></td>
@@ -631,182 +751,284 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left"><code class="formula">carrying-amount + corporate-share</code><div class="working">260 + 155</div></td>
 <td class="right num">415</td>
 </tr>
-<tr id="audit-t2-r2-A">
-<td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">North</span><div class="norm">IAS 36.18</div></td>
-<td class="left"><code class="formula">max(cgu.value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use cgu.value-in-use = 180; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<tr id="audit-t2-nforecast-cash-flow-aggregate">
+<td class="left cite"><a href="#t2-nforecast">2/1 Σ</a></td>
+<td class="left">Projected pre-tax cash flow (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 0 excluded; [cgu=A, year=P2] 0 excluded; [cgu=A, year=P3] 0 excluded; [cgu=B, year=P1] 0 excluded; [cgu=B, year=P2] 0 excluded; [cgu=B, year=P3] 0 excluded; [cgu=C, year=P1] 0 excluded; [cgu=C, year=P2] 0 excluded; [cgu=C, year=P3] 0 excluded → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-npresent-value-aggregate">
+<td class="left cite"><a href="#t2-npresent">2/3 Σ</a></td>
+<td class="left">Discounted cash flow (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A, year=P1] 0 excluded; [cgu=A, year=P2] 0 excluded; [cgu=A, year=P3] 0 excluded; [cgu=B, year=P1] 0 excluded; [cgu=B, year=P2] 0 excluded; [cgu=B, year=P3] 0 excluded; [cgu=C, year=P1] 0 excluded; [cgu=C, year=P2] 0 excluded; [cgu=C, year=P3] 0 excluded → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-r1-aggregate">
+<td class="left cite"><a href="#t3-r1">3/1 Σ</a></td>
+<td class="left">Carrying amount (including allocated corporate asset) (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 128 included; [cgu=B] 228 included; [cgu=C] 415 included → 771</div></td>
+<td class="right num">771</td>
+</tr>
+<tr id="audit-t3-r2-aggregate">
+<td class="left cite"><a href="#t3-r2">3/2 Σ</a></td>
+<td class="left">Value in use (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 180 included; [cgu=B] 210 included; [cgu=C] 300 included → 690</div></td>
+<td class="right num">690</td>
+</tr>
+<tr id="audit-t3-r2-A">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">North</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 180 → selected branch: cgu.value-in-use</div></td>
 <td class="right num">180</td>
 </tr>
-<tr id="audit-t2-r2-B">
-<td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">Central</span><div class="norm">IAS 36.18</div></td>
-<td class="left"><code class="formula">max(cgu.value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use cgu.value-in-use = 210; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<tr id="audit-t3-r2-B">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">Central</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 210 → selected branch: cgu.value-in-use</div></td>
 <td class="right num">210</td>
 </tr>
-<tr id="audit-t2-r2-C">
-<td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">South</span><div class="norm">IAS 36.18</div></td>
-<td class="left"><code class="formula">max(cgu.value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use cgu.value-in-use = 300; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<tr id="audit-t3-r2-C">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Value in use <span class="member">South</span></td>
+<td class="left"><code class="formula">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use)</code><div class="working">(if cgu.use-forecast (dim/sum present-value) cgu.value-in-use) = 300 → selected branch: cgu.value-in-use</div></td>
 <td class="right num">300</td>
 </tr>
-<tr id="audit-t2-r3-A">
-<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<tr id="audit-t3-r3-aggregate">
+<td class="left cite"><a href="#t3-r3">3/3 Σ</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) (Total)<div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 180 included; [cgu=B] 210 included; [cgu=C] 300 included → 690</div></td>
+<td class="right num">690</td>
+</tr>
+<tr id="audit-t3-r3-A">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">North</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 180; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">180</td>
+</tr>
+<tr id="audit-t3-r3-B">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">Central</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 210; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">210</td>
+</tr>
+<tr id="audit-t3-r3-C">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Recoverable amount (higher of value in use and FVLCD) <span class="member">South</span><div class="norm">IAS 36.18</div></td>
+<td class="left"><code class="formula">max(measured-value-in-use; cgu.fvlcd)</code><div class="working">max(Value in use measured-value-in-use = 300; Fair value less costs of disposal [(some? cgu.fvlcd) = false] n/a) → Value in use</div></td>
+<td class="right num">300</td>
+</tr>
+<tr id="audit-t3-r4-aggregate">
+<td class="left cite"><a href="#t3-r4">3/4 Σ</a></td>
+<td class="left">Impairment loss (Total)<div class="norm">IAS 36.59, 104</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 18 included; [cgu=C] 115 included → 133</div></td>
+<td class="right num">133</td>
+</tr>
+<tr id="audit-t3-r4-A">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
 <td class="left">Impairment loss <span class="member">North</span><div class="norm">IAS 36.59, 104</div></td>
 <td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = -52 → (max 0 (- tested-amount recoverable-amount)) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t2-r3-B">
-<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<tr id="audit-t3-r4-B">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
 <td class="left">Impairment loss <span class="member">Central</span><div class="norm">IAS 36.59, 104</div></td>
 <td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = 18 → (max 0 (- tested-amount recoverable-amount)) = 18</div></td>
 <td class="right num">18</td>
 </tr>
-<tr id="audit-t2-r3-C">
-<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<tr id="audit-t3-r4-C">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
 <td class="left">Impairment loss <span class="member">South</span><div class="norm">IAS 36.59, 104</div></td>
 <td class="left"><code class="formula">(max 0 (- tested-amount recoverable-amount))</code><div class="working">(- tested-amount recoverable-amount) = 115 → (max 0 (- tested-amount recoverable-amount)) = 115</div></td>
 <td class="right num">115</td>
 </tr>
-<tr id="audit-t3-r1-A">
-<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<tr id="audit-t4-r1-aggregate">
+<td class="left cite"><a href="#t4-r1">4/1 Σ</a></td>
+<td class="left">To goodwill (Total)<div class="norm">IAS 36.104(a)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 0 included; [cgu=C] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r1-A">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
 <td class="left">To goodwill <span class="member">North</span><div class="norm">IAS 36.104(a)</div></td>
 <td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r1-B">
-<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<tr id="audit-t4-r1-B">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
 <td class="left">To goodwill <span class="member">Central</span><div class="norm">IAS 36.104(a)</div></td>
 <td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r1-C">
-<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<tr id="audit-t4-r1-C">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
 <td class="left">To goodwill <span class="member">South</span><div class="norm">IAS 36.104(a)</div></td>
 <td class="left"><code class="formula">(min impairment-loss (or cgu.goodwill 0))</code><div class="working">(or cgu.goodwill 0) = 0 → (min impairment-loss (or cgu.goodwill 0)) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r2-A">
-<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<tr id="audit-t4-r2-aggregate">
+<td class="left cite"><a href="#t4-r2">4/2 Σ</a></td>
+<td class="left">Loss assigned to shared facilities (Total)<div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 4 included; [cgu=C] 43 included → 47</div></td>
+<td class="right num">47</td>
+</tr>
+<tr id="audit-t4-r2-A">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Loss assigned to shared facilities <span class="member">North</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 0 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 120 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 0, :own 0} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r2-B">
-<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<tr id="audit-t4-r2-B">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Loss assigned to shared facilities <span class="member">Central</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 18 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 180 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 4, :own 14} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 4</div></td>
 <td class="right num">4</td>
 </tr>
-<tr id="audit-t3-r2-C">
-<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<tr id="audit-t4-r2-C">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Loss assigned to shared facilities <span class="member">South</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate)</code><div class="working">(- impairment-loss loss-to-goodwill) = 115 → (or cgu.goodwill 0) = 0 → (- carrying-amount (or cgu.goodwill 0)) = 260 → (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) = {:corporate 43, :own 72} → (get (alloc/pro-rata (- impairment-loss loss-to-goodwill) {:corporate corporate-share :own (- carrying-amount (or cgu.goodwill 0))} rounding) :corporate) = 43</div></td>
 <td class="right num">43</td>
 </tr>
-<tr id="audit-t3-r3-A">
-<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<tr id="audit-t4-r3-aggregate">
+<td class="left cite"><a href="#t4-r3">4/3 Σ</a></td>
+<td class="left">To the other assets of the CGU (Total)<div class="norm">IAS 36.104(b)</div></td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 14 included; [cgu=C] 72 included → 86</div></td>
+<td class="right num">86</td>
+</tr>
+<tr id="audit-t4-r3-A">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
 <td class="left">To the other assets of the CGU <span class="member">North</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r3-B">
-<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<tr id="audit-t4-r3-B">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
 <td class="left">To the other assets of the CGU <span class="member">Central</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 14</div></td>
 <td class="right num">14</td>
 </tr>
-<tr id="audit-t3-r3-C">
-<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<tr id="audit-t4-r3-C">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
 <td class="left">To the other assets of the CGU <span class="member">South</span><div class="norm">IAS 36.104(b)</div></td>
 <td class="left"><code class="formula">(- impairment-loss loss-to-goodwill loss-to-corporate)</code><div class="working">(- impairment-loss loss-to-goodwill loss-to-corporate) = 72</div></td>
 <td class="right num">72</td>
 </tr>
-<tr id="audit-t3-r4-A">
-<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<tr id="audit-t4-r4-aggregate">
+<td class="left cite"><a href="#t4-r4">4/4 Σ</a></td>
+<td class="left">Impairment loss allocated (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [cgu=A] 0 included; [cgu=B] 18 included; [cgu=C] 115 included → 133</div></td>
+<td class="right num">133</td>
+</tr>
+<tr id="audit-t4-r4-A">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
 <td class="left">Impairment loss allocated <span class="member">North</span></td>
 <td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 0 + 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r4-B">
-<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<tr id="audit-t4-r4-B">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
 <td class="left">Impairment loss allocated <span class="member">Central</span></td>
 <td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 4 + 14</div></td>
 <td class="right num">18</td>
 </tr>
-<tr id="audit-t3-r4-C">
-<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<tr id="audit-t4-r4-C">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
 <td class="left">Impairment loss allocated <span class="member">South</span></td>
 <td class="left"><code class="formula">loss-to-goodwill + loss-to-corporate + loss-to-own-assets</code><div class="working">0 + 43 + 72</div></td>
 <td class="right num">115</td>
 </tr>
-<tr id="audit-t3-r5-A">
-<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<tr id="audit-t4-r5-A">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
 <td class="left">Impairment loss agrees to its allocation <span class="member">North</span></td>
 <td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 0; loss-allocated = 0 → 0 − 0 = 0 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r5-B">
-<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<tr id="audit-t4-r5-B">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
 <td class="left">Impairment loss agrees to its allocation <span class="member">Central</span></td>
 <td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 18; loss-allocated = 18 → 18 − 18 = 0 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t3-r5-C">
-<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<tr id="audit-t4-r5-C">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
 <td class="left">Impairment loss agrees to its allocation <span class="member">South</span></td>
 <td class="left"><code class="formula">impairment-loss ≈ loss-allocated (± 0.01)</code><div class="working">impairment-loss = 115; loss-allocated = 115 → 115 − 115 = 0 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t4-r1">
-<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<tr id="audit-t5-nindividual-carrying-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/1 Σ</a></td>
+<td class="left">Asset carrying amount before the loss (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nindividual-floor-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/2 Σ</a></td>
+<td class="left">Higher of FVLCD, value in use and zero (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nasset-allocated-loss-aggregate">
+<td class="left cite"><a href="#t5-nasset">5/3 Σ</a></td>
+<td class="left">Loss after cap and redistribution (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t5-nindividual-closing-aggregate">
+<td class="left cite"><a href="#t5-nindividual">5/4 Σ</a></td>
+<td class="left">Asset carrying amount after the capped allocation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions:  → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t7-r1">
+<td class="left cite"><a href="#t7-r1">7/1</a></td>
 <td class="left">Carrying amount of the CGUs (A, B, C)</td>
 <td class="left"><code class="formula">(dim/sum carrying-amount)</code><div class="working">(dim/sum carrying-amount) = 560</div></td>
 <td class="right num">560</td>
 </tr>
-<tr id="audit-t4-r4">
-<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<tr id="audit-t7-r4">
+<td class="left cite"><a href="#t7-r4">7/4</a></td>
 <td class="left">Carrying amount before step-1 losses</td>
 <td class="left"><code class="formula">group-cgu-assets + group-building + group-research</code><div class="working">560 + 211 + 73</div></td>
 <td class="right num">844</td>
 </tr>
-<tr id="audit-t4-r5">
-<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<tr id="audit-t7-r5">
+<td class="left cite"><a href="#t7-r5">7/5</a></td>
 <td class="left">Impairment losses recognised in steps 2–3</td>
 <td class="left"><code class="formula">(dim/sum loss-allocated)</code><div class="working">(dim/sum loss-allocated) = 133</div></td>
 <td class="right num">133</td>
 </tr>
-<tr id="audit-t4-r6">
-<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<tr id="audit-t7-r6">
+<td class="left cite"><a href="#t7-r6">7/6</a></td>
 <td class="left">Carrying amount of the group after step 1</td>
 <td class="left"><code class="formula">group-before − group-step1-losses</code><div class="working">844 − 133</div></td>
 <td class="right num">711</td>
 </tr>
-<tr id="audit-t4-r8">
-<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<tr id="audit-t7-r8">
+<td class="left cite"><a href="#t7-r8">7/8</a></td>
 <td class="left">Impairment loss of the group</td>
 <td class="left"><code class="formula">(max 0 (- group-carrying-amount group-ra))</code><div class="working">(- group-carrying-amount group-ra) = -189 → (max 0 (- group-carrying-amount group-ra)) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t5-r1">
-<td class="left cite"><a href="#t5-r1">5/1</a></td>
+<tr id="audit-t8-r1">
+<td class="left cite"><a href="#t8-r1">8/1</a></td>
 <td class="left">Goodwill</td>
 <td class="left"><code class="formula">(dim/sum loss-to-goodwill)</code><div class="working">(dim/sum loss-to-goodwill) = 0</div></td>
 <td class="right num">–</td>
 </tr>
-<tr id="audit-t5-r2">
-<td class="left cite"><a href="#t5-r2">5/2</a></td>
+<tr id="audit-t8-r2">
+<td class="left cite"><a href="#t8-r2">8/2</a></td>
 <td class="left">Other assets of the CGUs</td>
 <td class="left"><code class="formula">(dim/sum loss-to-own-assets)</code><div class="working">(dim/sum loss-to-own-assets) = 86</div></td>
 <td class="right num">86</td>
 </tr>
-<tr id="audit-t5-r3">
-<td class="left cite"><a href="#t5-r3">5/3</a></td>
+<tr id="audit-t8-r3">
+<td class="left cite"><a href="#t8-r3">8/3</a></td>
 <td class="left">Shared facilities</td>
 <td class="left"><code class="formula">(dim/sum loss-to-corporate)</code><div class="working">(dim/sum loss-to-corporate) = 47</div></td>
 <td class="right num">47</td>
 </tr>
-<tr id="audit-t5-r5">
-<td class="left cite"><a href="#t5-r5">5/5</a></td>
+<tr id="audit-t8-r5">
+<td class="left cite"><a href="#t8-r5">8/5</a></td>
 <td class="left">Total impairment loss</td>
 <td class="left"><code class="formula">summary-goodwill + summary-own + summary-corporate + summary-group</code><div class="working">0 + 86 + 47 + 0</div></td>
 <td class="right num">133</td>

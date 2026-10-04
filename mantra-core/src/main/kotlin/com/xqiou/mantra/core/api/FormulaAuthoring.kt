@@ -17,10 +17,14 @@ import com.xqiou.normein.dsl.authoring.DslCompletionItemKind
 import com.xqiou.normein.dsl.authoring.DslCompletionRequest
 import com.xqiou.normein.dsl.authoring.DslCompletionResult
 import com.xqiou.normein.dsl.authoring.DslHover
-import com.xqiou.normein.dsl.compiler.DslCompileRequest
-import com.xqiou.normein.dsl.compiler.DslCompileResult
-import com.xqiou.normein.dsl.compiler.DslSemanticCompiler
+import com.xqiou.normein.dsl.authoring.DslHoverKind
+import com.xqiou.normein.dsl.catalog.DslAuthoringFunction
+import com.xqiou.normein.dsl.catalog.DslAuthoringOrigin
+import com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification
 import com.xqiou.normein.dsl.diagnostic.DslDiagnostic
+import com.xqiou.normein.dsl.library.DslFunctionIdentity
+import com.xqiou.normein.dsl.library.DslFunctionSignature
+import com.xqiou.normein.dsl.library.DslParameterType
 import com.xqiou.normein.dsl.type.DslType
 import com.xqiou.normein.dsl.type.DslTypes
 
@@ -28,10 +32,7 @@ import com.xqiou.normein.dsl.type.DslTypes
 class FormulaAuthoring private constructor(
     private val service: DslAuthoringService,
     private val scopedCompletion: DslAuthoringService,
-    private val compiler: DslSemanticCompiler,
-    private val plan: CalculationPlan,
-    private val scope: com.xqiou.normein.dsl.environment.DslAnalysisScope,
-    private val expectedType: DslType,
+    private val checkSource: (String) -> List<DslDiagnostic>,
     private val allowedRefs: Set<String>?,
 ) {
     /** Offers functions and references valid at [cursorOffset] in this formula's scope. */
@@ -63,24 +64,11 @@ class FormulaAuthoring private constructor(
 
     /** Returns documentation for the symbol at [cursorOffset], respecting declared reference limits. */
     fun hover(source: String, cursorOffset: Int): DslHover? = service.hover(Qualified.rewrite(source), cursorOffset)
-        ?.takeIf { allowed(it.symbol, it.kind == com.xqiou.normein.dsl.authoring.DslHoverKind.FIELD) }
+        ?.takeIf { it.kind == DslHoverKind.FUNCTION || allowed(it.symbol, it.kind == DslHoverKind.FIELD) }
         ?.let { it.copy(symbol = displayName(it.symbol)) }
 
     /** Compiles [source] against the declared result type and returns compiler diagnostics. */
-    fun check(source: String): List<DslDiagnostic> = when (
-        val result = compiler.compile(
-            DslCompileRequest(
-                Qualified.rewrite(source),
-                namedDefinitions = plan.definitions,
-                expectedType = expectedType,
-            ),
-            MantraKernel.environment,
-            scope,
-        )
-    ) {
-        is DslCompileResult.Failure -> result.diagnostics
-        is DslCompileResult.Success -> emptyList()
-    }
+    fun check(source: String): List<DslDiagnostic> = checkSource(source)
 
     private fun allowed(item: DslCompletionItem): Boolean = when (item.kind) {
         DslCompletionItemKind.ROOT, DslCompletionItemKind.FIELD -> allowed(
@@ -179,12 +167,23 @@ class FormulaAuthoring private constructor(
             refs: Set<String>?,
         ): FormulaAuthoring {
             val scope = planner.authoringScope(dims)
-            val service = DslAuthoringService(MantraKernel.environment, scope)
+            val catalog = MantraKernel.environment.catalog(scope).let {
+                val functions = it.functions.filterNot { function -> function.name.startsWith("mantra-internal/") }
+                val hostFunctions = if (dims.any { dim -> plan.dimensions[dim]?.periods != null } &&
+                    plan.definitions.none { definition -> definition.name == "prev" }
+                ) {
+                    listOf(previousDocumentation())
+                } else {
+                    emptyList()
+                }
+                it.copy(functions = functions + hostFunctions)
+            }
+            val service = DslAuthoringService(catalog)
             val scopedCompletion = if (refs == null) {
                 service
             } else {
                 DslAuthoringService(
-                    MantraKernel.environment.catalog(scope).let { catalog ->
+                    catalog.let { catalog ->
                         catalog.copy(
                             roots = catalog.roots.filter { root ->
                                 root.name.removePrefix("mantra_").substringBefore('.') in refs
@@ -196,12 +195,36 @@ class FormulaAuthoring private constructor(
             return FormulaAuthoring(
                 service,
                 scopedCompletion,
-                DslSemanticCompiler(),
-                plan,
-                scope,
-                expected,
+                { source -> planner.authoringCheck(source, dims, expected) },
                 refs,
             )
         }
+
+        private fun previousDocumentation(): DslAuthoringFunction = DslAuthoringFunction(
+            functionId = DslFunctionIdentity("prev", "1", "mantra.host"),
+            name = "prev",
+            aliases = emptyList(),
+            signatures = listOf(
+                DslFunctionSignature(
+                    parameters = listOf(
+                        DslParameterType("target", DslType.Any),
+                        DslParameterType("initial", DslType.Any),
+                    ),
+                    returnType = DslTypes.nullable(DslType.Any),
+                ),
+            ),
+            category = "Continuous periods",
+            summary =
+            "Reads the target node in the previous declared period. Evaluates initial only in the first period; " +
+                "a missing later value remains nil. The target must share exactly one continuous period dimension.",
+            origin = DslAuthoringOrigin(
+                DslLanguageSurfaceClassification.DOMAIN_LIBRARY,
+                "mantra.host",
+                "1",
+                emptySet(),
+            ),
+            deprecation = null,
+            examples = emptyList(),
+        )
     }
 }

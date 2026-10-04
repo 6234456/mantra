@@ -1,0 +1,4 @@
+;; Explicit alternative calculation precision; no change to supplied facts.
+(parameters ifrs.ifrs16/precision
+  {:for "ifrs.ifrs16/lessee-schedule" :label "Four-place currency precision"}
+  (value currency-scale 4))

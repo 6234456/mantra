@@ -5,6 +5,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class FunctionDocumentationTest {
     @Test
@@ -14,5 +15,6 @@ class FunctionDocumentationTest {
         val documented = Regex("\\((alloc|calc|dim|fin|table)/[a-z-]+")
             .findAll(reference).map { it.value.removePrefix("(") }.toSet()
         assertEquals(FunctionCatalog.functions.map { it.name }.toSet(), documented)
+        assertFalse(FunctionCatalog.functions.any { it.name.startsWith("mantra-internal/") })
     }
 }

@@ -1,0 +1,12 @@
+(layout ifrs.ifrs16/working-paper
+  {:preset :ifrs-schedule :precision 2 :title "Annual lessee working paper"
+   :subtitle "Lease liabilities and right-of-use assets across three periods"
+   :header [:subject :period :schema :prepared-by :reference]}
+  (table initial-measurement {:style :matrix :title "Measurement at commencement"}
+    :label (members lease) :cross-total)
+  (table liability-flow {:style :matrix :row-dimension lease :title "Liability roll-forward by lease and year"}
+    :label (members year) :cross-total)
+  (table rou-flow {:style :matrix :row-dimension lease :title "Right-of-use asset roll-forward"}
+    :label (members year) :cross-total)
+  (table period-summary {:style :matrix :title "All-lease period totals"}
+    :label (members year) :cross-total))

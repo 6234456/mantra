@@ -1,7 +1,7 @@
 # Diagnostic reference
 
 Diagnostics carry a stable `code`, `severity`, `category`, optional source `location` and optional
-calculation address. Workbench contract `mantra.workbench/2` also carries zero-based `rowIndex` and
+calculation address. Workbench contract `mantra.workbench/3` also carries zero-based `rowIndex` and
 `column` for table-cell findings. A cell address uses that row index within the current revision;
 source locations point at the supplied cell, its row when the field is omitted, or the declaration
 when an external source has no DSL source span.
@@ -207,3 +207,27 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-WORKBENCH-TOKEN` | structural | The required local-session token is missing or invalid. |
 | `MANTRA-WORKBENCH-TOO-LARGE` | structural | A request, workbook or output exceeds its configured size limit. |
 | `MANTRA-WORKBENCH-UNAVAILABLE` | structural | The requested endpoint is unavailable. |
+
+
+## M2 periods and multidimensional layouts
+
+Period and layout declaration errors are structural. `DSL-MANTRA-*` codes below are evaluation causes.
+Runtime cycles retain `MANTRA-CYCLE` and show
+node/member coordinates; they are not bypassed merely because a schema contains a previous-period reference.
+
+| Code | Meaning |
+| --- | --- |
+| `MANTRA-AGGREGATE-BOUNDARY` | First/last aggregation needs a numeric node containing the declared period axis |
+| `MANTRA-LAYOUT-AXES` | Row, column or fixed axes/members are unknown, overlap, or select an incompatible node |
+| `MANTRA-LAYOUT-FIXED` | A fixed layout member must be a keyword key |
+| `MANTRA-LAYOUT-ROW-DIMENSION` | A row dimension must be an identifier |
+| `MANTRA-PERIOD-CONTINUITY` | Declared periods are out of order, overlap or leave a gap |
+| `MANTRA-PERIOD-COUNT` | A period dimension needs at least one period |
+| `MANTRA-PERIOD-DECLARATION` | Static/generated period syntax or options are invalid |
+| `MANTRA-PERIOD-KEY` | Period keys must be nonblank and unique |
+| `MANTRA-PERIOD-LIMIT` | Period member count exceeds the collection ceiling |
+| `MANTRA-PERIOD-PARENT` | A child period is outside or crosses the parent interval |
+| `MANTRA-PERIOD-RANGE` | A period start must precede its exclusive end |
+| `DSL-MANTRA-ROLLUP-BOUNDARY` | Five-argument rollup needs a first/last boundary policy |
+| `DSL-MANTRA-ROLLUP-ORDER` | Boundary rollup needs an explicit unique sequence of period keys |
+| `DSL-MANTRA-PREV` | Previous-period reference has an invalid target or ambiguous period context |

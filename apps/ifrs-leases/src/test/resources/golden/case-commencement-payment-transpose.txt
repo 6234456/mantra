@@ -1,0 +1,127 @@
+Leases – year two balances
+Lease members as rows; liability and right-of-use balances as columns
+==========================
+Entity: Fictional demonstration entity
+Period: 2026–2028
+Calculation schema: IFRS 16 – annual lease roll-forward v0.1 [ifrs.ifrs16/lessee-schedule]
+WP ref.: Project-authored fictional facts
+Closing lease liabilities: –
+
+Structure of the calculation
+  Mainline 1: Measurement at commencement
+  Mainline 2: Lease liability [1]  –
+  Mainline 3: Right-of-use asset  –
+  Mainline 4: All-lease period totals  –
+
+[1] Lease liability
+    Mainline › 2 Lease liability
+Description                 | Closing lease liability | Closing right-of-use carrying amount
+----------------------------+-------------------------+-------------------------------------
+  Office-space right of use |                       – |                             9,531.36
+                           -+-------------------------+-------------------------------------
+  Total                     |                       – |                             9,531.36
+
+Audit trail
+-----------
+1/1 Σ Opening lease liability (Total)
+    Formula: first(year)
+    Working: first(year): [lease=Office, year=P1] 18594.10 included → 18594.10 = 18,594.10
+1/1 Opening lease liability [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (prev liability-closing initial-liability)
+    Working: (prev liability-closing initial-liability) = 18594.10 = 18,594.10
+1/1 Opening lease liability [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (prev liability-closing initial-liability)
+    Working: (prev liability-closing initial-liability) = 9523.81 = 9,523.81
+1/1 Opening lease liability [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (prev liability-closing initial-liability)
+    Working: (prev liability-closing initial-liability) = 0.00 = –
+1/2 Σ Interest for the period (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [lease=Office, year=P1] 929.71 included; [lease=Office, year=P2] 476.19 included; [lease=Office, year=P3] 0.00 included → 1405.90 = 1,405.90
+1/2 Interest for the period [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)
+    Working: (< year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 929.7050 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 929.71 → (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 929.71 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 929.71
+1/2 Interest for the period [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)
+    Working: (< year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 476.1905 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 476.19 → (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 476.19 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 476.19
+1/2 Interest for the period [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0)
+    Working: (< year.index lease.term-years) = true → (* liability-opening lease.annual-rate) = 0.0000 → (decimal/round (* liability-opening lease.annual-rate) currency-scale) = 0.00 → (if (< year.index lease.term-years) (decimal/round (* liability-opening lease.annual-rate) currency-scale) 0) = 0.00 → selected branch: (decimal/round (* liability-opening lease.annual-rate) currency-scale) = –
+1/3 Σ Supplied end-of-period payment (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [lease=Office, year=P1] 10000 included; [lease=Office, year=P2] 10000 included; [lease=Office, year=P3] 0 included → 20000 = 20,000.00
+1/3 Supplied end-of-period payment [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 10000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 10000 → selected branch: entry.payment → selected branch: 0 → selected branch: 0 = 10,000.00
+1/3 Supplied end-of-period payment [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 10000 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 10000 → selected branch: 0 → selected branch: entry.payment → selected branch: 0 = 10,000.00
+1/3 Supplied end-of-period payment [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.payment 0)) lease-payments)) = 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.payment = –
+1/4 Supplied payment is nonnegative [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (>= payment 0)
+    Working: (>= payment 0) = true = ✓
+1/4 Supplied payment is nonnegative [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (>= payment 0)
+    Working: (>= payment 0) = true = ✓
+1/4 Supplied payment is nonnegative [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (>= payment 0)
+    Working: (>= payment 0) = true = ✓
+1/5 Σ Closing lease liability (Total)
+    Formula: last(year)
+    Working: last(year): [lease=Office, year=P3] 0.00 included → 0.00 = –
+1/5 Closing lease liability [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: liability-opening + interest − payment
+    Working: 18594.10 + 929.71 − 10000 = 9,523.81
+1/5 Closing lease liability [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: liability-opening + interest − payment
+    Working: 9523.81 + 476.19 − 10000 = –
+1/5 Closing lease liability [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: liability-opening + interest − payment
+    Working: 0.00 + 0.00 − 0 = –
+1/6 Σ Payment less interest (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [lease=Office, year=P1] 9070.29 included; [lease=Office, year=P2] 9523.81 included; [lease=Office, year=P3] 0.00 included → 18594.10 = 18,594.10
+1/6 Payment less interest [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (- payment interest)
+    Working: (- payment interest) = 9070.29 = 9,070.29
+1/6 Payment less interest [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (- payment interest)
+    Working: (- payment interest) = 9523.81 = 9,523.81
+1/6 Payment less interest [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (- payment interest)
+    Working: (- payment interest) = 0.00 = –
+1/7 Σ Reported closing lease liability (Total)
+    Formula: last(year)
+    Working: last(year): [lease=Office, year=P3] 0 included → 0 = –
+1/7 Reported closing lease liability [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 9523.81 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 9523.81 → selected branch: entry.liability-amount → selected branch: 0 → selected branch: 0 = 9,523.81
+1/7 Reported closing lease liability [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 0 → selected branch: 0 → selected branch: entry.liability-amount → selected branch: 0 = –
+1/7 Reported closing lease liability [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings))
+    Working: (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) = [value unavailable] → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = false → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = false → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (= entry.lease-id lease.key) = true → (= entry.period-id year.key) = true → (and (= entry.lease-id lease.key) (= entry.period-id year.key)) = true → (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0) = 0 → (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.lease-id lease.key) (= entry.period-id year.key)) entry.liability-amount 0)) reported-closings)) = 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.liability-amount = –
+1/8 Computed and independently reported liability balances agree [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: liability-closing ≈ reported-liability-closing (± 0.01)
+    Working: liability-closing = 9523.81; reported-liability-closing = 9523.81 → 9523.81 − 9523.81 = 0.00 (± 0.01) = –
+1/8 Computed and independently reported liability balances agree [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: liability-closing ≈ reported-liability-closing (± 0.01)
+    Working: liability-closing = 0.00; reported-liability-closing = 0 → 0.00 − 0 = 0.00 (± 0.01) = –
+1/8 Computed and independently reported liability balances agree [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: liability-closing ≈ reported-liability-closing (± 0.01)
+    Working: liability-closing = 0.00; reported-liability-closing = 0 → 0.00 − 0 = 0.00 (± 0.01) = –
+1/9 Σ Closing right-of-use carrying amount (Total)
+    Formula: last(year)
+    Working: last(year): [lease=Office, year=P3] 0.00 included → 0.00 = –
+1/9 Closing right-of-use carrying amount [Office-space right of use / 2026-01-01 – 2026-12-31]
+    Formula: rou-opening − rou-depreciation
+    Working: 28594.10 − 9531.37 = 19,062.73
+1/9 Closing right-of-use carrying amount [Office-space right of use / 2027-01-01 – 2027-12-31]
+    Formula: rou-opening − rou-depreciation
+    Working: 19062.73 − 9531.37 = 9,531.36
+1/9 Closing right-of-use carrying amount [Office-space right of use / 2028-01-01 – 2028-12-31]
+    Formula: rou-opening − rou-depreciation
+    Working: 9531.36 − 9531.36 = –

@@ -11,7 +11,7 @@ describe('live comparison transport', () => {
   it('sends the selected parameter ids with the server session token', async () => {
     document.head.innerHTML = '<meta name="mantra-session-token" content="secret">'
     const response = {
-      contract: 'mantra.workbench/2',
+      contract: 'mantra.workbench/3',
       revision: '1234567890abcdef',
       engine: { mantra: 'test', normein: 'test' },
       data: { variant: { parameters: ['next'] }, mainline: [], changes: [], parameterChanges: [] },
@@ -69,7 +69,7 @@ describe('workbench v2 transport', () => {
       column: null,
     }
     const response = {
-      contract: 'mantra.workbench/2',
+      contract: 'mantra.workbench/3',
       revision: 'new',
       engine: { mantra: 'test', normein: 'test' },
       data: {

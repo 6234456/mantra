@@ -176,7 +176,7 @@ Berechnungsnachweis
 -------------------
 1/2 Gesamtbetrag der Einkünfte
     Formel: summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug
-    Rechenweg: 112380.00 − 0 − 0 − 0 = 112.380,00
+    Rechenweg: 112380.00 − (Σ contributions: [person=A] 0 excluded; [person=B] 0 excluded → 0) − 0 − 0 = 112.380,00
 1/4 Einkommen
     Formel: gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug
     Rechenweg: 112380.00 − 0 − 19562.10 − 0 = 92.817,90
@@ -216,45 +216,102 @@ Berechnungsnachweis
 4/3 Festgesetzte Steuern
     Formel: abr-est + abr-soli + abr-kist
     Rechenweg: 17996.0 + 0.00 + 1344.24 = 19.340,24
+4/4 Σ Einbehaltene Lohnsteuer (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 11020 included; [person=B] 3180 included → 14200 = 14.200,00
+4/5 Σ Einbehaltene Kirchensteuer (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 991.80 included; [person=B] 286.20 included → 1278.00 = 1.278,00
 4/7 Nachzahlung (+) / Erstattung (−)
     Formel: festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen
-    Rechenweg: 19340.24 − 14200 − 0 − 1278.00 − 2400 = 1.462,24
+    Rechenweg: 19340.24 − (Σ contributions: [person=A] 11020 included; [person=B] 3180 included → 14200) − (Σ contributions: [person=A] 0 included; [person=B] 0 included → 0) − (Σ contributions: [person=A] 991.80 included; [person=B] 286.20 included → 1278.00) − 2400 = 1.462,24
 4/8 Abrechnung stimmt mit Steuern und Zahlungen überein
     Formel: abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)
     Rechenweg: abrechnungsergebnis = 1462.24; (dim/sum lohnsteuer) = 14200 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 1278.00 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 1462.24 → 1462.24 − 1462.24 = 0.00 (± 0.01) = 0,00
+5/1 Σ Gewinn (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 12400 included; [person=B] 0 included → 12400 = 12.400,00
+5/2 Σ Einkünfte aus Gewerbebetrieb (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 12400 included; [person=B] 0 included → 12400 = 12.400,00
+5/3 Σ Bruttoarbeitslohn (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 68500 included; [person=B] 31200 included → 99700 = 99.700,00
+5/4 Σ Werbungskosten lt. Einzelnachweis (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 2340 included; [person=B] 650 included → 2990 = 2.990,00
+5/5 Σ Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 2340 included; [person=B] 1230 included → 3570 = 3.570,00
 5/5 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person A]
     Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
     Rechenweg: (> wk-nachgewiesen an-pauschbetrag) = true → (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 2340 → gewählter Zweig: wk-nachgewiesen = 2.340,00
 5/5 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person B]
     Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
     Rechenweg: (> wk-nachgewiesen an-pauschbetrag) = false → (min an-pauschbetrag bruttoarbeitslohn) = 1230 → (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 1230 → gewählter Zweig: (min an-pauschbetrag bruttoarbeitslohn) = 1.230,00
+5/6 Σ Einkünfte aus nichtselbständiger Arbeit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 66160 included; [person=B] 29970 included → 96130 = 96.130,00
 5/6 Einkünfte aus nichtselbständiger Arbeit [Person A]
     Formel: bruttoarbeitslohn − werbungskosten
     Rechenweg: 68500 − 2340 = 66.160,00
 5/6 Einkünfte aus nichtselbständiger Arbeit [Person B]
     Formel: bruttoarbeitslohn − werbungskosten
     Rechenweg: 31200 − 1230 = 29.970,00
+5/7 Σ Kapitalerträge (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 620 included; [person=B] 1850 included → 2470 = 2.470,00
+5/8 Σ Sparer-Pauschbetrag (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 620 included; [person=B] 1000 included → 1620 = 1.620,00
 5/8 Sparer-Pauschbetrag [Person A]
     Formel: (min kapitalertraege sparer-pauschbetrag)
     Rechenweg: (min kapitalertraege sparer-pauschbetrag) = 620 = 620,00
 5/8 Sparer-Pauschbetrag [Person B]
     Formel: (min kapitalertraege sparer-pauschbetrag)
     Rechenweg: (min kapitalertraege sparer-pauschbetrag) = 1000 = 1.000,00
+5/9 Σ Einkünfte aus Kapitalvermögen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0 included; [person=B] 850 included → 850 = 850,00
 5/9 Einkünfte aus Kapitalvermögen [Person A]
     Formel: kapitalertraege − sparer-pauschbetrag-abzug
     Rechenweg: 620 − 620 = 0,00
 5/9 Einkünfte aus Kapitalvermögen [Person B]
     Formel: kapitalertraege − sparer-pauschbetrag-abzug
     Rechenweg: 1850 − 1000 = 850,00
+5/10 Σ Mieteinnahmen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [objekt=leipzig] 9600 included → 9600 = 9.600,00
+5/11 Σ Absetzung für Abnutzung (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [objekt=leipzig] 2450 included → 2450 = 2.450,00
+5/12 Σ Schuldzinsen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [objekt=leipzig] 2180 included → 2180 = 2.180,00
+5/13 Σ Sonstige Werbungskosten (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [objekt=leipzig] 1120 included → 1120 = 1.120,00
+5/14 Σ Einkünfte des Objekts (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [objekt=leipzig] 3850 included → 3850 = 3.850,00
 5/14 Einkünfte des Objekts [ETW Leipzig, Karl-Heine-Str.]
     Formel: mieteinnahmen − afa − schuldzinsen − sonstige-wk-vuv
     Rechenweg: 9600 − 2450 − 2180 − 1120 = 3.850,00
+5/16 Σ Gewinn aus privaten Veräußerungsgeschäften (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0 included; [person=B] 740 included → 740 = 740,00
+5/17 Σ Private Veräußerungsgeschäfte (Freigrenze) (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0 included; [person=B] 0 included → 0 = 0,00
 5/17 Private Veräußerungsgeschäfte (Freigrenze) [Person A]
     Formel: (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn)
     Rechenweg: (< veraeusserungsgewinn freigrenze-23) = true → (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn) = 0 → gewählter Zweig: 0 = 0,00
 5/17 Private Veräußerungsgeschäfte (Freigrenze) [Person B]
     Formel: (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn)
     Rechenweg: (< veraeusserungsgewinn freigrenze-23) = true → (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn) = 0 → gewählter Zweig: 0 = 0,00
+5/18 Σ Sonstige Einkünfte (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0.00 included; [person=B] 0.00 included → 0.00 = 0,00
 5/18 Sonstige Einkünfte [Person A]
     Formel: rente-steuerpflichtig − wk-renten + veraeusserung-steuerpflichtig
     Rechenweg: 0.00 − 0 + 0 = 0,00
@@ -263,19 +320,40 @@ Berechnungsnachweis
     Rechenweg: 0.00 − 0 + 0 = 0,00
 5/19 Summe der Einkünfte
     Formel: einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige
-    Rechenweg: 0 + 12400 + 0 + 96130 + 0 + 3850 + 0.00 = 112.380,00
+    Rechenweg: (Σ contributions: [person=A] 0 included; [person=B] 0 included → 0) + (Σ contributions: [person=A] 12400 included; [person=B] 0 included → 12400) + (Σ contributions: [person=A] 0 included; [person=B] 0 included → 0) + (Σ contributions: [person=A] 66160 included; [person=B] 29970 included → 96130) + (Σ contributions: [person=A] 0 excluded; [person=B] 0 excluded → 0) + 3850 + (Σ contributions: [person=A] 0.00 included; [person=B] 0.00 included → 0.00) = 112.380,00
+6/1 Σ Beiträge zur gesetzlichen Rentenversicherung (Arbeitnehmer- und Arbeitgeberanteil) (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 12741.00 included; [person=B] 5803.20 included → 18544.20 = 18.544,20
+6/2 Σ davon steuerfreier Arbeitgeberanteil (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 6370.50 included; [person=B] 2901.60 included → 9272.10 = 9.272,10
+6/3 Σ Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil) (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 6370.50 included; [person=B] 2901.60 included → 9272.10 = 9.272,10
 6/3 Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil) [Person A]
     Formel: (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil))
     Rechenweg: (min rv-beitraege hoechstbetrag-altersvorsorge) = 12741.00 → (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil) = 6370.50 → (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil)) = 6370.50 = 6.370,50
 6/3 Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil) [Person B]
     Formel: (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil))
     Rechenweg: (min rv-beitraege hoechstbetrag-altersvorsorge) = 5803.20 → (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil) = 2901.60 → (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil)) = 2901.60 = 2.901,60
+6/4 Σ Beiträge zur Basis-Kranken- und Pflegeversicherung (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 5480 included; [person=B] 2610 included → 8090 = 8.090,00
+6/5 Σ Weitere sonstige Vorsorgeaufwendungen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 820 included; [person=B] 380 included → 1200 = 1.200,00
+6/7 Σ Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung) (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 5480 included; [person=B] 2610 included → 8090 = 8.090,00
 6/7 Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung) [Person A]
     Formel: (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)))
     Rechenweg: (+ kv-pv-basis weitere-vorsorge) = 6300 → (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge) = 1900 → (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)) = 1900 → (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge))) = 5480 → gewählter Zweig: hoechstbetrag-vorsorge-an = 5.480,00
 6/7 Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung) [Person B]
     Formel: (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)))
     Rechenweg: (+ kv-pv-basis weitere-vorsorge) = 2990 → (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge) = 1900 → (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)) = 1900 → (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge))) = 2610 → gewählter Zweig: hoechstbetrag-vorsorge-an = 2.610,00
+6/8 Σ Abziehbare Vorsorgeaufwendungen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 11850.50 included; [person=B] 5511.60 included → 17362.10 = 17.362,10
 6/8 Abziehbare Vorsorgeaufwendungen [Person A]
     Formel: altersvorsorge + sonstige-vorsorge
     Rechenweg: 6370.50 + 5480 = 11.850,50
@@ -293,7 +371,7 @@ Berechnungsnachweis
     Rechenweg: (* 0.3 1800) = 540.0 → (min 5000 (* 0.3 1800)) = 540.0 = 540,00
 6/14 Sonderausgaben insgesamt
     Formel: vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag + schulgeld
-    Rechenweg: 17362.10 + 1210 + 450 + 0 + 540.0 = 19.562,10
+    Rechenweg: (Σ contributions: [person=A] 11850.50 included; [person=B] 5511.60 included → 17362.10) + 1210 + 450 + 0 + 540.0 = 19.562,10
 7/2 Zumutbare Belastung (stufenweise Berechnung)
     Formel: (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen))
     Rechenweg: (defn zumutbare-belastung-baender [^Integer kinder ^Boolean zusammen] (let [saetze (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07])] [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]])) = [Wert nicht verfügbar] → (max 0 gesamtbetrag-der-einkuenfte) = 112380.00 → (>= kinder 3) = false → (>= kinder 1) = true → (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07]) = [0.02 0.03 0.04] → (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07]) = [0.02 0.03 0.04] → (nth saetze 0) = 0.02 → (nth saetze 1) = 0.03 → (nth saetze 2) = 0.04 → (let [saetze (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07])] [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]]) = [[15340 0.02] [51130 0.03] [nil 0.04]] → (zumutbare-belastung-baender kinder zusammen) = [[15340 0.02] [51130 0.03] [nil 0.04]] → (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen)) = 3830.5000 → (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen)) = 3830.5000 → gewählter Zweig: [0.02 0.03 0.04] = 3.830,50

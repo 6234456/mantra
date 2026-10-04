@@ -68,7 +68,7 @@ internal class Planner(private val sink: DiagnosticSink) {
     private val vertices = linkedMapOf<String, Vertex>()
     private val inputDecls = linkedMapOf<String, InputDecl>()
     private val fieldDims = hashMapOf<String, List<String>>()
-    private val scopes = hashMapOf<Pair<List<String>, String?>, DslAnalysisScope>()
+    private lateinit var formulaCompiler: FormulaCompiler
     private val relationRoots: Map<String, String> get() = dimensions.values
         .filter { it.parentDimension != null }
         .associate { "relation_${it.id}" to it.id }
@@ -160,6 +160,15 @@ internal class Planner(private val sink: DiagnosticSink) {
                 hostPosition = hostPosition(it.location, it.source),
             )
         }
+        formulaCompiler = FormulaCompiler(
+            sink,
+            dimensions,
+            vertices,
+            definitions,
+            (schema.functions + case.functions).associate { it.name to NamedSource(it.source, it.location) },
+            types,
+            ::elementType,
+        )
         if (!validateDefinitions(schema.functions + case.functions)) return null
         compileAll()
         if (sink.hasErrors) return null
@@ -400,6 +409,17 @@ internal class Planner(private val sink: DiagnosticSink) {
         dimensions.values.forEach { decl ->
             val parent = decl.parentDimension
             val parentKey = decl.parentKeyColumn
+            if (decl.periods != null) {
+                PeriodMemberResolver(sink).resolve(decl.id, decl.periods, decl.location)
+                if (parent != null && dimensions[parent]?.periods == null) {
+                    sink.error(
+                        "MANTRA-PERIOD-PARENT",
+                        "Period dimension ${decl.id} requires a period parent dimension; got $parent",
+                        decl.location,
+                    )
+                }
+                return@forEach
+            }
             if (parent == null && parentKey == null) return@forEach
             if (parent == null || parentKey == null || decl.fromTable == null) {
                 sink.error(
@@ -475,7 +495,16 @@ internal class Planner(private val sink: DiagnosticSink) {
                 field("key", DslType.Keyword, false),
                 field("label", DslType.Text, false),
                 field("index", DslType.Integer, false),
-            )
+            ) + if (dim.periods != null) {
+                listOf(
+                    field("start", DslType.Date, false),
+                    field("end-exclusive", DslType.Date, false),
+                    field("previous-key", DslTypes.nullable(DslType.Keyword), true),
+                    field("parent-key", DslTypes.nullable(DslType.Keyword), true),
+                )
+            } else {
+                emptyList()
+            }
             val columns = dim.fromTable?.let { table -> inputDecls[table]?.let(::columnFields) }.orEmpty()
                 .filter { column -> base.none { it.name == column.name } }
             definitions += DslTypeDefinition(id, DslTypes.objectType(base + columns))
@@ -534,53 +563,14 @@ internal class Planner(private val sink: DiagnosticSink) {
     }
 
     private fun scopeFor(dims: List<String>, rowTable: String? = null): DslAnalysisScope =
-        scopes.getOrPut(dims to rowTable) {
-            val scopeId = "mantra.scope.${dims.joinToString(".").ifEmpty { "scalar" }}"
-            val builder = DslAnalysisScopeBuilder.create(scopeId, "1")
-            types.definitions.forEach(builder::type)
-            vertices.values.filterIsInstance<ValueVertex>().filter { !it.isValidation }.forEach { vertex ->
-                val extra = vertex.dims.filter { it !in dims }
-                val type = mapOver(extra, elementType(vertex))
-                // Plain name unless it would hide a function; the qualified mantra/<id> always works.
-                if (vertex.id !in
-                    MantraKernel.callableNames && (rowTable == null || vertex.id != "row")
-                ) {
-                    builder.root(DslRootDeclaration(vertex.id, type, DslFieldPresence.OPTIONAL))
-                }
-                builder.root(
-                    DslRootDeclaration(MantraKernel.qualifiedRoot(vertex.id), type, DslFieldPresence.OPTIONAL),
-                )
-            }
-            dims.filter { rowTable == null || it != "row" }.forEach { dim ->
-                builder.root(
-                    DslRootDeclaration(
-                        dim,
-                        DslTypes.ref(types.dimensionRecord.getValue(dim)),
-                        DslFieldPresence.OPTIONAL,
-                    ),
-                )
-            }
-            relationRoots.keys.forEach { name ->
-                builder.root(
-                    DslRootDeclaration(name, DslTypes.map(DslType.Keyword, DslType.Keyword), DslFieldPresence.OPTIONAL),
-                )
-            }
-            builder.root(DslRootDeclaration("all", DslTypes.ref(types.all), DslFieldPresence.OPTIONAL))
-            rowTable?.let {
-                builder.root(
-                    DslRootDeclaration("row", DslTypes.ref(types.tableRow.getValue(it)), DslFieldPresence.REQUIRED),
-                )
-            }
-            when (val result = builder.build()) {
-                is DslAnalysisScopeBuildResult.Success -> result.scope
-                is DslAnalysisScopeBuildResult.Failure -> error(
-                    "Analysis scope for $dims is invalid: ${result.diagnostics}",
-                )
-            }
-        }
+        formulaCompiler.scopeFor(dims, rowTable)
 
     /** The same typed analysis scope used to compile a formula at these dimensions. */
     fun authoringScope(dims: List<String>): DslAnalysisScope = scopeFor(dims)
+
+    /** Runs formula editing checks with the host's continuous-period bindings. */
+    fun authoringCheck(source: String, dims: List<String>, expected: DslType): List<DslDiagnostic> =
+        formulaCompiler.authoringCheck(source, dims, expected)
 
     // ── Compilation ────────────────────────────────────────────────────────────────────────────
 
@@ -717,75 +707,7 @@ internal class Planner(private val sink: DiagnosticSink) {
         expected: DslType,
         logical: String,
         rowTable: String? = null,
-    ): CompiledFormula? {
-        val request = DslCompileRequest(
-            source = Qualified.rewrite(formula.source),
-            namedDefinitions = definitions,
-            expectedType = expected,
-            logicalLocation = logical.take(200),
-            hostPosition = hostPosition(formula.location, formula.source),
-        )
-        return when (val result = compiler.compile(request, environment, scopeFor(dims, rowTable))) {
-            is DslCompileResult.Failure -> {
-                result.diagnostics.forEach { report(it, formula, logical) }
-                null
-            }
-            is DslCompileResult.Success -> {
-                val expression = result.expression
-                val roots = expression.requiredRoots.keys
-                val allRefs = expression.references
-                    .filter { it.rootName == "all" && it.kind == DslReferenceKind.FIELD_PATH }
-                    .mapNotNull { reference ->
-                        reference.staticPath?.let { path ->
-                            if (path.firstOrNull() ==
-                                "all"
-                            ) {
-                                path.getOrNull(1)
-                            } else {
-                                path.firstOrNull()
-                            }
-                        }
-                    }
-                    .toSet()
-                if ("all" in roots && allRefs.isEmpty()) {
-                    sink.error(
-                        "MANTRA-ALL-DYNAMIC",
-                        "`all` must be used with a static field such as all.<line-id>",
-                        formula.location,
-                        logical,
-                    )
-                }
-                allRefs.filter { it !in vertices }.forEach {
-                    sink.error(
-                        "MANTRA-ALL-UNKNOWN",
-                        "all.$it does not name a dimensioned line",
-                        formula.location,
-                        logical,
-                    )
-                }
-                val rootNames = roots.mapNotNull { root ->
-                    if (rowTable != null && root == "row") return@mapNotNull null
-                    val node = if (root.startsWith("mantra_")) root.removePrefix("mantra_") else root
-                    if (vertices[node] is ValueVertex) root to node else null
-                }.toMap()
-                CompiledFormula(
-                    formula = formula,
-                    expression = expression,
-                    namedSources = (schema.functions + case.functions).associate {
-                        it.name to
-                            NamedSource(it.source, it.location)
-                    },
-                    dims = dims,
-                    nodeRefs = rootNames.values.toSet(),
-                    rootNames = rootNames,
-                    allRefs = allRefs,
-                    dimRefs = roots.filter { it in dims && (rowTable == null || it != "row") }.toSet(),
-                    relationRefs = roots.mapNotNull { root -> relationRoots[root]?.let { root to it } }.toMap(),
-                    rowTable = rowTable,
-                )
-            }
-        }
-    }
+    ): CompiledFormula? = formulaCompiler.compile(formula, dims, expected, logical, rowTable)
 
     private fun report(diagnostic: DslDiagnostic, formula: Formula, nodeId: String) {
         val span = diagnostic.span
@@ -812,6 +734,7 @@ internal class Planner(private val sink: DiagnosticSink) {
                 deps += formula.allRefs
                 deps += formula.dims
                 deps += formula.relationRefs.values
+                deps += formula.periodRefs
             }
             when (vertex) {
                 is DimensionVertex -> {
@@ -839,6 +762,34 @@ internal class Planner(private val sink: DiagnosticSink) {
                     vertex.columns.values.forEach(::addFormula)
                 }
                 is ValueVertex -> {
+                    vertex.boundary?.let { boundary ->
+                        if (!vertex.type.isNumeric || boundary.dimension !in vertex.dims ||
+                            dimensions[boundary.dimension]?.periods == null
+                        ) {
+                            sink.error(
+                                "MANTRA-AGGREGATE-BOUNDARY",
+                                "Boundary aggregation of ${vertex.id} requires a numeric node with period axis ${boundary.dimension}",
+                                vertex.location,
+                                vertex.id,
+                            )
+                        }
+                    }
+                    vertex.ratio?.let { ratio ->
+                        listOf(ratio.numerator, ratio.denominator).forEach { id ->
+                            val source = vertices[id] as? ValueVertex
+                            if (source == null || source.isValidation || !source.type.isNumeric ||
+                                source.dims != vertex.dims
+                            ) {
+                                sink.error(
+                                    "MANTRA-AGGREGATE-REFERENCE",
+                                    "Ratio ${vertex.id} needs same-dimension numeric node $id",
+                                    vertex.location,
+                                    vertex.id,
+                                )
+                            }
+                        }
+                        deps += listOf(ratio.numerator, ratio.denominator)
+                    }
                     deps += vertex.dims
                     deps += vertex.guards
                     addFormula(vertex.ownCondition)
@@ -861,18 +812,23 @@ internal class Planner(private val sink: DiagnosticSink) {
                     }
                 }
             }
-            deps.remove(vertex.id).let { selfReference ->
-                if (selfReference) {
-                    sink.error(
-                        "MANTRA-CYCLE",
-                        "`${vertex.id}` refers to itself",
-                        vertex.location,
-                        vertex.id,
-                    )
+            if (dimensions.values.none { it.periods != null }) {
+                deps.remove(vertex.id).let { selfReference ->
+                    if (selfReference) {
+                        sink.error(
+                            "MANTRA-CYCLE",
+                            "`${vertex.id}` refers to itself",
+                            vertex.location,
+                            vertex.id,
+                        )
+                    }
                 }
             }
         }
         if (sink.hasErrors) return null
+        // A temporal cycle is defined over coordinates. First-only fallback references and shifted
+        // edges cannot be validated by collapsing every member into its declaration id.
+        if (dimensions.values.any { it.periods != null }) return vertices.values.toList()
         val result = mutableListOf<Vertex>()
         val state = hashMapOf<String, Int>()
         val stack = ArrayDeque<String>()
@@ -904,7 +860,7 @@ internal class Planner(private val sink: DiagnosticSink) {
     }
 }
 
-private fun hostPosition(location: SourceLocation, source: String): DslSourcePosition {
+internal fun hostPosition(location: SourceLocation, source: String): DslSourcePosition {
     val start = requireNotNull(location.startOffset) { "Embedded DSL source needs a host start offset" }
     val end = requireNotNull(location.endOffset) { "Embedded DSL source needs a host end offset" }
     require(end - start == source.length) { "Embedded DSL source must match its host span" }

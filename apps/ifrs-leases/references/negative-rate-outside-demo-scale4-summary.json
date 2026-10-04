@@ -1,0 +1,75 @@
+{
+  "case": "negative-rate-outside-demo",
+  "scale": 4,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "30610.1521",
+      "initial_rou": "30610.1521",
+      "commencement_cash": "0",
+      "final_liability": "0.0000",
+      "final_rou": "0.0000",
+      "total_interest": "-610.1521",
+      "total_payments": "30000",
+      "total_rou_depreciation": "30610.1521",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "30610.1521",
+          "interest": "-306.1015",
+          "payment": "10000",
+          "principal_reduction": "10306.1015",
+          "liability_closing": "20304.0506",
+          "rou_opening": "30610.1521",
+          "rou_depreciation": "10203.3840",
+          "rou_closing": "20406.7681",
+          "reported_liability_closing": "20304.05",
+          "difference": "0.0006"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "20304.0506",
+          "interest": "-203.0405",
+          "payment": "10000",
+          "principal_reduction": "10203.0405",
+          "liability_closing": "10101.0101",
+          "rou_opening": "20406.7681",
+          "rou_depreciation": "10203.3840",
+          "rou_closing": "10203.3841",
+          "reported_liability_closing": "10101.01",
+          "difference": "0.0001"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "10101.0101",
+          "interest": "-101.0101",
+          "payment": "10000",
+          "principal_reduction": "10101.0101",
+          "liability_closing": "0.0000",
+          "rou_opening": "10203.3841",
+          "rou_depreciation": "10203.3841",
+          "rou_closing": "0.0000",
+          "reported_liability_closing": "0",
+          "difference": "0.0000"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "30610.1521",
+  "combined_final_liability": "0.0000",
+  "combined_final_rou": "0.0000",
+  "interest_flow": "-610.1521",
+  "payment_flow": "30000",
+  "depreciation_flow": "30610.1521",
+  "validation_passed": false,
+  "expected_business": [
+    {
+      "code": "MANTRA-CHECK-FAILED",
+      "node": "lease-rate-supported",
+      "coord": [
+        "Office"
+      ],
+      "severity": "error"
+    }
+  ]
+}

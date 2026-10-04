@@ -1,0 +1,76 @@
+{
+  "case": "negative-payment",
+  "scale": 4,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "17255.1560",
+      "initial_rou": "17255.1560",
+      "commencement_cash": "0",
+      "final_liability": "0.0000",
+      "final_rou": "0.0000",
+      "total_interest": "1744.8440",
+      "total_payments": "19000",
+      "total_rou_depreciation": "17255.1560",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "17255.1560",
+          "interest": "862.7578",
+          "payment": "10000",
+          "principal_reduction": "9137.2422",
+          "liability_closing": "8117.9138",
+          "rou_opening": "17255.1560",
+          "rou_depreciation": "5751.7187",
+          "rou_closing": "11503.4373",
+          "reported_liability_closing": "8117.92",
+          "difference": "-0.0062"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "8117.9138",
+          "interest": "405.8957",
+          "payment": "-1000",
+          "principal_reduction": "-1405.8957",
+          "liability_closing": "9523.8095",
+          "rou_opening": "11503.4373",
+          "rou_depreciation": "5751.7187",
+          "rou_closing": "5751.7186",
+          "reported_liability_closing": "9523.81",
+          "difference": "-0.0005"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "9523.8095",
+          "interest": "476.1905",
+          "payment": "10000",
+          "principal_reduction": "9523.8095",
+          "liability_closing": "0.0000",
+          "rou_opening": "5751.7186",
+          "rou_depreciation": "5751.7186",
+          "rou_closing": "0.0000",
+          "reported_liability_closing": "0.01",
+          "difference": "-0.0100"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "17255.1560",
+  "combined_final_liability": "0.0000",
+  "combined_final_rou": "0.0000",
+  "interest_flow": "1744.8440",
+  "payment_flow": "19000",
+  "depreciation_flow": "17255.1560",
+  "validation_passed": false,
+  "expected_business": [
+    {
+      "code": "MANTRA-CHECK-FAILED",
+      "node": "payment-nonnegative",
+      "coord": [
+        "Office",
+        "P2"
+      ],
+      "severity": "error"
+    }
+  ]
+}

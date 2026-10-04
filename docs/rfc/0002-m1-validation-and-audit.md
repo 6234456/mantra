@@ -1,6 +1,6 @@
 # RFC 0002: M1 validation and audit integration
 
-Status: accepted host integration; implementation in progress (2026-10-04).
+Status: accepted host integration; implementation verified (2026-10-04).
 
 M1 uses the unchanged `normein-dsl` 0.3.0 commit in `normein-build.lock`. This RFC records the
 milestone coordination required by roadmap R4; it does not authorize patching the kernel checkout.
@@ -29,3 +29,6 @@ No new kernel extension is required by the currently accepted M1 design. Contrac
 this against the pinned commit. If implementation reveals a missing kernel behavior, record the
 specific input, expected API/trace and affected domains here, and adopt only a reviewed released
 kernel revision; never silently emulate or patch it in `.deps/normein`.
+
+M1 integration completed at `ac95e4c`; [verification record](../milestones/m1-work-packages.md)
+includes local and remote CI, independent application values and browser cleanup.

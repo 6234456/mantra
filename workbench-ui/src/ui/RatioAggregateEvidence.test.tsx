@@ -6,6 +6,7 @@ import { RatioAggregateEvidence } from './RatioAggregateEvidence'
 import type { Explain, RatioAggregate } from '../types'
 
 const aggregate: RatioAggregate = {
+  kind: 'ratio',
   numeratorId: 'tax-expense',
   denominatorId: 'profit',
   dimensions: ['entity'],

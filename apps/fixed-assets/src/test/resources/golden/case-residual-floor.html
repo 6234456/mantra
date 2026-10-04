@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixed-asset working paper</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Fixed-asset working paper</h1>
+<p class="subtitle">First and last stocks; total additions, disposals and depreciation</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Entity</dt><dd>Fictional demonstration entity</dd></div>
+<div><dt>Period</dt><dd>2026–2030</dd></div>
+<div><dt>Calculation schema</dt><dd>Fixed assets – cost and depreciation roll-forward v0.1 [assets/cost-model]</dd></div>
+<div><dt>Prepared by</dt><dd>Mantra demonstration</dd></div>
+<div><dt>WP ref.</dt><dd>Project-authored fictional facts</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Closing carrying amount</strong> 20.00</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Structure of the calculation</h2>
+<ol class="mainline" aria-label="Mainline">
+<li class="step">
+<a class="card" href="#table-1"><span class="step-no">Mainline 1</span><span class="title">Gross cost</span><span class="value">100.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-2"><span class="step-no">Mainline 2</span><span class="title">Accumulated depreciation</span><span class="value">80.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Mainline 3</span><span class="title">Net carrying amount</span><span class="value">20.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Mainline 4</span><span class="title">All-asset carrying bridge</span><span class="value">20.00</span></a>
+</li>
+</ol>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> Gross cost by asset and year</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Accumulated depreciation by asset and year</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Net carrying amounts by asset and year</a></li>
+<li><a href="#table-4"><span class="ref">4</span> All-asset carrying bridge</a></li>
+<li><a href="#audit"><span class="ref">§</span> Audit trail</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 1 Gross cost</p>
+<h2><span class="ref">1</span>Gross cost by asset and year</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-member">2029-01-01 – 2029-12-31</th>
+<th class="right num c-member">2030-01-01 – 2030-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t1-r1" data-section="gross-flow" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Tool at its residual value</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t1-r2" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+<tr class="value" id="t1-r3" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Acquisitions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t1-r4" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Disposals at period end</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t1-r5" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+<tr class="heading" id="t1-r6" data-section="gross-flow" data-depth="1" data-height="1" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t1-r7" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+<tr class="value" id="t1-r8" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Acquisitions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t1-r9" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Disposals at period end</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t1-r10" data-section="gross-flow" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 2 Accumulated depreciation</p>
+<h2><span class="ref">2</span>Accumulated depreciation by asset and year</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-member">2029-01-01 – 2029-12-31</th>
+<th class="right num c-member">2030-01-01 – 2030-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t2-r1" data-section="accumulated-flow" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Tool at its residual value</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r2" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+<tr class="value" id="t2-r3" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Months in use</span></td>
+<td class="right num c-member" data-column="membersyear-P1">12</td>
+<td class="right num c-member" data-column="membersyear-P2">12</td>
+<td class="right num c-member" data-column="membersyear-P3">12</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r4" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Depreciation for the period</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t2-r5" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Accumulated depreciation removed on disposal</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t2-r6" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+<tr class="heading" id="t2-r7" data-section="accumulated-flow" data-depth="1" data-height="1" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r8" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+<tr class="value" id="t2-r9" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Months in use</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t2-r10" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Depreciation for the period</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t2-r11" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Accumulated depreciation removed on disposal</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t2-r12" data-section="accumulated-flow" data-depth="2" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 3 Net carrying amount</p>
+<h2><span class="ref">3</span>Net carrying amounts by asset and year</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-member">2029-01-01 – 2029-12-31</th>
+<th class="right num c-member">2030-01-01 – 2030-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t3-r1" data-section="carrying-flow" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Tool at its residual value</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r2" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value" id="t3-r3" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Acquisitions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t3-r4" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t3-r5" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Net carrying amount removed on disposal</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t3-r6" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value" id="t3-r7" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Gross cost less accumulated depreciation agrees</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r8" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Undisposed asset is not below residual value</span></td>
+<td class="right num c-member" data-column="membersyear-P1">✓</td>
+<td class="right num c-member" data-column="membersyear-P2">✓</td>
+<td class="right num c-member" data-column="membersyear-P3">✓</td>
+<td class="right num c-member" data-column="membersyear-P4">✓</td>
+<td class="right num c-member" data-column="membersyear-P5">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="heading" id="t3-r9" data-section="carrying-flow" data-depth="1" data-height="1" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Total</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r10" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value" id="t3-r11" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Acquisitions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t3-r12" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t3-r13" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="13">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Net carrying amount removed on disposal</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total" id="t3-r14" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="14">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value" id="t3-r15" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="15">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Gross cost less accumulated depreciation agrees</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r16" data-section="carrying-flow" data-depth="2" data-height="0" data-row-index="16">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Undisposed asset is not below residual value</span></td>
+<td class="right num c-member" data-column="membersyear-P1"></td>
+<td class="right num c-member" data-column="membersyear-P2"></td>
+<td class="right num c-member" data-column="membersyear-P3"></td>
+<td class="right num c-member" data-column="membersyear-P4"></td>
+<td class="right num c-member" data-column="membersyear-P5"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 4 All-asset carrying bridge</p>
+<h2><span class="ref">4</span>All-asset carrying bridge</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Description</th>
+<th class="right num c-member">2026-01-01 – 2026-12-31</th>
+<th class="right num c-member">2027-01-01 – 2027-12-31</th>
+<th class="right num c-member">2028-01-01 – 2028-12-31</th>
+<th class="right num c-member">2029-01-01 – 2029-12-31</th>
+<th class="right num c-member">2030-01-01 – 2030-12-31</th>
+<th class="right num c-crosstotal">Total</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t4-r1" data-section="period-summary" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+<tr class="value info" id="t4-r2" data-section="period-summary" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Cost additions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value info" id="t4-r3" data-section="period-summary" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Cost disposals</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value info" id="t4-r4" data-section="period-summary" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Closing gross cost</span></td>
+<td class="right num c-member" data-column="membersyear-P1">100.00</td>
+<td class="right num c-member" data-column="membersyear-P2">100.00</td>
+<td class="right num c-member" data-column="membersyear-P3">100.00</td>
+<td class="right num c-member" data-column="membersyear-P4">100.00</td>
+<td class="right num c-member" data-column="membersyear-P5">100.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">100.00</td>
+</tr>
+<tr class="value info" id="t4-r5" data-section="period-summary" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+<tr class="value info" id="t4-r6" data-section="period-summary" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Accumulated depreciation disposals</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value info" id="t4-r7" data-section="period-summary" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Closing accumulated depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">80.00</td>
+<td class="right num c-member" data-column="membersyear-P2">80.00</td>
+<td class="right num c-member" data-column="membersyear-P3">80.00</td>
+<td class="right num c-member" data-column="membersyear-P4">80.00</td>
+<td class="right num c-member" data-column="membersyear-P5">80.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">80.00</td>
+</tr>
+<tr class="value" id="t4-r8" data-section="period-summary" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value" id="t4-r9" data-section="period-summary" data-depth="1" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Additions</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t4-r10" data-section="period-summary" data-depth="1" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Depreciation</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="value" id="t4-r11" data-section="period-summary" data-depth="1" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Net carrying amount disposed</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total">–</td>
+</tr>
+<tr class="total grand" id="t4-r12" data-section="period-summary" data-depth="1" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Closing carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value info" id="t4-r13" data-section="period-summary" data-depth="1" data-height="0" data-row-index="13">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Reported closing carrying amount</span></td>
+<td class="right num c-member" data-column="membersyear-P1">20.00</td>
+<td class="right num c-member" data-column="membersyear-P2">20.00</td>
+<td class="right num c-member" data-column="membersyear-P3">20.00</td>
+<td class="right num c-member" data-column="membersyear-P4">20.00</td>
+<td class="right num c-member" data-column="membersyear-P5">20.00</td>
+<td class="right num c-crosstotal" data-column="cross-total">20.00</td>
+</tr>
+<tr class="value info" id="t4-r14" data-section="period-summary" data-depth="1" data-height="0" data-row-index="14">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Computed and independently reported closing amounts agree</span></td>
+<td class="right num c-member" data-column="membersyear-P1">–</td>
+<td class="right num c-member" data-column="membersyear-P2">–</td>
+<td class="right num c-member" data-column="membersyear-P3">–</td>
+<td class="right num c-member" data-column="membersyear-P4">–</td>
+<td class="right num c-member" data-column="membersyear-P5">–</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Audit trail</h2>
+<p class="intro">Evidence for every calculated line: schema formula, executed trace steps and result.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
+<tbody>
+<tr id="audit-t1-ngross-opening-aggregate">
+<td class="left cite"><a href="#t1-ngross">1/1 Σ</a></td>
+<td class="left">Opening gross cost (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 100 included → 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-opening-Tool-P1">
+<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left">Opening gross cost <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-opening-Tool-P2">
+<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left">Opening gross cost <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-opening-Tool-P3">
+<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left">Opening gross cost <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-opening-Tool-P4">
+<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left">Opening gross cost <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-opening-Tool-P5">
+<td class="left cite"><a href="#t1-ngross">1/1</a></td>
+<td class="left">Opening gross cost <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(prev gross-closing asset.opening-cost)</code><div class="working">(prev gross-closing asset.opening-cost) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-additions-aggregate">
+<td class="left cite"><a href="#t1-ngross">1/2 Σ</a></td>
+<td class="left">Acquisitions (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-additions-Tool-P1">
+<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left">Acquisitions <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-additions-Tool-P2">
+<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left">Acquisitions <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-additions-Tool-P3">
+<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left">Acquisitions <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-additions-Tool-P4">
+<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left">Acquisitions <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-additions-Tool-P5">
+<td class="left cite"><a href="#t1-ngross">1/2</a></td>
+<td class="left">Acquisitions <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.acquisition-period year.key) asset.acquisition-cost 0)</code><div class="working">(= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-aggregate">
+<td class="left cite"><a href="#t1-ngross">1/3 Σ</a></td>
+<td class="left">Disposals at period end (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-Tool-P1">
+<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left">Disposals at period end <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-Tool-P2">
+<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left">Disposals at period end <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-Tool-P3">
+<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left">Disposals at period end <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-Tool-P4">
+<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left">Disposals at period end <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-disposals-Tool-P5">
+<td class="left cite"><a href="#t1-ngross">1/3</a></td>
+<td class="left">Disposals at period end <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t1-ngross-closing-aggregate">
+<td class="left cite"><a href="#t1-ngross">1/4 Σ</a></td>
+<td class="left">Closing gross cost (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 100 included → 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-closing-Tool-P1">
+<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left">Closing gross cost <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-closing-Tool-P2">
+<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left">Closing gross cost <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-closing-Tool-P3">
+<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left">Closing gross cost <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-closing-Tool-P4">
+<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left">Closing gross cost <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t1-ngross-closing-Tool-P5">
+<td class="left cite"><a href="#t1-ngross">1/4</a></td>
+<td class="left">Closing gross cost <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">gross-opening + gross-additions − gross-disposals</code><div class="working">100 + 0 − 0</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-aggregate">
+<td class="left cite"><a href="#t2-naccumulated">2/1 Σ</a></td>
+<td class="left">Opening accumulated depreciation (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 80 included → 80</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-Tool-P1">
+<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 80</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-Tool-P2">
+<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-Tool-P3">
+<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-Tool-P4">
+<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-opening-Tool-P5">
+<td class="left cite"><a href="#t2-naccumulated">2/1</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(prev accumulated-closing asset.opening-accumulated-depreciation)</code><div class="working">(prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-nservice-months-Tool-P1">
+<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left">Months in use <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 12 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 12 → (date/months-between asset.available-from year.start) = 0 → (max 0 (date/months-between asset.available-from year.start)) = 0 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
+<td class="right num">12</td>
+</tr>
+<tr id="audit-t2-nservice-months-Tool-P2">
+<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left">Months in use <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 24 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 24 → (date/months-between asset.available-from year.start) = 12 → (max 0 (date/months-between asset.available-from year.start)) = 12 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
+<td class="right num">12</td>
+</tr>
+<tr id="audit-t2-nservice-months-Tool-P3">
+<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left">Months in use <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 36 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 24 → (max 0 (date/months-between asset.available-from year.start)) = 24 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
+<td class="right num">12</td>
+</tr>
+<tr id="audit-t2-nservice-months-Tool-P4">
+<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left">Months in use <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 48 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 36 → (max 0 (date/months-between asset.available-from year.start)) = 36 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 0 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-nservice-months-Tool-P5">
+<td class="left cite"><a href="#t2-nservice">2/2</a></td>
+<td class="left">Months in use <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)</code><div class="working">(+ gross-opening gross-additions) = 100 → (&gt; (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 60 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 48 → (max 0 (date/months-between asset.available-from year.start)) = 48 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = -12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (&gt; (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))))</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-aggregate">
+<td class="left cite"><a href="#t2-ndepreciation">2/3 Σ</a></td>
+<td class="left">Depreciation for the period (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0.00 included; [asset=Tool, year=P2] 0.00 included; [asset=Tool, year=P3] 0.00 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-Tool-P1">
+<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left">Depreciation for the period <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 12 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 0 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 0.00 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 0.00 → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-Tool-P2">
+<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left">Depreciation for the period <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0.00 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0.00 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 24 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 0 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 0.00 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 0.00 → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-Tool-P3">
+<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left">Depreciation for the period <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0.00 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0.00 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 36 → (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = true → (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: remaining → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-Tool-P4">
+<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left">Depreciation for the period <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-ndepreciation-Tool-P5">
+<td class="left cite"><a href="#t2-ndepreciation">2/3</a></td>
+<td class="left">Depreciation for the period <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))</code><div class="working">(= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (&gt;= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-aggregate">
+<td class="left cite"><a href="#t2-naccumulated">2/4 Σ</a></td>
+<td class="left">Accumulated depreciation removed on disposal (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-Tool-P1">
+<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left">Accumulated depreciation removed on disposal <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-Tool-P2">
+<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left">Accumulated depreciation removed on disposal <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-Tool-P3">
+<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left">Accumulated depreciation removed on disposal <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-Tool-P4">
+<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left">Accumulated depreciation removed on disposal <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-disposals-Tool-P5">
+<td class="left cite"><a href="#t2-naccumulated">2/4</a></td>
+<td class="left">Accumulated depreciation removed on disposal <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)</code><div class="working">(= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-aggregate">
+<td class="left cite"><a href="#t2-naccumulated">2/5 Σ</a></td>
+<td class="left">Closing accumulated depreciation (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 80.00 included → 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-Tool-P1">
+<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">80 + 0.00 − 0</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-Tool-P2">
+<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">80.00 + 0.00 − 0</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-Tool-P3">
+<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">80.00 + 0.00 − 0</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-Tool-P4">
+<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">80.00 + 0 − 0</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t2-naccumulated-closing-Tool-P5">
+<td class="left cite"><a href="#t2-naccumulated">2/5</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">accumulated-opening + depreciation − accumulated-disposals</code><div class="working">80.00 + 0 − 0</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-aggregate">
+<td class="left cite"><a href="#t3-ncarrying">3/1 Σ</a></td>
+<td class="left">Opening carrying amount (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [asset=Tool, year=P1] 20 included → 20</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-Tool-P1">
+<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left">Opening carrying amount <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(- asset.opening-cost asset.opening-accumulated-depreciation) = 20 → (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-Tool-P2">
+<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left">Opening carrying amount <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-Tool-P3">
+<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left">Opening carrying amount <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-Tool-P4">
+<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left">Opening carrying amount <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-opening-Tool-P5">
+<td class="left cite"><a href="#t3-ncarrying">3/1</a></td>
+<td class="left">Opening carrying amount <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))</code><div class="working">(prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-additions-aggregate">
+<td class="left cite"><a href="#t3-ncarrying">3/2 Σ</a></td>
+<td class="left">Acquisitions (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-depreciation-aggregate">
+<td class="left cite"><a href="#t3-ncarrying">3/3 Σ</a></td>
+<td class="left">Depreciation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0.00 included; [asset=Tool, year=P2] 0.00 included; [asset=Tool, year=P3] 0.00 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-aggregate">
+<td class="left cite"><a href="#t3-ncarrying">3/4 Σ</a></td>
+<td class="left">Net carrying amount removed on disposal (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-Tool-P1">
+<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left">Net carrying amount removed on disposal <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-Tool-P2">
+<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left">Net carrying amount removed on disposal <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-Tool-P3">
+<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left">Net carrying amount removed on disposal <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-Tool-P4">
+<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left">Net carrying amount removed on disposal <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-disposals-Tool-P5">
+<td class="left cite"><a href="#t3-ncarrying">3/4</a></td>
+<td class="left">Net carrying amount removed on disposal <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(- gross-disposals accumulated-disposals)</code><div class="working">(- gross-disposals accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-aggregate">
+<td class="left cite"><a href="#t3-ncarrying">3/5 Σ</a></td>
+<td class="left">Closing carrying amount (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [asset=Tool, year=P5] 20.00 included → 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-Tool-P1">
+<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left">Closing carrying amount <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">20 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-Tool-P2">
+<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left">Closing carrying amount <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">20.00 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-Tool-P3">
+<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left">Closing carrying amount <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">20.00 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-Tool-P4">
+<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left">Closing carrying amount <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">20.00 + 0 − 0 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-ncarrying-closing-Tool-P5">
+<td class="left cite"><a href="#t3-ncarrying">3/5</a></td>
+<td class="left">Closing carrying amount <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals</code><div class="working">20.00 + 0 − 0 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t3-nasset-cost-crossfoot-Tool-P1">
+<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left">Gross cost less accumulated depreciation agrees <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-nasset-cost-crossfoot-Tool-P2">
+<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left">Gross cost less accumulated depreciation agrees <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-nasset-cost-crossfoot-Tool-P3">
+<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left">Gross cost less accumulated depreciation agrees <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-nasset-cost-crossfoot-Tool-P4">
+<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left">Gross cost less accumulated depreciation agrees <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-nasset-cost-crossfoot-Tool-P5">
+<td class="left cite"><a href="#t3-nasset">3/6</a></td>
+<td class="left">Gross cost less accumulated depreciation agrees <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)</code><div class="working">carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t3-nasset-residual-floor-Tool-P1">
+<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left">Undisposed asset is not below residual value <span class="member">Tool at its residual value / 2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-nasset-residual-floor-Tool-P2">
+<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left">Undisposed asset is not below residual value <span class="member">Tool at its residual value / 2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-nasset-residual-floor-Tool-P3">
+<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left">Undisposed asset is not below residual value <span class="member">Tool at its residual value / 2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-nasset-residual-floor-Tool-P4">
+<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left">Undisposed asset is not below residual value <span class="member">Tool at its residual value / 2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-nasset-residual-floor-Tool-P5">
+<td class="left cite"><a href="#t3-nasset">3/7</a></td>
+<td class="left">Undisposed asset is not below residual value <span class="member">Tool at its residual value / 2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value))</code><div class="working">(= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (&gt;= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t4-r1-aggregate">
+<td class="left cite"><a href="#t4-r1">4/1 Σ</a></td>
+<td class="left">Opening gross cost (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [year=P1] 100 included → 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r1-P1">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Opening gross cost <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-opening)</code><div class="working">(dim/sum gross-opening) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r1-P2">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Opening gross cost <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-opening)</code><div class="working">(dim/sum gross-opening) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r1-P3">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Opening gross cost <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-opening)</code><div class="working">(dim/sum gross-opening) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r1-P4">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Opening gross cost <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-opening)</code><div class="working">(dim/sum gross-opening) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r1-P5">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Opening gross cost <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-opening)</code><div class="working">(dim/sum gross-opening) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r2-aggregate">
+<td class="left cite"><a href="#t4-r2">4/2 Σ</a></td>
+<td class="left">Cost additions (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-P1">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Cost additions <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-P2">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Cost additions <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-P3">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Cost additions <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-P4">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Cost additions <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r2-P5">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Cost additions <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-aggregate">
+<td class="left cite"><a href="#t4-r3">4/3 Σ</a></td>
+<td class="left">Cost disposals (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-P1">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Cost disposals <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-disposals)</code><div class="working">(dim/sum gross-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-P2">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Cost disposals <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-disposals)</code><div class="working">(dim/sum gross-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-P3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Cost disposals <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-disposals)</code><div class="working">(dim/sum gross-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-P4">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Cost disposals <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-disposals)</code><div class="working">(dim/sum gross-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r3-P5">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Cost disposals <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-disposals)</code><div class="working">(dim/sum gross-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r4-aggregate">
+<td class="left cite"><a href="#t4-r4">4/4 Σ</a></td>
+<td class="left">Closing gross cost (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [year=P5] 100 included → 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r4-P1">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Closing gross cost <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-closing)</code><div class="working">(dim/sum gross-closing) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r4-P2">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Closing gross cost <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-closing)</code><div class="working">(dim/sum gross-closing) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r4-P3">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Closing gross cost <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-closing)</code><div class="working">(dim/sum gross-closing) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r4-P4">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Closing gross cost <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-closing)</code><div class="working">(dim/sum gross-closing) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r4-P5">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Closing gross cost <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-closing)</code><div class="working">(dim/sum gross-closing) = 100</div></td>
+<td class="right num">100.00</td>
+</tr>
+<tr id="audit-t4-r5-aggregate">
+<td class="left cite"><a href="#t4-r5">4/5 Σ</a></td>
+<td class="left">Opening accumulated depreciation (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [year=P1] 80 included → 80</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r5-P1">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-opening)</code><div class="working">(dim/sum accumulated-opening) = 80</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r5-P2">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-opening)</code><div class="working">(dim/sum accumulated-opening) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r5-P3">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-opening)</code><div class="working">(dim/sum accumulated-opening) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r5-P4">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-opening)</code><div class="working">(dim/sum accumulated-opening) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r5-P5">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Opening accumulated depreciation <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-opening)</code><div class="working">(dim/sum accumulated-opening) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r6-aggregate">
+<td class="left cite"><a href="#t4-r6">4/6 Σ</a></td>
+<td class="left">Accumulated depreciation disposals (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r6-P1">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Accumulated depreciation disposals <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-disposals)</code><div class="working">(dim/sum accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r6-P2">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Accumulated depreciation disposals <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-disposals)</code><div class="working">(dim/sum accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r6-P3">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Accumulated depreciation disposals <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-disposals)</code><div class="working">(dim/sum accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r6-P4">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Accumulated depreciation disposals <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-disposals)</code><div class="working">(dim/sum accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r6-P5">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Accumulated depreciation disposals <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-disposals)</code><div class="working">(dim/sum accumulated-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r7-aggregate">
+<td class="left cite"><a href="#t4-r7">4/7 Σ</a></td>
+<td class="left">Closing accumulated depreciation (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [year=P5] 80.00 included → 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r7-P1">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-closing)</code><div class="working">(dim/sum accumulated-closing) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r7-P2">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-closing)</code><div class="working">(dim/sum accumulated-closing) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r7-P3">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-closing)</code><div class="working">(dim/sum accumulated-closing) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r7-P4">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-closing)</code><div class="working">(dim/sum accumulated-closing) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r7-P5">
+<td class="left cite"><a href="#t4-r7">4/7</a></td>
+<td class="left">Closing accumulated depreciation <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum accumulated-closing)</code><div class="working">(dim/sum accumulated-closing) = 80.00</div></td>
+<td class="right num">80.00</td>
+</tr>
+<tr id="audit-t4-r8-aggregate">
+<td class="left cite"><a href="#t4-r8">4/8 Σ</a></td>
+<td class="left">Opening carrying amount (Total)</td>
+<td class="left"><code class="formula">first(year)</code><div class="working">first(year): [year=P1] 20 included → 20</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r8-P1">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Opening carrying amount <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-opening)</code><div class="working">(dim/sum carrying-opening) = 20</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r8-P2">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Opening carrying amount <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-opening)</code><div class="working">(dim/sum carrying-opening) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r8-P3">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Opening carrying amount <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-opening)</code><div class="working">(dim/sum carrying-opening) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r8-P4">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Opening carrying amount <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-opening)</code><div class="working">(dim/sum carrying-opening) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r8-P5">
+<td class="left cite"><a href="#t4-r8">4/8</a></td>
+<td class="left">Opening carrying amount <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-opening)</code><div class="working">(dim/sum carrying-opening) = 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r9-aggregate">
+<td class="left cite"><a href="#t4-r9">4/9 Σ</a></td>
+<td class="left">Additions (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r9-P1">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Additions <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r9-P2">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Additions <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r9-P3">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Additions <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r9-P4">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Additions <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r9-P5">
+<td class="left cite"><a href="#t4-r9">4/9</a></td>
+<td class="left">Additions <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum gross-additions)</code><div class="working">(dim/sum gross-additions) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-aggregate">
+<td class="left cite"><a href="#t4-r10">4/10 Σ</a></td>
+<td class="left">Depreciation (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0.00 included; [year=P2] 0.00 included; [year=P3] 0.00 included; [year=P4] 0 included; [year=P5] 0 included → 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-P1">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Depreciation <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum depreciation)</code><div class="working">(dim/sum depreciation) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-P2">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Depreciation <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum depreciation)</code><div class="working">(dim/sum depreciation) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-P3">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Depreciation <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum depreciation)</code><div class="working">(dim/sum depreciation) = 0.00</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-P4">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Depreciation <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum depreciation)</code><div class="working">(dim/sum depreciation) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r10-P5">
+<td class="left cite"><a href="#t4-r10">4/10</a></td>
+<td class="left">Depreciation <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum depreciation)</code><div class="working">(dim/sum depreciation) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-aggregate">
+<td class="left cite"><a href="#t4-r11">4/11 Σ</a></td>
+<td class="left">Net carrying amount disposed (Total)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-P1">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Net carrying amount disposed <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-disposals)</code><div class="working">(dim/sum carrying-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-P2">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Net carrying amount disposed <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-disposals)</code><div class="working">(dim/sum carrying-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-P3">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Net carrying amount disposed <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-disposals)</code><div class="working">(dim/sum carrying-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-P4">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Net carrying amount disposed <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-disposals)</code><div class="working">(dim/sum carrying-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r11-P5">
+<td class="left cite"><a href="#t4-r11">4/11</a></td>
+<td class="left">Net carrying amount disposed <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(dim/sum carrying-disposals)</code><div class="working">(dim/sum carrying-disposals) = 0</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r12-aggregate">
+<td class="left cite"><a href="#t4-r12">4/12 Σ</a></td>
+<td class="left">Closing carrying amount (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [year=P5] 20.00 included → 20.00</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r12-P1">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Closing carrying amount <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals</code><div class="working">20 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r12-P2">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Closing carrying amount <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals</code><div class="working">20.00 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r12-P3">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Closing carrying amount <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals</code><div class="working">20.00 + 0 − 0.00 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r12-P4">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Closing carrying amount <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals</code><div class="working">20.00 + 0 − 0 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r12-P5">
+<td class="left cite"><a href="#t4-r12">4/12</a></td>
+<td class="left">Closing carrying amount <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals</code><div class="working">20.00 + 0 − 0 − 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-aggregate">
+<td class="left cite"><a href="#t4-r13">4/13 Σ</a></td>
+<td class="left">Reported closing carrying amount (Total)</td>
+<td class="left"><code class="formula">last(year)</code><div class="working">last(year): [year=P5] 20 included → 20</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-P1">
+<td class="left cite"><a href="#t4-r13">4/13</a></td>
+<td class="left">Reported closing carrying amount <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-P2">
+<td class="left cite"><a href="#t4-r13">4/13</a></td>
+<td class="left">Reported closing carrying amount <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-P3">
+<td class="left cite"><a href="#t4-r13">4/13</a></td>
+<td class="left">Reported closing carrying amount <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-P4">
+<td class="left cite"><a href="#t4-r13">4/13</a></td>
+<td class="left">Reported closing carrying amount <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r13-P5">
+<td class="left cite"><a href="#t4-r13">4/13</a></td>
+<td class="left">Reported closing carrying amount <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">(sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))</code><div class="working">(fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount</div></td>
+<td class="right num">20.00</td>
+</tr>
+<tr id="audit-t4-r14-P1">
+<td class="left cite"><a href="#t4-r14">4/14</a></td>
+<td class="left">Computed and independently reported closing amounts agree <span class="member">2026-01-01 – 2026-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-closing ≈ reported-closing (± 0.01)</code><div class="working">period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r14-P2">
+<td class="left cite"><a href="#t4-r14">4/14</a></td>
+<td class="left">Computed and independently reported closing amounts agree <span class="member">2027-01-01 – 2027-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-closing ≈ reported-closing (± 0.01)</code><div class="working">period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r14-P3">
+<td class="left cite"><a href="#t4-r14">4/14</a></td>
+<td class="left">Computed and independently reported closing amounts agree <span class="member">2028-01-01 – 2028-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-closing ≈ reported-closing (± 0.01)</code><div class="working">period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r14-P4">
+<td class="left cite"><a href="#t4-r14">4/14</a></td>
+<td class="left">Computed and independently reported closing amounts agree <span class="member">2029-01-01 – 2029-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-closing ≈ reported-closing (± 0.01)</code><div class="working">period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r14-P5">
+<td class="left cite"><a href="#t4-r14">4/14</a></td>
+<td class="left">Computed and independently reported closing amounts agree <span class="member">2030-01-01 – 2030-12-31</span></td>
+<td class="left"><code class="formula">period-carrying-closing ≈ reported-closing (± 0.01)</code><div class="working">period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

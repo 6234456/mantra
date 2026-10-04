@@ -30,6 +30,13 @@ interface ExcelResolver {
     fun isNode(nodeId: String): Boolean
 
     fun isDimension(name: String): Boolean
+
+    fun periodKeys(dimension: String): X.Vec? = null
+
+    fun previous(nodeId: String, contextDims: List<String>, contextCoord: Coord): ExcelPrevious =
+        throw Untranslatable("continuous periods are unavailable")
+
+    fun materialize(value: X.Scalar): X.Scalar = value
 }
 
 /**
@@ -43,6 +50,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     class Ctx(val dims: List<String>, val coord: Coord, val env: Map<String, X> = emptyMap(), val depth: Int = 0) {
         fun with(bindings: Map<String, X>) = Ctx(dims, coord, env + bindings, depth)
         fun call(bindings: Map<String, X>) = Ctx(dims, coord, bindings, depth + 1)
+        fun closure(bindings: Map<String, X>) = Ctx(dims, coord, env + bindings, depth + 1)
     }
 
     private class Defn(val params: List<String>, val body: DslForm)
@@ -123,6 +131,10 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 }
                 throw Untranslatable("field access on non-record $head")
             }
+            if (head == "periods" && field.endsWith(".keys")) {
+                return resolver.periodKeys(field.removeSuffix(".keys"))
+                    ?: throw Untranslatable("unknown period root $name")
+            }
             if (head ==
                 "all"
             ) {
@@ -147,12 +159,22 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     private fun args(form: DslForm.Sequence) = form.values.drop(1)
 
     private fun call(form: DslForm.Sequence, ctx: Ctx): X {
-        val head = form.listHead ?: throw Untranslatable("computed call head")
         val args = args(form)
+        val head =
+            form.listHead ?: return invokeCallable(translate(form.values.first(), ctx), args.map { translate(it, ctx) })
+        ctx.env[head]?.let { return invokeCallable(it, args.map { form -> translate(form, ctx) }) }
         fun s(i: Int) = scalar(args[i], ctx)
         fun all() = args.map { scalar(it, ctx) }
         fun arity(min: Int, max: Int = min) {
             if (args.size < min || args.size > max) throw Untranslatable("$head arity ${args.size}")
+        }
+        translateDateCall(head, args) { scalar(it, ctx) }?.let { return it }
+        if (head == "prev" && defns[head] == null) {
+            arity(2)
+            val target = args[0].symbol?.removePrefix("mantra/")
+                ?: throw Untranslatable("prev target must be a schema node")
+            val prior = resolver.previous(target, ctx.dims, ctx.coord)
+            return if (prior.first) translate(args[1], ctx) else prior.value ?: X.Nil
         }
         return when (head) {
             "+" -> if (args.isEmpty()) Ex.ZERO else Ex.chain("+", all(), Ex.ADD)
@@ -167,10 +189,10 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             "pos?" -> Ex.cmp(">", s(0), Ex.ZERO)
             "neg?" -> Ex.cmp("<", s(0), Ex.ZERO)
             "zero?" -> Ex.cmp("=", s(0), Ex.ZERO)
-            "some?" -> Ex.cmp("<>", s(0), Ex.EMPTY)
-            "nil?" -> Ex.cmp("=", s(0), Ex.EMPTY)
+            "some?" -> Ex.fn("NOT", isNil(s(0)), kind = XKind.BOOL)
+            "nil?" -> isNil(s(0))
             "not" -> Ex.fn("NOT", truthy(s(0)), kind = XKind.BOOL)
-            "and" -> Ex.fn("AND", all().map(::truthy), kind = XKind.BOOL)
+            "and" -> and(all())
             "or" -> or(all())
             "if", "if-not" -> {
                 arity(2, 3)
@@ -215,6 +237,18 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 }
                 translate(args.last(), local)
             }
+            "fn" -> {
+                val parameters = (args.firstOrNull() as? DslForm.Sequence)
+                    ?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
+                    ?.mapNotNull { it.symbol }?.filterNot { it.startsWith("^") }
+                    ?: throw Untranslatable("fn requires named parameters")
+                val body = args.drop(1).singleOrNull() ?: throw Untranslatable("fn requires one expression")
+                X.Callable { values ->
+                    if (ctx.depth > 24) throw Untranslatable("lexical function recursion")
+                    if (parameters.size != values.size) throw Untranslatable("lexical function arity")
+                    translate(body, ctx.closure(parameters.zip(values).toMap()))
+                }
+            }
             "decimal/round" -> {
                 val mode =
                     args.getOrNull(2)?.keyword?.let { roundingMode(it) ?: throw Untranslatable("rounding mode $it") }
@@ -243,26 +277,42 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 } else {
                     quotient
                 }
-                Ex.iff(Ex.cmp("=", s(1), Ex.ZERO), Ex.ZERO, value)
+                Ex.iff(Ex.cmp("=", s(1), Ex.ZERO), Ex.EMPTY, value)
             }
-            "dim/sum", "sum" -> Ex.fn("SUM", aggregateArgs(translate(args[0], ctx)).ifEmpty { listOf(Ex.ZERO) })
+            "dim/sum" -> Ex.fn("SUM", dimensionSumArgs(translate(args[0], ctx)).ifEmpty { listOf(Ex.ZERO) })
+            "sum" -> {
+                arity(1)
+                standardSum(translate(args[0], ctx), args[0], resolver::materialize)
+            }
             "map" -> {
                 arity(2)
-                val fn = args[0] as? DslForm.Sequence
-                    ?: throw Untranslatable("map requires fn")
-                if (fn.kind != DslFormSequenceKind.LIST || fn.listHead != "fn") throw Untranslatable("map requires fn")
-                val binding = (fn.values.getOrNull(1) as? DslForm.Sequence)
-                    ?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
-                    ?.singleOrNull()?.symbol ?: throw Untranslatable("map requires one named parameter")
-                val body = fn.values.drop(2).singleOrNull() ?: throw Untranslatable("map requires one expression")
+                val function = translate(args[0], ctx)
                 val source = translate(args[1], ctx) as? X.Vec ?: throw Untranslatable("map source must be a vector")
-                X.Vec(source.items.map { item -> translate(body, ctx.with(mapOf(binding to item))) })
+                X.Vec(source.items.map { item -> invokeCallable(function, listOf(item)) })
             }
-            "dim/rollup" -> rollup(translate(args[0], ctx), translate(args[1], ctx), s(2))
+            "vec" -> {
+                arity(1)
+                when (val source = translate(args[0], ctx)) {
+                    is X.Vec -> source
+                    X.Nil -> X.Vec(emptyList())
+                    else -> throw Untranslatable("vec cannot faithfully materialize ${source::class.simpleName}")
+                }
+            }
+            "dim/rollup" -> {
+                arity(3, 5)
+                if (args.size != 3 && args.size != 5) throw Untranslatable("dim/rollup arity")
+                rollup(
+                    translate(args[0], ctx),
+                    translate(args[1], ctx),
+                    s(2),
+                    args.getOrNull(3)?.keyword,
+                    args.getOrNull(4)?.let { translate(it, ctx) },
+                )
+            }
             "dim/min" -> Ex.fn("MIN", aggregateArgs(translate(args[0], ctx)))
             "dim/max" -> Ex.fn("MAX", aggregateArgs(translate(args[0], ctx)))
             "vals" -> when (val m = translate(args[0], ctx)) {
-                is X.Range -> m
+                is X.Range -> X.Vec(m.cells)
                 is X.MapX -> X.Vec(m.values)
                 else -> throw Untranslatable("vals of ${m::class.simpleName}")
             }
@@ -292,6 +342,14 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             )
             "calc/stepwise" -> stepwise(s(0), translate(args[1], ctx))
             "alloc/pro-rata" -> proRata(s(0), translate(args[1], ctx), s(2))
+            "alloc/capped" -> {
+                fun memberMap(form: DslForm): X.MapX = when (val value = translate(form, ctx)) {
+                    is X.MapX -> value
+                    is X.Range -> X.MapX(value.keys, value.cells)
+                    else -> throw Untranslatable("alloc/capped needs member maps")
+                }
+                cappedAllocation(s(0), memberMap(args[1]), memberMap(args[2]), s(3), resolver::materialize)
+            }
             "alloc/waterfall" -> waterfall(s(0), translate(args[1], ctx))
             "table/band" -> band(s(0), translate(args[1], ctx), args.getOrNull(2)?.let { scalar(it, ctx) })
             "fin/npv" -> Ex.round(
@@ -325,24 +383,16 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             val default = scalars.lastOrNull { it.first == null }?.second
             val conditional = scalars.filter { it.first != null }
             conditional.foldRight(
-                default ?: neutralFor(
-                    conditional.map {
-                        it.second
-                    },
-                ),
+                default ?: Ex.EMPTY,
             ) { (c, v), acc -> Ex.iff(c!!, v, acc) }
         }
         is X.Range -> throw Untranslatable("member map used as a single value")
         is X.Vec, is X.MapX -> throw Untranslatable("collection used as a single value")
+        is X.Callable -> throw Untranslatable("function used as a single value")
     }
 
-    private fun neutralFor(values: List<X.Scalar>): X.Scalar = if (values.isNotEmpty() &&
-        values.all { it.kind == XKind.NUM }
-    ) {
-        Ex.ZERO
-    } else {
-        Ex.EMPTY
-    }
+    private fun invokeCallable(function: X, values: List<X>): X = (function as? X.Callable)?.invoke?.invoke(values)
+        ?: throw Untranslatable("local value is not callable")
 
     private fun branches(cases: List<Pair<X.Scalar, X>>, default: X?): X {
         val all =
@@ -358,10 +408,24 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     }
 
     /** Clojure truthiness: only nil and false are falsey. */
-    fun truthy(x: X.Scalar): X.Scalar = if (x.kind == XKind.BOOL) {
-        Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x)
+    private fun isNil(x: X.Scalar): X.Scalar = when {
+        Ex.isTextLiteral(x) -> Ex.FALSE
+        x.kind == XKind.DATE || x.numericOrNil -> Ex.cmp("=", x, Ex.EMPTY)
+        x.booleanOrNil -> Ex.cmp("=", x, Ex.EMPTY)
+        else -> throw Untranslatable("nil test cannot distinguish nullable text from empty text")
+    }
+
+    fun truthy(x: X.Scalar): X.Scalar = when {
+        Ex.isTextLiteral(x) -> Ex.TRUE
+        x.booleanOrNil -> Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x)
+        x.numericOrNil || x.kind == XKind.DATE -> Ex.cmp("<>", x, Ex.EMPTY)
+        else -> throw Untranslatable("truthiness cannot distinguish nullable text from empty text")
+    }
+
+    private fun and(items: List<X.Scalar>): X.Scalar = if (items.isEmpty()) {
+        Ex.TRUE
     } else {
-        Ex.cmp("<>", x, Ex.EMPTY)
+        items.dropLast(1).foldRight(items.last()) { item, acc -> Ex.iff(truthy(item), acc, item) }
     }
 
     private fun or(items: List<X.Scalar>): X.Scalar = items.foldRight(Ex.EMPTY) { item, acc ->
@@ -382,6 +446,15 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         is X.Vec -> x.items.flatMap(::aggregateArgs)
         is X.MapX -> x.values.flatMap(::aggregateArgs)
         else -> listOf(toScalar(x))
+    }
+
+    private fun dimensionSumArgs(x: X): List<X.Scalar> = when (x) {
+        is X.Range -> listOf(Ex.atom(x.text))
+        is X.Vec -> x.items.flatMap(::dimensionSumArgs)
+        is X.MapX -> x.values.flatMap(::dimensionSumArgs)
+        X.Nil -> listOf(Ex.ZERO)
+        is X.Scalar -> listOf(Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.ZERO, x))
+        else -> throw Untranslatable("dim/sum source is not a numeric collection")
     }
 
     private fun get(args: List<DslForm>, ctx: Ctx): X {
@@ -440,9 +513,41 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         else -> throw Untranslatable("$what needs a member map")
     }
 
-    private fun rollup(values: X, relation: X, target: X.Scalar): X.Scalar {
+    private fun rollup(
+        values: X,
+        relation: X,
+        target: X.Scalar,
+        boundary: String? = null,
+        ordered: X? = null,
+    ): X.Scalar {
         val (keys, amounts) = keyedValues(values, "dim/rollup")
         val (relationKeys, parents) = keyedValues(relation, "dim/rollup relation")
+        if (boundary != null) {
+            if (boundary != "first" && boundary != "last") throw Untranslatable("dim/rollup boundary $boundary")
+            val sequence = (ordered as? X.Vec)?.items ?: throw Untranslatable("dim/rollup needs ordered keys")
+            val order = sequence.map { item ->
+                val scalar = toScalar(item)
+                scalar.text.removeSurrounding("\"").replace("\"\"", "\"")
+            }
+            if (order.distinct().size != order.size || !order.containsAll(relationKeys) ||
+                keys.any { it !in relationKeys || it !in order }
+            ) {
+                throw Untranslatable("dim/rollup keys require a unique complete declared order and parent relation")
+            }
+            val candidates = if (boundary == "first") order else order.reversed()
+            return candidates.foldRight(Ex.ZERO) { key, rest ->
+                val parentIndex = relationKeys.indexOf(key)
+                if (parentIndex < 0) {
+                    rest
+                } else {
+                    val index = keys.indexOf(key)
+                    val value = if (index < 0) Ex.EMPTY else amounts[index]
+                    val selected = Ex.iff(Ex.fn("ISNUMBER", value, kind = XKind.BOOL), value, Ex.EMPTY)
+                    val result = Ex.iff(Ex.cmp("=", parents[parentIndex], target), selected, rest)
+                    if (result.text.length > 1000) resolver.materialize(result) else result
+                }
+            }
+        }
         val terms = keys.mapIndexed { index, key ->
             val parentIndex = relationKeys.indexOf(key)
             if (parentIndex < 0) throw Untranslatable("dim/rollup relation missing $key")

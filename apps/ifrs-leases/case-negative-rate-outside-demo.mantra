@@ -1,0 +1,18 @@
+;; Independently authored fictional facts; standards support concepts only.
+(case ifrs-leases-negative-rate-outside-demo
+  {:schema "ifrs.ifrs16/lessee-schedule" :layout "ifrs.ifrs16/working-paper" :title "Leases: Office rate outside demonstration support" :subject "Fictional demonstration entity" :period "2026–2028" :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts" :expected-business [{:code "MANTRA-CHECK-FAILED" :node "lease-rate-supported" :coord [:Office] :severity :error}]}
+  (inputs {
+    :leases [
+      {:id :Office :title "Office-space right of use" :annual-rate -0.01 :term-years 3 :commencement-payment 0 :initial-direct-costs 0 :commencement-incentive 0}]
+    :lease-payments [
+      {:lease-id :Office :period-id :P1 :payment 10000}
+      {:lease-id :Office :period-id :P2 :payment 10000}
+      {:lease-id :Office :period-id :P3 :payment 10000}]
+    :reported-closings [
+      {:lease-id :Office :period-id :P1 :liability-amount 20304.05}
+      {:lease-id :Office :period-id :P2 :liability-amount 10101.01}
+      {:lease-id :Office :period-id :P3 :liability-amount 0}]
+    :calendar-periods [
+      {:id :P1 :start "2026-01-01" :end "2027-01-01"}
+      {:id :P2 :start "2027-01-01" :end "2028-01-01"}
+      {:id :P3 :start "2028-01-01" :end "2029-01-01"}]}))

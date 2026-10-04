@@ -54,6 +54,24 @@ const scenarios = [
     address: 'aggregate%2Eeffective-tax-rate',
     aggregate: true,
   },
+  {
+    id: 'fixed-assets/case-demo.mantra',
+    heading: 'Fixed assets – cost and depreciation roll-forward',
+    result: '60,000.00',
+    panel: 'carrying-flow',
+    cell: '76,000.00',
+    address: 'carrying-closing@Machine/P1',
+    rowLabel: 'Closing carrying amount',
+  },
+  {
+    id: 'ifrs-leases/case-demo.mantra',
+    heading: 'IFRS 16 – annual lease roll-forward',
+    result: '–',
+    panel: 'liability-flow',
+    cell: '9,523.81',
+    address: 'liability-closing@Office/P2',
+    rowLabel: 'Closing lease liability',
+  },
 ]
 
 async function freePort() {

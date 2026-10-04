@@ -1,13 +1,13 @@
 import type { Explain } from '../types'
 import { language, t } from '../i18n'
-import { RatioAggregateEvidence } from './RatioAggregateEvidence'
+import { AggregateEvidence } from './AggregateEvidence'
 
 const lang = language()
 
 export function ExplainDetails({ explain }: { explain: Explain }) {
   return (
     <>
-      {explain.aggregate && <RatioAggregateEvidence aggregate={explain.aggregate} />}
+      {explain.aggregate && <AggregateEvidence aggregate={explain.aggregate} />}
       {explain.steps.map((step, index) => (
         <div className="calculation-step" key={index}>
           <code>{step.text}</code>
@@ -34,7 +34,7 @@ export function ExplainDetails({ explain }: { explain: Explain }) {
             </span>
             <b>{part.display}</b>
           </div>
-          {part.aggregate && <RatioAggregateEvidence aggregate={part.aggregate} />}
+          {part.aggregate && <AggregateEvidence aggregate={part.aggregate} />}
         </div>
       ))}
       {explain.truncated && <p className="muted">{t('traceTruncated', lang)}</p>}

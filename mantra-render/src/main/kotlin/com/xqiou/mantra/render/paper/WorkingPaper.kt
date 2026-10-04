@@ -110,6 +110,15 @@ class PaperRow(
     /** One context and resolved style per visible cell; future selectors can use these facts. */
     val cellContexts: List<StyleContext> = emptyList(),
     val cellStyles: List<StyleSpec> = emptyList(),
+    /** Exact engine address per visible cell, including multidimensional and transposed values. */
+    val valueAddresses: List<PaperValueAddress?> = emptyList(),
+)
+
+data class PaperValueAddress(
+    val nodeId: String,
+    val coord: com.xqiou.mantra.core.view.Coord = emptyList(),
+    val aggregate: Boolean = false,
+    val fixed: Map<String, String> = emptyMap(),
 )
 
 class AuditEntry(
@@ -127,4 +136,5 @@ class AuditEntry(
     val explanation: com.xqiou.mantra.core.view.ExplainTrace? = null,
     /** Authoritative host aggregation evidence; never represented as invented kernel steps. */
     val aggregate: com.xqiou.mantra.core.view.RatioAggregateTrace? = null,
+    val reduction: com.xqiou.mantra.core.view.AggregateTrace? = null,
 )

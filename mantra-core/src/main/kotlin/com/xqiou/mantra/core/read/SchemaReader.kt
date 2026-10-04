@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.AggregateRule
+import com.xqiou.mantra.core.model.BoundaryAggregation
 import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceOption
@@ -356,17 +357,21 @@ internal class ItemReader(
             allowedRefs = allowedRefs,
             aggregate = aggregate(opts["aggregate"], "line $id"),
             ratio = ratio(opts["aggregate"], "line $id"),
+            boundary = boundary(opts["aggregate"], "line $id"),
         )
     }
 
     private fun aggregate(form: DslForm?, what: String): AggregateRule = when {
         form == null || form.symbol == "true" || form.keyword == "sum" -> AggregateRule.SUM
         form.symbol == "false" || form.keyword == "none" -> AggregateRule.NONE
-        form.isSequence(DslFormSequenceKind.MAP) -> AggregateRule.RATIO
+        form.isSequence(DslFormSequenceKind.MAP) -> {
+            val opts = document.options(form, sink, "$what :aggregate")
+            if ("first" in opts || "last" in opts) AggregateRule.SUM else AggregateRule.RATIO
+        }
         else -> {
             sink.error(
                 "MANTRA-AGGREGATE",
-                ":aggregate of $what must be true, false, :sum, :none, or {:ratio [numerator denominator]}",
+                ":aggregate of $what must be :sum, :none, a ratio, {:first dimension}, or {:last dimension}",
                 document.location(form),
             )
             AggregateRule.SUM
@@ -376,6 +381,7 @@ internal class ItemReader(
     private fun ratio(form: DslForm?, what: String): RatioAggregation? {
         if (form == null || !form.isSequence(DslFormSequenceKind.MAP)) return null
         val opts = document.options(form, sink, "$what :aggregate")
+        if ("first" in opts || "last" in opts) return null
         val refs = (opts["ratio"] as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
         if (refs == null || refs.size != 2 || refs.any { it.symbol == null || !isIdentifier(it.symbol!!) } ||
             opts.keys.any { it !in setOf("ratio", "round") }
@@ -388,6 +394,26 @@ internal class ItemReader(
             return null
         }
         return RatioAggregation(refs[0].symbol!!, refs[1].symbol!!, rounding(opts["round"], "$what :aggregate"))
+    }
+
+    private fun boundary(form: DslForm?, what: String): BoundaryAggregation? {
+        if (form == null || !form.isSequence(DslFormSequenceKind.MAP)) return null
+        val opts = document.options(form, sink, "$what :aggregate")
+        if ("first" !in opts && "last" !in opts) return null
+        val name = opts.keys.singleOrNull()
+        val dimension = name?.let { opts[it]?.symbol }
+        if (name !in setOf("first", "last") || dimension == null || !isIdentifier(dimension)) {
+            sink.error(
+                "MANTRA-AGGREGATE",
+                ":aggregate of $what requires exactly {:first period-dimension} or {:last period-dimension}",
+                document.location(form),
+            )
+            return null
+        }
+        return BoundaryAggregation(
+            dimension,
+            if (name == "first") BoundaryAggregation.Boundary.FIRST else BoundaryAggregation.Boundary.LAST,
+        )
     }
 
     private fun validation(list: DslForm.Sequence, reconciliation: Boolean): NodeItem? {
@@ -460,6 +486,9 @@ internal class ItemReader(
             presentation = presentation(opts, "total $id"),
             location = document.location(list),
             userDefined = userDefined,
+            aggregate = aggregate(opts["aggregate"], "total $id"),
+            ratio = ratio(opts["aggregate"], "total $id"),
+            boundary = boundary(opts["aggregate"], "total $id"),
         )
     }
 
@@ -526,6 +555,9 @@ internal class ItemReader(
             presentation = presentation(opts, "choice $id"),
             location = document.location(list),
             userDefined = userDefined,
+            aggregate = aggregate(opts["aggregate"], "choice $id"),
+            ratio = ratio(opts["aggregate"], "choice $id"),
+            boundary = boundary(opts["aggregate"], "choice $id"),
         )
     }
 
@@ -608,6 +640,9 @@ internal class ItemReader(
             references = references,
             requiredWhen = opts["required-when"]?.let(document::formula),
             minRows = minRows,
+            aggregate = aggregate(opts["aggregate"], "input $id"),
+            ratio = ratio(opts["aggregate"], "input $id"),
+            boundary = boundary(opts["aggregate"], "input $id"),
         )
     }
 
@@ -789,6 +824,15 @@ private fun SchemaState.readDimension(document: Document, list: DslForm.Sequence
         return null
     }
     val opts = document.options(list.values.getOrNull(2), sink, "dimension $id")
+    val periods = opts["periods"]?.let { PeriodReader(document, sink).read(it, id) }
+    if (opts["periods"] != null && periods == null) return null
+    if (periods != null && opts.keys.any { it in setOf("members", "from", "when", "parent-key") }) {
+        sink.error(
+            "MANTRA-PERIOD-DECLARATION",
+            "Period dimension $id cannot mix :periods with :members, :from, :when, or :parent-key",
+            document.location(list),
+        )
+    }
     val members = mutableListOf<MemberDecl>()
     opts["members"]?.let { form ->
         if (!form.isSequence(DslFormSequenceKind.VECTOR)) {
@@ -811,7 +855,7 @@ private fun SchemaState.readDimension(document: Document, list: DslForm.Sequence
         }
     }
     val from = opts["from"]?.symbol
-    if (from == null && members.isEmpty()) {
+    if (from == null && members.isEmpty() && periods == null) {
         sink.error("MANTRA-DIMENSION", "Dimension $id needs :members or :from <table-input>", document.location(list))
     }
     if (from != null && members.isNotEmpty()) {
@@ -828,6 +872,7 @@ private fun SchemaState.readDimension(document: Document, list: DslForm.Sequence
         parentKeyColumn = opts["parent-key"]?.keyword,
         totalLabel = opts["total-label"]?.string ?: "Total",
         location = document.location(list),
+        periods = periods,
     )
 }
 

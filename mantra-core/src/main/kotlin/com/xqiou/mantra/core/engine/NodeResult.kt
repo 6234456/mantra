@@ -3,6 +3,7 @@ package com.xqiou.mantra.core.engine
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.decimalOrZero
+import com.xqiou.mantra.core.view.AggregationResult
 import com.xqiou.mantra.core.view.Coord
 import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.view.RatioAggregateTrace
@@ -16,6 +17,7 @@ internal class NodeResult(
     val traces: Map<Coord, NodeTrace>,
     val aggregateValue: BigDecimal? = null,
     val aggregateTrace: RatioAggregateTrace? = null,
+    val reduction: AggregationResult? = null,
 ) {
     val id: String get() = vertex.id
     val dims: List<String> get() = vertex.dims
@@ -28,6 +30,7 @@ internal class NodeResult(
 
     /** Cross total when the schema declares the measure additive; null for rates and other nonadditive measures. */
     fun crossTotal(): BigDecimal? {
+        if (reduction != null) return (reduction.value as? Value.Num)?.value
         if (vertex.isValidation) return null
         if ((vertex as? LineVertex)?.item?.aggregate == AggregateRule.RATIO) return aggregateValue
         if (vertex is TotalVertex && values.any { (coord, value) -> value == Value.Nil && isActive(coord) }) return null

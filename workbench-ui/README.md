@@ -1,6 +1,6 @@
 # Mantra Workbench UI (WP8)
 
-React, TypeScript, and Vite frontend for the workbench. All displayed calculation values and business labels come from the `mantra.workbench/2` documents in `docs/workbench/contract.md`. Fixture mode is read-only; live mode supports input editing, imports and formula authoring. UI source contains no schema or node-specific branches.
+React, TypeScript, and Vite frontend for the workbench. All displayed calculation values and business labels come from the `mantra.workbench/3` documents in `docs/workbench/contract.md`. Fixture mode is read-only; live mode supports input editing, imports and formula authoring. UI source contains no schema or node-specific branches.
 
 ## Run
 

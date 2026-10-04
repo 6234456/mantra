@@ -1,0 +1,10 @@
+{
+  "name": "cgu-assets",
+  "format": "csv",
+  "options": {
+    "input": "cgu-assets",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": ""
+  }
+}

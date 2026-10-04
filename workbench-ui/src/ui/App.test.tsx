@@ -8,7 +8,7 @@ import type { Envelope, Explain, Paper, Run, Structure, Diagnostic, RatioAggrega
 const caseId = 'sample/case.mantra'
 const base = '/cases/sample%2Fcase.mantra'
 const wrap = <T,>(data: T): Envelope<T> => ({
-  contract: 'mantra.workbench/2',
+  contract: 'mantra.workbench/3',
   revision: '1234567890abcdef',
   engine: { mantra: 'test', normein: 'test' },
   data,
@@ -304,8 +304,20 @@ describe('fixture-backed workbench shell', () => {
         status: 'active',
         steps: [],
         branches: [],
-        references: i < 6 ? [{ address: { node: `n${i + 1}` }, label: `Node ${i + 1}`, display: String(i + 1) }] : [],
-        parts: [],
+        references: i < 5 ? [{ address: { node: `n${i + 1}` }, label: `Node ${i + 1}`, display: String(i + 1) }] : [],
+        parts:
+          i === 5
+            ? [
+                {
+                  address: { node: 'n6' },
+                  label: 'Node 6',
+                  sign: 1,
+                  value: { n: '6' },
+                  display: '6',
+                  crossFooted: false,
+                },
+              ]
+            : [],
         options: [],
         aggregate: null,
       }
@@ -322,6 +334,79 @@ describe('fixture-backed workbench shell', () => {
     expect(screen.queryByRole('button', { name: /n6|Node 6/ })).toBeNull()
     fireEvent.click(continueButton)
     expect(await screen.findByRole('button', { name: /n6|Node 6/ })).toBeTruthy()
+  })
+
+  it('expands a previous-period total through its exact part addresses without duplicating references', async () => {
+    const currentAddress = { node: 'carrying-opening', coord: ['Machine', 'P2'] }
+    const priorAddress = { node: 'carrying-closing', coord: ['Machine', 'P1'] }
+    const openingAddress = { node: 'carrying-opening', coord: ['Machine', 'P1'] }
+    const movementAddress = { node: 'depreciation', coord: ['Machine', 'P1'] }
+    const explanation = (address: Explain['address'], label: string, value: string): Explain => ({
+      address,
+      label,
+      kind: 'line',
+      result: { value: { n: value }, display: value },
+      status: 'active',
+      steps: [],
+      branches: [],
+      references: [],
+      parts: [],
+      options: [],
+      aggregate: null,
+    })
+    const current = explanation(currentAddress, 'Current opening', '76000.00')
+    current.references = [{ address: priorAddress, label: 'Prior closing', display: '76000.00', kind: 'PREVIOUS' }]
+    const prior = explanation(priorAddress, 'Prior closing', '76000.00')
+    prior.kind = 'total'
+    prior.references = [{ address: openingAddress, label: 'Prior opening', display: '80000.00' }]
+    prior.parts = [
+      {
+        address: openingAddress,
+        label: 'Prior opening',
+        sign: 1,
+        value: { n: '80000.00' },
+        display: '80000.00',
+        crossFooted: false,
+      },
+      {
+        address: movementAddress,
+        label: 'Prior depreciation',
+        sign: -1,
+        value: { n: '4000.00' },
+        display: '4000.00',
+        crossFooted: false,
+      },
+    ]
+    const fixture = docs({
+      '/fixtures/sample/current.json': wrap(current),
+      '/fixtures/sample/prior.json': wrap(prior),
+      '/fixtures/sample/opening-p1.json': wrap(explanation(openingAddress, 'Prior opening', '80000.00')),
+      '/fixtures/sample/depreciation-p1.json': wrap(explanation(movementAddress, 'Prior depreciation', '4000.00')),
+    })
+    const manifest = fixture['/fixtures/index.json'] as {
+      cases: Array<{ files: { explains: Record<string, string> } }>
+    }
+    manifest.cases[0].files.explains = {
+      [addressToPath(currentAddress)]: '/fixtures/sample/current.json',
+      [addressToPath(priorAddress)]: '/fixtures/sample/prior.json',
+      [addressToPath(openingAddress)]: '/fixtures/sample/opening-p1.json',
+      [addressToPath(movementAddress)]: '/fixtures/sample/depreciation-p1.json',
+    }
+    serve(fixture)
+    history.replaceState(null, '', `${base}/provenance/${addressToPath(currentAddress)}`)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: /carrying-closing/ }))
+    await screen.findByRole('button', { name: /Prior closing/ })
+    const openingButtons = await screen.findAllByRole('button', { name: /carrying-opening/ })
+    expect(openingButtons).toHaveLength(1)
+    fireEvent.click(openingButtons[0])
+    expect(await screen.findByRole('button', { name: /Prior opening.*80000\.00/ })).toBeTruthy()
+    fireEvent.click(await screen.findByRole('button', { name: /depreciation/ }))
+    expect(await screen.findByRole('button', { name: /Prior depreciation.*4000\.00/ })).toBeTruthy()
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/fixtures/sample/opening-p1.json')).toHaveLength(1)
+    expect(vi.mocked(fetch).mock.calls.filter(([url]) => url === '/fixtures/sample/depreciation-p1.json')).toHaveLength(
+      1,
+    )
   })
 
   it('shows actual parameter layers and a server-shaped comparison fixture', async () => {
@@ -529,8 +614,72 @@ describe('fixture-backed workbench shell', () => {
     expect(input.closest('td')?.textContent).toContain('Provide an amount')
   })
 
+  it('selects multidimensional and transposed cells using their own addresses and keyboard navigation', async () => {
+    const stock = { node: 'closing', coord: ['A', 'P2'] }
+    const flow = { node: 'aggregate.movement', coord: ['asset=A'] }
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
+    manifest.cases[0].files.explains = {
+      [addressToPath(stock)]: '/fixtures/sample/stock.json',
+      [addressToPath(flow)]: '/fixtures/sample/flow.json',
+    }
+    const explanation = (address: typeof stock, label: string, display: string): Explain => ({
+      address,
+      label,
+      kind: 'line',
+      status: 'active',
+      result: { value: { n: display }, display },
+      steps: [],
+      branches: [],
+      references: [],
+      parts: [],
+      options: [],
+    })
+    fixture['/fixtures/sample/stock.json'] = wrap(explanation(stock, 'Period closing', '140.00'))
+    fixture['/fixtures/sample/flow.json'] = wrap(explanation(flow, 'Total flow', '60.00'))
+    fixture['/fixtures/sample/paper.json'] = wrap({
+      ...paper,
+      audit: [],
+      tables: [
+        {
+          ...paper.tables[0],
+          style: 'transpose',
+          columns: [
+            { id: 'label', header: 'Asset' },
+            { id: 'closing', header: 'Closing' },
+            { id: 'flow', header: 'Flow' },
+          ],
+          rows: [
+            {
+              kind: 'member',
+              depth: 0,
+              node: null,
+              cells: [{ text: 'A' }, { text: '140.00', address: stock }, { text: '60.00', address: flow }],
+            },
+          ],
+        },
+      ],
+    })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/panels/detail`)
+    render(<App />)
+    const closing = await screen.findByRole('button', { name: 'Closing: 140.00' })
+    fireEvent.click(closing)
+    expect(await screen.findByRole('heading', { name: 'Period closing' })).toBeTruthy()
+    expect(new URLSearchParams(location.search).get('cell')).toBe(addressToPath(stock))
+    expect(closing.className).toContain('selected')
+    closing.focus()
+    fireEvent.keyDown(closing, { key: 'ArrowRight' })
+    const total = screen.getByRole('button', { name: 'Flow: 60.00' })
+    expect(await screen.findByRole('heading', { name: 'Total flow' })).toBeTruthy()
+    expect(document.activeElement).toBe(total)
+    expect(new URLSearchParams(location.search).get('cell')).toBe(addressToPath(flow))
+    expect(total.className).toContain('selected')
+  })
+
   it('opens a weighted aggregate from the paper and preserves its engine evidence in provenance', async () => {
     const aggregate: RatioAggregate = {
+      kind: 'ratio',
       numeratorId: 'tax',
       denominatorId: 'profit',
       dimensions: ['member'],

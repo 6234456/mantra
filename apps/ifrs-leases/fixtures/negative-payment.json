@@ -1,0 +1,53 @@
+{
+  "id": "negative-payment",
+  "notice": "Independently authored fictional annual lessee facts; not a Mantra case document or accounting advice.",
+  "periods": [
+    {
+      "id": "P1",
+      "start": "2026-01-01",
+      "end": "2027-01-01",
+      "source_id": "FY2026"
+    },
+    {
+      "id": "P2",
+      "start": "2027-01-01",
+      "end": "2028-01-01",
+      "source_id": "FY2027"
+    },
+    {
+      "id": "P3",
+      "start": "2028-01-01",
+      "end": "2029-01-01",
+      "source_id": "FY2028"
+    }
+  ],
+  "leases": [
+    {
+      "id": "Office",
+      "title": "Office-space right of use",
+      "annual_rate": "0.05",
+      "term_years": 3,
+      "payments": [
+        "10000",
+        "-1000",
+        "10000"
+      ],
+      "commencement_payment": "0",
+      "initial_direct_costs": "0",
+      "commencement_incentive": "0",
+      "reported_liability_closing": {
+        "P1": "8117.92",
+        "P2": "9523.81",
+        "P3": "0.01"
+      }
+    }
+  ],
+  "reconciliation_tolerance": "0.01",
+  "policy": {
+    "payment_timing": "supplied payments occur at year end; commencement payment occurs before initial liability measurement",
+    "currency_rounding": "PV half-up2; annual interest half-up2; closing liability is never clamped; terminal ROU depreciation absorbs currency residue",
+    "supported_rates": "demonstration business rule nonnegative; negative rates greater than -1 are still evaluated and flagged",
+    "excluded": "modifications, reassessment, index-linked payments, purchase/extension options, restoration, tax, FX, lessor and exemption choices",
+    "boundary_note": "At currency scale2, FY2027 calculated closing9523.82 differs from the supplied9523.81 by exactly the inclusive tolerance0.01; scale4 preserves the same supplied facts."
+  }
+}

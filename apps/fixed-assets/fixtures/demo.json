@@ -1,0 +1,94 @@
+{
+  "id": "demo",
+  "notice": "Independently authored fictional preparation facts; not a Mantra case document or a production accounting policy.",
+  "periods": [
+    {
+      "id": "P1",
+      "start": "2026-01-01",
+      "end": "2027-01-01",
+      "source_id": "FY2026"
+    },
+    {
+      "id": "P2",
+      "start": "2027-01-01",
+      "end": "2028-01-01",
+      "source_id": "FY2027"
+    },
+    {
+      "id": "P3",
+      "start": "2028-01-01",
+      "end": "2029-01-01",
+      "source_id": "FY2028"
+    },
+    {
+      "id": "P4",
+      "start": "2029-01-01",
+      "end": "2030-01-01",
+      "source_id": "FY2029"
+    },
+    {
+      "id": "P5",
+      "start": "2030-01-01",
+      "end": "2031-01-01",
+      "source_id": "FY2030"
+    }
+  ],
+  "assets": [
+    {
+      "id": "Machine",
+      "title": "Workshop machine",
+      "category": "machinery",
+      "depreciable": true,
+      "opening_cost": "120000",
+      "opening_accumulated_depreciation": "22000",
+      "acquisition_cost": "0",
+      "acquisition_period": null,
+      "available_from": "2026-01-01",
+      "remaining_months": 48,
+      "residual_value": "10000",
+      "disposal_at_period_end": null
+    },
+    {
+      "id": "Equipment",
+      "title": "Finishing equipment",
+      "category": "machinery",
+      "depreciable": true,
+      "opening_cost": "0",
+      "opening_accumulated_depreciation": "0",
+      "acquisition_cost": "60000",
+      "acquisition_period": "P2",
+      "available_from": "2027-01-01",
+      "remaining_months": 36,
+      "residual_value": "0",
+      "disposal_at_period_end": "P3"
+    },
+    {
+      "id": "Land",
+      "title": "Workshop land",
+      "category": "land",
+      "depreciable": false,
+      "opening_cost": "50000",
+      "opening_accumulated_depreciation": "0",
+      "acquisition_cost": "0",
+      "acquisition_period": null,
+      "available_from": "2026-01-01",
+      "remaining_months": null,
+      "residual_value": "0",
+      "disposal_at_period_end": null
+    }
+  ],
+  "reported_closing": {
+    "P1": "126000",
+    "P2": "144000",
+    "P3": "82000",
+    "P4": "60000",
+    "P5": "60000"
+  },
+  "reconciliation_tolerance": "0.01",
+  "policy": {
+    "period_intervals": "[start,end)",
+    "depreciation": "straight line over supplied remaining months; monthly proportion; period-end whole-asset disposal after current-period depreciation",
+    "currency_rounding": "half-up at scale2 by default; final service-period charge absorbs residue down to residual value",
+    "cost_model_only": true
+  }
+}

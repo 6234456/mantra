@@ -48,7 +48,7 @@ internal object MantraKernel {
     /** Special forms and literals; schema identifiers can never use these names. */
     val reservedNames: Set<String> by lazy {
         environment.registry.specialFormsByName.keys +
-            setOf("nil", "true", "false", "all", "fn", "let", "defn", "recur", "loop", "def", "mantra")
+            setOf("nil", "true", "false", "all", "fn", "let", "defn", "recur", "loop", "def", "mantra", "periods")
     }
 
     /**

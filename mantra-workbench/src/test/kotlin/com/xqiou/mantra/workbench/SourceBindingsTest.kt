@@ -10,7 +10,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 
-class SourceBindingsTest {
+class SourceBindingsTest : WorkspaceCatalogTestOwner() {
     @TempDir lateinit var temp: Path
 
     @Test fun `wide CSV supplies member values with provenance while case inputs win`() {
@@ -35,7 +35,7 @@ class SourceBindingsTest {
         )
         val csv = temp.resolve("pay.csv")
         Files.writeString(csv, "Person;Wage\nA;1.234,56\nB;200,00\n")
-        val catalog = WorkspaceCatalog(temp)
+        val catalog = workspaceCatalog(temp)
         assertContains(WorkbenchJson.write(catalog.sources("case.mantra").data), "\"overridden\":[\"wage@A\"]")
         val stamp = catalog.workspaceStamp()
         kotlin.test.assertEquals(catalog.workspace().revision, stamp.revision)
@@ -68,7 +68,7 @@ class SourceBindingsTest {
                 """{"name":"template$index","format":"csv","options":{}}""",
             )
         }
-        val catalog = WorkspaceCatalog(temp)
+        val catalog = workspaceCatalog(temp)
         val error = assertFailsWith<WorkspaceException> {
             catalog.saveImportTemplate("overflow", "csv", mapOf("mode" to Value.Text("wide")))
         }

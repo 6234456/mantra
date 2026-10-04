@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/envelope.schema.json",
-  "title": "Mantra workbench response v2",
+  "title": "Mantra workbench response v3",
   "type": "object",
   "required": [
     "contract",
@@ -11,7 +11,7 @@
   ],
   "properties": {
     "contract": {
-      "const": "mantra.workbench/2"
+      "const": "mantra.workbench/3"
     },
     "revision": {
       "type": "string",
@@ -270,6 +270,7 @@
     "ratioAggregate": {
       "type": "object",
       "required": [
+        "kind",
         "numeratorId",
         "denominatorId",
         "dimensions",
@@ -286,6 +287,9 @@
         "display"
       ],
       "properties": {
+        "kind": {
+          "const": "ratio"
+        },
         "numeratorId": {
           "type": "string"
         },
@@ -465,6 +469,300 @@
         }
       },
       "additionalProperties": false
+    },
+    "boundaryAggregate": {
+      "type": "object",
+      "required": [
+        "kind",
+        "dimension",
+        "boundary",
+        "dimensions",
+        "fixed",
+        "members",
+        "memberCount",
+        "activeMemberCount",
+        "result",
+        "undefinedReason",
+        "truncated",
+        "display",
+        "periodKeys",
+        "selected",
+        "selectionCount"
+      ],
+      "properties": {
+        "kind": {
+          "const": "boundary"
+        },
+        "dimension": {
+          "type": "string"
+        },
+        "boundary": {
+          "enum": [
+            "first",
+            "last"
+          ]
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fixed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": [
+              "coord",
+              "value",
+              "active",
+              "selected"
+            ],
+            "properties": {
+              "coord": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "selected": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "memberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeMemberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "n"
+              ],
+              "properties": {
+                "n": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "undefinedReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "display": {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "periodKeys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "selected": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": [
+              "coord",
+              "value",
+              "active",
+              "selected"
+            ],
+            "properties": {
+              "coord": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "selected": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "selectionCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "sumAggregate": {
+      "type": "object",
+      "required": [
+        "kind",
+        "dimensions",
+        "fixed",
+        "members",
+        "memberCount",
+        "activeMemberCount",
+        "result",
+        "undefinedReason",
+        "truncated",
+        "display"
+      ],
+      "properties": {
+        "kind": {
+          "const": "sum"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fixed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": [
+              "coord",
+              "value",
+              "active",
+              "selected"
+            ],
+            "properties": {
+              "coord": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "active": {
+                "type": "boolean"
+              },
+              "selected": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "memberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeMemberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "n"
+              ],
+              "properties": {
+                "n": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "undefinedReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "display": {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "aggregate": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ratioAggregate"
+        },
+        {
+          "$ref": "#/$defs/boundaryAggregate"
+        },
+        {
+          "$ref": "#/$defs/sumAggregate"
+        }
+      ]
     }
   }
 }

@@ -70,7 +70,9 @@ mantra-cli/build/install/mantra/bin/mantra serve apps --port 8090 --ui workbench
 
 Open `http://127.0.0.1:8090/` in a browser. The reference workbench implements structure, working-paper and diagnostic views, Explain, Compare, parameter layers, case editing with preview and undo/redo, formula authoring, data-source import, export previews and SSE updates. Edits are written to the case documents so that results remain reproducible outside the workbench. The service listens only on loopback and confines file access to the workspace; it is a local reference tool.
 
-Explain, paper and XLSX audit appendices share the kernel's source-level expression evidence. Weighted ratio totals retain their exact component sums and active-member evidence separately.
+Explain, paper and XLSX audit appendices share the kernel's source-level expression evidence. Ratio,
+sum and first/last-period totals retain the engine's contributions and selected-member evidence.
+Two-dimensional and transposed papers carry a separate calculation address for every numeric cell.
 
 ## CLI
 
@@ -90,6 +92,9 @@ Run `mantra help` for full options. XLSX exports report formulas replaced with v
 values. An unsupported auxiliary formula with no verified value causes an explicit export error.
 Large sums use compact ranges and bounded argument lists; Excel's formula size and nesting limits
 remain enforced.
+
+For a scoped total, use `--address aggregate.<node>` and `--coord dimension=member[,dimension=member...]`
+in schema dimension order. Omitting `--coord` selects the complete aggregate.
 
 ## A minimal schema
 
@@ -114,6 +119,18 @@ XLSX main values and checks recalculate after edits; its original audit snapshot
 `outdated` until the original inputs, parameters and supplied-fact flags are restored. Re-export to
 capture a new audit. `ExcelWorkbook.auditSnapshotStatusAddress()` exposes the snapshot-status cell.
 
+Continuous periods support static intervals or generated months, quarters and years. A formula such
+as `(prev closing opening-balance)` reads the preceding period, with a lazy explicit fallback for the
+first period. Declare `:aggregate {:first year}` or `{:last year}` for opening or closing balances;
+flows keep sum aggregation. `CalculationView.reduce(nodeId, fixed)` exposes the same scoped value
+and evidence used by papers, Explain and XLSX. See the [period reference](docs/dsl-reference.md).
+
+For repeated input edits, `Mantra.openSession(schema, case, parameters)` returns a closeable
+`CalculationSession`. Its immutable results preserve prior values while `recalculate` invalidates
+dependent member tasks and reuses unaffected work. Ordinary calculations use VALUE_ONLY kernel
+execution; audit and Explain capture source-level traces explicitly. Open, recalculate and close a
+session on the same thread; detached result snapshots may be read from other threads.
+
 ## Repository structure
 
 | Path | Responsibility |
@@ -129,15 +146,19 @@ capture a new audit. `ExcelWorkbook.auditSnapshotStatusAddress()` exposes the sn
 | `apps/ifrs-impairment` | IAS 36 impairment and allocation demonstration; `:apps:ifrs-impairment` |
 | `apps/cost-accounting` | Manufacturing-order and product costs in a SAP CO style; `:apps:cost-accounting` |
 | `apps/ifrs-income-taxes` | Single-period IAS 12 tax-expense and rate reconciliation; `:apps:ifrs-income-taxes` |
+| `apps/fixed-assets` | Multi-period cost, depreciation and carrying-amount roll-forward; `:apps:fixed-assets` |
+| `apps/ifrs-leases` | IFRS 16 lease-liability and right-of-use asset roll-forward; `:apps:ifrs-leases` |
 
 Applications depend only on public library APIs and are not published as library artifacts. Future domains are added directly under `apps/`.
 
 ## Verification and sources
 
 - [Income tax](apps/de-est/README.md): statute-based tariff formulas and an independent recomputation script; fictional case data.
-- [Impairment](apps/ifrs-impairment/README.md): independently authored fictional unit/shared-asset data, with custom weighting and a zero-loss boundary case; Fraction arithmetic verifies the allocation and loss totals.
+- [Impairment](apps/ifrs-impairment/README.md): fictional shared assets, discounted cash flows and capped allocation; independent Fraction arithmetic checks values, including insufficient-capacity cases.
 - [Cost accounting](apps/cost-accounting/README.md): fictional cost data with an independent source/order/product reconciliation.
 - [Income taxes](apps/ifrs-income-taxes/README.md): fictional tax-expense and rate adjustments, independently recomputed with Decimal arithmetic.
+- [Fixed assets](apps/fixed-assets/README.md): fictional asset movements, partial years, residual floors and rounding boundaries, independently recomputed with Decimal arithmetic.
+- [Leases](apps/ifrs-leases/README.md): fictional annual payments and discount rates, with independent Decimal verification of liability and depreciation schedules.
 
 IFRS source material retains its owners' rights. See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses, source attribution and the completed demonstration source review.
 

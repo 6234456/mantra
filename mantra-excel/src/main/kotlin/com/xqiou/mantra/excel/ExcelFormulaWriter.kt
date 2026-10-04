@@ -30,17 +30,8 @@ internal fun ExcelWorkbookBuilder.neutral(vertex: ViewNode): X.Scalar = when {
     else -> Ex.EMPTY
 }
 
-internal fun ExcelWorkbookBuilder.aggregateRef(nodeId: String): X.Scalar? {
-    val vertex = view.nodes[nodeId] ?: return null
-    if (vertex.line?.ratio != null) return ratioAggregate(vertex)
-    if (view.nodes[nodeId]?.crossTotal() == null && !usesRatio(vertex)) return null
-    return when (val x = reference(nodeId, emptyList(), emptyList())) {
-        is X.Scalar -> x
-        is X.Range -> if (vertex.type.isNumeric) Ex.fn("SUM", Ex.atom(x.text)) else null
-        is X.MapX -> if (vertex.type.isNumeric) sumMap(x) else null
-        else -> null
-    }
-}
+internal fun ExcelWorkbookBuilder.aggregateRef(nodeId: String, fixed: Map<String, String> = emptyMap()): X.Scalar? =
+    view.nodes[nodeId]?.let { reductionFormula(it, fixed) }
 
 internal fun ExcelWorkbookBuilder.signLabelFormula(node: ViewNode, suffix: String = ""): X.Scalar? {
     val labels = node.signLabels ?: return null
@@ -96,8 +87,12 @@ internal fun ExcelWorkbookBuilder.guarded(vertex: ViewNode, coord: Coord, core: 
 
 internal fun ExcelWorkbookBuilder.lineFormula(vertex: ViewNode, coord: Coord): X.Scalar {
     val item = vertex.line!!
+    val context = if (item.spread) {
+        FormulaTranslator.Ctx(vertex.dims.dropLast(1), coord.dropLast(1))
+    } else {
+        FormulaTranslator.Ctx(vertex.dims, coord)
+    }
     val core = if (item.spread) {
-        val context = FormulaTranslator.Ctx(vertex.dims.dropLast(1), coord.dropLast(1))
         val key = coord.last()
         when (val x = translator.translate(item.formula.form, context)) {
             is X.MapX -> x.values.getOrNull(x.keys.indexOf(key))?.let(translator::toScalar) ?: Ex.ZERO
@@ -105,9 +100,26 @@ internal fun ExcelWorkbookBuilder.lineFormula(vertex: ViewNode, coord: Coord): X
             else -> throw Untranslatable(":spread formula does not produce a member map")
         }
     } else {
-        translator.scalar(item.formula.form, FormulaTranslator.Ctx(vertex.dims, coord))
+        translator.scalar(item.formula.form, context)
     }
-    val rounded = item.rounding?.let { Ex.round(core, Ex.num(it.scale.toLong()), it.mode) } ?: core
+    val preserveNil = vertex.undefinedValues || vertex.boundary != null || item.ratio != null
+    val coerced = if (vertex.type.isNumeric && !preserveNil && core.kind == XKind.ANY) {
+        if (core.numericOrNil) {
+            Ex.iff(Ex.cmp("=", core, Ex.EMPTY), Ex.ZERO, core)
+        } else {
+            Ex.iff(
+                Ex.fn("ISERROR", core, kind = XKind.BOOL),
+                core,
+                Ex.iff(Ex.fn("ISNUMBER", core, kind = XKind.BOOL), core, Ex.ZERO),
+            )
+        }
+    } else {
+        core
+    }
+    val rounded = item.rounding?.let { rounding ->
+        val rounded = Ex.round(coerced, Ex.num(rounding.scale.toLong()), rounding.mode)
+        if (preserveNil) Ex.iff(Ex.cmp("=", coerced, Ex.EMPTY), Ex.EMPTY, rounded) else rounded
+    } ?: coerced
     return guarded(vertex, coord, rounded)
 }
 
@@ -121,15 +133,12 @@ internal fun ExcelWorkbookBuilder.sumMap(values: X.MapX): X.Scalar = Ex.fn(
 internal fun ExcelWorkbookBuilder.totalFormula(vertex: ViewNode, coord: Coord): X.Scalar {
     val terms = vertex.components.map { component ->
         val componentNode = view.nodes.getValue(component.vertexId)
+        val fixed = vertex.dims.zip(coord).toMap()
+        val reduced = reductionFormula(componentNode, fixed) ?: Ex.ZERO
         val value = if (componentNode.line?.ratio != null && componentNode.dims.any { it !in vertex.dims }) {
-            ratioAggregate(componentNode, vertex.dims, coord)
+            Ex.iff(reductionHasActiveMembers(componentNode, fixed), reduced, Ex.ZERO)
         } else {
-            when (val x = reference(component.vertexId, vertex.dims, coord)) {
-                is X.Scalar -> x
-                is X.Range -> Ex.fn("SUM", Ex.atom(x.text))
-                is X.MapX -> sumMap(x)
-                else -> throw Untranslatable("component ${component.vertexId}")
-            }
+            reduced
         }
         component.sign to value
     }
@@ -148,9 +157,9 @@ internal fun ExcelWorkbookBuilder.totalFormula(vertex: ViewNode, coord: Coord): 
             if (sign < 0) Ex.sub(acc, value) else Ex.add(acc, value)
         }
     }
-    val complete = if (vertex.components.any { usesRatio(view.node(it.vertexId)) }) {
+    val complete = if (terms.isNotEmpty()) {
         val defined = terms.map { Ex.fn("ISNUMBER", it.second, kind = XKind.BOOL) }
-        Ex.iff(if (defined.size == 1) defined.single() else Ex.fn("AND", defined, XKind.BOOL), core, Ex.EMPTY)
+        Ex.iff(boundedReductionBoolean("AND", defined), core, Ex.EMPTY)
     } else {
         core
     }
@@ -170,8 +179,28 @@ internal fun ExcelWorkbookBuilder.choiceFormula(vertex: ViewNode, coord: Coord):
         optionSlots[vertex.id to option.key]?.get(coord)?.let(::ref)
             ?: throw Untranslatable("option ${option.key} has no cell")
     }
-    val core = Ex.fn(if (vertex.choice!!.rule == ChoiceRule.MIN) "MIN" else "MAX", options)
-    val rounded = vertex.choice!!.rounding?.let { Ex.round(core, Ex.num(it.scale.toLong()), it.mode) } ?: core
+    val selected = Ex.fn(if (vertex.choice!!.rule == ChoiceRule.MIN) "MIN" else "MAX", options)
+    val anyNumeric = boundedReductionBoolean("OR", options.map { Ex.fn("ISNUMBER", it, kind = XKind.BOOL) })
+    val anyAvailable = boundedReductionBoolean(
+        "OR",
+        vertex.choice!!.options.map { option ->
+            option.condition?.let {
+                translator.truthy(translator.scalar(it.form, FormulaTranslator.Ctx(vertex.dims, coord)))
+            }
+                ?: Ex.TRUE
+        },
+    )
+    val noNumber = if (vertex.boundary != null ||
+        vertex.choice!!.ratio != null
+    ) {
+        Ex.iff(anyAvailable, Ex.EMPTY, Ex.ZERO)
+    } else {
+        Ex.ZERO
+    }
+    val core = Ex.iff(anyNumeric, selected, noNumber)
+    val rounded = vertex.choice!!.rounding?.let {
+        Ex.iff(Ex.fn("ISNUMBER", core, kind = XKind.BOOL), Ex.round(core, Ex.num(it.scale.toLong()), it.mode), Ex.EMPTY)
+    } ?: core
     return guarded(vertex, coord, rounded)
 }
 
@@ -236,7 +265,10 @@ internal fun ExcelWorkbookBuilder.writeValue(slot: Slot, value: Value) {
         is Value.Bool -> c.setCellValue(value.value)
         is Value.Kw -> c.setCellValue(value.name)
         is Value.Text -> c.setCellValue(value.value)
-        is Value.Date -> c.setCellValue(value.value.toString())
+        is Value.Date -> {
+            c.setCellValue(value.value.atStartOfDay())
+            c.cellStyle = styles.get(StyleKey(format = "yyyy-mm-dd"))
+        }
         Value.Nil -> c.setBlank()
         else -> c.setCellValue(value.toString())
     }
@@ -292,18 +324,29 @@ internal fun ExcelWorkbookBuilder.inputValue(input: ViewNode, coord: Coord): Val
         supplied =
             (supplied as? Value.MapV)?.entries?.let { it[Value.Kw(key)] ?: it[Value.Text(key)] }
     }
-    return supplied?.takeIf { it != Value.Nil } ?: input.input!!.default ?: view.nodes[input.id]?.values?.get(coord)
-        ?: when {
-            input.type.isNumeric -> Value.ZERO
-            input.type == ValueType.BOOLEAN -> Value.Bool(false)
-            else -> Value.Nil
-        }
+    val value =
+        supplied?.takeIf { it != Value.Nil } ?: input.input!!.default ?: view.nodes[input.id]?.values?.get(coord)
+            ?: when {
+                input.type.isNumeric -> Value.ZERO
+                input.type == ValueType.BOOLEAN -> Value.Bool(false)
+                else -> Value.Nil
+            }
+    return if (input.type == ValueType.DATE && value is Value.Text) {
+        Value.Date(java.time.LocalDate.parse(value.value))
+    } else {
+        value
+    }
 }
 
 internal fun ExcelWorkbookBuilder.writeValuesAndFormulas() {
     nodeSlots.forEach { (id, slots) ->
         val vertex = view.nodes.getValue(id)
         slots.forEach { (coord, slot) ->
+            if (vertex.type ==
+                ValueType.DATE
+            ) {
+                valueStyles[slot] = (valueStyles[slot] ?: StyleKey()).copy(format = "yyyy-mm-dd")
+            }
             when {
                 vertex.kind == NodeKind.INPUT -> {
                     writeValue(slot, inputValue(vertex, coord))

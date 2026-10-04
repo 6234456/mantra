@@ -1,0 +1,6 @@
+(layout ifrs.ifrs16/transpose-paper
+  {:preset :ifrs-schedule :precision 2 :title "Leases – year two balances"
+   :subtitle "Lease members as rows; liability and right-of-use balances as columns"
+   :header [:subject :period :schema :reference]}
+  (table liability-flow {:style :transpose :row-dimension lease :fixed {:year :P2}}
+    :label (node liability-closing) (node rou-closing)))

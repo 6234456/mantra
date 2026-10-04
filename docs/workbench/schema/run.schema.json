@@ -95,7 +95,7 @@
         "aggregates": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+            "$ref": "envelope.schema.json#/$defs/aggregate"
           }
         }
       },

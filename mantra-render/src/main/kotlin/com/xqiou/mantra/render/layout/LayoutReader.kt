@@ -122,13 +122,52 @@ object LayoutReader {
                             document.options(it, sink, "table $section")
                         }.orEmpty()
                         val columns = list.values.drop(start).mapNotNull { column(document, it, sink) }
-                        tables += TableSpec(
+                        val table = TableSpec(
                             sectionId = section,
                             title = tableOpts["title"]?.string,
                             style = tableOpts["style"]?.keyword?.let { style(document, it, list, sink) },
                             columns = columns.ifEmpty { null },
                             expandMembers = tableOpts["expand-members"]?.symbol?.let { it == "true" },
+                            rowDimension = tableOpts["row-dimension"]?.let { form ->
+                                form.symbol ?: run {
+                                    sink.error(
+                                        "MANTRA-LAYOUT-ROW-DIMENSION",
+                                        ":row-dimension requires a dimension identifier",
+                                        document.location(form),
+                                    )
+                                    null
+                                }
+                            },
+                            fixed = tableOpts["fixed"]?.let { form ->
+                                document.options(form, sink, "table :fixed").mapNotNull { (dimension, member) ->
+                                    member.keyword?.let { dimension to it } ?: run {
+                                        sink.error(
+                                            "MANTRA-LAYOUT-FIXED",
+                                            "Fixed members must be keyword keys",
+                                            document.location(member),
+                                        )
+                                        null
+                                    }
+                                }.toMap()
+                            }.orEmpty(),
                         )
+                        if (table.rowDimension == null &&
+                            (table.style == TableStyle.TRANSPOSE || table.fixed.isNotEmpty())
+                        ) {
+                            sink.error(
+                                "MANTRA-LAYOUT-AXES",
+                                "Transpose and fixed slices require :row-dimension",
+                                document.location(list),
+                            )
+                        }
+                        if (columns.any { it.content is ColumnContent.Node } && table.style != TableStyle.TRANSPOSE) {
+                            sink.error(
+                                "MANTRA-LAYOUT-AXES",
+                                "Node columns require :style :transpose",
+                                document.location(list),
+                            )
+                        }
+                        tables += table
                     }
                 }
                 "style" -> {
@@ -337,8 +376,13 @@ object LayoutReader {
         when (name) {
             "tiered" -> TableStyle.TIERED
             "matrix" -> TableStyle.MATRIX
+            "transpose" -> TableStyle.TRANSPOSE
             else -> {
-                sink.error("MANTRA-LAYOUT-STYLE", "Table :style must be :tiered or :matrix", document.location(form))
+                sink.error(
+                    "MANTRA-LAYOUT-STYLE",
+                    "Table :style must be :tiered, :matrix or :transpose",
+                    document.location(form),
+                )
                 null
             }
         }
@@ -381,7 +425,7 @@ object LayoutReader {
                 val content = when {
                     contentForm == null -> ColumnContent.of(id)
                     contentForm.keyword != null -> ColumnContent.of(contentForm.keyword!!)
-                    else -> memberContent(contentForm) ?: attributeContent(contentForm)
+                    else -> memberContent(contentForm) ?: attributeContent(contentForm) ?: nodeContent(contentForm)
                 }
                 if (content == null) {
                     sink.error(
@@ -404,8 +448,8 @@ object LayoutReader {
                     },
                 )
             }
-            "members", "member", "attribute" -> {
-                val content = memberContent(list) ?: attributeContent(list) ?: run {
+            "members", "member", "attribute", "node" -> {
+                val content = memberContent(list) ?: attributeContent(list) ?: nodeContent(list) ?: run {
                     sink.error(
                         "MANTRA-LAYOUT-CONTENT",
                         "(members <dimension> {opts}?), (member <dimension> :key), or (attribute :name {opts}?) expected",
@@ -460,5 +504,11 @@ object LayoutReader {
         if (list.listHead != "attribute") return null
         val name = list.values.getOrNull(1)?.keyword ?: return null
         return ColumnContent.Attribute(name)
+    }
+
+    private fun nodeContent(form: DslForm): ColumnContent.Node? {
+        val list = form as? DslForm.Sequence ?: return null
+        if (list.listHead != "node") return null
+        return list.values.getOrNull(1)?.symbol?.let { ColumnContent.Node(it) }
     }
 }

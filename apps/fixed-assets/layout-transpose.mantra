@@ -1,0 +1,6 @@
+(layout assets/transpose-paper
+  {:preset :ifrs-schedule :precision 2 :title "Fixed assets – year three balances"
+   :subtitle "Assets as rows; gross, accumulated and net balances as columns"
+   :header [:subject :period :schema :reference]}
+  (table carrying-flow {:style :transpose :row-dimension asset :fixed {:year :P3}}
+    :label (node gross-closing) (node accumulated-closing) (node carrying-closing)))

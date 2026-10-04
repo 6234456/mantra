@@ -29,6 +29,10 @@ class FixtureContractTest {
         "ifrs-income-taxes" to "case-demo.mantra",
         "ifrs-income-taxes" to "case-unreconciled.mantra",
         "ifrs-income-taxes" to "case-zero-profit.mantra",
+        "fixed-assets" to "case-demo.mantra",
+        "ifrs-leases" to "case-demo.mantra",
+        "ifrs-impairment" to "case-discounted-viu.mantra",
+        "ifrs-impairment" to "case-capped.mantra",
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
@@ -110,7 +114,7 @@ class FixtureContractTest {
     }
 
     @Test
-    fun `all four applications generate stable browser fixtures satisfying their schemas`() {
+    fun `all six applications generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
@@ -141,6 +145,25 @@ class FixtureContractTest {
                             ExplainAddress("effective-tax-rate", listOf("North")),
                             ExplainAddress("aggregate.effective-tax-rate"),
                         ),
+                    "fixed-assets/case-demo.mantra" to listOf(
+                        ExplainAddress("carrying-closing", listOf("Machine", "P1")),
+                        ExplainAddress("carrying-closing", listOf("Machine", "P2")),
+                        ExplainAddress("carrying-opening", listOf("Machine", "P2")),
+                        ExplainAddress("aggregate.carrying-closing", listOf("asset=Machine")),
+                        ExplainAddress("aggregate.depreciation", listOf("asset=Machine")),
+                    ),
+                    "ifrs-leases/case-demo.mantra" to listOf(
+                        ExplainAddress("liability-closing", listOf("Office", "P2")),
+                        ExplainAddress("liability-opening", listOf("Office", "P2")),
+                        ExplainAddress("aggregate.liability-closing", listOf("lease=Office")),
+                    ),
+                    "ifrs-impairment/case-discounted-viu.mantra" to listOf(
+                        ExplainAddress("present-value", listOf("A", "P2")),
+                        ExplainAddress("recoverable-amount", listOf("A")),
+                    ),
+                    "ifrs-impairment/case-capped.mantra" to listOf(
+                        ExplainAddress("asset-allocated-loss", listOf("Workshop", "Machine")),
+                    ),
                 ),
             )
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })

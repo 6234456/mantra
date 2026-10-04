@@ -1,0 +1,596 @@
+Fixed-asset working paper
+First and last stocks; total additions, disposals and depreciation
+=========================
+Entity: Fictional demonstration entity
+Period: 2026–2030
+Calculation schema: Fixed assets – cost and depreciation roll-forward v0.1 [assets/cost-model]
+Prepared by: Mantra demonstration
+WP ref.: Project-authored fictional facts
+Closing carrying amount: 20.00
+
+Structure of the calculation
+  Mainline 1: Gross cost [1]  100.00
+  Mainline 2: Accumulated depreciation [2]  80.00
+  Mainline 3: Net carrying amount [3]  20.00
+  Mainline 4: All-asset carrying bridge [4]  20.00
+
+[1] Gross cost by asset and year
+    Mainline › 1 Gross cost
+Description                | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | 2029-01-01 – 2029-12-31 | 2030-01-01 – 2030-12-31 |  Total
+---------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------
+Tool at its residual value |                         |                         |                         |                         |                         |
+  Opening gross cost       |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+  Acquisitions             |                       – |                       – |                       – |                       – |                       – |      –
+  Disposals at period end  |                       – |                       – |                       – |                       – |                       – |      –
+                          -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------
+  Closing gross cost       |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+Total                      |                         |                         |                         |                         |                         |
+  Opening gross cost       |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+  Acquisitions             |                       – |                       – |                       – |                       – |                       – |      –
+  Disposals at period end  |                       – |                       – |                       – |                       – |                       – |      –
+                          -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------
+  Closing gross cost       |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+
+[2] Accumulated depreciation by asset and year
+    Mainline › 2 Accumulated depreciation
+Description                                    | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | 2029-01-01 – 2029-12-31 | 2030-01-01 – 2030-12-31 | Total
+-----------------------------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+Tool at its residual value                     |                         |                         |                         |                         |                         |
+  Opening accumulated depreciation             |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 | 80.00
+  Months in use                                |                      12 |                      12 |                      12 |                       – |                       – |
+  Depreciation for the period                  |                       – |                       – |                       – |                       – |                       – |     –
+  Accumulated depreciation removed on disposal |                       – |                       – |                       – |                       – |                       – |     –
+                                              -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+  Closing accumulated depreciation             |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 | 80.00
+Total                                          |                         |                         |                         |                         |                         |
+  Opening accumulated depreciation             |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 | 80.00
+  Months in use                                |                         |                         |                         |                         |                         |
+  Depreciation for the period                  |                       – |                       – |                       – |                       – |                       – |     –
+  Accumulated depreciation removed on disposal |                       – |                       – |                       – |                       – |                       – |     –
+                                              -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+  Closing accumulated depreciation             |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 | 80.00
+
+[3] Net carrying amounts by asset and year
+    Mainline › 3 Net carrying amount
+Description                                       | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | 2029-01-01 – 2029-12-31 | 2030-01-01 – 2030-12-31 | Total
+--------------------------------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+Tool at its residual value                        |                         |                         |                         |                         |                         |
+  Opening carrying amount                         |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 | 20.00
+  Acquisitions                                    |                       – |                       – |                       – |                       – |                       – |     –
+  Depreciation                                    |                       – |                       – |                       – |                       – |                       – |     –
+  Net carrying amount removed on disposal         |                       – |                       – |                       – |                       – |                       – |     –
+                                                 -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+  Closing carrying amount                         |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 | 20.00
+  Gross cost less accumulated depreciation agrees |                       – |                       – |                       – |                       – |                       – |
+  Undisposed asset is not below residual value    |                       ✓ |                       ✓ |                       ✓ |                       ✓ |                       ✓ |
+Total                                             |                         |                         |                         |                         |                         |
+  Opening carrying amount                         |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 | 20.00
+  Acquisitions                                    |                       – |                       – |                       – |                       – |                       – |     –
+  Depreciation                                    |                       – |                       – |                       – |                       – |                       – |     –
+  Net carrying amount removed on disposal         |                       – |                       – |                       – |                       – |                       – |     –
+                                                 -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+------
+  Closing carrying amount                         |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 | 20.00
+  Gross cost less accumulated depreciation agrees |                         |                         |                         |                         |                         |
+  Undisposed asset is not below residual value    |                         |                         |                         |                         |                         |
+
+[4] All-asset carrying bridge
+    Mainline › 4 All-asset carrying bridge
+Description                                               | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | 2029-01-01 – 2029-12-31 | 2030-01-01 – 2030-12-31 |  Total
+----------------------------------------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------
+Opening gross cost                                        |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+Cost additions                                            |                       – |                       – |                       – |                       – |                       – |      –
+Cost disposals                                            |                       – |                       – |                       – |                       – |                       – |      –
+Closing gross cost                                        |                  100.00 |                  100.00 |                  100.00 |                  100.00 |                  100.00 | 100.00
+Opening accumulated depreciation                          |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 |  80.00
+Accumulated depreciation disposals                        |                       – |                       – |                       – |                       – |                       – |      –
+Closing accumulated depreciation                          |                   80.00 |                   80.00 |                   80.00 |                   80.00 |                   80.00 |  80.00
+Opening carrying amount                                   |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 |  20.00
+Additions                                                 |                       – |                       – |                       – |                       – |                       – |      –
+Depreciation                                              |                       – |                       – |                       – |                       – |                       – |      –
+Net carrying amount disposed                              |                       – |                       – |                       – |                       – |                       – |      –
+                                                         -+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------
+Closing carrying amount                                   |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 |  20.00
+                                                         =+=========================+=========================+=========================+=========================+=========================+=======
+Reported closing carrying amount                          |                   20.00 |                   20.00 |                   20.00 |                   20.00 |                   20.00 |  20.00
+Computed and independently reported closing amounts agree |                       – |                       – |                       – |                       – |                       – |
+
+Audit trail
+-----------
+1/1 Σ Opening gross cost (Total)
+    Formula: first(year)
+    Working: first(year): [asset=Tool, year=P1] 100 included → 100 = 100.00
+1/1 Opening gross cost [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (prev gross-closing asset.opening-cost)
+    Working: (prev gross-closing asset.opening-cost) = 100 = 100.00
+1/1 Opening gross cost [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (prev gross-closing asset.opening-cost)
+    Working: (prev gross-closing asset.opening-cost) = 100 = 100.00
+1/1 Opening gross cost [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (prev gross-closing asset.opening-cost)
+    Working: (prev gross-closing asset.opening-cost) = 100 = 100.00
+1/1 Opening gross cost [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (prev gross-closing asset.opening-cost)
+    Working: (prev gross-closing asset.opening-cost) = 100 = 100.00
+1/1 Opening gross cost [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (prev gross-closing asset.opening-cost)
+    Working: (prev gross-closing asset.opening-cost) = 100 = 100.00
+1/2 Σ Acquisitions (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0 = –
+1/2 Acquisitions [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (if (= asset.acquisition-period year.key) asset.acquisition-cost 0)
+    Working: (= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0 = –
+1/2 Acquisitions [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (if (= asset.acquisition-period year.key) asset.acquisition-cost 0)
+    Working: (= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0 = –
+1/2 Acquisitions [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (if (= asset.acquisition-period year.key) asset.acquisition-cost 0)
+    Working: (= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0 = –
+1/2 Acquisitions [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (if (= asset.acquisition-period year.key) asset.acquisition-cost 0)
+    Working: (= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0 = –
+1/2 Acquisitions [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (if (= asset.acquisition-period year.key) asset.acquisition-cost 0)
+    Working: (= asset.acquisition-period year.key) = false → (if (= asset.acquisition-period year.key) asset.acquisition-cost 0) = 0 → selected branch: 0 = –
+1/3 Σ Disposals at period end (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0 = –
+1/3 Disposals at period end [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0 = –
+1/3 Disposals at period end [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0 = –
+1/3 Disposals at period end [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0 = –
+1/3 Disposals at period end [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0 = –
+1/3 Disposals at period end [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0) = 0 → selected branch: 0 = –
+1/4 Σ Closing gross cost (Total)
+    Formula: last(year)
+    Working: last(year): [asset=Tool, year=P5] 100 included → 100 = 100.00
+1/4 Closing gross cost [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: gross-opening + gross-additions − gross-disposals
+    Working: 100 + 0 − 0 = 100.00
+1/4 Closing gross cost [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: gross-opening + gross-additions − gross-disposals
+    Working: 100 + 0 − 0 = 100.00
+1/4 Closing gross cost [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: gross-opening + gross-additions − gross-disposals
+    Working: 100 + 0 − 0 = 100.00
+1/4 Closing gross cost [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: gross-opening + gross-additions − gross-disposals
+    Working: 100 + 0 − 0 = 100.00
+1/4 Closing gross cost [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: gross-opening + gross-additions − gross-disposals
+    Working: 100 + 0 − 0 = 100.00
+2/1 Σ Opening accumulated depreciation (Total)
+    Formula: first(year)
+    Working: first(year): [asset=Tool, year=P1] 80 included → 80 = 80.00
+2/1 Opening accumulated depreciation [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (prev accumulated-closing asset.opening-accumulated-depreciation)
+    Working: (prev accumulated-closing asset.opening-accumulated-depreciation) = 80 = 80.00
+2/1 Opening accumulated depreciation [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (prev accumulated-closing asset.opening-accumulated-depreciation)
+    Working: (prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00 = 80.00
+2/1 Opening accumulated depreciation [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (prev accumulated-closing asset.opening-accumulated-depreciation)
+    Working: (prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00 = 80.00
+2/1 Opening accumulated depreciation [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (prev accumulated-closing asset.opening-accumulated-depreciation)
+    Working: (prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00 = 80.00
+2/1 Opening accumulated depreciation [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (prev accumulated-closing asset.opening-accumulated-depreciation)
+    Working: (prev accumulated-closing asset.opening-accumulated-depreciation) = 80.00 = 80.00
+2/2 Months in use [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)
+    Working: (+ gross-opening gross-additions) = 100 → (> (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (> (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 12 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 12 → (date/months-between asset.available-from year.start) = 0 → (max 0 (date/months-between asset.available-from year.start)) = 0 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12
+2/2 Months in use [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)
+    Working: (+ gross-opening gross-additions) = 100 → (> (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (> (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 24 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 24 → (date/months-between asset.available-from year.start) = 12 → (max 0 (date/months-between asset.available-from year.start)) = 12 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12
+2/2 Months in use [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)
+    Working: (+ gross-opening gross-additions) = 100 → (> (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (> (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 36 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 24 → (max 0 (date/months-between asset.available-from year.start)) = 24 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12 → (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 12 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 12
+2/2 Months in use [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)
+    Working: (+ gross-opening gross-additions) = 100 → (> (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (> (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 48 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 36 → (max 0 (date/months-between asset.available-from year.start)) = 36 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = 0 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = –
+2/2 Months in use [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0)
+    Working: (+ gross-opening gross-additions) = 100 → (> (+ gross-opening gross-additions) 0) = true → (and asset.depreciable (> (+ gross-opening gross-additions) 0)) = true → (date/months-between asset.available-from year.end-exclusive) = 60 → (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) = 36 → (date/months-between asset.available-from year.start) = 48 → (max 0 (date/months-between asset.available-from year.start)) = 48 → (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start))) = -12 → (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = 0 → (if (and asset.depreciable (> (+ gross-opening gross-additions) 0)) (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) 0) = 0 → selected branch: (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive)) (max 0 (date/months-between asset.available-from year.start)))) = –
+2/3 Σ Depreciation for the period (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0.00 included; [asset=Tool, year=P2] 0.00 included; [asset=Tool, year=P3] 0.00 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0.00 = –
+2/3 Depreciation for the period [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))
+    Working: (= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 12 → (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 0 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 0.00 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 0.00 → (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = –
+2/3 Depreciation for the period [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))
+    Working: (= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0.00 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0.00 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 24 → (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = false → (* basis service-months) = 0 → (decimal/divide (* basis service-months) asset.remaining-months currency-scale) = 0.00 → (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) = 0.00 → (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)) → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = –
+2/3 Depreciation for the period [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))
+    Working: (= service-months 0) = false → (+ gross-opening gross-additions) = 100 → (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value) = 0.00 → (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) = 0.00 → (+ asset.opening-cost asset.acquisition-cost) = 100 → (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value) = 0 → (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value)) = 0 → (date/months-between asset.available-from year.end-exclusive) = 36 → (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) = true → (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))) = 0.00 → (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = 0.00 → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0.00 → selected branch: remaining → selected branch: (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))) = –
+2/3 Depreciation for the period [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))
+    Working: (= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0 = –
+2/3 Depreciation for the period [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale)))))
+    Working: (= service-months 0) = true → (if (= service-months 0) 0 (let [remaining (max 0 (- (+ gross-opening gross-additions) accumulated-opening asset.residual-value)) basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost) asset.opening-accumulated-depreciation asset.residual-value))] ;; The final service period absorbs the currency residue down to the supplied floor. (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months) remaining (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))) = 0 → selected branch: 0 = –
+2/4 Σ Accumulated depreciation removed on disposal (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0 = –
+2/4 Accumulated depreciation removed on disposal [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0 = –
+2/4 Accumulated depreciation removed on disposal [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0 = –
+2/4 Accumulated depreciation removed on disposal [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0 = –
+2/4 Accumulated depreciation removed on disposal [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0 = –
+2/4 Accumulated depreciation removed on disposal [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+    Working: (= asset.disposal-at-period-end year.key) = false → (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0) = 0 → selected branch: 0 = –
+2/5 Σ Closing accumulated depreciation (Total)
+    Formula: last(year)
+    Working: last(year): [asset=Tool, year=P5] 80.00 included → 80.00 = 80.00
+2/5 Closing accumulated depreciation [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: accumulated-opening + depreciation − accumulated-disposals
+    Working: 80 + 0.00 − 0 = 80.00
+2/5 Closing accumulated depreciation [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: accumulated-opening + depreciation − accumulated-disposals
+    Working: 80.00 + 0.00 − 0 = 80.00
+2/5 Closing accumulated depreciation [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: accumulated-opening + depreciation − accumulated-disposals
+    Working: 80.00 + 0.00 − 0 = 80.00
+2/5 Closing accumulated depreciation [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: accumulated-opening + depreciation − accumulated-disposals
+    Working: 80.00 + 0 − 0 = 80.00
+2/5 Closing accumulated depreciation [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: accumulated-opening + depreciation − accumulated-disposals
+    Working: 80.00 + 0 − 0 = 80.00
+3/1 Σ Opening carrying amount (Total)
+    Formula: first(year)
+    Working: first(year): [asset=Tool, year=P1] 20 included → 20 = 20.00
+3/1 Opening carrying amount [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))
+    Working: (- asset.opening-cost asset.opening-accumulated-depreciation) = 20 → (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20 = 20.00
+3/1 Opening carrying amount [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))
+    Working: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00 = 20.00
+3/1 Opening carrying amount [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))
+    Working: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00 = 20.00
+3/1 Opening carrying amount [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))
+    Working: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00 = 20.00
+3/1 Opening carrying amount [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation))
+    Working: (prev carrying-closing (- asset.opening-cost asset.opening-accumulated-depreciation)) = 20.00 = 20.00
+3/2 Σ Acquisitions (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0 = –
+3/3 Σ Depreciation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0.00 included; [asset=Tool, year=P2] 0.00 included; [asset=Tool, year=P3] 0.00 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0.00 = –
+3/4 Σ Net carrying amount removed on disposal (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [asset=Tool, year=P1] 0 included; [asset=Tool, year=P2] 0 included; [asset=Tool, year=P3] 0 included; [asset=Tool, year=P4] 0 included; [asset=Tool, year=P5] 0 included → 0 = –
+3/4 Net carrying amount removed on disposal [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (- gross-disposals accumulated-disposals)
+    Working: (- gross-disposals accumulated-disposals) = 0 = –
+3/4 Net carrying amount removed on disposal [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (- gross-disposals accumulated-disposals)
+    Working: (- gross-disposals accumulated-disposals) = 0 = –
+3/4 Net carrying amount removed on disposal [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (- gross-disposals accumulated-disposals)
+    Working: (- gross-disposals accumulated-disposals) = 0 = –
+3/4 Net carrying amount removed on disposal [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (- gross-disposals accumulated-disposals)
+    Working: (- gross-disposals accumulated-disposals) = 0 = –
+3/4 Net carrying amount removed on disposal [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (- gross-disposals accumulated-disposals)
+    Working: (- gross-disposals accumulated-disposals) = 0 = –
+3/5 Σ Closing carrying amount (Total)
+    Formula: last(year)
+    Working: last(year): [asset=Tool, year=P5] 20.00 included → 20.00 = 20.00
+3/5 Closing carrying amount [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals
+    Working: 20 + 0 − 0.00 − 0 = 20.00
+3/5 Closing carrying amount [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals
+    Working: 20.00 + 0 − 0.00 − 0 = 20.00
+3/5 Closing carrying amount [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals
+    Working: 20.00 + 0 − 0.00 − 0 = 20.00
+3/5 Closing carrying amount [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals
+    Working: 20.00 + 0 − 0 − 0 = 20.00
+3/5 Closing carrying amount [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: carrying-opening + carrying-additions − carrying-depreciation − carrying-disposals
+    Working: 20.00 + 0 − 0 − 0 = 20.00
+3/6 Gross cost less accumulated depreciation agrees [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)
+    Working: carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01) = –
+3/6 Gross cost less accumulated depreciation agrees [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)
+    Working: carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01) = –
+3/6 Gross cost less accumulated depreciation agrees [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)
+    Working: carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01) = –
+3/6 Gross cost less accumulated depreciation agrees [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)
+    Working: carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01) = –
+3/6 Gross cost less accumulated depreciation agrees [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: carrying-closing ≈ (- gross-closing accumulated-closing) (± 0.01)
+    Working: carrying-closing = 20.00; (- gross-closing accumulated-closing) = 20.00 → 20.00 − 20.00 = 0.00 (± 0.01) = –
+3/7 Undisposed asset is not below residual value [Tool at its residual value / 2026-01-01 – 2026-12-31]
+    Formula: (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value))
+    Working: (= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (>= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true = ✓
+3/7 Undisposed asset is not below residual value [Tool at its residual value / 2027-01-01 – 2027-12-31]
+    Formula: (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value))
+    Working: (= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (>= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true = ✓
+3/7 Undisposed asset is not below residual value [Tool at its residual value / 2028-01-01 – 2028-12-31]
+    Formula: (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value))
+    Working: (= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (>= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true = ✓
+3/7 Undisposed asset is not below residual value [Tool at its residual value / 2029-01-01 – 2029-12-31]
+    Formula: (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value))
+    Working: (= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (>= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true = ✓
+3/7 Undisposed asset is not below residual value [Tool at its residual value / 2030-01-01 – 2030-12-31]
+    Formula: (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value))
+    Working: (= gross-closing 0) = false → (decimal/round carrying-closing currency-scale) = 20.00 → (>= (decimal/round carrying-closing currency-scale) asset.residual-value) = true → (or (= gross-closing 0) (>= (decimal/round carrying-closing currency-scale) asset.residual-value)) = true = ✓
+4/1 Σ Opening gross cost (Total)
+    Formula: first(year)
+    Working: first(year): [year=P1] 100 included → 100 = 100.00
+4/1 Opening gross cost [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum gross-opening)
+    Working: (dim/sum gross-opening) = 100 = 100.00
+4/1 Opening gross cost [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum gross-opening)
+    Working: (dim/sum gross-opening) = 100 = 100.00
+4/1 Opening gross cost [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum gross-opening)
+    Working: (dim/sum gross-opening) = 100 = 100.00
+4/1 Opening gross cost [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum gross-opening)
+    Working: (dim/sum gross-opening) = 100 = 100.00
+4/1 Opening gross cost [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum gross-opening)
+    Working: (dim/sum gross-opening) = 100 = 100.00
+4/2 Σ Cost additions (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0 = –
+4/2 Cost additions [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/2 Cost additions [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/2 Cost additions [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/2 Cost additions [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/2 Cost additions [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/3 Σ Cost disposals (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0 = –
+4/3 Cost disposals [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum gross-disposals)
+    Working: (dim/sum gross-disposals) = 0 = –
+4/3 Cost disposals [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum gross-disposals)
+    Working: (dim/sum gross-disposals) = 0 = –
+4/3 Cost disposals [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum gross-disposals)
+    Working: (dim/sum gross-disposals) = 0 = –
+4/3 Cost disposals [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum gross-disposals)
+    Working: (dim/sum gross-disposals) = 0 = –
+4/3 Cost disposals [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum gross-disposals)
+    Working: (dim/sum gross-disposals) = 0 = –
+4/4 Σ Closing gross cost (Total)
+    Formula: last(year)
+    Working: last(year): [year=P5] 100 included → 100 = 100.00
+4/4 Closing gross cost [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum gross-closing)
+    Working: (dim/sum gross-closing) = 100 = 100.00
+4/4 Closing gross cost [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum gross-closing)
+    Working: (dim/sum gross-closing) = 100 = 100.00
+4/4 Closing gross cost [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum gross-closing)
+    Working: (dim/sum gross-closing) = 100 = 100.00
+4/4 Closing gross cost [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum gross-closing)
+    Working: (dim/sum gross-closing) = 100 = 100.00
+4/4 Closing gross cost [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum gross-closing)
+    Working: (dim/sum gross-closing) = 100 = 100.00
+4/5 Σ Opening accumulated depreciation (Total)
+    Formula: first(year)
+    Working: first(year): [year=P1] 80 included → 80 = 80.00
+4/5 Opening accumulated depreciation [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum accumulated-opening)
+    Working: (dim/sum accumulated-opening) = 80 = 80.00
+4/5 Opening accumulated depreciation [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum accumulated-opening)
+    Working: (dim/sum accumulated-opening) = 80.00 = 80.00
+4/5 Opening accumulated depreciation [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum accumulated-opening)
+    Working: (dim/sum accumulated-opening) = 80.00 = 80.00
+4/5 Opening accumulated depreciation [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum accumulated-opening)
+    Working: (dim/sum accumulated-opening) = 80.00 = 80.00
+4/5 Opening accumulated depreciation [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum accumulated-opening)
+    Working: (dim/sum accumulated-opening) = 80.00 = 80.00
+4/6 Σ Accumulated depreciation disposals (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0 = –
+4/6 Accumulated depreciation disposals [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum accumulated-disposals)
+    Working: (dim/sum accumulated-disposals) = 0 = –
+4/6 Accumulated depreciation disposals [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum accumulated-disposals)
+    Working: (dim/sum accumulated-disposals) = 0 = –
+4/6 Accumulated depreciation disposals [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum accumulated-disposals)
+    Working: (dim/sum accumulated-disposals) = 0 = –
+4/6 Accumulated depreciation disposals [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum accumulated-disposals)
+    Working: (dim/sum accumulated-disposals) = 0 = –
+4/6 Accumulated depreciation disposals [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum accumulated-disposals)
+    Working: (dim/sum accumulated-disposals) = 0 = –
+4/7 Σ Closing accumulated depreciation (Total)
+    Formula: last(year)
+    Working: last(year): [year=P5] 80.00 included → 80.00 = 80.00
+4/7 Closing accumulated depreciation [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum accumulated-closing)
+    Working: (dim/sum accumulated-closing) = 80.00 = 80.00
+4/7 Closing accumulated depreciation [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum accumulated-closing)
+    Working: (dim/sum accumulated-closing) = 80.00 = 80.00
+4/7 Closing accumulated depreciation [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum accumulated-closing)
+    Working: (dim/sum accumulated-closing) = 80.00 = 80.00
+4/7 Closing accumulated depreciation [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum accumulated-closing)
+    Working: (dim/sum accumulated-closing) = 80.00 = 80.00
+4/7 Closing accumulated depreciation [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum accumulated-closing)
+    Working: (dim/sum accumulated-closing) = 80.00 = 80.00
+4/8 Σ Opening carrying amount (Total)
+    Formula: first(year)
+    Working: first(year): [year=P1] 20 included → 20 = 20.00
+4/8 Opening carrying amount [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum carrying-opening)
+    Working: (dim/sum carrying-opening) = 20 = 20.00
+4/8 Opening carrying amount [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum carrying-opening)
+    Working: (dim/sum carrying-opening) = 20.00 = 20.00
+4/8 Opening carrying amount [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum carrying-opening)
+    Working: (dim/sum carrying-opening) = 20.00 = 20.00
+4/8 Opening carrying amount [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum carrying-opening)
+    Working: (dim/sum carrying-opening) = 20.00 = 20.00
+4/8 Opening carrying amount [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum carrying-opening)
+    Working: (dim/sum carrying-opening) = 20.00 = 20.00
+4/9 Σ Additions (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0 = –
+4/9 Additions [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/9 Additions [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/9 Additions [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/9 Additions [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/9 Additions [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum gross-additions)
+    Working: (dim/sum gross-additions) = 0 = –
+4/10 Σ Depreciation (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0.00 included; [year=P2] 0.00 included; [year=P3] 0.00 included; [year=P4] 0 included; [year=P5] 0 included → 0.00 = –
+4/10 Depreciation [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum depreciation)
+    Working: (dim/sum depreciation) = 0.00 = –
+4/10 Depreciation [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum depreciation)
+    Working: (dim/sum depreciation) = 0.00 = –
+4/10 Depreciation [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum depreciation)
+    Working: (dim/sum depreciation) = 0.00 = –
+4/10 Depreciation [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum depreciation)
+    Working: (dim/sum depreciation) = 0 = –
+4/10 Depreciation [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum depreciation)
+    Working: (dim/sum depreciation) = 0 = –
+4/11 Σ Net carrying amount disposed (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [year=P1] 0 included; [year=P2] 0 included; [year=P3] 0 included; [year=P4] 0 included; [year=P5] 0 included → 0 = –
+4/11 Net carrying amount disposed [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum carrying-disposals)
+    Working: (dim/sum carrying-disposals) = 0 = –
+4/11 Net carrying amount disposed [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum carrying-disposals)
+    Working: (dim/sum carrying-disposals) = 0 = –
+4/11 Net carrying amount disposed [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum carrying-disposals)
+    Working: (dim/sum carrying-disposals) = 0 = –
+4/11 Net carrying amount disposed [2029-01-01 – 2029-12-31]
+    Formula: (dim/sum carrying-disposals)
+    Working: (dim/sum carrying-disposals) = 0 = –
+4/11 Net carrying amount disposed [2030-01-01 – 2030-12-31]
+    Formula: (dim/sum carrying-disposals)
+    Working: (dim/sum carrying-disposals) = 0 = –
+4/12 Σ Closing carrying amount (Total)
+    Formula: last(year)
+    Working: last(year): [year=P5] 20.00 included → 20.00 = 20.00
+4/12 Closing carrying amount [2026-01-01 – 2026-12-31]
+    Formula: period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals
+    Working: 20 + 0 − 0.00 − 0 = 20.00
+4/12 Closing carrying amount [2027-01-01 – 2027-12-31]
+    Formula: period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals
+    Working: 20.00 + 0 − 0.00 − 0 = 20.00
+4/12 Closing carrying amount [2028-01-01 – 2028-12-31]
+    Formula: period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals
+    Working: 20.00 + 0 − 0.00 − 0 = 20.00
+4/12 Closing carrying amount [2029-01-01 – 2029-12-31]
+    Formula: period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals
+    Working: 20.00 + 0 − 0 − 0 = 20.00
+4/12 Closing carrying amount [2030-01-01 – 2030-12-31]
+    Formula: period-carrying-opening + period-additions − period-depreciation − period-carrying-disposals
+    Working: 20.00 + 0 − 0 − 0 = 20.00
+4/13 Σ Reported closing carrying amount (Total)
+    Formula: last(year)
+    Working: last(year): [year=P5] 20 included → 20 = 20.00
+4/13 Reported closing carrying amount [2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+    Working: (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 20.00
+4/13 Reported closing carrying amount [2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+    Working: (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0 → selected branch: 0 = 20.00
+4/13 Reported closing carrying amount [2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+    Working: (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0 → selected branch: 0 = 20.00
+4/13 Reported closing carrying amount [2029-01-01 – 2029-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+    Working: (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount → selected branch: 0 = 20.00
+4/13 Reported closing carrying amount [2030-01-01 – 2030-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+    Working: (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) = [value unavailable] → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = false → (if (= entry.period year.key) entry.carrying-amount 0) = 0 → (= entry.period year.key) = true → (if (= entry.period year.key) entry.carrying-amount 0) = 20 → (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings)) = 20 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.carrying-amount = 20.00
+4/14 Computed and independently reported closing amounts agree [2026-01-01 – 2026-12-31]
+    Formula: period-carrying-closing ≈ reported-closing (± 0.01)
+    Working: period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01) = –
+4/14 Computed and independently reported closing amounts agree [2027-01-01 – 2027-12-31]
+    Formula: period-carrying-closing ≈ reported-closing (± 0.01)
+    Working: period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01) = –
+4/14 Computed and independently reported closing amounts agree [2028-01-01 – 2028-12-31]
+    Formula: period-carrying-closing ≈ reported-closing (± 0.01)
+    Working: period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01) = –
+4/14 Computed and independently reported closing amounts agree [2029-01-01 – 2029-12-31]
+    Formula: period-carrying-closing ≈ reported-closing (± 0.01)
+    Working: period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01) = –
+4/14 Computed and independently reported closing amounts agree [2030-01-01 – 2030-12-31]
+    Formula: period-carrying-closing ≈ reported-closing (± 0.01)
+    Working: period-carrying-closing = 20.00; reported-closing = 20 → 20.00 − 20 = 0.00 (± 0.01) = –

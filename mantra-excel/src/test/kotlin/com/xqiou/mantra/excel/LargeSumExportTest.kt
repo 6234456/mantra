@@ -44,7 +44,13 @@ class LargeSumExportTest {
                 val duplicate = cell(export, requireNotNull(export.address("duplicate-total")))
                 assertEquals(CellType.FORMULA, total.cellType)
                 assertEquals(CellType.FORMULA, duplicate.cellType)
-                assertTrue(total.cellFormula.contains(":"), total.cellFormula)
+                export.workbook.forEach { sheet ->
+                    sheet.forEach { row ->
+                        row.filter { it.cellType == CellType.FORMULA }.forEach {
+                            Ex.validateFormula(it.cellFormula)
+                        }
+                    }
+                }
                 val evaluator = export.workbook.creationHelper.createFormulaEvaluator()
                 assertEquals(500500.0, evaluator.evaluate(total).numberValue)
                 assertEquals(256.0, evaluator.evaluate(duplicate).numberValue)

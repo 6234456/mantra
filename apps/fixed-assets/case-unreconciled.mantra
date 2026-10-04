@@ -1,0 +1,20 @@
+;; Independently authored fictional facts; standards support concepts only.
+(case fixed-assets-unreconciled
+  {:schema "assets/cost-model" :layout "assets/working-paper" :title "Fixed assets: Unreconciled closing carrying amount" :subject "Fictional demonstration entity" :period "2026–2030" :prepared-by "Mantra demonstration" :reference "Project-authored fictional facts" :expected-business [{:code "MANTRA-RECONCILE-FAILED" :node "period-carrying-reconciliation" :coord [:P2] :severity :error}]}
+  (inputs {
+    :assets [
+      {:id :Machine :title "Workshop machine" :category :machinery :depreciable true :opening-cost 120000 :opening-accumulated-depreciation 22000 :acquisition-cost 0 :acquisition-period nil :available-from "2026-01-01" :remaining-months 48 :residual-value 10000 :disposal-at-period-end nil}
+      {:id :Equipment :title "Finishing equipment" :category :machinery :depreciable true :opening-cost 0 :opening-accumulated-depreciation 0 :acquisition-cost 60000 :acquisition-period :P2 :available-from "2027-01-01" :remaining-months 36 :residual-value 0 :disposal-at-period-end :P3}
+      {:id :Land :title "Workshop land" :category :land :depreciable false :opening-cost 50000 :opening-accumulated-depreciation 0 :acquisition-cost 0 :acquisition-period nil :available-from "2026-01-01" :remaining-months nil :residual-value 0 :disposal-at-period-end nil}]
+    :reported-closings [
+      {:period :P1 :carrying-amount 126000}
+      {:period :P2 :carrying-amount 144000.02}
+      {:period :P3 :carrying-amount 82000}
+      {:period :P4 :carrying-amount 60000}
+      {:period :P5 :carrying-amount 60000}]
+    :calendar-periods [
+      {:id :P1 :start "2026-01-01" :end "2027-01-01"}
+      {:id :P2 :start "2027-01-01" :end "2028-01-01"}
+      {:id :P3 :start "2028-01-01" :end "2029-01-01"}
+      {:id :P4 :start "2029-01-01" :end "2030-01-01"}
+      {:id :P5 :start "2030-01-01" :end "2031-01-01"}]}))

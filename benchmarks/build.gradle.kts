@@ -18,3 +18,12 @@ application {
 tasks.named<JavaExec>("run") {
     workingDir = rootProject.projectDir
 }
+
+tasks.register<JavaExec>("runPeriods") {
+    group = "application"
+    description = "Runs the independent 200-series, ten-period benchmark and scoped value checks."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.xqiou.mantra.benchmarks.PeriodPerformanceBaseline")
+    workingDir = rootProject.projectDir
+    jvmArgs(application.applicationDefaultJvmArgs)
+}

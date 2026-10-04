@@ -72,6 +72,7 @@ describe('read-only value selection', () => {
       ...run,
       aggregates: {
         rate: {
+          kind: 'ratio',
           numeratorId: 'tax',
           denominatorId: 'profit',
           dimensions: ['entity'],

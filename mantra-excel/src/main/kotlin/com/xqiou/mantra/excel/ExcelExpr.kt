@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /** Value kind of a translated expression; used to choose boolean vs. value semantics. */
-enum class XKind { NUM, BOOL, TEXT, ANY }
+enum class XKind { NUM, BOOL, TEXT, DATE, ANY }
 
 /**
  * Symbolic Excel expression produced while translating a Normein formula. Only [Scalar] can be
@@ -12,13 +12,22 @@ enum class XKind { NUM, BOOL, TEXT, ANY }
  * sub-expressions (e.g. `(nth (cond …) 1)`, `(dim/sum all.x)`, `(get (alloc/pro-rata …) :k)`).
  */
 sealed interface X {
-    data class Scalar(val text: String, val prec: Int, val kind: XKind) : X
+    data class Scalar(
+        val text: String,
+        val prec: Int,
+        val kind: XKind,
+        val numericOrNil: Boolean = kind == XKind.NUM || text == "\"\"",
+        val booleanOrNil: Boolean = kind == XKind.BOOL || text == "\"\"",
+    ) : X
 
     data object Nil : X
 
     data class Vec(val items: List<X>) : X
 
     data class MapX(val keys: List<String>, val values: List<X>) : X
+
+    /** A lexical closure inlined at its call sites; never written to a workbook cell. */
+    class Callable(val invoke: (List<X>) -> X) : X
 
     /** Member map stored in contiguous cells; [text] is the range (or its name), [cells] the members. */
     data class Range(val text: String, val keys: List<String>, val cells: List<Scalar>) : X
@@ -44,6 +53,7 @@ object Ex {
     private const val MAX_FORMULA_LENGTH = 8192
     private const val MAX_FUNCTION_DEPTH = 64
     private val absoluteCell = Regex("^('(?:[^']|'')+'!)\\$([A-Z]{1,3})\\$([1-9][0-9]*)$")
+    private val quotedTextLiteral = Regex("\"(?:[^\"]|\"\")*\"")
 
     private data class CellRef(val sheet: String, val column: String, val row: Int)
 
@@ -57,6 +67,9 @@ object Ex {
     fun num(value: Long) = num(BigDecimal.valueOf(value))
 
     fun text(value: String) = atom("\"" + value.replace("\"", "\"\"") + "\"", XKind.TEXT)
+
+    internal fun isTextLiteral(value: X.Scalar): Boolean =
+        value.kind == XKind.TEXT && quotedTextLiteral.matches(value.text)
 
     val TRUE = atom("TRUE", XKind.BOOL)
     val FALSE = atom("FALSE", XKind.BOOL)
@@ -181,7 +194,11 @@ object Ex {
     fun mul(a: X.Scalar, b: X.Scalar) = bin("*", a, b, MUL)
     fun div(a: X.Scalar, b: X.Scalar) = bin("/", a, b, MUL)
     fun neg(a: X.Scalar) = X.Scalar("-" + paren(a, UNARY), UNARY, XKind.NUM)
-    fun cmp(op: String, a: X.Scalar, b: X.Scalar) = bin(op, a, b, CMP, XKind.BOOL)
+    fun cmp(op: String, a: X.Scalar, b: X.Scalar) = X.Scalar(
+        paren(a, CMP + 1) + op + paren(b, CMP + 1),
+        CMP,
+        XKind.BOOL,
+    )
     fun iff(c: X.Scalar, a: X.Scalar, b: X.Scalar) = fn(
         "IF",
         c,
@@ -194,7 +211,7 @@ object Ex {
         } else {
             XKind.ANY
         },
-    )
+    ).copy(numericOrNil = a.numericOrNil && b.numericOrNil, booleanOrNil = a.booleanOrNil && b.booleanOrNil)
 
     fun pow10(scale: X.Scalar): X.Scalar {
         val literal = scale.text.toBigDecimalOrNull()

@@ -108,7 +108,7 @@ Berechnungsnachweis
 -------------------
 1/2 Gesamtbetrag der Einkünfte
     Formel: summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug
-    Rechenweg: 10866.00 − 0 − 0 − 0 = 10.866,00
+    Rechenweg: 10866.00 − (Σ contributions: [person=A] 0 excluded → 0) − 0 − 0 = 10.866,00
 1/4 Einkommen
     Formel: gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug
     Rechenweg: 10866.00 − 0 − 36 − 0 = 10.830,00
@@ -135,19 +135,31 @@ Berechnungsnachweis
     Rechenweg: 0.0 + 0.00 + 0.00 = 0,00
 4/2 Nachzahlung (+) / Erstattung (−)
     Formel: festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen
-    Rechenweg: 0.00 − 0 − 0 − 0 − 0 = 0,00
+    Rechenweg: 0.00 − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − (Σ contributions: [person=A] 0 included → 0) − 0 = 0,00
 4/3 Abrechnung stimmt mit Steuern und Zahlungen überein
     Formel: abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)
     Rechenweg: abrechnungsergebnis = 0.00; (dim/sum lohnsteuer) = 0 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 0 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01) = 0,00
+5/1 Σ Bruttoarbeitslohn (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 12096 included → 12096 = 12.096,00
+5/2 Σ Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 1230 included → 1230 = 1.230,00
 5/2 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person A]
     Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
     Rechenweg: (> wk-nachgewiesen an-pauschbetrag) = false → (min an-pauschbetrag bruttoarbeitslohn) = 1230 → (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 1230 → gewählter Zweig: (min an-pauschbetrag bruttoarbeitslohn) = 1.230,00
+5/3 Σ Einkünfte aus nichtselbständiger Arbeit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 10866 included → 10866 = 10.866,00
 5/3 Einkünfte aus nichtselbständiger Arbeit [Person A]
     Formel: bruttoarbeitslohn − werbungskosten
     Rechenweg: 12096 − 1230 = 10.866,00
 5/4 Summe der Einkünfte
     Formel: einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige
-    Rechenweg: 0 + 0 + 0 + 10866 + 0 + 0 + 0.00 = 10.866,00
+    Rechenweg: (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 0 included → 0) + (Σ contributions: [person=A] 10866 included → 10866) + (Σ contributions: [person=A] 0 excluded → 0) + 0 + (Σ contributions: [person=A] 0.00 included → 0.00) = 10.866,00
+6/2 Σ Abziehbare Vorsorgeaufwendungen (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [person=A] 0 included → 0 = 0,00
 6/2 Abziehbare Vorsorgeaufwendungen [Person A]
     Formel: altersvorsorge + sonstige-vorsorge
     Rechenweg: 0 + 0 = 0,00
@@ -159,7 +171,7 @@ Berechnungsnachweis
     Rechenweg: (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) = 36 → (+ kirchensteuer-gezahlt spenden-abziehbar) = 0 → (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)) = 36 → (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar))) = 36 → gewählter Zweig: sonderausgaben-pauschbetrag = 36,00
 6/5 Sonderausgaben insgesamt
     Formel: vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag
-    Rechenweg: 0 + 0 + 0 + 36 = 36,00
+    Rechenweg: (Σ contributions: [person=A] 0 included → 0) + 0 + 0 + 36 = 36,00
 9/1 Durch Steuerabzug abgegolten
     Formel: abgeltungsteuer + abgeltung-soli
     Rechenweg: 0.00 + 0.00 = 0,00

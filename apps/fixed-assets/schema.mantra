@@ -1,0 +1,101 @@
+;; Independently authored cost-model demonstration, not a production accounting policy.
+;; Whole-asset disposal occurs at period end, after that period's depreciation.
+(schema assets/cost-model
+  {:title "Fixed assets – cost and depreciation roll-forward"
+   :subtitle "Five annual periods, explicit currency rounding and residual-value floors"
+   :version "0.1" :preset :ifrs-schedule :basis "IAS 16.50–55, 62, 73(e); HGB §284(3)"
+   :mainline [gross-flow accumulated-flow carrying-flow period-summary]}
+  (input assets :table
+    {:label "Asset register" :min-rows 1
+     :columns {:id :keyword :title :text :category :keyword :depreciable :boolean
+               :opening-cost :decimal :opening-accumulated-depreciation :decimal
+               :acquisition-cost :decimal :acquisition-period :keyword? :available-from :date
+               :remaining-months {:type :integer? :required-when row.depreciable}
+               :residual-value :decimal :disposal-at-period-end :keyword?}
+     :references {:acquisition-period year :disposal-at-period-end year}})
+  (input reported-closings :table
+    {:label "Independently reported carrying amounts"
+     :columns {:period :keyword :carrying-amount :decimal} :references {:period year}})
+  (input calendar-periods :table
+    {:label "Source calendar" :columns {:id :keyword :start :date :end :date}
+     :references {:id year}})
+  (param currency-scale 2 {:label "Currency calculation precision"})
+  (dimension asset {:label "Asset" :from assets :key :id :title :title :total-label "All assets"})
+  (dimension year {:label "Year" :periods {:start "2026-01-01" :unit :year :count 5}
+                   :total-label "First / last stock or total flow"})
+
+  (section gross-flow "Gross cost" {:per [asset year] :display :schedule}
+    (line gross-opening "Opening gross cost" (prev gross-closing asset.opening-cost)
+      {:aggregate {:first year}})
+    (line gross-additions "Acquisitions"
+      (if (= asset.acquisition-period year.key) asset.acquisition-cost 0))
+    (line gross-disposals "Disposals at period end"
+      (if (= asset.disposal-at-period-end year.key) (+ gross-opening gross-additions) 0)
+      {:op :minus})
+    (total gross-closing "Closing gross cost" {:aggregate {:last year}}))
+
+  (section accumulated-flow "Accumulated depreciation" {:per [asset year] :display :schedule}
+    (line accumulated-opening "Opening accumulated depreciation"
+      (prev accumulated-closing asset.opening-accumulated-depreciation)
+      {:aggregate {:first year}})
+    ;; Monthly overlap uses [start,end-exclusive); source dates are the first day of a month.
+    ;; A disposed asset has zero gross cost in every later coordinate.
+    (line service-months "Months in use"
+      (if (and asset.depreciable (> (+ gross-opening gross-additions) 0))
+        (max 0 (- (min asset.remaining-months (date/months-between asset.available-from year.end-exclusive))
+                  (max 0 (date/months-between asset.available-from year.start)))) 0)
+      {:op :info :format :integer :aggregate false})
+    (line depreciation "Depreciation for the period"
+      (if (= service-months 0) 0
+        (let [remaining (max 0 (- (+ gross-opening gross-additions)
+                                 accumulated-opening asset.residual-value))
+              basis (max 0 (- (+ asset.opening-cost asset.acquisition-cost)
+                             asset.opening-accumulated-depreciation asset.residual-value))]
+          ;; The final service period absorbs the currency residue down to the supplied floor.
+          (if (>= (date/months-between asset.available-from year.end-exclusive) asset.remaining-months)
+            remaining
+            (min remaining (decimal/divide (* basis service-months) asset.remaining-months currency-scale))))))
+    (line accumulated-disposals "Accumulated depreciation removed on disposal"
+      (if (= asset.disposal-at-period-end year.key) (+ accumulated-opening depreciation) 0)
+      {:op :minus})
+    (total accumulated-closing "Closing accumulated depreciation" {:aggregate {:last year}}))
+
+  (section carrying-flow "Net carrying amount" {:per [asset year] :display :schedule}
+    (line carrying-opening "Opening carrying amount" (prev carrying-closing
+      (- asset.opening-cost asset.opening-accumulated-depreciation)) {:aggregate {:first year}})
+    (line carrying-additions "Acquisitions" gross-additions)
+    (line carrying-depreciation "Depreciation" depreciation {:op :minus})
+    (line carrying-disposals "Net carrying amount removed on disposal"
+      (- gross-disposals accumulated-disposals) {:op :minus})
+    (total carrying-closing "Closing carrying amount" {:aggregate {:last year}})
+    (reconcile asset-cost-crossfoot "Gross cost less accumulated depreciation agrees"
+      carrying-closing (- gross-closing accumulated-closing) {:tolerance 0.01})
+    (check asset-residual-floor "Undisposed asset is not below residual value"
+      ;; Evaluate this money decision at the declared currency precision. XLSX
+      ;; subtraction may leave a binary residue even when the exact balance is zero.
+      (or (= gross-closing 0)
+        (>= (decimal/round carrying-closing currency-scale) asset.residual-value))))
+
+  (section period-summary "All-asset carrying bridge" {:per year :display :schedule}
+    (line period-gross-opening "Opening gross cost" (dim/sum gross-opening) {:op :info :aggregate {:first year}})
+    (line period-gross-additions "Cost additions" (dim/sum gross-additions) {:op :info})
+    (line period-gross-disposals "Cost disposals" (dim/sum gross-disposals) {:op :info})
+    (line period-gross-closing "Closing gross cost" (dim/sum gross-closing) {:op :info :aggregate {:last year}})
+    (line period-accumulated-opening "Opening accumulated depreciation" (dim/sum accumulated-opening)
+      {:op :info :aggregate {:first year}})
+    (line period-accumulated-disposals "Accumulated depreciation disposals" (dim/sum accumulated-disposals) {:op :info})
+    (line period-accumulated-closing "Closing accumulated depreciation" (dim/sum accumulated-closing)
+      {:op :info :aggregate {:last year}})
+    (line period-carrying-opening "Opening carrying amount" (dim/sum carrying-opening) {:aggregate {:first year}})
+    (line period-additions "Additions" (dim/sum gross-additions))
+    (line period-depreciation "Depreciation" (dim/sum depreciation) {:op :minus})
+    (line period-carrying-disposals "Net carrying amount disposed" (dim/sum carrying-disposals) {:op :minus})
+    (total period-carrying-closing "Closing carrying amount" {:aggregate {:last year}})
+    (line reported-closing "Reported closing carrying amount"
+      (sum (map (fn [entry] (if (= entry.period year.key) entry.carrying-amount 0)) reported-closings))
+      {:op :info :aggregate {:last year}})
+    (reconcile period-carrying-reconciliation "Computed and independently reported closing amounts agree"
+      period-carrying-closing reported-closing {:tolerance 0.01})))
+
+;; Simplifications: one acquisition and one whole-asset disposal; no impairment, revaluation, FX,
+;; transfers, component replacement, useful-life reassessment or tax depreciation.

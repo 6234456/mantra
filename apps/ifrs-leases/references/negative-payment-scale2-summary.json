@@ -1,0 +1,76 @@
+{
+  "case": "negative-payment",
+  "scale": 2,
+  "leases": [
+    {
+      "lease": "Office",
+      "initial_liability": "17255.16",
+      "initial_rou": "17255.16",
+      "commencement_cash": "0",
+      "final_liability": "0.01",
+      "final_rou": "0.00",
+      "total_interest": "1744.85",
+      "total_payments": "19000",
+      "total_rou_depreciation": "17255.16",
+      "periods": [
+        {
+          "period": "P1",
+          "liability_opening": "17255.16",
+          "interest": "862.76",
+          "payment": "10000",
+          "principal_reduction": "9137.24",
+          "liability_closing": "8117.92",
+          "rou_opening": "17255.16",
+          "rou_depreciation": "5751.72",
+          "rou_closing": "11503.44",
+          "reported_liability_closing": "8117.92",
+          "difference": "0.00"
+        },
+        {
+          "period": "P2",
+          "liability_opening": "8117.92",
+          "interest": "405.90",
+          "payment": "-1000",
+          "principal_reduction": "-1405.90",
+          "liability_closing": "9523.82",
+          "rou_opening": "11503.44",
+          "rou_depreciation": "5751.72",
+          "rou_closing": "5751.72",
+          "reported_liability_closing": "9523.81",
+          "difference": "0.01"
+        },
+        {
+          "period": "P3",
+          "liability_opening": "9523.82",
+          "interest": "476.19",
+          "payment": "10000",
+          "principal_reduction": "9523.81",
+          "liability_closing": "0.01",
+          "rou_opening": "5751.72",
+          "rou_depreciation": "5751.72",
+          "rou_closing": "0.00",
+          "reported_liability_closing": "0.01",
+          "difference": "0.00"
+        }
+      ]
+    }
+  ],
+  "combined_initial_liability": "17255.16",
+  "combined_final_liability": "0.01",
+  "combined_final_rou": "0.00",
+  "interest_flow": "1744.85",
+  "payment_flow": "19000",
+  "depreciation_flow": "17255.16",
+  "validation_passed": false,
+  "expected_business": [
+    {
+      "code": "MANTRA-CHECK-FAILED",
+      "node": "payment-nonnegative",
+      "coord": [
+        "Office",
+        "P2"
+      ],
+      "severity": "error"
+    }
+  ]
+}

@@ -12,12 +12,15 @@ import com.xqiou.mantra.core.engine.LineVertex
 import com.xqiou.mantra.core.engine.NodeResult
 import com.xqiou.mantra.core.engine.ParamVertex
 import com.xqiou.mantra.core.engine.ReconcileVertex
+import com.xqiou.mantra.core.engine.ReductionNode
+import com.xqiou.mantra.core.engine.ReductionService
 import com.xqiou.mantra.core.engine.ResolvedItem
 import com.xqiou.mantra.core.engine.ResolvedNode
 import com.xqiou.mantra.core.engine.ResolvedNote
 import com.xqiou.mantra.core.engine.ResolvedSection
 import com.xqiou.mantra.core.engine.TotalVertex
 import com.xqiou.mantra.core.engine.ValueVertex
+import com.xqiou.mantra.core.engine.undefinedValues
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.CheckItem
@@ -104,7 +107,14 @@ class ViewNode(
     val aggregateValue: BigDecimal? = null,
     /** Engine-owned weighted aggregation evidence; renderers never recompute its totals. */
     val aggregateTrace: RatioAggregateTrace? = null,
+    val reduction: AggregationResult? = null,
+    /** True when active nil is a real undefined calculation, rather than an optional zero input. */
+    val undefinedValues: Boolean = false,
 ) {
+    val aggregate: AggregateRule get() = input?.aggregate ?: line?.aggregate ?: total?.aggregate
+        ?: choice?.aggregate ?: AggregateRule.NONE
+    val ratio get() = input?.ratio ?: line?.ratio ?: total?.ratio ?: choice?.ratio
+    val boundary get() = input?.boundary ?: line?.boundary ?: total?.boundary ?: choice?.boundary
     fun value(coord: Coord = emptyList()): Value = values[coord] ?: Value.Nil
     fun isActive(coord: Coord = emptyList()): Boolean = active[coord] == true
     fun trace(coord: Coord = emptyList()): NodeTrace? = traces[coord]
@@ -112,6 +122,7 @@ class ViewNode(
 
     /** Null for a declared nonadditive measure. */
     fun crossTotal(): BigDecimal? {
+        if (reduction != null) return (reduction.value as? Value.Num)?.value
         if (check != null || reconcile != null) return null
         if (line?.aggregate == AggregateRule.RATIO) return aggregateValue
         if (total != null && values.any { (coord, value) -> value == Value.Nil && isActive(coord) }) return null
@@ -137,6 +148,58 @@ class CalculationView private constructor(
     /** Total number of directed dependencies in the compiled calculation graph. */
     val dependencyCount: Int,
 ) {
+    private val memberKeys by lazy { members.mapValues { (_, domain) -> domain.map { it.key }.toSet() } }
+    private val reductions by lazy {
+        ReductionService(
+            { id ->
+                val source = node(id)
+                ReductionNode(
+                    source.id, source.dims, source.type, source.aggregate, source.ratio, source.boundary,
+                    source.values, source.active, source.location,
+                    source.check != null || source.reconcile != null, source.total != null, source.undefinedValues,
+                )
+            },
+            { id -> members[id].orEmpty() },
+            parents = { id ->
+                dimensions[id]?.parentDimension?.let { parent ->
+                    val column = dimensions.getValue(id).parentKeyColumn ?: "parent-key"
+                    parent to members[id].orEmpty().mapNotNull { member ->
+                        when (val value = member.record[column]) {
+                            is Value.Kw -> member.key to value.name
+                            is Value.Text -> member.key to value.value
+                            is Value.Num -> member.key to value.value.stripTrailingZeros().toPlainString()
+                            else -> null
+                        }
+                    }.toMap()
+                }
+            },
+        )
+    }
+
+    /** Exact configured reduction in a fixed coordinate scope. Unrelated axes broadcast the node. */
+    fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult {
+        validateFixed(fixed)
+        return reductions.reduce(nodeId, fixed)
+    }
+
+    /** Complete canonical coordinate, if the fixed child and ancestor assignments are consistent. */
+    fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? {
+        validateFixed(fixed)
+        return reductions.coordinate(nodeId, fixed)?.let(::frozenList)
+    }
+
+    /** All declared coordinates compatible with one fixed child/ancestor scope, in canonical order. */
+    fun coordinates(nodeId: String, fixed: Map<String, String> = emptyMap()): List<Coord> {
+        validateFixed(fixed)
+        return frozenList(reductions.coordinates(nodeId, fixed).map(::frozenList))
+    }
+
+    private fun validateFixed(fixed: Map<String, String>) {
+        fixed.forEach { (dimension, member) ->
+            require(dimension in dimensions) { "Unknown dimension $dimension" }
+            require(member in memberKeys[dimension].orEmpty()) { "Unknown member $member of $dimension" }
+        }
+    }
     val succeeded: Boolean get() = diagnostics.none {
         it.severity == com.xqiou.mantra.core.Severity.ERROR && it.category != DiagnosticCategory.BUSINESS
     }
@@ -285,6 +348,16 @@ class CalculationView private constructor(
                     }.toMap().snapshotCoords { it },
                     aggregateValue = calculated.aggregateValue,
                     aggregateTrace = calculated.aggregateTrace?.let(::aggregateSnapshot),
+                    reduction = calculated.reduction?.let { reduction ->
+                        reduction.copy(
+                            value = reduction.value?.snapshot(),
+                            trace = when (val generic = reduction.trace) {
+                                is RatioAggregateTrace -> aggregateSnapshot(generic)
+                                else -> generic?.snapshot()
+                            },
+                        )
+                    },
+                    undefinedValues = vertex.undefinedValues,
                 )
             }
             return CalculationView(

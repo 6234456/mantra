@@ -81,11 +81,12 @@ internal fun ExcelWorkbookBuilder.layoutInputs() {
                     nodeSlots[input.id] = slots
                     r++
                 }
-                else -> fallbackPlacement += Triple(input, Slot(sheet, r++, 2), "input with more than one dimension")
+                else -> Unit
             }
         }
         r++
     }
+    layoutRemainingInputs(sheet, r)
 }
 
 internal fun ExcelWorkbookBuilder.layoutTableInput(sheet: XSSFSheet, start: Int, input: ViewNode): Int {
@@ -110,12 +111,21 @@ internal fun ExcelWorkbookBuilder.layoutTableInput(sheet: XSSFSheet, start: Int,
         columns.forEachIndexed { i, column ->
             val slot = Slot(sheet, r, 1 + i)
             tableSlots[Triple(input.id, index, column.name)] = slot
-            val value = fields[column.name] ?: Value.Nil
+            val raw = fields[column.name] ?: Value.Nil
+            val value = if (column.type == ValueType.DATE && raw is Value.Text) {
+                Value.Date(java.time.LocalDate.parse(raw.value))
+            } else {
+                raw
+            }
             writeValue(slot, value)
             cell(sheet, r, 1 + i).cellStyle =
                 styles.get(
                     StyleKey(
-                        format = if (column.type.isNumeric) styles.amountFormat(layout.number.precision) else null,
+                        format = when {
+                            column.type == ValueType.DATE -> "yyyy-mm-dd"
+                            column.type.isNumeric -> styles.amountFormat(layout.number.precision)
+                            else -> null
+                        },
                         fill = Fill.INPUT,
                     ),
                 )
@@ -157,7 +167,7 @@ internal fun ExcelWorkbookBuilder.layoutParams() {
         text(sheet, r, 1, param.id, StyleKey(muted = true))
         text(sheet, r, 3, param.parameter!!.presentation.reference.orEmpty(), StyleKey(muted = true))
         when (param.parameterValue) {
-            is Value.Num, is Value.Bool, is Value.Kw, is Value.Text -> {
+            is Value.Num, is Value.Bool, is Value.Kw, is Value.Text, is Value.Date -> {
                 val slot = Slot(sheet, r, 2)
                 nodeSlots[param.id] = linkedMapOf(emptyList<String>() to slot)
                 valueStyles[slot] =
@@ -186,7 +196,7 @@ internal fun ExcelWorkbookBuilder.layoutHelpers() {
     sheet.setColumnWidth(1, 30 * 256)
     (2..14).forEach { sheet.setColumnWidth(it, 16 * 256) }
     if (options.formulaColumn) sheet.setColumnWidth(15, 60 * 256)
-    var r = 2
+    var r = layoutRemainingComputations(sheet, 2)
     var headerDim: String? = null
 
     fun memberHeader(dim: String) {
@@ -209,6 +219,7 @@ internal fun ExcelWorkbookBuilder.layoutHelpers() {
     }
     // Section guards.
     view.conditions.values.forEach { guard ->
+        if (guard.id in guardSlots) return@forEach
         val section = findSectionLabel(guard.sectionId) ?: guard.sectionId
         val slots = linkedMapOf<Coord, Slot>()
         if (guard.dims.isEmpty()) {
@@ -269,6 +280,19 @@ internal fun ExcelWorkbookBuilder.layoutHelpers() {
             optionSlots[choice.id to option.key] = slots
             r++
         }
+    }
+    // Global aggregates exist independently of presentation slices or transposed columns.
+    view.nodes.values.filter {
+        it.dims.isNotEmpty() && it.type.isNumeric && it.aggregate != com.xqiou.mantra.core.model.AggregateRule.NONE &&
+            it.check == null && it.reconcile == null && it.id !in aggregateSlots
+    }.forEach { node ->
+        text(sheet, r, 0, node.label + " (" + texts.total + ")")
+        text(sheet, r, 1, "aggregate.${node.id}", StyleKey(muted = true))
+        val slot = Slot(sheet, r++, 2)
+        valueStyles[slot] = StyleKey(format = numberFormat(node.presentation, false))
+        aggregateSlots[node.id] = slot
+        reductionSlots[node.id to emptyMap()] = slot
+        presentation += slot to { aggregateRef(node.id) }
     }
 }
 

@@ -22,6 +22,7 @@ internal fun WorkspaceCatalog.resolve(
     includeLayout: Boolean = true,
     caseText: String? = null,
     explain: ExplainAddress? = null,
+    audit: Boolean = false,
 ): Resolved {
     val casePath = path(caseId)
     val entry = snapshot.kind("case").singleOrNull { it.path == casePath }
@@ -60,12 +61,14 @@ internal fun WorkspaceCatalog.resolve(
         )
     }
     val schemaPath = matches.single().path
+    val schemaSources = linkedMapOf<String, String>()
     val schema = try {
+        val primary = source(schemaPath).also { schemaSources[it.name] = it.text }
         Mantra.loadSchema(
-            source(schemaPath),
+            primary,
             SourceResolver { name, relative ->
                 val base = relative?.base?.let(Path::of) ?: schemaPath.parent
-                runCatching { source(base.resolve(name)) }.getOrNull()
+                runCatching { source(base.resolve(name)).also { schemaSources[it.name] = it.text } }.getOrNull()
             },
         )
     } catch (error: MantraException) {
@@ -96,7 +99,7 @@ internal fun WorkspaceCatalog.resolve(
     val bound = BoundSources.load(case, schema, casePath, root)
     val result = try {
         if (explain == null) {
-            Mantra.calculateForAudit(schema, bound.case, parameters)
+            sessions.calculate(caseId, schemaFingerprint(schemaSources), schema, bound.case, parameters, audit)
         } else {
             Mantra.calculateForExplain(schema, bound.case, parameters, explain.node, explain.coord)
         }

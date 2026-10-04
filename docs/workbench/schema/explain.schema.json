@@ -254,7 +254,7 @@
               "aggregate": {
                 "oneOf": [
                   {
-                    "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+                    "$ref": "envelope.schema.json#/$defs/aggregate"
                   },
                   {
                     "type": "null"
@@ -323,7 +323,7 @@
         "aggregate": {
           "oneOf": [
             {
-              "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+              "$ref": "envelope.schema.json#/$defs/aggregate"
             },
             {
               "type": "null"
