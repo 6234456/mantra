@@ -6,3 +6,7 @@
 *.jpeg binary
 *.gif binary
 *.pdf binary
+# Frozen independent references are hashed byte for byte, including CSV record endings.
+apps/de-est/independent/loss-cases.csv -text
+apps/de-gewst/independent/trade-cases.csv -text
+apps/circular-calculation/independent/converge-cases.csv -text
