@@ -57,6 +57,7 @@ class ExcelErrorPropagationTest {
             Scenario("(some? $date)", Value.Bool(true)),
             Scenario("(date? $date)", Value.Bool(true)),
             Scenario("(date? (/ 2 divisor))", Value.Bool(false)),
+            Scenario("(if (date? (/ 2 divisor)) 7 9)", Value.num(9)),
             Scenario("(nil? (date/parse (str (/ 2 divisor))))", Value.Bool(true)),
         )
         scenarios.forEach { scenario ->

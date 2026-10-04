@@ -30,7 +30,11 @@ internal fun translateDateCall(head: String, args: List<DslForm>, scalar: (DslFo
             if (input.kind == XKind.DATE) {
                 Ex.cmp("<>", input, Ex.EMPTY)
             } else {
-                Ex.iff(Ex.fn("ISERROR", input, kind = XKind.BOOL), input, Ex.FALSE).copy(kind = XKind.BOOL)
+                Ex.iff(Ex.fn("ISERROR", input, kind = XKind.BOOL), input, Ex.FALSE).copy(
+                    kind = XKind.BOOL,
+                    numericOrNil = false,
+                    booleanOrNil = true,
+                )
             }
         }
         "date/parse" -> {

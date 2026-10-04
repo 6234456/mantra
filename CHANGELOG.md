@@ -2,6 +2,9 @@
 
 ## Unreleased — v0.3 / M2 (implementation in progress)
 
+- Cache scoped Excel reduction expressions and restore live range sums for complete unconditional scopes;
+  preserve editable guards, parent relations and declared period boundaries. Nested date predicates retain
+  Boolean metadata and propagate upstream errors during workbook recalculation.
 - Add continuous static/generated periods, member-level previous-period dependencies and explicit
   first/last stock aggregation. Flow reductions remain additive; public evidence comes from the core.
 - Add grouped two-dimensional and transposed working papers with exact per-cell addresses.

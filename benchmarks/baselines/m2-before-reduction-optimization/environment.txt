@@ -1,0 +1,18 @@
+capturedAtUtc=2026-10-04T09:16:20.010821Z
+mantraRevision=fe5bf8eceb5e02b11d6de65a064ca7db991e47be
+workingTreeModified=false
+normeinVersion=0.3.0
+normeinCommit=0a3ae1de844c92635fbbc03406a13cb0e8920c03
+javaVersion=21.0.12.1
+javaVendor=Azul Systems, Inc.
+vmName=OpenJDK 64-Bit Server VM
+vmArguments=-XX:+UseG1GC -Xms512m -Xmx2g -Dfile.encoding=UTF-8 -Duser.country=DE -Duser.language=zh -Duser.variant
+kotlinVersion=2.2.20
+os=Mac OS X 27.0 aarch64
+availableProcessors=10
+maxHeapBytes=2147483648
+warmupPerOperation=5
+repetitionsPerOperation=10
+scenarios=small:25/5/25, lines:250/5/25, members:25/50/25, table-rows:25/5/1000, combined:250/50/1000
+libraryAndHarnessSourceSha256=9b8e093eb40e0ff75eb51bbf9f8a3f1adb5f4f92e21828d52e06d13670bef135
+heapMethod=Sum of JVM heap-pool peaks after reset; GC requested before each sample outside measured time; not allocations or process RSS

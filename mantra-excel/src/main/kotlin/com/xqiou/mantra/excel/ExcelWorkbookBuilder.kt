@@ -55,6 +55,7 @@ internal class ExcelWorkbookBuilder(
     /** First visible cell containing a node's aggregate over all member dimensions. */
     internal val aggregateSlots = linkedMapOf<String, Slot>()
     internal val reductionSlots = linkedMapOf<Pair<String, Map<String, String>>, Slot>()
+    internal val reductionExpressions = hashMapOf<Pair<String, Map<String, String>>, X.Scalar?>()
     internal val optionSlots = linkedMapOf<Pair<String, String>, LinkedHashMap<Coord, Slot>>()
     internal val guardSlots = linkedMapOf<String, LinkedHashMap<Coord, Slot>>()
     internal val activeSlots = linkedMapOf<Pair<String, String>, Slot>()

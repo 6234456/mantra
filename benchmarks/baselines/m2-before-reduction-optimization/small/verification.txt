@@ -1,0 +1,5 @@
+All 128 calculated values matched independent arithmetic and cached XLSX values.
+Expected answer: 463.75
+Formula cells: 189
+Fallbacks: 0
+Evaluation errors: 0

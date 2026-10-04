@@ -7,7 +7,10 @@ import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.ViewNode
 
 /** Mirrors engine reduction policy using live cells and explicit declared period order. */
-internal fun ExcelWorkbookBuilder.reductionFormula(node: ViewNode, fixed: Map<String, String>): X.Scalar? {
+internal fun ExcelWorkbookBuilder.reductionFormula(node: ViewNode, fixed: Map<String, String>): X.Scalar? =
+    reductionExpressions.getOrPut(node.id to fixed.toMap()) { buildReductionFormula(node, fixed) }
+
+private fun ExcelWorkbookBuilder.buildReductionFormula(node: ViewNode, fixed: Map<String, String>): X.Scalar? {
     if (!node.type.isNumeric || node.check != null || node.reconcile != null) return null
     val contextDims = node.dims.filter { it in fixed }
     val coord = contextDims.map(fixed::getValue)
@@ -18,13 +21,23 @@ internal fun ExcelWorkbookBuilder.reductionFormula(node: ViewNode, fixed: Map<St
     }
     if (node.aggregate == AggregateRule.NONE) return null
     val included = reductionMembers(node, fixed)
-    fun component(id: String): X.Scalar = boundedReductionSum(
-        included.map { (at, condition) ->
-            val value = reference(id, node.dims, at) as? X.Scalar
-                ?: throw Untranslatable("$id lacks a cell for $at")
-            Ex.iff(condition, value, Ex.ZERO)
-        },
-    )
+    fun component(id: String): X.Scalar {
+        // Only a complete, statically unconditional member scope may use its contiguous range.
+        // Editable guards, parent relations and period boundary selections retain live terms.
+        val range = rangeNames[id]
+        if (range != null && view.nodes[id]?.dims == node.dims && included.isNotEmpty() &&
+            included.all { it.second == Ex.TRUE } && included.map { it.first } == nodeSlots[id]?.keys?.toList()
+        ) {
+            return Ex.fn("SUM", Ex.atom(range))
+        }
+        return boundedReductionSum(
+            included.map { (at, condition) ->
+                val value = reference(id, node.dims, at) as? X.Scalar
+                    ?: throw Untranslatable("$id lacks a cell for $at")
+                if (condition == Ex.TRUE) value else Ex.iff(condition, value, Ex.ZERO)
+            },
+        )
+    }
     node.line?.ratio?.let { ratio ->
         val numerator = compactReduction(component(ratio.numerator))
         val denominator = compactReduction(component(ratio.denominator))
