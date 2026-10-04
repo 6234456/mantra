@@ -1,0 +1,21 @@
+{
+  "original": {
+    "groups": 30,
+    "samples": 300,
+    "samplesSha256": "1c8bc00f592abea9716abce1ef9b812d070eb1f7433829ed26875d738253ed36",
+    "summarySha256": "a1e3aacb70a5cecf008b3e74b6642386a49a01a78320be4f4689818d60e9d98b",
+    "budgetsPassed": true,
+    "maximumHeapPoolPeakBytes": 600391712
+  },
+  "periods": {
+    "groups": 9,
+    "samples": 90,
+    "samplesSha256": "1a07197acf0aec188634833461acfd3129a1aee01d387a4dd72b387502a27a4c",
+    "summarySha256": "3d8a2c000a64b980c6086cbf99cb0c6ae46825a98c1be2a881990d3b3df0cfed",
+    "budgetsPassed": true,
+    "maximumHeapPoolPeakBytes": 497599736
+  },
+  "groups": 39,
+  "samples": 390,
+  "engineExecuted": false
+}

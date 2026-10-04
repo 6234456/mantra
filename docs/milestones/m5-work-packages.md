@@ -1,7 +1,9 @@
 # M5 工作包：开发者体验
 
-> 状态（2026-10-04）：交付已实现并有实际专项记录；最终联合退出验收待完成。
-> 本文不标记 M5、M6、v1.0、IDE 市场发布或 Maven Central 发布完成。
+> 状态（2026-10-04）：联合 `1.0.0-rc.1` 候选的实现与功能验收已完成。
+> 测量源码 `ae9af84bde3f82cc86787e908aab7be76ddecee9` 的远端 CI 与冻结性能独立复核通过。
+> 最终源码发行修订及 CI 见 `v1.0.0-rc.1` tag 与[发行候选记录](../release-candidate.md)的 release receipt。
+> 不宣称稳定 `1.0.0`、IDE 市场或 Maven Central 已发布。
 > 依据：[路线图](../roadmap.md) M5、R1/R5/R8、T4，
 > [工作台契约](../workbench/contract.md) D2 与 [M4 工作包](m4-work-packages.md)。
 
@@ -16,19 +18,21 @@ Normein 继续锁定 0.3.0 原提交，没有以插件实现为由修改内核�
 
 ## 2. 交付与实际验收
 
-| 包 | 交付 | 已执行证据 | 剩余出口 |
+| 包 | 交付 | 候选实际验收 | 支持或发布边界 |
 | --- | --- | --- | --- |
-| D1 语言服务 | `core.api.language` 静态服务、布局目录桥接、`mantra-lsp` 与 `mantra lsp --stdio`；诊断、补全、悬停、定义、引用、版本化 rename | 已安装 stdio 命令实际 initialize/navigation/hover/references/rename/shutdown；LSP framing、来源范围、静态 links 与文档版本测试已运行 | 最新来源/协议硬化后的全量与 CI |
-| D2 薄 IDE 客户端 | VS Code 官方 language client；IntelliJ classic platform action client | VS Code 实际编译和 5 项 Node 测试；IntelliJ 全平台编译、plugin ZIP；13 项协议测试含真实安装服务器进程、取消及清理 | CI 的 protocol-only 重跑；原生 IDE 交互和 Community/plugin verifier 不在现有证据内 |
-| D3 英文教程 | 四个 invoice 文档、CLI 和 public Kotlin 例子、HTML/XLSX/PDF 输出 | `check` 实际结构检查、`verifyDocumentationExamples` 编译运行，独立应缴 300.00；教程 PDF 2 页已渲染检查 | 最终发行源码与文档复制后重跑 |
-| D4 文档站点 | 离线生成器、函数/诊断目录、公共声明索引、六库真实 Dokka HTML、哈希清单和链接检查 | 26 项生成器测试通过；六库 Dokka/staging 已生成；缺失制品和坏链接严格失败 | 最终 `--require-artifacts --catalog` 生成、所有 KDoc/下载链接与来源摘要检查 |
-| D5 展示库 | 十个应用各有一页，附 README、方案、案例、manifest、独立来源和实际 HTML/Text/XLSX | 应用包验收、十应用 fixtures 与 13 条浏览器流程实际通过 | 最终全部应用/独立复算及最新站点严格运行 |
-| D6 PDF/打印 | 有界 PDF、分页、重复表头、页码、Unicode 字体、审计附录、CLI/服务导出 | `PdfRendererTest` 实际通过；长底稿 5 页与租赁 23 页无越界字符；教程 2 页全页视觉检查 | 最终输出的页数/字形/数值/边界检查，记录视觉 QA 实际范围 |
-| D7 诊断本地化 | 全部静态代码的 EN/DE 说明、未知 Normein fallback、原英文 message 可见细节 | catalog 4 项与组件 3 项测试已执行；旧 91 项完整 UI 运行通过 | 最新 UI 全量/check/build 与最终浏览器流程 |
-| D8 参考工作台 | 通用校验/二维/prev/links 来源树、方案包/版本/迁移、主题和地址式导航 | 通用页面组件、package fixtures、live build；13 条浏览器流程包含新中性应用并记录进程/profile 清理 | 最终 package live/迁移/导出流程与资源清理；不得以 fixtures 模式替代全部 live 证据 |
+| D1 语言服务 | 静态 core 服务、布局桥接、LSP/CLI stdio；诊断、补全、悬停、定义、引用、版本化 rename | 21 项 LSP 协议/UTF-8/来源边界测试；两种实际安装入口完成 initialize/navigation/hover/references/rename/shutdown 和清理；候选 CI 通过 | 只提供已声明的 LSP 能力，不运行公式做静态检查 |
+| D2 薄 IDE 客户端 | VS Code language client；IntelliJ classic action client | VS Code 编译/5 项 Node 测试；IntelliJ 全平台编译/ZIP；13 项协议测试含实际安装进程、取消与清理；候选 CI 通过 | 原生 IDE 交互及 Community/plugin verifier 不在现有证据内；未上传插件市场 |
+| D3 英文教程 | 四个 invoice 文档、CLI/public Kotlin、HTML/XLSX/PDF | 当前完整检查实际编译/运行，独立应缴 300.00；PDF 2 页视觉检查 | 发行文档和离线下载保留实际源文件 |
+| D4 文档站点 | 离线生成器、函数/诊断目录、公共声明、六库 Dokka、摘要与链接检查 | 26 项生成器测试；最终 strict manifest 无 artifact issue，检查 2,615 HTML 文档和 66,473 本地链接 | 文档更新后严格站点/摘要已重建并核对；未 hosted 部署 |
+| D5 展示库 | 十应用各页、README、DSL/case/manifest、独立来源和三格式 | 十应用包/独立数值/fixtures 及 13 条浏览器流程通过，候选 CI 通过 | 展示范围和简化有声明，不发布为税务或财务生产软件 |
+| D6 PDF/打印 | 有界 PDF、分页/表头/页码/Unicode/审计，CLI/服务导出 | 自动边界测试与 long 5 页/lease 23 页；教程 2 页视觉检查；实际 package smoke 10 份 binary PDF 与 26 处日期来源 | 视觉 QA 范围如实记录，不等于所有输出逐页人工认证 |
+| D7 诊断本地化 | 静态代码 EN/DE、未知 Normein fallback、可见原英文细节 | 最新 UI 20 文件 103 项测试及 check/build 通过；浏览器流程通过 | 稳定 code/原文不被翻译说明替换 |
+| D8 参考工作台 | 通用校验/矩阵/prev/links、package/迁移、主题与地址导航 | package live 四只读页；输入 14→16→14、参数 14→28→14、迁移 14↔21；stale 拒绝、refresh 重预览、注释保留、进程/profile/文件清理通过 | 不按应用 ID 特化；目录默认 `STRICT_HANDLES`，`TRUSTED_LOCAL` 必须显式选择 |
 
-表中测试数属于相应真实运行，不能把后续专项 XML 当作完整测试清单。
-较早成功运行不是最新导入/协议/资源修复已全部通过的证明。
+表中测试数属于相应真实运行，不能把后续专项 XML 相加为完整测试清单。
+当前修复已由全量检查和[候选 CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941)
+复验；历史失败和成功日志继续保留。390 个冻结样本与实际 10k 批量的独立核对见
+[RC 性能报告](../performance-v1.md)，不以 UI 或站点成功替代数值证据。
 [客户端说明](../../editors/README.md)明确当前支持矩阵：VS Code 正常语言功能，
 IntelliJ 的 classic action 入口与诊断标记；未运行的原生 IDE 操作不写成已验收。
 
@@ -60,7 +64,8 @@ python3 scripts/generate-docs-site.py --require-artifacts --catalog build/mantra
 
 应用测试及独立来源核对先生成全部展示输出；严格模式要求真实六库 KDoc 与全部配置下载。
 生成清单记录文件字节 SHA-256，生成器验证本地 HTML/anchor，外部链接不冒称已访问。
-Hosted 部署是另一个明确动作；离线 `build/docs-site` 可交付，不等于已经托管或公开发布。
+严格离线站点已在最终文档更新后重新生成并通过摘要/链接检查。
+Hosted 部署是另一个明确动作，离线 `build/docs-site` 不等于已经托管或公开发布。
 
 ## 5. 退出条件
 
@@ -70,5 +75,7 @@ D1–D8 在最终源码修订的全 `check`、UI 与实际 CI 通过；教程从
 测试与人工探针关闭全部自有进程、临时 profile、文件和 worker。
 
 发行记录必须区分源代码、IDE 可安装 ZIP、离线站点、本地 Maven staging 与实际公开制品。
-公开 Maven 上传仍待 namespace/signing/repository 和对应 Normein 制品前置，不能从 consumer
-通过推导出已发布。最终稳定版还依赖 M6 性能、安全和兼容出口。
+当前候选的功能、性能、安全与兼容检查已实际通过；最终源码发行修订及 CI 以 `v1.0.0-rc.1`
+tag 和[发行候选记录](../release-candidate.md)的 release receipt 为准。
+公开 Maven 上传尚未执行。Maven namespace/signing 与对应公开 Normein 0.3.0
+制品仍待维护者决定并配置，不能从 consumer 通过推导出已发布。

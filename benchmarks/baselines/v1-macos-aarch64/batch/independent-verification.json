@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "distinctCaseIds": 10000,
+  "independentNumericComparisons": 1120000,
+  "elapsedMillis": 22777,
+  "peakHeapPoolSumBytes": 333767296,
+  "actualSha256": "ea7456d8e9dddecbbe7fc4c9f489fbca1337677b5b7c0222147796b2e1b5315a",
+  "statistics": {
+    "sessionOpens": 22,
+    "sessionCloseAttempts": 22,
+    "successfulSessionCloses": 22,
+    "executionPlanCompilations": 0,
+    "rowCycles": 560000,
+    "physicalRowPreparations": 560000,
+    "logicalExpressionEvaluations": 560000,
+    "frameAllocations": 22,
+    "valueOnlyEvidenceMaterializations": 0
+  },
+  "engineExecutedByVerifier": false
+}

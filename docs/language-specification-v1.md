@@ -7,7 +7,13 @@ application laws and paper formatting do not add calculation rules. The independ
 [`conformance/`](../conformance/README.md) identifies clauses below; passing that finite corpus is
 evidence of conformance, not a proof for every possible document. The 24 frozen corpus vectors have
 passed the external-adapter runner. That result does not close graph, lifecycle, output, security
-or performance integration gates, and this document does not declare a completed v1.0 release.
+or performance integration gates by itself. The joint `1.0.0-rc.1` candidate implementation and
+functional acceptance have now passed those recorded integration gates. Measured source
+`ae9af84bde3f82cc86787e908aab7be76ddecee9` has
+[green candidate CI](https://github.com/6234456/mantra/actions/runs/37220953941) and independently
+verified frozen performance. The final source-publication revision and CI are identified by the
+`v1.0.0-rc.1` tag and the [candidate report](release-candidate.md) release receipt; this document
+does not declare a stable `1.0.0` or Maven Central release.
 
 ## S1. Documents and literals
 
@@ -127,8 +133,9 @@ reviewable and conditional on the reviewed source revision. Old versions may coe
 **S6.3** Parameter validity uses an explicit host-supplied effective date and half-open validity
 intervals. Overlap and gaps for required keys fail; what-if selections are explicit and retain their
 true provenance. Adapters may select/decode keyed parameters, but may not secretly compute domain
-results. Directory access policies describe their actual security guarantee, without claiming
-malicious concurrent rename isolation for a cooperative trusted-local policy.
+results. Directory loading defaults to `STRICT_HANDLES` and fails if secure handles are unavailable;
+`TRUSTED_LOCAL` requires explicit host selection. Directory access policies describe their actual
+security guarantee, without claiming malicious concurrent rename isolation for that cooperative policy.
 
 ## S7. Diagnostics, limits and outputs
 
@@ -160,6 +167,7 @@ domain amounts or claim that cached audit was rerun by Excel.
 
 DSL 1 uses `mantra.calc@2` and the locked Normein 0.3.0 commit above. Package manifest version,
 schema version, library artifact version and wire contract version are distinct identities.
+The `1.0.0-rc.1` artifact label does not change DSL 1, calc@2 or the wire majors.
 See the [compatibility policy](compatibility.md). Future language changes must identify affected
 clauses and add independent expectations before implementation.
 
@@ -170,4 +178,9 @@ its runner checks those hashes and never records implementation outputs as new e
 Attempt-opaque audit event IDs identify real execution events within one trace and are not stable
 across runs. Semantic trace comparisons may canonicalize event identity consistently while retaining
 step/branch associations and invocation indices; production events must not be fabricated for goldens.
-The [M6 work packages](milestones/m6-work-packages.md) record the remaining final acceptance gates.
+The [M6 work packages](milestones/m6-work-packages.md) record actual candidate checks and publication
+boundaries; the source tag/report receipt records the final revision and CI. The [performance report](performance-v1.md) covers all 390 independently checked
+samples and the actual 10k/1,120,000-value batch (22,777 ms; 333,767,296 summed heap-pool peak bytes;
+22 successful session closes). The separate Combined export JFR record passed privacy/scope checks
+and does not alter those unprofiled samples or the language semantics. Namespace/signing and the
+matching public Normein artifact are still unavailable; no public Maven release is implied.

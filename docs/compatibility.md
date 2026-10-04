@@ -16,8 +16,9 @@ are never Maven library artifacts.
 | Normein kernel | 0.3.0, commit `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Only after RFC/contract/conformance review and lock update | Coordinated adapter/library release and mapping table update |
 
 The authoritative baseline for a release is its tag, lock file, ABI dumps, conformance corpus and
-wire schemas. `0.x` artifacts remain pre-stable, but changes still require review and release notes;
-the ABI gate must not be bypassed by filtering out reachable model or view types. Java and Kotlin
+wire schemas. `0.x` and `1.0.0-rc.1` artifacts remain pre-stable; changes still require review and
+release notes. The RC candidate does not establish a published stable 1.0 baseline. The ABI gate
+must not be bypassed by filtering out reachable model or view types. Java and Kotlin
 consumers are compiled and executed against a real local Maven staging repository with no composite
 substitution in the consumer build. Staging the pinned dependency may use the producer's composite;
 the consumer uses a separate temporary fixture, fresh Gradle home and POM-only artifact resolution.
@@ -47,6 +48,10 @@ an unchanged-wire compatibility guarantee. Preserve stable diagnostic codes,
 typed addresses, original messages and explicitly bounded evidence. LSP uses its advertised 3.17
 capability subset, UTF-16 positions and versioned edits; clients cannot apply an unversioned rename
 to stale open buffers. Snapshot revisions are identities, not semantic artifact versions.
+
+Directory loading defaults to `STRICT_HANDLES` and fails when secure handles are unavailable.
+`TRUSTED_LOCAL` requires explicit host selection; its cooperative identity/hash checks do not
+claim isolation from a malicious same-permission process racing filesystem renames.
 
 New releases update this table and document the supported kernel correspondence. Publishing requires
 the authorized Maven namespace/signing setup and the corresponding real Normein artifact. A GitHub
@@ -79,11 +84,24 @@ control, dependency or projection work. Changes to these meanings require compat
 
 ## Recorded acceptance and release boundary
 
-Actual local checks include full six-library ABI comparisons, the temporary public-model Int→Long
-counterexample and unchanged Java/Kotlin binaries rejected with `NoSuchMethodError`, and five
-isolated executable consumers covering all six libraries. Sources, KDoc and POM staging have been
-checked. These records are evidence for the implementation, not a declaration of v1.0 stability.
-Final source-aligned `check`, ABI/consumer runs, conformance, security/import regression, frozen
-performance, strict documentation site and remote CI must all pass before the stable release claim.
-Public Maven upload remains pending namespace, signing, repository and corresponding Normein
-artifact prerequisites; do not infer it from a local staged coordinate or a source push.
+The joint `1.0.0-rc.1` implementation and functional acceptance are complete. Full local checks
+include six-library ABI comparisons, the temporary public-model Int→Long counterexample and
+unchanged Java/Kotlin binaries rejected with `NoSuchMethodError`, five isolated POM-only executable
+consumers, and all six local sources/KDoc/POM artifacts. Conformance, current security/import and
+protocol regressions, application values, UI, browser/live-package flows and cleanup passed.
+The measured source is `ae9af84bde3f82cc86787e908aab7be76ddecee9`; its
+[candidate CI run 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941) passed.
+
+The [candidate performance record](performance-v1.md) retained all 390 samples and independently
+recomputed 39 summaries against unchanged bounds. The actual 10,000-case stream checked 1,120,000
+exact values in 22,777 ms with 333,767,296 bytes of summed heap-pool peaks; all 22 sessions closed.
+A separate post-measurement Combined XLSX JFR recording passed scope/privacy verification:
+41.029 seconds, 2,812 CPU samples, 1,774 allocation samples, five GC events and zero events in all
+six disabled private-metadata categories. It leaves the measured production/harness unchanged
+and is not inserted into the unprofiled distribution or used to explain historic latency tails.
+
+The final source-publication revision and CI are identified by the `v1.0.0-rc.1` tag and the release
+receipt in the [source-candidate report](release-candidate.md). Maven Central upload has not been
+performed; namespace, signing and a publicly available matching
+Normein 0.3.0 artifact remain pending the maintainer's decision/setup. Current local acceptance and
+staging are not a stable `1.0.0` release or public repository availability.

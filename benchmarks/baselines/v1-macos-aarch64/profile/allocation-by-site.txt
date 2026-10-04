@@ -1,0 +1,30 @@
+
+                                                   Allocation by Site
+
+Method                                                                                              Allocation Pressure
+--------------------------------------------------------------------------------------------------- -------------------
+jdk.internal.org.objectweb.asm.Frame.merge(SymbolTable, Frame, int)                                              71.46%
+org.apache.xmlbeans.impl.store.Saver$TextSaver.emitNamespacesHelper()                                             6.16%
+java.util.regex.Pattern.matcher(CharSequence)                                                                     6.01%
+java.util.LinkedHashMap.newNode(int, Object, Object, HashMap$Node)                                                2.99%
+org.apache.xmlbeans.impl.store.Saver$TextSaver.resize(int, int)                                                   2.82%
+org.apache.xmlbeans.impl.store.ElementXobj.newNode(Locale)                                                        0.94%
+java.util.regex.Matcher.<init>(Pattern, CharSequence)                                                             0.93%
+java.util.Arrays.copyOfRangeByte(byte[], int, int)                                                                0.58%
+java.time.Instant.create(long, int)                                                                               0.54%
+org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.create(XSSFWorkbook)                                         0.47%
+org.apache.xmlbeans.impl.store.Cur$Locations.<init>(Locale)                                                       0.31%
+java.lang.AbstractStringBuilder.<init>(int)                                                                       0.30%
+java.util.HashMap.resize()                                                                                        0.30%
+com.xqiou.mantra.core.engine.RunContext.snapshot()                                                                0.23%
+java.util.Arrays.copyOf(byte[], int)                                                                              0.22%
+java.util.LinkedHashMap.sequencedEntrySet()                                                                       0.22%
+java.lang.StringBuilder.toString()                                                                                0.21%
+com.xqiou.mantra.core.api.RunUsage.<init>(Map, Instant, Instant, Duration)                                        0.19%
+java.lang.invoke.DirectMethodHandle.allocateInstance(Object)                                                      0.19%
+java.util.HashMap.newNode(int, Object, Object, HashMap$Node)                                                      0.19%
+org.apache.xmlbeans.impl.store.AttrXobj.newNode(Locale)                                                           0.19%
+java.lang.StringLatin1.newString(byte[], int, int)                                                                0.18%
+java.util.Arrays.copyOf(Object[], int)                                                                            0.17%
+jdk.internal.misc.Unsafe.allocateUninitializedArray(Class, int)                                                   0.17%
+java.lang.Long.valueOf(long)                                                                                      0.17%

@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "recordingSha256": "477fdec404eec8535fdbded7f28872dddd297b9a03ce963390cd8d63dbe71b12",
+  "privateMetadataCounts": {
+    "jdk.InitialEnvironmentVariable": 0,
+    "jdk.InitialSecurityProperty": 0,
+    "jdk.InitialSystemProperty": 0,
+    "jdk.JVMInformation": 0,
+    "jdk.ProcessStart": 0,
+    "jdk.SystemProcess": 0
+  },
+  "selectedCounts": {
+    "jdk.ExecutionSample": 2812,
+    "jdk.ObjectAllocationSample": 1774,
+    "jdk.GarbageCollection": 5,
+    "jdk.GCPhasePause": 5,
+    "jdk.FileWrite": 0
+  },
+  "engineExecuted": false
+}

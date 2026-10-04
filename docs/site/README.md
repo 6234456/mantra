@@ -1,12 +1,16 @@
 # Offline documentation snapshot
 
-This directory builds the offline M5/M6 documentation for the current checkout. M3 is complete;
-M4–M6 and v1.0 still require final acceptance. Compiled/batch/package APIs, parameter selection,
-migration, dynamic workbooks, language tooling, PDF and localization are implemented and have
-recorded runtime tests. The [M4](../milestones/m4-work-packages.md),
+This directory builds the offline M5/M6 documentation for the current checkout. The joint
+`1.0.0-rc.1` candidate implementation and functional acceptance are complete. Measured source
+`ae9af84bde3f82cc86787e908aab7be76ddecee9` has
+[green CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941), independently
+verified frozen performance and actual batch/JFR evidence. Compiled/batch/package APIs, parameter
+selection, migration, dynamic workbooks, language tooling, PDF and localization have actual tests. The [M4](../milestones/m4-work-packages.md),
 [M5](../milestones/m5-work-packages.md) and [M6](../milestones/m6-work-packages.md) work packages
-separate those completed checks from the remaining final gates. Hosted deployment, installed IDE
-plugins and publicly uploaded Maven artifacts are not implied by this snapshot.
+separate candidate checks from stable/Maven publication. The `v1.0.0-rc.1` tag and
+[source-candidate report](../release-candidate.md) release receipt identify the final source revision and CI.
+Hosted deployment, installed native IDE plugins and publicly uploaded Maven artifacts are not
+implied by this snapshot; stable `1.0.0` has not been declared.
 
 Build with Python 3.10+; no package installation, browser, server, Java execution or network is needed:
 
@@ -47,7 +51,8 @@ python3 scripts/generate-docs-site.py --require-artifacts --catalog build/mantra
 
 This generator does not run Gradle or change CI. The existing `verification-results` CI artifact
 retains application outputs, tutorial exports and PDF checks. A hosted documentation deployment
-has not been performed; the final strict offline build is a separate release gate.
+has not been performed. A strict offline build has passed; this documentation update requires a
+fresh site manifest before publication.
 Without `--require-artifacts`, missing outputs receive explicit unavailable labels and generation
 commands. An existing HTML output with broken internal links is also withheld and recorded under
 `artifact_issues` in the manifest; strict mode rejects it. No dead download link or stand-in workbook
@@ -59,13 +64,15 @@ The tutorial inputs under `examples/invoice/` and the Kotlin source under `examp
 downloaded into the site. Execute the tutorial using the commands in `tutorial.md` after the pinned
 kernel and CLI are available. The generator itself does not validate the DSL or compile Kotlin. The actual CLI tutorial check
 and `:mantra-cli:verifyDocumentationExamples` have run and produced the independently expected
-`300.00`, HTML, XLSX and PDF; the final source revision must repeat those checks.
+`300.00`, HTML, XLSX and PDF, including the candidate's complete checks.
 `embedding.md` describes the actual public compiled/batch/package APIs. `packages.md` records
-their host authority, exact-version, row-capacity and publication boundaries. `neutral-domains.md`
+their host authority, exact-version, row-capacity and publication boundaries. Directory loading
+uses `STRICT_HANDLES` by default; `TRUSTED_LOCAL` is an explicit cooperative-host option, not an
+automatic fallback or a malicious-rename isolation guarantee. `neutral-domains.md`
 walks through the two new applications without proposing new primitives. `independent-sources.md`
 links the factual/arithmetic evidence for all ten applications. Language-specification and
 compatibility pages use the corresponding English repository documents; milestone acceptance
-remains separate from the presence of those normative drafts.
+remains separate from the mere presence of those normative documents.
 
 `applications.json` must cover every immediate `apps/*/README.md`; adding an application without a
 showcase entry fails generation. Paths remain confined to the repository, and private kernel checkout
@@ -86,9 +93,24 @@ safe replacement. The latest application fixtures and a 13-flow installed-browse
 with task-owned browser/Vite processes and the temporary profile removed. These are separate
 runtime records; generator tests alone do not establish financial or browser correctness.
 
-Six-library KDoc and local staging were actually generated. The tutorial PDF's two pages were
-rendered and inspected; long/lease PDF fixtures have automated page-bound checks. A final strict
-site still needs freshly verified showcase/KDoc files, matching catalogue and source hashes,
-all local-link checks and recorded artifact inspection. Final full tests, security/import regression,
-frozen-source performance and remote CI remain separate M6 exits. Maven Central publication is
-pending its actual release prerequisites; local staging and clean consumers are not an upload.
+Six-library KDoc and local staging were actually generated. The final strict site regeneration/check
+has no `artifact_issues` and records 2,615 checked HTML documents and 66,473 local links, with
+227 source files and 3,083 output files in its byte/hash inventory. The tutorial's two PDF pages were
+rendered and inspected; long/lease fixtures have automated page-bound checks. Current package
+smoke produced ten binary PDFs with 26 date-source checks. Live-package acceptance covered four
+read-only views, input 14→16→14, parameters 14→28→14, migration 14↔21, stale refusal and refresh
+re-preview, preserving comments and cleaning all owned resources.
+
+Current full checks, six-library ABI and five isolated consumers, conformance, security/import,
+103 UI tests and recorded browser flows passed. The [RC performance report](../performance-v1.md)
+retains all 390 independently verified samples within unchanged budgets. Its actual 10,000-case
+stream performed 1,120,000 exact comparisons in 22,777 ms with 333,767,296 summed heap-pool peak
+bytes and 22 successful closes. A separate 41.029-second Combined export JFR recording passed
+scope/privacy checks (2,812 CPU samples, 1,774 allocation samples, five GC events and zero events
+in the six disabled private-metadata categories). The profiler privacy revision followed the
+unprofiled measurement and leaves the measured Kotlin source/harness unchanged.
+
+The final source-publication revision and CI are identified by the `v1.0.0-rc.1` tag and the release
+receipt in the [source-candidate report](../release-candidate.md). Maven Central upload has not been
+performed: namespace, signing and the matching public Normein 0.3.0 artifact remain
+pending the maintainer's decision/setup. Local staging and clean consumers are not an upload.

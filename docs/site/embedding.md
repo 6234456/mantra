@@ -36,7 +36,7 @@ The IFRS 16 and fixed-asset demonstrations save and reopen inserted, deleted and
 
 `compiled.forEach(cases, parameters, BatchOptions()) { item -> ... }` consumes one iterator and calls back with detached current results. The first implementation is sequential. Defaults are 10,000 cases and five minutes for the batch, plus separate per-case limits. Callback exceptions escape after cleanup. Check `BatchSummary.failure` as well as technical and business outcomes; cancellation does not deliver an unfinished case.
 
-The [lease batch example](repo:apps/ifrs-leases/src/main/kotlin/com/xqiou/mantra/apps/leases/LeaseBatchDemo.kt) is a complete public-API host. Its [independent producer](repo:apps/ifrs-leases/batch/independent_batch.py) supplies mathematical expectations. The measured 10,000 distinct cases compare 1,120,000 numbers and retain actual compilation/session counts; see [performance evidence](repo:docs/performance-m4.md).
+The [lease batch example](repo:apps/ifrs-leases/src/main/kotlin/com/xqiou/mantra/apps/leases/LeaseBatchDemo.kt) is a complete public-API host. Its [independent producer](repo:apps/ifrs-leases/batch/independent_batch.py) supplies mathematical expectations. The measured 10,000 distinct cases compare 1,120,000 numbers and retain actual compilation/session counts; see [performance evidence](repo:docs/performance-v1.md).
 
 ## Capture a distributable package
 

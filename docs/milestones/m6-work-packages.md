@@ -1,29 +1,31 @@
 # M6 工作包：v1.0 稳定验收
 
-> 状态（2026-10-04）：S1–S7 已实现或接入实际专项验收，最终联合退出验收进行中。
-> 未完成最终源码冻结、全量检查、性能、严格站点与远端 CI 前，不宣布 M6/v1.0 完成。
-> 公开 Maven 发布仍有独立前置；本地 staging、GitHub 源码与公开制品分开记录。
+> 状态（2026-10-04）：联合 `1.0.0-rc.1` 候选的实现与功能验收已完成；390 样本、实际 10k 和 JFR 已验收。
+> 测量源码 `ae9af84bde3f82cc86787e908aab7be76ddecee9` 的远端 CI 已通过。
+> 最终源码发行修订及 CI 见 `v1.0.0-rc.1` tag 与[发行候选记录](../release-candidate.md)的 release receipt。
+> 稳定 `1.0.0` 和 Maven Central 尚未发布。
 
-M4/M5 的未完成退出项继续实施，见 [M4](m4-work-packages.md) 与 [M5](m5-work-packages.md)。
+M4/M5 联合候选验收与发布边界见 [M4](m4-work-packages.md) 与 [M5](m5-work-packages.md)。
 Normein 固定为 0.3.0、`0a3ae1de844c92635fbbc03406a13cb0e8920c03`，未改依赖源码。
 本阶段没有提出新的计算原语；两个中性应用只组合既有能力，独立 Fraction/Decimal 预期先行。
 
 ## 1. 工作包和已记录证据
 
-| 工作包 | 已实现及实际记录 | 未完成出口 |
+| 工作包 | 候选已实现及实际验收 | 剩余收尾或证据边界 |
 | --- | --- | --- |
-| S1 规范 | [语言规范 v1](../language-specification-v1.md)的 S1–S7、DSL/calc/内核/诊断目录对应关系；公开错误与 Nil 语义 | 最终文档/目录一致性和全量回归 |
-| S2 一致性 | 与实现分离的 24 个完整程序、两个参数文档、冻结 SHA inventory、typed values/诊断效力与外部适配器协议；实际 runner 24/24 通过 | 最终源码重跑；不能把有限 corpus 当作 graph/输出/生命周期证明 |
-| S3 兼容 | [兼容策略](../compatibility.md)、六库全量 ABI、二进制反例、五个 Java/Kotlin 实际 consumer；本地 POM/sources/KDoc staging 已运行 | 最终 ABI 与隔离 consumer 复验；公开 Maven 前置另列 |
-| S4 通用性 | energy-budget、project-portfolio，无新原语；两应用有 package、英文 README、边界事实和独立算法；后续应用/金本运行已通过 | 十应用当前源码的全部格式、逐值和独立脚本联合检查 |
-| S5 安全 | 包路径/摘要/容量、捕获 bytes、strict/trusted policy、链接权限、迁移字节/图 CAS、导出/read 预算、LSP 帧/实际来源读取和回环/CSRF 已实现并有专项测试 | 最新导入 round-trip/type/error/行预算修复、socket/schema 与完整资源清理复验；不能由较早安全专项绿推断全部通过 |
-| S6 性能 | M3 的 39 scenario/operation groups、390 原始样本已归档且独立 CSV 复核；M4 10k 不同案例、1,120,000 exact comparisons、真实物理统计已测 | 最终冻结源码重跑全部 390 样本及批量、独立摘要复算、Combined XLSX JFR 实录与清理 |
-| S7 文档/开发体验 | 英文 CLI/Kotlin 教程实跑，六库真实 KDoc、26 site tests；PDF 输出及页边界检查；91 UI 测试运行与 13 browser flows 记录；LSP/薄客户端/本地化专项通过 | 最新全量 UI、严格站点、最终 PDF/浏览器范围与 live package 路径验收 |
-| S8 发布 | `check`、ABI/clean-consumer、conformance、stdio LSP、客户端、应用复算及浏览器步骤已登记 CI；本地 staged artifacts 可由隔离 consumer 使用 | 最终远端 CI、源码发行及清理；Maven namespace/signing/repository 与真实 Normein 制品未完成公开上传 |
+| S1 规范 | [语言规范 v1](../language-specification-v1.md) S1–S7、目录/诊断/Nil 对应关系；文档规则和当前全量检查通过 | 说明更新后严格站点已重新生成/核对；最终发行身份见 tag/receipt |
+| S2 一致性 | 独立 24 个完整程序、两个参数文档、冻结 SHA inventory、typed values/诊断效力；runner 24/24 及候选 CI 通过 | 有限 corpus 不是全程序或生命周期证明 |
+| S3 兼容 | 六库全量 ABI、真实二进制反例、五个隔离 POM-only consumer、六份本地 POM/sources/KDoc 制品实际通过 | 公共 Maven namespace/signing/Normein 制品仍缺 |
+| S4 通用性 | energy-budget/project-portfolio 无新原语；十应用 package/三格式/独立逐值与当前完整检查通过 | 展示应用不构成专业建议或生产软件 |
+| S5 安全 | 当前导入 16 项、LSP 21 项、HTTP 33 项含 36 stalled bodies、package policy/bounds/CAS、导出/read 与清理实际通过；见安全记录 | source review/入口回归，不宣称独立第三方渗透或完整 CVE 审计 |
+| S6 性能 | 冻结源码 39 组/390 样本、全预算与独立 CSV 复算通过；实际 10k/1,120,000 精确比对；Combined export JFR 隐私/范围验收通过 | 单次 profile 不归因历史 M2 长尾；批量不是多轮分布 |
+| S7 文档/开发体验 | 教程 300.00、六库 KDoc、26 site tests/严格站点；103 UI、13 browser flows、实际 package live/PDF/LSP 与清理通过 | 文档更新后重新生成摘要；原生 IDE/Excel GUI 未认证 |
+| S8 发布 | [候选 CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941) green；check/ABI/consumer/conformance/stdio/应用等门实际通过 | 源码发行修订与最终 CI 见 tag/release receipt；Maven namespace/signing/公开 Normein 待维护者决定 |
 
 计数来自各自实际日志；当前 XML 可能被后续 targeted run 覆盖，不能相加为一次全量运行。
 此前失败日志是问题发现记录，不能删除后称从未失败；修复需有新的实际执行证据。
-最新 XLSX 导入专项曾暴露两维事实/动态成员次序问题，其最终修复和复验是 S5 出口的一部分。
+XLSX 导入曾暴露两维事实/动态成员次序问题；修复后的导入与完整检查已实际通过，
+历史失败仍留作问题发现记录。
 
 ## 2. 一致性与独立来源
 
@@ -48,7 +50,7 @@ Audit eventId 是真实运行事件身份，跨运行可能不同；测试只可
 
 - 包清单、资源及参与来源受字节/行/容量限制，解析、摘要及来源图使用同一捕获 bytes。
   XLSX 错误单元格不可默默变成 Nil/default zero；CSV/JSON 字符解码与记录行控制不得旁路。
-- strict directory policy 不能默默降级；显式 `TRUSTED_LOCAL` 是合作式本地目录能力，
+- `STRICT_HANDLES` 是目录加载默认，不能默默降级；显式 `TRUSTED_LOCAL` 是合作式本地目录能力，
   before/after identity/hash 检查不等于对恶意 concurrent rename 的隔离保证。
 - 包/目录读取权限不自动授予 case 写入、跨包/跨文件 links 或数据访问权限。
   CLI 明确根文件能力不扩大 link/data 的授权范围；classpath/JAR 不可写，也不等于任意 ZIP 导入。
@@ -61,40 +63,50 @@ Audit eventId 是真实运行事件身份，跨运行可能不同；测试只可
 - 所有 owner-thread sessions、executor、协议流、测试服务器和 browser profile 按真实生命周期关闭。
   错线程失败不能先修改 closed 状态而泄漏资源；当前失败不能换成旧成功金额/底稿。
 
-任一新增修复先保留失败重现，再记录正常与限额/取消/清理回归；未通过前 S5 不关闭。
+当前候选入口与限额/取消/清理回归已通过，详见[安全验收记录](../security-review-v1.md)。
+后续新增修复仍须保留失败重现并实际复验，不能沿用旧证据宣布成功。
 
 ## 4. T2 性能冻结和验收口径
 
-[M3](../performance-m3.md)与[M4 批量报告](../performance-m4.md)记录已执行证据及未扩大的预算。
-最终运行在固定设备、JDK 21、相同 JVM 堆/GC、明确源码和 kernel identity 下串行执行，
-测量前后源码/制品摘要一致；测量期间不并行构建、测试或改变实现。
+[RC 性能报告](../performance-v1.md)记录当前实际执行，[M3](../performance-m3.md)与
+[M4 批量报告](../performance-m4.md)保留历史证据；全部原预算保持不变。
+当前测量在固定设备、JDK 21、相同 JVM 堆/GC 和锁定内核下串行执行，
+源码为 `ae9af84bde3f82cc86787e908aab7be76ddecee9`。测量前后全部清单一致，
+25 个运行时 JAR 不变；测量期间没有并行构建、测试或修改实现。
 原始 CSV 每组 5 次 warmup、10 次保留样本，30+9 组共 390 样本。
 39 是 scenario/operation 的组合数，不是 39 个独立事实场景；所有尾样本都保留。
 Python 独立重算 median、nearest-rank p95、max、数值/status 和预算，不修改原始行或换行字节。
 
-批量已有 20,875 ms 的一轮实际 10k 记录，22 初始计划/会话、560,000 次实际求值、
-运行期计划编译/evidence 为零、22 成功关闭；最终源码重复这项验收，不造多轮 median。
-Heap-pool peak 总和不是 RSS，也不是同时存活堆或累计分配量。
+独立复核已确认全部 39 组、390 样本及冻结预算通过，验证脚本没有运行引擎或重生成预期。
+当前实际 10k 为 22,777 ms、1,120,000 次精确比对、333,767,296 字节 heap-pool peak 总和；
+22 初始计划/会话、560,000 次实际求值、零运行期计划编译/evidence，22 次关闭全部成功。
+历史 M4 的 20,875 ms 保留，不替换原始记录，也不把这一次批量写成多轮 median。
+Heap-pool peak 总和不是 RSS、同时存活堆或累计分配量。
 
 Combined XLSX 用实际 JFR recording 识别当前热点/分配/GC，记录范围必须明确：
 现有 `--scenarios combined` 会跑全部六个操作，不能误称 XLSX-only。
-若采用隔离 export consumer，其 setup/独立值核对/warmup 位于 recording 外，
-只录实际 workbook 构建/计算/序列化/关闭；profile 样本不混入 390 个未插桩验收样本。
-未复现的 M2 长尾不作无证据归因，优化不能通过放宽既有预算宣布成功。
+此次隔离 export consumer 的 setup/独立值核对/warmup 位于 recording 外，
+实际 workbook 构建/重算/序列化/关闭实录 41.029 s；CPU 样本 2,812、allocation 样本 1,774、GC 5 次。
+六类敏感 metadata event 计数均为零，identity/privacy verification 为 PASS。
+profiler 源码 SHA-256 为 `44bce2ed8da563fa632fbee39954e12e6f3b23746c49ae8c0f2f3bcea3ea608a`；
+这是未插桩测量后的独立配置修订，生产 Kotlin 与计时 harness 未变，不能反标为 `ae9af84` 时已存在。
+录制期间 workbook 序列化到 bytes，stop 后才 dump JFR，实际 FileWrite event 为零。
+profile 不混入 390 个未插桩样本；未复现的 M2 长尾不作无证据归因。
 
 ## 5. 最终出口清单
 
-下面全部完成后，才能将 M6/v1.0 状态更新为完成：
+当前 RC.1 的以下工程验收已完成；源码发行身份以 tag/release receipt 为准，稳定版发布另行决定：
 
-1. 最终源码冻结；全量 `check`、应用三格式与独立逐值检查、conformance 24/24 通过。
-2. 六库 ABI baseline 审阅/检查、二进制破坏反例及隔离 POM-only consumer 真正重跑。
-3. 最新安全/导入/权限/迁移/协议/socket/schema 回归通过，清理检查有记录。
-4. 全部冻结预算、390 样本、独立 CSV 复核、批量和实际 JFR 证据完整；限制和未归因部分可见。
-5. 英文教程及六库 KDoc、十应用严格站点、目录/下载/本地链接/source digest 一致。
-6. 最新 UI check/test/build、端到端和 live package 流程、PDF 全页 QA 的实际范围有记录。
-7. 同一候选修订的远端 CI 真正通过，发行状态和资源清理记录准确。
+1. 冻结实现全 `check`、十应用三格式/独立逐值和 conformance 24/24 通过。
+2. 六库 ABI、二进制破坏反例和五个隔离 POM-only consumer 实际通过。
+3. 当前安全/导入/权限/迁移/协议/socket/schema 回归及资源清理有实际记录。
+4. 原预算内的 390 样本/独立 CSV 复核、实际批量和 JFR 范围/隐私验收全部通过。
+5. 教程、六库 KDoc、严格十应用站点/目录/下载/链接已通过；最终文档后的清单已重建/核对（2,615 HTML / 66,473 本地链接）。
+6. UI check/test/build、端到端、实际 package live 和 PDF 既定 QA 范围通过，清理已核对。
+7. 测量候选 `ae9af84` 的远端 CI green；含最终文档/profiler 记录的发行修订及 CI 见 `v1.0.0-rc.1` tag 与[发行候选记录](../release-candidate.md)的 release receipt。
 
 源码发行、离线文档、IDE 插件 ZIP、本地 Maven staging 与公开 Maven 上传分别记录。
-Public Maven 上传目前仍待真实 namespace/signing/repository 与对应 Normein 制品；
-需要维护者配置时，先给出可审阅制品和具体缺项，再提出最终发布设定问题。
-语言规范、兼容策略和包清单的存在不等于稳定版验收完成，也不以未执行的发布冒充交付。
+最终源码发行修订和 CI 以 `v1.0.0-rc.1` tag 及[发行候选记录](../release-candidate.md)的 release receipt 为准。
+Public Maven 上传尚未执行。namespace/signing 与对应公开 Normein 0.3.0 制品
+仍待维护者决定并配置，已有本地 staging 和离线 release kit 不证明这些前置已满足。
+候选验收不等于稳定版或公开制品已经发布。

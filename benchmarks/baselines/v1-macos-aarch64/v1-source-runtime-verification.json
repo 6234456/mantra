@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "measuredSourceCommit": "ae9af84bde3f82cc86787e908aab7be76ddecee9",
+  "libraryAndHarnessSourceSha256": "c41f47cfe0abbe316e4460f15866814502e10c0bbffe18fda6d954ca407ed59f",
+  "beforeAfterEntireInventoryEqual": true,
+  "runtimeJarCount": 25,
+  "runtimeJarsUnchanged": true,
+  "kernelWorkingTreeClean": true,
+  "kernelLockCommit": "0a3ae1de844c92635fbbc03406a13cb0e8920c03",
+  "environmentIdentitiesMatched": true,
+  "engineExecutedByVerifier": false
+}

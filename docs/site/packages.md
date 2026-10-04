@@ -60,7 +60,7 @@ The writable host root, lock/CAS behavior and atomic file replacement are explic
 
 The [lease streaming example](repo:apps/ifrs-leases/batch/README.md) uses distinct typed
 cases and a public compiled template. Its independent JSONL compares every declared
-numeric value. See [measured batch evidence](repo:docs/performance-m4.md) for the actual
+numeric value. See [measured batch evidence](repo:docs/performance-v1.md) for the actual
 10,000-case run, timer scope, memory observations and physical compilation/session
 counts; these measurements do not enlarge the pinned kernel's input limits.
 

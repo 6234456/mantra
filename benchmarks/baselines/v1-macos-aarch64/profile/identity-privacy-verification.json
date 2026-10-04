@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "measuredLibraryCommit": "ae9af84bde3f82cc86787e908aab7be76ddecee9",
+  "profileRevision": "Post-measurement diagnostic consumer metadata suppression; production and Kotlin harness unchanged",
+  "privateMetadataCounts": {
+    "jdk.InitialEnvironmentVariable": 0,
+    "jdk.InitialSystemProperty": 0,
+    "jdk.InitialSecurityProperty": 0,
+    "jdk.SystemProcess": 0,
+    "jdk.ProcessStart": 0,
+    "jdk.JVMInformation": 0
+  },
+  "selectedCounts": {
+    "jdk.ExecutionSample": 2812,
+    "jdk.ObjectAllocationSample": 1774,
+    "jdk.GarbageCollection": 5,
+    "jdk.GCPhasePause": 5,
+    "jdk.FileWrite": 0
+  },
+  "fileWriteScope": "Workbook serialized to bytes; recording dump occurs after stop. No FileWrite event was observed.",
+  "profileSourceSha256": "44bce2ed8da563fa632fbee39954e12e6f3b23746c49ae8c0f2f3bcea3ea608a",
+  "profileClassSha256": "fac73486daaae983e3e13b1be5d905bca39e80f30409d5d120008a5d1ff749d1",
+  "recordingBytes": 855219,
+  "recordingSha256": "477fdec404eec8535fdbded7f28872dddd297b9a03ce963390cd8d63dbe71b12",
+  "log": "Captured combined XLSX build/recalculation/serialization/close ns=41029463375 bytes=663684"
+}

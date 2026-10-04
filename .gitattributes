@@ -6,7 +6,10 @@
 *.jpeg binary
 *.gif binary
 *.pdf binary
+*.jfr binary
 # Frozen independent references are hashed byte for byte, including CSV record endings.
 apps/de-est/independent/loss-cases.csv -text
 apps/de-gewst/independent/trade-cases.csv -text
 apps/circular-calculation/independent/converge-cases.csv -text
+# Performance acceptance samples retain their measured raw byte digests.
+benchmarks/baselines/v1-macos-aarch64/**/*.csv -text

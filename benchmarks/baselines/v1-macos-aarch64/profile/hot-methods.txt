@@ -1,0 +1,30 @@
+
+                                          Java Methods that Executes the Most
+
+Method                                                                                                  Samples Percent
+------------------------------------------------------------------------------------------------------- ------- -------
+org.apache.xmlbeans.impl.values.XmlObjectBase.get_store()                                                 2,426  86.27%
+org.apache.xmlbeans.impl.store.Xobj.getAttr(QName)                                                          192   6.83%
+org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName(String, int)                                67   2.38%
+java.lang.StringLatin1.regionMatchesCI(byte[], int, byte[], int, int)                                        43   1.53%
+org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName()                         21   0.75%
+java.lang.String.equalsIgnoreCase(String)                                                                    21   0.75%
+org.apache.xmlbeans.impl.store.Cur.moveToNoCheck(Xobj, int)                                                   4   0.14%
+org.apache.xmlbeans.impl.values.JavaStringHolder.compute_text(NamespaceManager)                               4   0.14%
+org.apache.xmlbeans.impl.values.XmlObjectBase.getStringValue()                                                2   0.07%
+java.util.HashMap.putVal(int, Object, Object, boolean, boolean)                                               2   0.07%
+java.lang.String.hashCode()                                                                                   2   0.07%
+org.apache.xmlbeans.impl.store.Saver$TextSaver.preEmit(int)                                                   1   0.04%
+org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor()                                                   1   0.04%
+java.lang.Boolean.valueOf(boolean)                                                                            1   0.04%
+com.xqiou.mantra.excel.ExcelFormulaWriterKt.guarded(ExcelWorkbookBuilder, ViewNode, List, X$Scalar)           1   0.04%
+sun.nio.cs.UTF_8$Encoder.encodeArrayLoopSlow(...)                                                             1   0.04%
+org.apache.xmlbeans.impl.store.Locale.count(Xobj, QName, QNameSet)                                            1   0.04%
+org.apache.poi.xssf.usermodel.XSSFWorkbook.getNameAt(int)                                                     1   0.04%
+org.apache.xmlbeans.impl.values.XmlObjectBase.check_orphaned()                                                1   0.04%
+java.util.ArrayList$Itr.hasNext()                                                                             1   0.04%
+org.apache.xmlbeans.impl.store.Saver.processElement()                                                         1   0.04%
+org.apache.xmlbeans.impl.store.Xobj.getDenormal(int)                                                          1   0.04%
+java.lang.ThreadLocal$ThreadLocalMap.set(ThreadLocal, Object)                                                 1   0.04%
+org.apache.xmlbeans.impl.store.Cur.moveNode(Cur)                                                              1   0.04%
+java.lang.Character.isHighSurrogate(char)                                                                     1   0.04%

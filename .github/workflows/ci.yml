@@ -46,9 +46,16 @@ jobs:
         working-directory: workbench-ui
         run: npm ci
       - name: Quality gates, JVM tests and application rendering
-        run: ./gradlew --no-daemon check :mantra-cli:installDist :mantra-lsp:installDist :mantra-cli:verifyDocumentationExamples
+        run: ./gradlew --no-daemon check :mantra-cli:installDist :mantra-lsp:installDist :benchmarks:installDist :mantra-cli:verifyDocumentationExamples
       - name: ABI binary counterexample and isolated staged consumers
         run: ./gradlew --no-daemon --max-workers=1 checkAbiCounterexample checkCleanConsumer
+      - name: Archived v1 performance statistics and public profiling consumer
+        run: |
+          python3 scripts/verify-performance.py --original benchmarks/baselines/v1-macos-aarch64/original --periods benchmarks/baselines/v1-macos-aarch64/periods
+          mkdir -p benchmarks/build/profile-classes
+          javac -cp 'benchmarks/build/install/mantra-benchmark/lib/*' -d benchmarks/build/profile-classes benchmarks/profile/CombinedXlsxProfile.java
+          jfr summary benchmarks/baselines/v1-macos-aarch64/profile/combined-xlsx.jfr > benchmarks/build/profile-summary.txt
+          python3 scripts/verify-profile-recording.py --recording benchmarks/baselines/v1-macos-aarch64/profile/combined-xlsx.jfr --summary benchmarks/build/profile-summary.txt --identity benchmarks/baselines/v1-macos-aarch64/profile/identity-privacy-verification.json --source benchmarks/baselines/v1-macos-aarch64/profile/CombinedXlsxProfile.java
       - name: Independent corpus runner checks and real stdio LSP
         run: |
           python3 conformance/test_runner.py

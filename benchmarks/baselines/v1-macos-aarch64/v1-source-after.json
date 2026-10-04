@@ -1,0 +1,1066 @@
+{
+  "fileCount": 212,
+  "libraryAndHarnessSourceSha256": "c41f47cfe0abbe316e4460f15866814502e10c0bbffe18fda6d954ca407ed59f",
+  "files": [
+    {
+      "path": "benchmarks/src/main/kotlin/com/xqiou/mantra/benchmarks/PerformanceBaseline.kt",
+      "bytes": 11773,
+      "sha256": "a3effa03cd92fc4e49c28c0b89383de7a25b587beb7dd540feaced8915a7b19b"
+    },
+    {
+      "path": "benchmarks/src/main/kotlin/com/xqiou/mantra/benchmarks/PeriodEnvironment.kt",
+      "bytes": 3530,
+      "sha256": "6c1e5b04e52b3c6e37960ef3d10eb58fbdb4c471e1aadf56357b26da8aa1a94e"
+    },
+    {
+      "path": "benchmarks/src/main/kotlin/com/xqiou/mantra/benchmarks/PeriodFixture.kt",
+      "bytes": 10424,
+      "sha256": "13744591747a38101889e86372bd9bb28bba8c0e8f78e2f2ad8383fa26949090"
+    },
+    {
+      "path": "benchmarks/src/main/kotlin/com/xqiou/mantra/benchmarks/PeriodPerformanceBaseline.kt",
+      "bytes": 11648,
+      "sha256": "5fd97f10891462e7575e22584a6c46b0ec97a149ad6dead35a2afa6e195cc251"
+    },
+    {
+      "path": "benchmarks/src/main/kotlin/com/xqiou/mantra/benchmarks/SyntheticFixture.kt",
+      "bytes": 6390,
+      "sha256": "6f4d397e6ddb8466c2bd6ab54222b13a271f12e8ff7ddc3136f782e9b45f9a0f"
+    },
+    {
+      "path": "benchmarks/src/test/kotlin/com/xqiou/mantra/benchmarks/PeriodPublicApiFixtureTest.kt",
+      "bytes": 2075,
+      "sha256": "de7edad3f7fd2dfe3cd88a8828f7ec8325b9497098c529c35dc4ba1ff5f049de"
+    },
+    {
+      "path": "benchmarks/src/test/kotlin/com/xqiou/mantra/benchmarks/PublicApiFixtureTest.kt",
+      "bytes": 1526,
+      "sha256": "d14b5db2957da5034461ef33b3549c94717cea1dfe25b1c761803d1997005e8a"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/Diagnostics.kt",
+      "bytes": 4552,
+      "sha256": "02170f84b87032ca3001c35291d1b81636ed61583a4737140a641822847dc996"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/Mantra.kt",
+      "bytes": 11118,
+      "sha256": "93be6b48b10ed6602a72e4b9b4fbf9fd6c214688ea3ea81e32bad03cd03b2ea4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/AuditOptions.kt",
+      "bytes": 1356,
+      "sha256": "101c21097e51d1a8e2860d74febe434bde37557cb93880789ce995197380b9ee"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/BatchOptions.kt",
+      "bytes": 1751,
+      "sha256": "f7e3daf628fae22325d263f50574583822b24c600975abc8c00386ffee01e620"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/BatchRunner.kt",
+      "bytes": 5212,
+      "sha256": "95743014f74a8fac088456a794ca3871b2e09b3e9f23d0e93d57202db0d20cf2"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CalculationOptions.kt",
+      "bytes": 1218,
+      "sha256": "8ba32d3b2ff4f46f50ee3b204630b06248896a92175301d66fc9ebb29cc52ee4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CalculationReader.kt",
+      "bytes": 3257,
+      "sha256": "f38c42a8b569533df0020cc4e27f5815edcf0677d2126f47bbf3ea1b0b70e2c4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CalculationResult.kt",
+      "bytes": 3614,
+      "sha256": "a9826a518f4e2d010e62c0fa01b0f5461543029e1bf4757e7cf94fa3141d8fd1"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CalculationSession.kt",
+      "bytes": 6395,
+      "sha256": "e62d69314bc796b7fcffa8f0923b27d20a16b39e7911b495b73c7b42c1d1c45f"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseGraphInspector.kt",
+      "bytes": 8967,
+      "sha256": "481812d34256db0c7bc48f70793f279caaa957b20a555da680b110688892ebc4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseGraphRunner.kt",
+      "bytes": 15521,
+      "sha256": "493c05c77bd5439b9acc26e3fe492b67882b7336472644726bc6528ce8a34112"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseInspection.kt",
+      "bytes": 1852,
+      "sha256": "909a9df338ae26406414b5ba93c2ef91ebda7add714bea16725c76ef739cc2c7"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseLinkBinder.kt",
+      "bytes": 8910,
+      "sha256": "4f2d81b2d5accfa8dfec2cc18fc8bb2aa8493a28eab8f8a0e1ddfcf3dc113e51"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseRun.kt",
+      "bytes": 3433,
+      "sha256": "75379b2e6c0715a6a5cdda1355c53d8de652400dc4955ff8eab9621b4eaa1e72"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CaseRunTypes.kt",
+      "bytes": 5248,
+      "sha256": "3a0c69bf7e4a3b31b08b17d872478f6ae49142b5b263d94e39f75d66fb5232ec"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CompilationStatistics.kt",
+      "bytes": 1754,
+      "sha256": "e761ababcfde586b5fe88c35e6b3179dcb29c0dad521ccde3a57581c2a32a020"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CompiledCalculation.kt",
+      "bytes": 3401,
+      "sha256": "12ee7a5bb5f5228be9471ce517ca6a7ae5683ae996f536eb6ede9310f9198359"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CompiledCalculationSession.kt",
+      "bytes": 3751,
+      "sha256": "af5eb114f97719f604cf21a2e6756067905b2e6afd893c901958720b5d73489c"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CompiledKernelIdentity.kt",
+      "bytes": 380,
+      "sha256": "60483e8375377076b13e7ea4351050f9c4cdcf605eb6b646ce1a9835a3de8a0a"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/FormulaAuthoring.kt",
+      "bytes": 10561,
+      "sha256": "da3376a30f01b90211b70beb9380f9f5e47b725835611c6c8323ce3494b0928f"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/FunctionCatalog.kt",
+      "bytes": 1285,
+      "sha256": "3e402eb20d18f67a73be05cd65889bde1f545a193a546808f62faaa5fa9cf9ce"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/RecalculationStats.kt",
+      "bytes": 1064,
+      "sha256": "bac1411e8082bc75920951008bfabf862e3aef3716851a257ac97b2259748fb7"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/RunControl.kt",
+      "bytes": 784,
+      "sha256": "c3553f10177904df39e5888e0370c0139fbf81ebc1f655cca325fd0f44d7f061"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/RunLimits.kt",
+      "bytes": 1874,
+      "sha256": "cb512bb01c79f141c4a7df8bfd7dc38b1ea59007c045c275f9e798be4b010077"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/RunUsage.kt",
+      "bytes": 1593,
+      "sha256": "135d8c60ddb2c56059f84401d3bf922b70220c97b71cc3165349a1d72780ab7a"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/RuntimeVersions.kt",
+      "bytes": 266,
+      "sha256": "4b8b53a1ecb9b570aa2aeff84c38343cd2a378bd6d8e118dc2e2fd99e2c6314c"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/HostLanguageIndex.kt",
+      "bytes": 15295,
+      "sha256": "915958f0a4d7cf2fe98f66b15dc5cfd9fab972a3455bbb4f1b54b59102165bb9"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/LanguageCatalog.kt",
+      "bytes": 5252,
+      "sha256": "73982542e2e3dd419c12b0c94bd16604017cef3d13a9efa7dcf9ea4898e4a932"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/LanguageModel.kt",
+      "bytes": 4903,
+      "sha256": "d644f332d45fc757fd9655021d55abfddf8ae6fdbd297bc01c78ac6501109a91"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/MantraLanguage.kt",
+      "bytes": 13393,
+      "sha256": "ab9052aabf76292a0b755f6e06feef6d67fd324776e6e5f35c788a1f00ddcfe5"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/StaticFormulaIndex.kt",
+      "bytes": 16604,
+      "sha256": "94d03389ac80655751b8eff2d96c0db9579c9e172e1d40230600ea290a07e530"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/data/DataSources.kt",
+      "bytes": 16870,
+      "sha256": "135d1e69e482bbe7f163e84a91afeaea63c73760e08d8c16747967730e0cbba6"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/data/Json.kt",
+      "bytes": 5374,
+      "sha256": "d4dfed1735393d48311da7b92cf28ee6e4dd1398d22545b3f46f568da06c629d"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/AuditCapture.kt",
+      "bytes": 3448,
+      "sha256": "c9fd8e98b76ba0e57430779181a37f98e80fd1a50296fff218e001bb1dc2a58e"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CaseLoadingControl.kt",
+      "bytes": 1509,
+      "sha256": "300ce4610e579c48d7efb4e6f68b03683bcf7a62afd96687c73ccce39e0003be"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CompilationMeter.kt",
+      "bytes": 814,
+      "sha256": "f23b39a2fb378c988330b3464cd25baec69860d49c1abfbe7b973b66b6f280da"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CompilationTypes.kt",
+      "bytes": 1199,
+      "sha256": "5ce97c0c31c7da8bfa647d105d233259fc03d1a2900302f9f917e781dce5f0a6"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CompiledTemplate.kt",
+      "bytes": 6845,
+      "sha256": "e15f7ceb4c027419a457fa100c244b4edabff905c4aea8ec60b54488ed01afcd"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/ConvergeFunction.kt",
+      "bytes": 4692,
+      "sha256": "c6092604571355b89b3186fa05039e6391608adeca789104cba04e8069ff5069"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CoordSpace.kt",
+      "bytes": 7280,
+      "sha256": "dcc893b8464e41eacf89bad4206a31dc2a67cc2d044d232811c4ca7b656169bc"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Evaluator.kt",
+      "bytes": 52550,
+      "sha256": "32e2d4f907a354334b6d00874828245dad6a94c0807f8692411f7f038a8116a6"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/FormulaCompiler.kt",
+      "bytes": 10866,
+      "sha256": "4a1347573a51f83456bc1bd72cd715904771147129027771bc0af0c470871dd0"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/FormulaDependency.kt",
+      "bytes": 7608,
+      "sha256": "ba41c3824d7cd0b3f0b61b7b26f2fef72d7b90e66e1669ba6a53ae4b51de7e2d"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/FormulaInventory.kt",
+      "bytes": 1589,
+      "sha256": "e868aca37f9e597169fbc5bbe9035dc55bd930e1586b2f92640e52bc918810f0"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/IncrementalInvalidation.kt",
+      "bytes": 1571,
+      "sha256": "0bf8aab7c95e1dfe310201a1a2794662f94e4fe33833d8917071015ae5d57c94"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/InputValues.kt",
+      "bytes": 6401,
+      "sha256": "d6f27cf2b810a8f7725a864e2090a94b57b2667e596411ce227a35b452321d88"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelControl.kt",
+      "bytes": 2410,
+      "sha256": "414b5b791c00898613dc0401a4b214ed58e842f43680d525f430c16c754987ab"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelExecution.kt",
+      "bytes": 7794,
+      "sha256": "f5fa93a4027c0639942b784c556ff09186e6243b4bbec6069f4755fe362c273e"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelInputs.kt",
+      "bytes": 4105,
+      "sha256": "4761a7e494eaf217bb4b90485a1aa9d18d137c695143111c80554ddee779d77a"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelPlans.kt",
+      "bytes": 3733,
+      "sha256": "5f05eccd6ec72ec01cdf4f56ba9a74d62a593a07f4c15e078fbf6b7ab775d683"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/LibraryWork.kt",
+      "bytes": 1534,
+      "sha256": "5e920372f5fd2c643acf2828ad69c0bd101aa02cd1750de4e1021d1e14c70996"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/LinkInspection.kt",
+      "bytes": 5241,
+      "sha256": "f1cdabdf1889ca7be1de6b53055dd84239df522b0aa8f37697be2bbb1cf59af4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/LiteralInputRows.kt",
+      "bytes": 1890,
+      "sha256": "3ddb28805a1ef7b0078c470af3a95a1a060616c9a027caf7379226bfded873ed"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/MantraLibrary.kt",
+      "bytes": 30359,
+      "sha256": "db6316bb8174660addb44f0a729aa858341fcae8c8bc9a97912437f3763f52f4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/MemberGraph.kt",
+      "bytes": 3276,
+      "sha256": "ed4e46b857e94b2ff50bdfeb039f4a704d7d484500235453d3019fb2f318e43e"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/MemberPlanner.kt",
+      "bytes": 1817,
+      "sha256": "32fc8cfb4ca3d22a1e468f1cb9811a59c15166eca5fd4b9703fba8414efeef17"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/NodeResult.kt",
+      "bytes": 1867,
+      "sha256": "223c6b30f52cab0cd48c22bebf07532161baa9057d90e4697949573b9fecdf10"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/NormeinBridge.kt",
+      "bytes": 9548,
+      "sha256": "86a8d85d4c50a9ca17d6bb2e1da8304e15ec8a4fbdb522f4cd1f64af5c1c767f"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/PeriodMemberResolver.kt",
+      "bytes": 8721,
+      "sha256": "648cc1aa54229d0bd903bc7386f7c39dddb0b0fd1bc1fe79a6dfbf62b53ba1d1"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Plan.kt",
+      "bytes": 9494,
+      "sha256": "56d254669232654109eb05192b7acd45e3252ca94b81af4d0df0c1774190bda1"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/PlanRebinding.kt",
+      "bytes": 3624,
+      "sha256": "20378228e1e6d62d20e45d124bb57709afe8f5a0f618d806876ddc90b02716a2"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Planner.kt",
+      "bytes": 44240,
+      "sha256": "e266e3d30e6447fb0eae72725ab9e2f268547b2c0c04306116dcf987af2dd1ee"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/PrevLowering.kt",
+      "bytes": 19533,
+      "sha256": "9d748ddbfb13d5c592bd8cd0f37a03123ba005f77f09e8c5211c7c303d2fd2c4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/RatioAggregation.kt",
+      "bytes": 4154,
+      "sha256": "c960933e2b7d4e2be13905f83bb9428a20651890501f30707f2c4c14612e9c4d"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/ReductionService.kt",
+      "bytes": 12505,
+      "sha256": "d5bd9ab25102d179886a2c0c6679275c53e8a97fb727a1a05d270b42840c6aee"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/RunBoundary.kt",
+      "bytes": 2169,
+      "sha256": "f377179dae521c8cc05ef38bc8d0d73f0f75d6db53816e7d8c5f999f05f24911"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/RunContext.kt",
+      "bytes": 6284,
+      "sha256": "a014d06b52582600e124d9ffec08524408302f4a4383d00c01943b1e22702920"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/SchemaVersions.kt",
+      "bytes": 2053,
+      "sha256": "d04fcd4d6279811afe42ac1b7cf3df2a86fe6555a20f8d8f0b1c750f8eeb2cd2"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/SectionGuards.kt",
+      "bytes": 800,
+      "sha256": "39cd7964ac08ea6e827521eb67bbd66fd793e7c3e8bab266c62dce94e9ecbef7"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/TraceProjection.kt",
+      "bytes": 6482,
+      "sha256": "14616a9d737cffbb4dcda6a0b99996f80ca90f075d11d52f75ea260b8f36c78c"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/CaseLinks.kt",
+      "bytes": 1084,
+      "sha256": "3a54c1c6d2af196535127efe4c9249fcaff14bcd59dd15a63111039be1c271c9"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/PeriodSpec.kt",
+      "bytes": 991,
+      "sha256": "984125395517c0da3d21efedb5f7f2ca1a0aab2b879500a4102a99a8f5ae224f"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/Schema.kt",
+      "bytes": 10553,
+      "sha256": "7994bcdbaa28fb3fb82c26aecce532dea487a454a4c3f04255a2c15f00876947"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/SchemaIdentity.kt",
+      "bytes": 394,
+      "sha256": "988c1841a62abd94ed5495eb9148092e91c4a8be630f5db249355bb53d460f66"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/Validation.kt",
+      "bytes": 1053,
+      "sha256": "befa97a3448fff0dd26e8c0d00a52749e3e6a9e666d6f318b54f3e8f69e787ed"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/Value.kt",
+      "bytes": 2204,
+      "sha256": "73206cdaa5dc82e24dd36bc44ed3be7ba8e0673b5a564dba01edd5dd1c1856e4"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/CaseReader.kt",
+      "bytes": 10107,
+      "sha256": "87e491f35a387394402e56293ffb53fe46ed1b5b18f9baffbf8fcb302928195f"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/Forms.kt",
+      "bytes": 6931,
+      "sha256": "5534045ca78fe6d30d438dfe52ff5a32032dc7e5f3d9b0810ce31354e266da98"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/LinkReader.kt",
+      "bytes": 5455,
+      "sha256": "18fcb472d6991266851ad252225dad6c7fb24abd2f8b02def44d54399456bdea"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/ParameterSetReader.kt",
+      "bytes": 4267,
+      "sha256": "b182583ce30d5a4649405f885a5846926c04d2af4597e3e1c726bbde17d4df79"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/PeriodReader.kt",
+      "bytes": 3779,
+      "sha256": "686f7ca822fedd9cb607bdeba5a216f3d1c0eee2fb3e82ccbdeaaaa3b0cb2da7"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/SchemaReader.kt",
+      "bytes": 42255,
+      "sha256": "abb875f9a117fff198a5d2940ee01e652647db1b8272394b00b00c46b4814d8e"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/structure/SchemaMap.kt",
+      "bytes": 11547,
+      "sha256": "ad60c1de9ccf7692e20b239c9edc5ad95c38aa3e1e8ff285b55bd5f97d37438a"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/structure/StructureJson.kt",
+      "bytes": 9804,
+      "sha256": "e776c59a55d3569a34f27a77c098392fe063020e8ac0a954aca259fe71004c5d"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/AggregationResult.kt",
+      "bytes": 1732,
+      "sha256": "722e7e42bf841e1924350dab02cf770547a99b5f517aae78bf430aaf9398b597"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/CalculationCompare.kt",
+      "bytes": 4428,
+      "sha256": "51b347cb2b7491d7c955520ee9f763387e84d9f3dceef611feffa8c90cffd847"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/CalculationView.kt",
+      "bytes": 21860,
+      "sha256": "4c3bd503e8a5f59c26832ff1ee661fbca74709e15dd58e0d752208e8e42548e3"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/GuardAlignment.kt",
+      "bytes": 439,
+      "sha256": "a3a987b1e811beb0af2c17b74b32dc5c0afef03d4ac474bf4806a233085d30b8"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/ParameterLayer.kt",
+      "bytes": 340,
+      "sha256": "cd03366e968a3bc1555aa430563bd605ea5c3d75daeda58e64fdbcee021a46ef"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/PresentationHints.kt",
+      "bytes": 1648,
+      "sha256": "97198839661086bdd392c34527e8a9222c25e377d03e1d7a17f66a6076dccdca"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/RatioAggregateTrace.kt",
+      "bytes": 1458,
+      "sha256": "70ed280e87e75326a9b5b4aa8c62105e449e4d3dd7f9f6c55630b78f05526dab"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/Trace.kt",
+      "bytes": 4832,
+      "sha256": "5ff980d6f6664b1d18e71e3497fb278b46c0d2ea714a74cee2dcd0de3309692d"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/ValidationResult.kt",
+      "bytes": 539,
+      "sha256": "df6e9abc9d11c970f9291a8dc4bfb3bf4706b211bce48e3a497bad759dd729ec"
+    },
+    {
+      "path": "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view/ViewSnapshot.kt",
+      "bytes": 11528,
+      "sha256": "13cecbf8d3b9755c3bf479ffc02c965038a0e4ad3c8326fbe3363feac78e2173"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/AuditTraceTest.kt",
+      "bytes": 7149,
+      "sha256": "ffd2f2c1d0be214467099dcc0b6f1723311b22abb908ed366555982763bd3029"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/BusinessValidationTest.kt",
+      "bytes": 9446,
+      "sha256": "8779beab183203a7e7e02d918bfea14344ed043c619f576f54e47803d9dabce2"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CalculationCompareTest.kt",
+      "bytes": 2689,
+      "sha256": "222d4d3c099e5ce6c67991c395935f024b73d907992d809ff84f5cc77689df75"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CalculationSessionTest.kt",
+      "bytes": 11314,
+      "sha256": "067727e4873c205f97cc47a4a5e243569ddf099b60afbdce94bfc46a5db3c656"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CalculationViewTest.kt",
+      "bytes": 11364,
+      "sha256": "aa6b933a6abafe161445b2435eb0e6e48c81654ef8a2a49d1715b239d62e19c5"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CaseGraphInspectorTest.kt",
+      "bytes": 19622,
+      "sha256": "63fac61e6dc4194b1748695b4153c70dba975f9a2ecc7b5e4b4d121c9050f45b"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CaseGraphRunnerIntegrationTest.kt",
+      "bytes": 25742,
+      "sha256": "b44b71167ed2b2dc38d55a3f9566a46a1befd1b5c7d52c4d5318a86d15360f0a"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CaseLinkBinderTest.kt",
+      "bytes": 14753,
+      "sha256": "07ed620fee6950c2db8aa54f443f85404cc499642d7534e5d300a141cfe00bb1"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CompiledBatchTest.kt",
+      "bytes": 12195,
+      "sha256": "e01e0f3035128b84c25d3b63cca6f2af8a9ce353f295dcc153d7e97dfacea83c"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CompiledCalculationTest.kt",
+      "bytes": 25963,
+      "sha256": "1433277a4b880fc1b1122cdb45ba5ed0e83c23a220717844a1de0f66db8139db"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/ConvergeKernelBudgetTest.kt",
+      "bytes": 9043,
+      "sha256": "5baa4c606bcce85262a9cb8fbb8b5ef883fc19e0dad7d67880844779325a6901"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/ConvergeTest.kt",
+      "bytes": 5177,
+      "sha256": "61679b335732392f6ae4ccdee44197c64255b04b16e5cd818b46058bbc1455ea"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/EngineTest.kt",
+      "bytes": 21862,
+      "sha256": "986b8d09d1019d81b4ff0e154d5e795e13957c615ee85290664ab7304b0cc5e7"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/ExplainTraceTest.kt",
+      "bytes": 3781,
+      "sha256": "91470f55608d5cb8aa9fde7b4633379fda5b71db2795196944238ad50bcae0e2"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/FailedReductionTest.kt",
+      "bytes": 12568,
+      "sha256": "bcdeaa7e080fa1e5f810c0c403905fcbbe8a1b4b20c91496091240cecf21e1eb"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/FormulaAuthoringPeriodTest.kt",
+      "bytes": 3068,
+      "sha256": "b446c472bfdaf65e1870c8731e35afe472ee807563f1bea8537352353f3ac04c"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/FunctionDocumentationTest.kt",
+      "bytes": 805,
+      "sha256": "72f527942aa9fac009ef138531e29db0542f64807496ff0acd5f153a046d7920"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/MantraLibraryTest.kt",
+      "bytes": 4465,
+      "sha256": "a0ffd72b3a2c710532f69003c141bdc846e2629deab6217ba35dddb3d614c8b9"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinContractTest.kt",
+      "bytes": 13522,
+      "sha256": "9d002e68c31c2cc9299e0c58f277648b2a75871d90d157ce11b3cffd3ab669cd"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinRfcContractTest.kt",
+      "bytes": 22479,
+      "sha256": "9b914b276ae7170d65815e33a119a00c4710d2a34f692baf452e6490431f106b"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/PeriodDimensionTest.kt",
+      "bytes": 13763,
+      "sha256": "e97f658975665572c0fdd7a8ae467263d88a793ddcb29315755f6da8da3747e2"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/PreviousMapTest.kt",
+      "bytes": 1947,
+      "sha256": "7e25f51429b55e5bfdd22813d3002fa51b9d03c41cb7c5dfc8c6df8d4197bedd"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/PreviousPeriodTest.kt",
+      "bytes": 5703,
+      "sha256": "04c7604cc71c24036d9d3da08564790b63edd664a440097e7d4a1babf5091d4a"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/PublicApiTest.kt",
+      "bytes": 2329,
+      "sha256": "05cf5b890d5f093f82b2371364447b6ff7d7c7f6ee4cba7f1d86ba0bedb10db3"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/RatioAggregateEvidenceTest.kt",
+      "bytes": 7891,
+      "sha256": "20c4dc42fc10abaa0b03b41d106ca9df4bd78ccd306953444b10d5414a9f0289"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/RatioAggregationTest.kt",
+      "bytes": 7821,
+      "sha256": "92e10e3b950fa64f80fc59cbb15fb66697b5c7c8433a6400af32abb85ace5c02"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/ReductionEdgeTest.kt",
+      "bytes": 5096,
+      "sha256": "5105e8aa522687be9c995d7198d00fc9004e49bd068ad4a53b12d33569ebc120"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/RunControlIntegrationTest.kt",
+      "bytes": 14969,
+      "sha256": "f65be813e66ca123997e7e358535eed8a966ef0c47ecb93c7741b23f4e928104"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/SchemaVersionTest.kt",
+      "bytes": 5393,
+      "sha256": "0686125b4a5fbbd4d0bb6172538cfbfdd69403d74745d41687d019fae84d7583"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/api/language/StaticLanguageTest.kt",
+      "bytes": 6569,
+      "sha256": "9aeca3788d5f1c27c88a422ec4ce26e74a0e60ac4a2a53d63af5c2aa985b8c87"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/CoordSpaceTest.kt",
+      "bytes": 6662,
+      "sha256": "b6e879f2b04aba08f00a9eafd1d24b47217d624e589e09ec5de9bd28693275a8"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/KernelControlTest.kt",
+      "bytes": 11519,
+      "sha256": "8c8ed40bd04b7adc89ba1c4bf8ecee47f8c5bfd984f370b3ccce94ac90731abc"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/PrevLoweringTest.kt",
+      "bytes": 8232,
+      "sha256": "145f793786dfffdaacd0ca0a55a6be7129e95fa998ce738e6a7546678074ed54"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/QualifiedTest.kt",
+      "bytes": 996,
+      "sha256": "3a92fac92538d8b49a30dbb0c6b47caf9d7aff3c90d43bf90d1f44dbc73ab71c"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/RunContextTest.kt",
+      "bytes": 8518,
+      "sha256": "b3579343cd619124554919eb3b8e43a302400a23800bd242a9c36127c045e717"
+    },
+    {
+      "path": "mantra-core/src/test/kotlin/com/xqiou/mantra/core/read/LinkReaderTest.kt",
+      "bytes": 3843,
+      "sha256": "d5798ea18f6f1b888b38cd79999c6acb8803a906dc56d4932ce224a55e10200a"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelAddressedTable.kt",
+      "bytes": 5060,
+      "sha256": "7e6cf4594fcefb0ad6d0f2cf44ca457883625f123d1d326d18413c712f7c931d"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelAudit.kt",
+      "bytes": 11569,
+      "sha256": "69539f2338a679b90b6f9df657d4ee8dd5e097853a04df8f365302ddb871a6e8"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelBusinessChecks.kt",
+      "bytes": 16663,
+      "sha256": "0e84a5b4cbdc393197bc9bc5a8a21bc2159a27fb9868bb4e9e52fdd44b5c9437"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelCappedAllocation.kt",
+      "bytes": 6660,
+      "sha256": "7bb3e060323c4975862d32ad1e6c3909ba8c53bdcc79b19656287a25f1f29872"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelConvergence.kt",
+      "bytes": 8583,
+      "sha256": "e68c63457f78135a94cbc961ec95f89cf3dbe01d2e3543b3c83191ca171a758b"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelCoordinateLayout.kt",
+      "bytes": 4611,
+      "sha256": "b86a1ea9f789416515c39a3183a4d6007b0e1fc0a1a6e1d395e32c32faefc6e8"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelDates.kt",
+      "bytes": 8532,
+      "sha256": "15fe6026a2a188eed2520803e319d34c73e85d660401c2cf023b36435ee88ffc"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelDynamicPaper.kt",
+      "bytes": 2171,
+      "sha256": "c233ad2279e8d8a7b1e57c0b432255cb427cf4c7a4297776a3c0ff635496d7ff"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelDynamicTables.kt",
+      "bytes": 23684,
+      "sha256": "c23ddc9a5f141ff1e154018564939c725266eab290d7541b9a0c120d7d5d5697"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelExport.kt",
+      "bytes": 901,
+      "sha256": "99fdfa2b740fad4ddf03ab4a56f24c5c756c501ef06c02ec870ed5fa525b8109"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelExpr.kt",
+      "bytes": 11065,
+      "sha256": "6a184e6abe0e1b29df42feddad3599b2b55be5a6dee4e892a4f52ec1d6237e01"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelFormulaWriter.kt",
+      "bytes": 19424,
+      "sha256": "90bd99eecbc93f08ecb1a1284fdfb31ca8fcdd754307c21819ba8ad43e6ae98d"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelInputLayout.kt",
+      "bytes": 13822,
+      "sha256": "6f6eba8d2cb414f61d698615ce0fda503050dd33403f04576d62ea5227012b23"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelKeyedInputs.kt",
+      "bytes": 9444,
+      "sha256": "6e9692f65fdf3f1e9654164c638f5e028578c0935be3b8d6e9fd04df527519b1"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelLet.kt",
+      "bytes": 4768,
+      "sha256": "58707fe2d5fc4b20197282eb85b4e4fe6184c48b4a2d0a5cbe147e9bde460505"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelNames.kt",
+      "bytes": 1370,
+      "sha256": "734fc8d12af9fed27ef8f671b1d80160f77ee3a8b25bace8e271f8e16a26d87f"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelOverview.kt",
+      "bytes": 5675,
+      "sha256": "6329d147d235e29c2fc087ae8764326c41585d2e2d5d3fed2d3f42fc16237c52"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelPeriodResolver.kt",
+      "bytes": 2505,
+      "sha256": "f936641028ed21775bfd8bf8522aef8e7cc7fbe55a229f807bdeeac60960eca2"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelProvenance.kt",
+      "bytes": 1632,
+      "sha256": "b34c6413b3f4f58432d535264d291168033fc377fe3961062649b490711989c0"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelReduction.kt",
+      "bytes": 10538,
+      "sha256": "1fba15f1b64a38118348344ab46774b9d4e8e2bbfa147e40bb841da3e3f8eece"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelStandardSum.kt",
+      "bytes": 7058,
+      "sha256": "5319e7b15d66dad72d055481ba3a10fe977d3b3f32a42377c717021fbc8df9c5"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelStyles.kt",
+      "bytes": 4955,
+      "sha256": "cdae222da2234c26a39c43c94f1e31719f888d72c2cfe4da652b35b5eb46202a"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelTableLayout.kt",
+      "bytes": 17755,
+      "sha256": "06920fa38ea85a865f2e7a440094f97221cf7c6787c9b8907afb7ab3264dba1e"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelWorkbook.kt",
+      "bytes": 8858,
+      "sha256": "8831dcb16a2e4eed385b3851497989e50f583884f1d52ec8f6d21c1725a7e290"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelWorkbookBuilder.kt",
+      "bytes": 25355,
+      "sha256": "7626c7d7bcf7da127ee8740b1199b0cb72593edb423791186788eaf183e772e4"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/FormulaTranslator.kt",
+      "bytes": 43465,
+      "sha256": "754fb9b12aa9504ddf1a77d1fc728acb8871ebf0cd56861333a27e74a9177b9a"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/XlsxContainerPreflight.kt",
+      "bytes": 6532,
+      "sha256": "40e4650cecda4ff4d0a484573f1a53cb3cf356e9f82475d89bee1e7f3af47d80"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/XlsxNamedCoordinates.kt",
+      "bytes": 6418,
+      "sha256": "eefefc4c2dbefc4e20ab26358d262cc1589f4c35657a979f97f6fbc2c00ea244"
+    },
+    {
+      "path": "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/XlsxSource.kt",
+      "bytes": 11708,
+      "sha256": "ef8064969fd2e18b169b4a5373850e1851e27fcc3b8f9f1955b324dd2ef3ca31"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelAddressedTableTest.kt",
+      "bytes": 3675,
+      "sha256": "7c145c497c49fbad5627b5f0b97f3bc8a3e770b6152ed40b3e61b48f8b8499df"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelAggregateAddressTest.kt",
+      "bytes": 5482,
+      "sha256": "9adfb8a15880f9d8f06c5d1da2b3c97ee108e4368d50035ac2ef6e5dce85dc8b"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelAuditTest.kt",
+      "bytes": 8737,
+      "sha256": "210e2a607bab3a243a98dbf6af0db40f5e450005882bb3937b0877e4a01bf31b"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelBusinessValidationTest.kt",
+      "bytes": 7206,
+      "sha256": "19e5627554bf153a3e62df8a923aee6c991d62ff03e3050ec96cc5ed49d76cdc"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelCappedAllocationTest.kt",
+      "bytes": 4057,
+      "sha256": "984e06450544aebf5528b2452c39f7ea331017b337af08de543b48ec3ed6a0d0"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelConvergeTest.kt",
+      "bytes": 15347,
+      "sha256": "0ce7aecfd982d637decc9e67b3432b5f1da79a3ee2490a5ec4c61ad60d31bbdf"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelDatesTest.kt",
+      "bytes": 5838,
+      "sha256": "f4a9a012a4db0ff15aa4b1871c2ee614cb6998a75ae66f09ee58bb4729ba1df8"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelDynamicHardeningTest.kt",
+      "bytes": 16222,
+      "sha256": "e4148ea02aae69cedf0297a71b96930300fbf53c3e62c932055d990fe937b7f9"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelDynamicTableTest.kt",
+      "bytes": 7339,
+      "sha256": "dd0856ade8c2b26a1017c07ce6417cc3b5b5cead7f0b08b4ca36121d0c6b8d0a"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelErrorPropagationTest.kt",
+      "bytes": 6756,
+      "sha256": "27850495ff722e2c548ab48685544058473ce145587d8f8badd00a3fe8ccea7e"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelFinancialFormulaSizeTest.kt",
+      "bytes": 7653,
+      "sha256": "6693ed8551887a5be90876bea7ddced30d681264f62a66313e4b9e9a1cffb7de"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelHigherOrderTest.kt",
+      "bytes": 4724,
+      "sha256": "cfb99fdaa7c49510fa0f7b31cccba4757cad77cd0db0ebd78e750a6873bebfec"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelLetParityTest.kt",
+      "bytes": 12187,
+      "sha256": "1e821e2ee12be134aba5cdbe4af79f02933e2c6692363e62f2d86fca82aa6858"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelLinkProvenanceTest.kt",
+      "bytes": 4905,
+      "sha256": "1b60452e0c6e05f4acd0cd4fc9228360afebb82886c3fbf650dc7ccd68e4d9c5"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelPeriodTest.kt",
+      "bytes": 13720,
+      "sha256": "907e7481c5d6417dd021be0843fb4239a380ff70592095f5d3bd2d528a309cbd"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelReadControlTest.kt",
+      "bytes": 3943,
+      "sha256": "98ed140e6a3311db6926fa2be625ef01955e0da0f9339e47bfbf69ddff251575"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelReductionRecalculationTest.kt",
+      "bytes": 5750,
+      "sha256": "5cbd723f7eb0ac9ace5f5b241a68580b11f3c60c1575dbce8ff5c110e17abf51"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelStandardSemanticsTest.kt",
+      "bytes": 4927,
+      "sha256": "3f88aa52026923c65fc66d45397779df7f8d5db9bce16f47f1d2996576dd8323"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelTranslationTest.kt",
+      "bytes": 14459,
+      "sha256": "52858064a94c547bff6cc00451d3803455b2f7b76d2477108ea4c1b914042400"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/LargeSumExportTest.kt",
+      "bytes": 10510,
+      "sha256": "46ee1a6899b39c9746a495be5a98a091e5fdfc5f80cdd00e20a0a86c3c5343f6"
+    },
+    {
+      "path": "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/XlsxImportHardeningTest.kt",
+      "bytes": 21647,
+      "sha256": "446f3d3dba5ad172023f40c2fbf2a988f109407c0752b72c37a531b094a1873c"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/Render.kt",
+      "bytes": 4301,
+      "sha256": "59cb429696dcaa7d82b3f62ea67c906791a77b482c7133085fc5e844cf8b4748"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/html/HtmlRenderer.kt",
+      "bytes": 23579,
+      "sha256": "8b11427b606c83c8d786c2de69db2f1fb8319507ff5eb607eca4d57db3608ee9"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/layout/Layout.kt",
+      "bytes": 17021,
+      "sha256": "4f93fa109c4763baf502a6ebe768f4bd49e8d998cbc4f616fab5db5be04166ba"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/layout/LayoutLanguageCatalog.kt",
+      "bytes": 2361,
+      "sha256": "cefd5adb899df67064b2de57bca58a74d37f7dc226388714bcb573e3c8257c72"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/layout/LayoutReader.kt",
+      "bytes": 23285,
+      "sha256": "dcfac101fb416b64cfa602c47ea5c3e37539f53b79811076778fde7177d32d46"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/FormulaExplainer.kt",
+      "bytes": 4890,
+      "sha256": "4e9992283e364610b8f364f5c57d56bda82df09d5cf95dba2ccf95b6f42f270c"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/MultidimensionalPaperBuilder.kt",
+      "bytes": 17576,
+      "sha256": "93ca6f86818aa8eae6fb1644611e60a9f755692bcea5f94537769a2748f8a000"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/NumberFormatter.kt",
+      "bytes": 3564,
+      "sha256": "28a159fb5c3928557f812fe8517beaf3566c075fe5d365f993b2d1017b9530f1"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/RatioExplainer.kt",
+      "bytes": 1673,
+      "sha256": "1fdde79a75500e0b3954a388bae4946c28f8a6ec0e4143ce0b088ccc006ae2a1"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/ReductionExplainer.kt",
+      "bytes": 1945,
+      "sha256": "01b9db3ecba2cecb954723939153a796409e292ee21a0dd1c4eec9c0b835dc47"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/TraceExplainer.kt",
+      "bytes": 1314,
+      "sha256": "e775c77dbbb977f41874ef3614bee5bfc5aae347e43e2d4be7eaca1be333c755"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/WorkingPaper.kt",
+      "bytes": 5003,
+      "sha256": "42eed0107e077239e51ff1a0a4ec29ce02fcdbce83731c07fb9f7797a335a65a"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/WorkingPaperBuilder.kt",
+      "bytes": 48828,
+      "sha256": "66313f03348ef9ce52f6de65dfeb4b4634d6b99d3ccb27025b33061c4ab696fd"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/pdf/PdfOptions.kt",
+      "bytes": 557,
+      "sha256": "6a54da1fc9cdc8eee472f257989af50a861d79cb1e7415820cf9a869a9a089c6"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/pdf/PdfRenderer.kt",
+      "bytes": 13127,
+      "sha256": "9bbc9b6bb61a5680c9a7d9515ec68d2889831464ec79832ad2682832f47fc715"
+    },
+    {
+      "path": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/text/TextRenderer.kt",
+      "bytes": 5103,
+      "sha256": "4edf0afd7d49d4826085ca59096750e074837e546a20bcf99ba232f737f443f4"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/AuditPaperTest.kt",
+      "bytes": 7954,
+      "sha256": "2bb33b6779643ec40c6e0ee4c8a447e970e84ba7ed937caceab1a781efec402a"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/HtmlAnchorTest.kt",
+      "bytes": 2854,
+      "sha256": "18b7bd235f0d4cdbdef1693482a98e79b25c64fcbb6ebb14bb1eeb6486171501"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/LayoutBehaviorTest.kt",
+      "bytes": 8529,
+      "sha256": "4c2df90467edeeda231a9c27638e548d01ef897cd9fa29e95544548b6de68de7"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/MultidimensionalPaperTest.kt",
+      "bytes": 7286,
+      "sha256": "b3815c4c5849e5be290240fdc00a2445070e14f8eaf7e17f2ece955851e7a279"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/MultidimensionalVisibilityTest.kt",
+      "bytes": 10677,
+      "sha256": "98cd3fc71a66aca9572c035886e441f39a65a5ddacfb12fa7fc098ec25d04cd8"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/PdfRendererTest.kt",
+      "bytes": 4863,
+      "sha256": "85b7833b23ec7ba89810694357b7adb41b1df4f5cd5fa6dab6a4435428ec3733"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/RenderReadControlTest.kt",
+      "bytes": 4490,
+      "sha256": "d99cbdb35dfedc957df3253cd1c62548510b11155f1aab8841df0d60cac9f654"
+    },
+    {
+      "path": "mantra-render/src/test/kotlin/com/xqiou/mantra/render/WorkingPaperBuilderTest.kt",
+      "bytes": 16948,
+      "sha256": "3c3e7425323247085a4a0149914224abe370889370a1ce623953c3e232bfd3bb"
+    },
+    {
+      "path": "normein-build.lock",
+      "bytes": 253,
+      "sha256": "7e92b534b62bbe2cd1e8b150fe72ec48193edfbb358d8ce9e55d94e70e9b562a"
+    }
+  ]
+}

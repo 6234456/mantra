@@ -1,0 +1,1198 @@
+{
+  "status": "PASS",
+  "method": "Python stdlib streaming JSONDecoder; one event at a time; no JVM or re-recording; allocation weight is sampled estimated pressure, not exact allocated bytes.",
+  "input": {
+    "path": "build/v1-profile/selected-events.json",
+    "bytes": 409193793,
+    "sha256": "686c22948935d617177288e83ae72666584f9e7fc78e9f86c653a5f8979c4703",
+    "maximumBufferedCharacters": 1230518,
+    "eventCounts": {
+      "jdk.ObjectAllocationSample": 1774,
+      "jdk.ExecutionSample": 2812,
+      "jdk.GCPhasePause": 5,
+      "jdk.GarbageCollection": 5
+    },
+    "truncatedStacks": {
+      "false": 4147,
+      "true": 439
+    }
+  },
+  "identity": {
+    "status": "PASS",
+    "measuredLibraryCommit": "ae9af84bde3f82cc86787e908aab7be76ddecee9",
+    "profileRevision": "Post-measurement diagnostic consumer metadata suppression; production and Kotlin harness unchanged",
+    "privateMetadataCounts": {
+      "jdk.InitialEnvironmentVariable": 0,
+      "jdk.InitialSystemProperty": 0,
+      "jdk.InitialSecurityProperty": 0,
+      "jdk.SystemProcess": 0,
+      "jdk.ProcessStart": 0,
+      "jdk.JVMInformation": 0
+    },
+    "selectedCounts": {
+      "jdk.ExecutionSample": 2812,
+      "jdk.ObjectAllocationSample": 1774,
+      "jdk.GarbageCollection": 5,
+      "jdk.GCPhasePause": 5,
+      "jdk.FileWrite": 0
+    },
+    "fileWriteScope": "Workbook serialized to bytes; recording dump occurs after stop. No FileWrite event was observed.",
+    "profileSourceSha256": "44bce2ed8da563fa632fbee39954e12e6f3b23746c49ae8c0f2f3bcea3ea608a",
+    "profileClassSha256": "fac73486daaae983e3e13b1be5d905bca39e80f30409d5d120008a5d1ff749d1",
+    "recordingBytes": 855219,
+    "recordingSha256": "477fdec404eec8535fdbded7f28872dddd297b9a03ce963390cd8d63dbe71b12",
+    "log": "Captured combined XLSX build/recalculation/serialization/close ns=41029463375 bytes=663684"
+  },
+  "cpu": {
+    "sampleCount": 2812,
+    "exclusiveLeafMethods": [
+      {
+        "method": "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+        "samples": 2426,
+        "percentOfCpuSamples": "86.273115"
+      },
+      {
+        "method": "org.apache.xmlbeans.impl.store.Xobj.getAttr",
+        "samples": 192,
+        "percentOfCpuSamples": "6.827881"
+      },
+      {
+        "method": "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+        "samples": 67,
+        "percentOfCpuSamples": "2.382646"
+      },
+      {
+        "method": "java.lang.StringLatin1.regionMatchesCI",
+        "samples": 43,
+        "percentOfCpuSamples": "1.529161"
+      },
+      {
+        "method": "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+        "samples": 21,
+        "percentOfCpuSamples": "0.746799"
+      },
+      {
+        "method": "java.lang.String.equalsIgnoreCase",
+        "samples": 21,
+        "percentOfCpuSamples": "0.746799"
+      },
+      {
+        "method": "org.apache.xmlbeans.impl.values.JavaStringHolder.compute_text",
+        "samples": 4,
+        "percentOfCpuSamples": "0.142248"
+      },
+      {
+        "method": "org.apache.xmlbeans.impl.store.Cur.moveToNoCheck",
+        "samples": 4,
+        "percentOfCpuSamples": "0.142248"
+      },
+      {
+        "method": "org.apache.xmlbeans.impl.values.XmlObjectBase.getStringValue",
+        "samples": 2,
+        "percentOfCpuSamples": "0.071124"
+      },
+      {
+        "method": "java.util.HashMap.putVal",
+        "samples": 2,
+        "percentOfCpuSamples": "0.071124"
+      },
+      {
+        "method": "java.lang.String.hashCode",
+        "samples": 2,
+        "percentOfCpuSamples": "0.071124"
+      },
+      {
+        "method": "java.util.ArrayList$Itr.hasNext",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "java.lang.Boolean.valueOf",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "com.xqiou.mantra.excel.ExcelTableLayoutKt.layoutTable",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "kotlin.collections.CollectionsKt___CollectionsKt.firstOrNull",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "java.lang.AbstractStringBuilder.append",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "org.apache.xmlbeans.impl.values.XmlObjectBase.check_orphaned",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "com.xqiou.mantra.excel.ExcelFormulaWriterKt.conditions",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "com.xqiou.mantra.excel.ExcelFormulaWriterKt.guarded",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      },
+      {
+        "method": "org.apache.poi.xssf.usermodel.XSSFWorkbook.getNameAt",
+        "samples": 1,
+        "percentOfCpuSamples": "0.035562"
+      }
+    ],
+    "inclusiveMethods": [
+      {
+        "method": "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+        "samples": 2800,
+        "percentOfCpuSamples": "99.573257"
+      },
+      {
+        "method": "com.xqiou.mantra.excel.ExcelExport.workbook",
+        "samples": 2800,
+        "percentOfCpuSamples": "99.573257"
+      },
+      {
+        "method": "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+        "samples": 2768,
+        "percentOfCpuSamples": "98.435277"
+      },
+      {
+        "method": "CombinedXlsxProfile.export",
+        "samples": 2703,
+        "percentOfCpuSamples": "96.123755"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.Term",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+        "samples": 2663,
+        "percentOfCpuSamples": "94.701280"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+        "samples": 2662,
+        "percentOfCpuSamples": "94.665718"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+        "samples": 2662,
+        "percentOfCpuSamples": "94.665718"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+        "samples": 2658,
+        "percentOfCpuSamples": "94.523471"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.parse",
+        "samples": 2658,
+        "percentOfCpuSamples": "94.523471"
+      },
+      {
+        "method": "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+        "samples": 2653,
+        "percentOfCpuSamples": "94.345661"
+      },
+      {
+        "method": "CombinedXlsxProfile.main",
+        "samples": 2581,
+        "percentOfCpuSamples": "91.785206"
+      },
+      {
+        "method": "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+        "samples": 2499,
+        "percentOfCpuSamples": "88.869132"
+      },
+      {
+        "method": "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+        "samples": 2499,
+        "percentOfCpuSamples": "88.869132"
+      }
+    ],
+    "exclusiveStackCategories": [
+      {
+        "category": "poi-named-range-resolution",
+        "samples": 2768,
+        "percentOfCpuSamples": "98.435277"
+      },
+      {
+        "category": "mantra-export-other",
+        "samples": 26,
+        "percentOfCpuSamples": "0.924609"
+      },
+      {
+        "category": "poi-formula-evaluation-other",
+        "samples": 7,
+        "percentOfCpuSamples": "0.248933"
+      },
+      {
+        "category": "xmlbeans-serialization",
+        "samples": 6,
+        "percentOfCpuSamples": "0.213371"
+      },
+      {
+        "category": "other-or-no-stack",
+        "samples": 5,
+        "percentOfCpuSamples": "0.177809"
+      }
+    ],
+    "namedRangeCallerPhases": [
+      {
+        "phase": "poi-recalculation-token-parsing",
+        "samples": 1844,
+        "percentOfCpuSamples": "65.576102",
+        "percentOfNamedRangeSamples": "66.618497"
+      },
+      {
+        "phase": "formula-installation-parsing",
+        "samples": 924,
+        "percentOfCpuSamples": "32.859175",
+        "percentOfNamedRangeSamples": "33.381503"
+      }
+    ],
+    "dominantStacks": [
+      {
+        "samples": 519,
+        "percentOfCpuSamples": "18.456615",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setFormula",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellFormulaImpl",
+          "org.apache.poi.ss.usermodel.CellBase.setCellFormula",
+          "com.xqiou.mantra.excel.ExcelFormulaWriterKt.setFormula",
+          "com.xqiou.mantra.excel.ExcelFormulaWriterKt.writeValuesAndFormulas",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 482,
+        "percentOfCpuSamples": "17.140825",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.getFormulaTokens",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluate",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 480,
+        "percentOfCpuSamples": "17.069701",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.getFormulaTokens",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.cacheExternalWorkbookCells",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 115,
+        "percentOfCpuSamples": "4.089616",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.Arguments",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setFormula",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellFormulaImpl",
+          "org.apache.poi.ss.usermodel.CellBase.setCellFormula",
+          "com.xqiou.mantra.excel.ExcelFormulaWriterKt.setFormula",
+          "com.xqiou.mantra.excel.ExcelAuditKt.writeAudit",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 115,
+        "percentOfCpuSamples": "4.089616",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.Arguments",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.getFormulaTokens",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateReference",
+          "org.apache.poi.ss.formula.SheetRefEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.SheetRangeEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.LazyAreaEval.getRelativeValue",
+          "org.apache.poi.ss.formula.eval.AreaEvalBase.getValue",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.collectValues",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.getNumberArray",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.evaluate",
+          "org.apache.poi.ss.formula.OperationEvaluatorFactory.evaluate",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateReference",
+          "org.apache.poi.ss.formula.SheetRefEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.SheetRangeEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.LazyRefEval.getInnerValueEval",
+          "org.apache.poi.ss.formula.eval.OperandResolver.chooseSingleElementFromRef",
+          "org.apache.poi.ss.formula.eval.OperandResolver.getSingleValue",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.dereferenceResult",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.dereferenceResult",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluate",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export"
+        ]
+      },
+      {
+        "samples": 112,
+        "percentOfCpuSamples": "3.982930",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.OperationEvaluationContext.getLocalNameXEval",
+          "org.apache.poi.ss.formula.OperationEvaluationContext.getNameXEval",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.getEvalForPtg",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateReference",
+          "org.apache.poi.ss.formula.SheetRefEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.SheetRangeEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.LazyAreaEval.getRelativeValue",
+          "org.apache.poi.ss.formula.eval.AreaEvalBase.getValue",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.collectValues",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.getNumberArray",
+          "org.apache.poi.ss.formula.functions.MultiOperandNumericFunction.evaluate",
+          "org.apache.poi.ss.formula.OperationEvaluatorFactory.evaluate",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateReference",
+          "org.apache.poi.ss.formula.SheetRefEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.SheetRangeEvaluator.getEvalForCell",
+          "org.apache.poi.ss.formula.LazyRefEval.getInnerValueEval",
+          "org.apache.poi.ss.formula.eval.OperandResolver.chooseSingleElementFromRef",
+          "org.apache.poi.ss.formula.eval.OperandResolver.getSingleValue",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.dereferenceResult",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.dereferenceResult",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny",
+          "org.apache.poi.ss.formula.WorkbookEvaluator.evaluate",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 104,
+        "percentOfCpuSamples": "3.698435",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.Arguments",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.getFormulaTokens",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.cacheExternalWorkbookCells",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "samples": 102,
+        "percentOfCpuSamples": "3.627312",
+        "frames": [
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.get_store",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.monitor",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTDefinedNameImpl.getName",
+          "org.apache.poi.xssf.usermodel.XSSFName.getNameName",
+          "org.apache.poi.xssf.usermodel.BaseXSSFEvaluationWorkbook.getName",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.Arguments",
+          "org.apache.poi.ss.formula.FormulaParser.function",
+          "org.apache.poi.ss.formula.FormulaParser.parseNonRange",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeable",
+          "org.apache.poi.ss.formula.FormulaParser.parseRangeExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parseSimpleFactor",
+          "org.apache.poi.ss.formula.FormulaParser.percentFactor",
+          "org.apache.poi.ss.formula.FormulaParser.powerFactor",
+          "org.apache.poi.ss.formula.FormulaParser.Term",
+          "org.apache.poi.ss.formula.FormulaParser.additiveExpression",
+          "org.apache.poi.ss.formula.FormulaParser.concatExpression",
+          "org.apache.poi.ss.formula.FormulaParser.comparisonExpression",
+          "org.apache.poi.ss.formula.FormulaParser.intersectionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.unionExpression",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.ss.formula.FormulaParser.parse",
+          "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.getFormulaTokens",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.cacheExternalWorkbookCells",
+          "org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue",
+          "org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluateFormulaCell",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.evaluate$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      }
+    ]
+  },
+  "allocation": {
+    "sampleEventCount": 1774,
+    "totalSampledWeightBytes": 7589228280,
+    "exclusiveLeafSites": [
+      {
+        "site": "jdk.internal.org.objectweb.asm.Frame.merge",
+        "sampledWeightBytes": 5422938376,
+        "percentOfAllSampledWeight": "71.455729",
+        "sampleEvents": 1
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.Saver$TextSaver.emitNamespacesHelper",
+        "sampledWeightBytes": 467827512,
+        "percentOfAllSampledWeight": "6.164362",
+        "sampleEvents": 29
+      },
+      {
+        "site": "java.util.regex.Pattern.matcher",
+        "sampledWeightBytes": 455863776,
+        "percentOfAllSampledWeight": "6.006721",
+        "sampleEvents": 55
+      },
+      {
+        "site": "java.util.LinkedHashMap.newNode",
+        "sampledWeightBytes": 226853400,
+        "percentOfAllSampledWeight": "2.989150",
+        "sampleEvents": 167
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.Saver$TextSaver.resize",
+        "sampledWeightBytes": 213857672,
+        "percentOfAllSampledWeight": "2.817911",
+        "sampleEvents": 322
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.ElementXobj.newNode",
+        "sampledWeightBytes": 71679792,
+        "percentOfAllSampledWeight": "0.944494",
+        "sampleEvents": 20
+      },
+      {
+        "site": "java.util.regex.Matcher.<init>",
+        "sampledWeightBytes": 70367912,
+        "percentOfAllSampledWeight": "0.927208",
+        "sampleEvents": 115
+      },
+      {
+        "site": "java.util.Arrays.copyOfRangeByte",
+        "sampledWeightBytes": 43952400,
+        "percentOfAllSampledWeight": "0.579142",
+        "sampleEvents": 73
+      },
+      {
+        "site": "java.time.Instant.create",
+        "sampledWeightBytes": 40813616,
+        "percentOfAllSampledWeight": "0.537783",
+        "sampleEvents": 49
+      },
+      {
+        "site": "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook.create",
+        "sampledWeightBytes": 35558520,
+        "percentOfAllSampledWeight": "0.468539",
+        "sampleEvents": 3
+      },
+      {
+        "site": "java.util.Arrays.copyOf",
+        "sampledWeightBytes": 30135400,
+        "percentOfAllSampledWeight": "0.397081",
+        "sampleEvents": 54
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.Cur$Locations.<init>",
+        "sampledWeightBytes": 23543904,
+        "percentOfAllSampledWeight": "0.310228",
+        "sampleEvents": 43
+      },
+      {
+        "site": "java.lang.AbstractStringBuilder.<init>",
+        "sampledWeightBytes": 23022968,
+        "percentOfAllSampledWeight": "0.303364",
+        "sampleEvents": 38
+      },
+      {
+        "site": "java.util.HashMap.resize",
+        "sampledWeightBytes": 22500272,
+        "percentOfAllSampledWeight": "0.296476",
+        "sampleEvents": 38
+      },
+      {
+        "site": "com.xqiou.mantra.core.engine.RunContext.snapshot",
+        "sampledWeightBytes": 17267040,
+        "percentOfAllSampledWeight": "0.227520",
+        "sampleEvents": 30
+      },
+      {
+        "site": "java.util.LinkedHashMap.sequencedEntrySet",
+        "sampledWeightBytes": 16352016,
+        "percentOfAllSampledWeight": "0.215463",
+        "sampleEvents": 28
+      },
+      {
+        "site": "java.lang.StringBuilder.toString",
+        "sampledWeightBytes": 16220848,
+        "percentOfAllSampledWeight": "0.213735",
+        "sampleEvents": 26
+      },
+      {
+        "site": "com.xqiou.mantra.core.api.RunUsage.<init>",
+        "sampledWeightBytes": 14650920,
+        "percentOfAllSampledWeight": "0.193049",
+        "sampleEvents": 26
+      },
+      {
+        "site": "java.lang.invoke.DirectMethodHandle.allocateInstance",
+        "sampledWeightBytes": 14184080,
+        "percentOfAllSampledWeight": "0.186898",
+        "sampleEvents": 22
+      },
+      {
+        "site": "java.util.HashMap.newNode",
+        "sampledWeightBytes": 14127816,
+        "percentOfAllSampledWeight": "0.186156",
+        "sampleEvents": 23
+      }
+    ],
+    "exclusiveStackCategories": [
+      {
+        "category": "recording-control-or-instrumentation",
+        "sampleEvents": 4,
+        "sampledWeightBytes": 5422977232,
+        "percentOfAllSampledWeight": "71.456241"
+      },
+      {
+        "category": "mantra-export-other",
+        "sampleEvents": 1039,
+        "sampledWeightBytes": 833573528,
+        "percentOfAllSampledWeight": "10.983640"
+      },
+      {
+        "category": "xmlbeans-serialization",
+        "sampleEvents": 432,
+        "sampledWeightBytes": 724195632,
+        "percentOfAllSampledWeight": "9.542415"
+      },
+      {
+        "category": "other-or-no-stack",
+        "sampleEvents": 147,
+        "sampledWeightBytes": 507232616,
+        "percentOfAllSampledWeight": "6.683586"
+      },
+      {
+        "category": "poi-formula-evaluation-other",
+        "sampleEvents": 150,
+        "sampledWeightBytes": 100202768,
+        "percentOfAllSampledWeight": "1.320329"
+      },
+      {
+        "category": "poi-named-range-resolution",
+        "sampleEvents": 2,
+        "sampledWeightBytes": 1046504,
+        "percentOfAllSampledWeight": "0.013789"
+      }
+    ],
+    "nonRecorderSampledWeightBytes": 2166251048,
+    "nonRecorderExclusiveCategories": [
+      {
+        "category": "mantra-export-other",
+        "sampleEvents": 1039,
+        "sampledWeightBytes": 833573528,
+        "percentOfNonRecorderSampledWeight": "38.480006"
+      },
+      {
+        "category": "xmlbeans-serialization",
+        "sampleEvents": 432,
+        "sampledWeightBytes": 724195632,
+        "percentOfNonRecorderSampledWeight": "33.430827"
+      },
+      {
+        "category": "other-or-no-stack",
+        "sampleEvents": 147,
+        "sampledWeightBytes": 507232616,
+        "percentOfNonRecorderSampledWeight": "23.415228"
+      },
+      {
+        "category": "poi-formula-evaluation-other",
+        "sampleEvents": 150,
+        "sampledWeightBytes": 100202768,
+        "percentOfNonRecorderSampledWeight": "4.625630"
+      },
+      {
+        "category": "poi-named-range-resolution",
+        "sampleEvents": 2,
+        "sampledWeightBytes": 1046504,
+        "percentOfNonRecorderSampledWeight": "0.048309"
+      }
+    ],
+    "allocatedClassWeights": [
+      {
+        "class": "[I",
+        "sampledWeightBytes": 5512664704,
+        "percentOfAllSampledWeight": "72.638014"
+      },
+      {
+        "class": "java.util.LinkedHashMap",
+        "sampledWeightBytes": 479338712,
+        "percentOfAllSampledWeight": "6.316040"
+      },
+      {
+        "class": "java.util.regex.Matcher",
+        "sampledWeightBytes": 455863776,
+        "percentOfAllSampledWeight": "6.006721"
+      },
+      {
+        "class": "java.util.LinkedHashMap$Entry",
+        "sampledWeightBytes": 226853400,
+        "percentOfAllSampledWeight": "2.989150"
+      },
+      {
+        "class": "[C",
+        "sampledWeightBytes": 218566896,
+        "percentOfAllSampledWeight": "2.879962"
+      },
+      {
+        "class": "[B",
+        "sampledWeightBytes": 116335328,
+        "percentOfAllSampledWeight": "1.532901"
+      },
+      {
+        "class": "org.apache.xmlbeans.impl.store.ElementXobj",
+        "sampledWeightBytes": 81620744,
+        "percentOfAllSampledWeight": "1.075481"
+      },
+      {
+        "class": "[Ljava.lang.Object;",
+        "sampledWeightBytes": 42641392,
+        "percentOfAllSampledWeight": "0.561867"
+      },
+      {
+        "class": "java.time.Instant",
+        "sampledWeightBytes": 40813616,
+        "percentOfAllSampledWeight": "0.537783"
+      },
+      {
+        "class": "java.lang.String",
+        "sampledWeightBytes": 36672000,
+        "percentOfAllSampledWeight": "0.483211"
+      },
+      {
+        "class": "org.apache.poi.xssf.usermodel.XSSFEvaluationWorkbook",
+        "sampledWeightBytes": 35558520,
+        "percentOfAllSampledWeight": "0.468539"
+      },
+      {
+        "class": "[Ljava.util.HashMap$Node;",
+        "sampledWeightBytes": 22500272,
+        "percentOfAllSampledWeight": "0.296476"
+      }
+    ],
+    "dominantSiteStackEvidence": [
+      {
+        "site": "jdk.internal.org.objectweb.asm.Frame.merge",
+        "weight": 5422938376,
+        "startTime": "2026-10-04T20:00:24.781631208+02:00",
+        "frames": [
+          "jdk.internal.org.objectweb.asm.Frame.merge",
+          "jdk.internal.org.objectweb.asm.MethodWriter.computeAllFrames",
+          "jdk.internal.org.objectweb.asm.MethodWriter.visitMaxs",
+          "jdk.internal.org.objectweb.asm.tree.MethodNode.accept",
+          "jdk.internal.org.objectweb.asm.tree.MethodNode.accept",
+          "jdk.internal.org.objectweb.asm.tree.ClassNode.accept",
+          "jdk.jfr.internal.EventInstrumentation.toByteArray",
+          "jdk.jfr.internal.EventInstrumentation.buildInstrumented",
+          "jdk.jfr.internal.JVMUpcalls.onRetransform",
+          "jdk.jfr.internal.JVM.retransformClasses",
+          "jdk.jfr.internal.SettingsManager.updateRetransform",
+          "jdk.jfr.internal.SettingsManager.setSettings",
+          "jdk.jfr.internal.MetadataRepository.setSettings",
+          "jdk.jfr.internal.PlatformRecorder.updateSettingsButIgnoreRecording",
+          "jdk.jfr.internal.PlatformRecorder.updateSettings",
+          "jdk.jfr.internal.PlatformRecorder.start",
+          "jdk.jfr.internal.PlatformRecording.start",
+          "jdk.jfr.Recording.start",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.Saver$TextSaver.emitNamespacesHelper",
+        "weight": 452755760,
+        "startTime": "2026-10-04T20:00:35.870501458+02:00",
+        "frames": [
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.emitNamespacesHelper",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.emitElement",
+          "org.apache.xmlbeans.impl.store.Saver.processElement",
+          "org.apache.xmlbeans.impl.store.Saver.process",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.saveToString",
+          "org.apache.xmlbeans.impl.store.Cursor._xmlText",
+          "org.apache.xmlbeans.impl.store.Cursor.lambda$xmlText$11",
+          "org.apache.xmlbeans.impl.store.Cursor$$Lambda.0x000000e80122d260.get",
+          "org.apache.xmlbeans.impl.store.Cursor.syncWrapHelper",
+          "org.apache.xmlbeans.impl.store.Cursor.syncWrap",
+          "org.apache.xmlbeans.impl.store.Cursor.xmlText",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.xmlText",
+          "org.apache.poi.xssf.model.SharedStringsTable.xmlText",
+          "org.apache.poi.xssf.model.SharedStringsTable.addEntry",
+          "org.apache.poi.xssf.model.SharedStringsTable.addSharedStringItem",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellValueImpl",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellValueImpl",
+          "org.apache.poi.ss.usermodel.CellBase.setCellValue",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.text$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelAuditKt.writeAudit",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "site": "java.util.regex.Pattern.matcher",
+        "weight": 523208,
+        "startTime": "2026-10-04T20:00:24.922349167+02:00",
+        "frames": [
+          "java.util.regex.Pattern.matcher",
+          "kotlin.text.Regex.replace",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.compact",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.formulaText",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.recordAudit",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.access$recordAudit",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.nodeRows",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkChildren",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkSection",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkChildren",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walk",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.buildTable",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.buildControlled",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.build",
+          "com.xqiou.mantra.render.Render.completePaper",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "site": "java.util.LinkedHashMap.newNode",
+        "weight": 523232,
+        "startTime": "2026-10-04T20:00:24.901322375+02:00",
+        "frames": [
+          "java.util.LinkedHashMap.newNode",
+          "java.util.HashMap.putVal",
+          "java.util.HashMap.put",
+          "com.xqiou.mantra.core.engine.RunContext.snapshot",
+          "com.xqiou.mantra.core.api.CalculationReader.read",
+          "com.xqiou.mantra.core.api.CalculationReader.chargeScans",
+          "com.xqiou.mantra.core.api.CalculationReader.chargeScans$default",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.recordAudit",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.access$recordAudit",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.nodeRows",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkChildren",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkSection",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walkChildren",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder$RowWalker.walk",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.buildTable",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.buildControlled",
+          "com.xqiou.mantra.render.paper.WorkingPaperBuilder.build",
+          "com.xqiou.mantra.render.Render.completePaper",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.Saver$TextSaver.resize",
+        "weight": 42366776,
+        "startTime": "2026-10-04T20:00:25.192035542+02:00",
+        "frames": [
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.resize",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.preEmit",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.emit",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.emitElement",
+          "org.apache.xmlbeans.impl.store.Saver.processElement",
+          "org.apache.xmlbeans.impl.store.Saver.process",
+          "org.apache.xmlbeans.impl.store.Saver$TextSaver.saveToString",
+          "org.apache.xmlbeans.impl.store.Cursor._xmlText",
+          "org.apache.xmlbeans.impl.store.Cursor.lambda$xmlText$11",
+          "org.apache.xmlbeans.impl.store.Cursor$$Lambda.0x000000e80122d260.get",
+          "org.apache.xmlbeans.impl.store.Cursor.syncWrapHelper",
+          "org.apache.xmlbeans.impl.store.Cursor.syncWrap",
+          "org.apache.xmlbeans.impl.store.Cursor.xmlText",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.xmlText",
+          "org.apache.poi.xssf.model.SharedStringsTable.xmlText",
+          "org.apache.poi.xssf.model.SharedStringsTable.addEntry",
+          "org.apache.poi.xssf.model.SharedStringsTable.addSharedStringItem",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellValueImpl",
+          "org.apache.poi.xssf.usermodel.XSSFCell.setCellValueImpl",
+          "org.apache.poi.ss.usermodel.CellBase.setCellValue",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.text$mantra_excel",
+          "com.xqiou.mantra.excel.ExcelTableLayoutKt.layoutTable",
+          "com.xqiou.mantra.excel.ExcelWorkbookBuilder.build",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "com.xqiou.mantra.excel.ExcelExport.workbook",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      },
+      {
+        "site": "org.apache.xmlbeans.impl.store.ElementXobj.newNode",
+        "weight": 523192,
+        "startTime": "2026-10-04T20:01:05.418809583+02:00",
+        "frames": [
+          "org.apache.xmlbeans.impl.store.ElementXobj.newNode",
+          "org.apache.xmlbeans.impl.store.Xobj.copyNode",
+          "org.apache.xmlbeans.impl.store.Xobj.copy_contents_from",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.objSetterHelper",
+          "org.apache.xmlbeans.impl.values.XmlObjectBase.generatedSetterHelperImpl",
+          "org.openxmlformats.schemas.spreadsheetml.x2006.main.impl.CTWorkbookImpl.setDefinedNames",
+          "org.apache.poi.xssf.usermodel.XSSFWorkbook.saveNamedRanges",
+          "org.apache.poi.xssf.usermodel.XSSFWorkbook.commit",
+          "org.apache.poi.ooxml.POIXMLDocumentPart.onSave",
+          "org.apache.poi.ooxml.POIXMLDocument.write",
+          "com.xqiou.mantra.excel.ExcelWorkbook.bytes",
+          "CombinedXlsxProfile.export",
+          "CombinedXlsxProfile.main"
+        ]
+      }
+    ]
+  },
+  "gc": {
+    "collections": [
+      {
+        "startTime": "2026-10-04T20:00:25.534358958+02:00",
+        "duration": "PT0.006736125S",
+        "gcId": 23,
+        "name": "G1New",
+        "cause": "G1 Evacuation Pause",
+        "sumOfPauses": "PT0.006736125S",
+        "longestPause": "PT0.006736125S"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.717027708+02:00",
+        "duration": "PT0.009487917S",
+        "gcId": 24,
+        "name": "G1New",
+        "cause": "G1 Evacuation Pause",
+        "sumOfPauses": "PT0.009487917S",
+        "longestPause": "PT0.009487917S"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.860290417+02:00",
+        "duration": "PT0.010105333S",
+        "gcId": 25,
+        "name": "G1New",
+        "cause": "G1 Evacuation Pause",
+        "sumOfPauses": "PT0.010105333S",
+        "longestPause": "PT0.010105333S"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.984479333+02:00",
+        "duration": "PT0.01526475S",
+        "gcId": 26,
+        "name": "G1New",
+        "cause": "G1 Evacuation Pause",
+        "sumOfPauses": "PT0.01526475S",
+        "longestPause": "PT0.01526475S"
+      },
+      {
+        "startTime": "2026-10-04T20:01:02.061711250+02:00",
+        "duration": "PT0.011963125S",
+        "gcId": 27,
+        "name": "G1New",
+        "cause": "G1 Evacuation Pause",
+        "sumOfPauses": "PT0.011963125S",
+        "longestPause": "PT0.011963125S"
+      }
+    ],
+    "phasePauses": [
+      {
+        "startTime": "2026-10-04T20:00:25.534358958+02:00",
+        "duration": "PT0.006736125S",
+        "gcId": 23,
+        "name": "GC Pause"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.717027708+02:00",
+        "duration": "PT0.009487917S",
+        "gcId": 24,
+        "name": "GC Pause"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.860290417+02:00",
+        "duration": "PT0.010105333S",
+        "gcId": 25,
+        "name": "GC Pause"
+      },
+      {
+        "startTime": "2026-10-04T20:00:35.984479333+02:00",
+        "duration": "PT0.01526475S",
+        "gcId": 26,
+        "name": "GC Pause"
+      },
+      {
+        "startTime": "2026-10-04T20:01:02.061711250+02:00",
+        "duration": "PT0.011963125S",
+        "gcId": 27,
+        "name": "GC Pause"
+      }
+    ],
+    "pauseMilliseconds": [
+      "6.736125000",
+      "9.487917000",
+      "10.105333000",
+      "11.963125000",
+      "15.26475000"
+    ],
+    "totalPauseMilliseconds": "53.557250000",
+    "medianPauseMilliseconds": "10.105333000",
+    "maximumPauseMilliseconds": "15.26475000",
+    "percentOfTimedExport": "0.130534",
+    "timedExportNanoseconds": 41029463375,
+    "overlapPolicy": "Only GCPhasePause duration is summed. GarbageCollection entries describe the same collections and are not added again."
+  },
+  "limitations": [
+    "One diagnostic export is not a timing distribution and its overhead is not included in 390 unprofiled samples.",
+    "Inclusive stack percentages overlap and must not be added.",
+    "Sampling frequency and stack truncation do not provide exact wall-time causal attribution.",
+    "Large recording-start instrumentation sample weight is not actual engine allocated bytes or a JVM heap peak.",
+    "A current single profile does not explain or invalidate historic M2 tails.",
+    "No FileWrite event was observed: workbook exported to bytes and recording dumped after stop."
+  ]
+}

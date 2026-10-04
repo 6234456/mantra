@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0-rc.1 — M4–M6 candidate (not yet published)
+## 1.0.0-rc.1 — M4–M6 source candidate
 
 - Add immutable compiled templates, owner-confined reusable sessions and streamed typed batches,
   with physical compilation/session/evaluation counters. The lease demonstration supplies an
@@ -20,9 +20,12 @@
 - Bound imports, ZIP container views, export readers, migration intent, HTTP transport and LSP
   frames; preserve actual error cells, UTF-8 failures, table coordinates, dates, zero and false.
   Upgrade POI to 5.5.1 and track every declared package resource in incremental application tests.
-- Local functional, independent application, ABI/consumer, tutorial/site and browser checks pass.
-  Final source-frozen performance/JFR, remote CI and source publication remain in acceptance.
-  Public Maven upload requires namespace/signing configuration and the public pinned Normein artifact.
+- Functional, independent application, ABI/consumer, tutorial/site and browser checks pass.
+  The frozen candidate's remote CI is green; all 390 independently recomputed performance samples
+  meet existing budgets. The 10,000-case batch compares 1,120,000 exact values in 22,777 ms;
+  the separate XLSX profile retains CPU/allocation/GC evidence with private metadata events disabled.
+  See the release candidate evidence for source and recording identities. This is a source candidate;
+  public Maven upload requires namespace/signing configuration and the public pinned Normein artifact.
 
 ## v0.4 / M3 (not published as library artifacts)
 

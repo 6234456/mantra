@@ -1,0 +1,503 @@
+Synthetic baseline
+====================
+Calculation schema: Synthetic baseline [benchmark/small]
+
+Structure of the calculation
+  Mainline 1: Member calculations
+  Mainline 2: Scalar summary
+
+[1] Synthetic baseline
+                    | Member 0 | Member 1 | Member 2 | Member 3 | Member 4 |  Total
+--------------------+----------+----------+----------+----------+----------+-------
+Member calculations |          |          |          |          |          |
+  Step 0            |     1.25 |     2.50 |     3.75 |     5.00 |     6.25 |  18.75
+  Step 1            |     2.25 |     3.50 |     4.75 |     6.00 |     7.25 |  23.75
+  Step 2            |     3.25 |     4.50 |     5.75 |     7.00 |     8.25 |  28.75
+  Step 3            |     4.25 |     5.50 |     6.75 |     8.00 |     9.25 |  33.75
+  Step 4            |     5.25 |     6.50 |     7.75 |     9.00 |    10.25 |  38.75
+  Step 5            |     6.25 |     7.50 |     8.75 |    10.00 |    11.25 |  43.75
+  Step 6            |     7.25 |     8.50 |     9.75 |    11.00 |    12.25 |  48.75
+  Step 7            |     8.25 |     9.50 |    10.75 |    12.00 |    13.25 |  53.75
+  Step 8            |     9.25 |    10.50 |    11.75 |    13.00 |    14.25 |  58.75
+  Step 9            |    10.25 |    11.50 |    12.75 |    14.00 |    15.25 |  63.75
+  Step 10           |    11.25 |    12.50 |    13.75 |    15.00 |    16.25 |  68.75
+  Step 11           |    12.25 |    13.50 |    14.75 |    16.00 |    17.25 |  73.75
+  Step 12           |    13.25 |    14.50 |    15.75 |    17.00 |    18.25 |  78.75
+  Step 13           |    14.25 |    15.50 |    16.75 |    18.00 |    19.25 |  83.75
+  Step 14           |    15.25 |    16.50 |    17.75 |    19.00 |    20.25 |  88.75
+  Step 15           |    16.25 |    17.50 |    18.75 |    20.00 |    21.25 |  93.75
+  Step 16           |    17.25 |    18.50 |    19.75 |    21.00 |    22.25 |  98.75
+  Step 17           |    18.25 |    19.50 |    20.75 |    22.00 |    23.25 | 103.75
+  Step 18           |    19.25 |    20.50 |    21.75 |    23.00 |    24.25 | 108.75
+  Step 19           |    20.25 |    21.50 |    22.75 |    24.00 |    25.25 | 113.75
+  Step 20           |    21.25 |    22.50 |    23.75 |    25.00 |    26.25 | 118.75
+  Step 21           |    22.25 |    23.50 |    24.75 |    26.00 |    27.25 | 123.75
+  Step 22           |    23.25 |    24.50 |    25.75 |    27.00 |    28.25 | 128.75
+  Step 23           |    24.25 |    25.50 |    26.75 |    28.00 |    29.25 | 133.75
+  Step 24           |    25.25 |    26.50 |    27.75 |    29.00 |    30.25 | 138.75
+Scalar summary      |          |          |          |          |          |
+  Table sum         |          |          |          |          |          | 325.00
+  Member sum        |          |          |          |          |          | 138.75
+  Combined answer   |          |          |          |          |          | 463.75
+
+Audit trail
+-----------
+1/1 Σ Step 0 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 1.25 included; [entity=m1] 2.50 included; [entity=m2] 3.75 included; [entity=m3] 5.00 included; [entity=m4] 6.25 included → 18.75 = 18.75
+1/1 Step 0 [Member 0]
+    Formula: (* basis factor)
+    Working: (* basis factor) = 1.25 = 1.25
+1/1 Step 0 [Member 1]
+    Formula: (* basis factor)
+    Working: (* basis factor) = 2.50 = 2.50
+1/1 Step 0 [Member 2]
+    Formula: (* basis factor)
+    Working: (* basis factor) = 3.75 = 3.75
+1/1 Step 0 [Member 3]
+    Formula: (* basis factor)
+    Working: (* basis factor) = 5.00 = 5.00
+1/1 Step 0 [Member 4]
+    Formula: (* basis factor)
+    Working: (* basis factor) = 6.25 = 6.25
+1/2 Σ Step 1 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 2.25 included; [entity=m1] 3.50 included; [entity=m2] 4.75 included; [entity=m3] 6.00 included; [entity=m4] 7.25 included → 23.75 = 23.75
+1/2 Step 1 [Member 0]
+    Formula: (+ step0 1)
+    Working: (+ step0 1) = 2.25 = 2.25
+1/2 Step 1 [Member 1]
+    Formula: (+ step0 1)
+    Working: (+ step0 1) = 3.50 = 3.50
+1/2 Step 1 [Member 2]
+    Formula: (+ step0 1)
+    Working: (+ step0 1) = 4.75 = 4.75
+1/2 Step 1 [Member 3]
+    Formula: (+ step0 1)
+    Working: (+ step0 1) = 6.00 = 6.00
+1/2 Step 1 [Member 4]
+    Formula: (+ step0 1)
+    Working: (+ step0 1) = 7.25 = 7.25
+1/3 Σ Step 2 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 3.25 included; [entity=m1] 4.50 included; [entity=m2] 5.75 included; [entity=m3] 7.00 included; [entity=m4] 8.25 included → 28.75 = 28.75
+1/3 Step 2 [Member 0]
+    Formula: (+ step1 1)
+    Working: (+ step1 1) = 3.25 = 3.25
+1/3 Step 2 [Member 1]
+    Formula: (+ step1 1)
+    Working: (+ step1 1) = 4.50 = 4.50
+1/3 Step 2 [Member 2]
+    Formula: (+ step1 1)
+    Working: (+ step1 1) = 5.75 = 5.75
+1/3 Step 2 [Member 3]
+    Formula: (+ step1 1)
+    Working: (+ step1 1) = 7.00 = 7.00
+1/3 Step 2 [Member 4]
+    Formula: (+ step1 1)
+    Working: (+ step1 1) = 8.25 = 8.25
+1/4 Σ Step 3 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 4.25 included; [entity=m1] 5.50 included; [entity=m2] 6.75 included; [entity=m3] 8.00 included; [entity=m4] 9.25 included → 33.75 = 33.75
+1/4 Step 3 [Member 0]
+    Formula: (+ step2 1)
+    Working: (+ step2 1) = 4.25 = 4.25
+1/4 Step 3 [Member 1]
+    Formula: (+ step2 1)
+    Working: (+ step2 1) = 5.50 = 5.50
+1/4 Step 3 [Member 2]
+    Formula: (+ step2 1)
+    Working: (+ step2 1) = 6.75 = 6.75
+1/4 Step 3 [Member 3]
+    Formula: (+ step2 1)
+    Working: (+ step2 1) = 8.00 = 8.00
+1/4 Step 3 [Member 4]
+    Formula: (+ step2 1)
+    Working: (+ step2 1) = 9.25 = 9.25
+1/5 Σ Step 4 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 5.25 included; [entity=m1] 6.50 included; [entity=m2] 7.75 included; [entity=m3] 9.00 included; [entity=m4] 10.25 included → 38.75 = 38.75
+1/5 Step 4 [Member 0]
+    Formula: (+ step3 1)
+    Working: (+ step3 1) = 5.25 = 5.25
+1/5 Step 4 [Member 1]
+    Formula: (+ step3 1)
+    Working: (+ step3 1) = 6.50 = 6.50
+1/5 Step 4 [Member 2]
+    Formula: (+ step3 1)
+    Working: (+ step3 1) = 7.75 = 7.75
+1/5 Step 4 [Member 3]
+    Formula: (+ step3 1)
+    Working: (+ step3 1) = 9.00 = 9.00
+1/5 Step 4 [Member 4]
+    Formula: (+ step3 1)
+    Working: (+ step3 1) = 10.25 = 10.25
+1/6 Σ Step 5 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 6.25 included; [entity=m1] 7.50 included; [entity=m2] 8.75 included; [entity=m3] 10.00 included; [entity=m4] 11.25 included → 43.75 = 43.75
+1/6 Step 5 [Member 0]
+    Formula: (+ step4 1)
+    Working: (+ step4 1) = 6.25 = 6.25
+1/6 Step 5 [Member 1]
+    Formula: (+ step4 1)
+    Working: (+ step4 1) = 7.50 = 7.50
+1/6 Step 5 [Member 2]
+    Formula: (+ step4 1)
+    Working: (+ step4 1) = 8.75 = 8.75
+1/6 Step 5 [Member 3]
+    Formula: (+ step4 1)
+    Working: (+ step4 1) = 10.00 = 10.00
+1/6 Step 5 [Member 4]
+    Formula: (+ step4 1)
+    Working: (+ step4 1) = 11.25 = 11.25
+1/7 Σ Step 6 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 7.25 included; [entity=m1] 8.50 included; [entity=m2] 9.75 included; [entity=m3] 11.00 included; [entity=m4] 12.25 included → 48.75 = 48.75
+1/7 Step 6 [Member 0]
+    Formula: (+ step5 1)
+    Working: (+ step5 1) = 7.25 = 7.25
+1/7 Step 6 [Member 1]
+    Formula: (+ step5 1)
+    Working: (+ step5 1) = 8.50 = 8.50
+1/7 Step 6 [Member 2]
+    Formula: (+ step5 1)
+    Working: (+ step5 1) = 9.75 = 9.75
+1/7 Step 6 [Member 3]
+    Formula: (+ step5 1)
+    Working: (+ step5 1) = 11.00 = 11.00
+1/7 Step 6 [Member 4]
+    Formula: (+ step5 1)
+    Working: (+ step5 1) = 12.25 = 12.25
+1/8 Σ Step 7 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 8.25 included; [entity=m1] 9.50 included; [entity=m2] 10.75 included; [entity=m3] 12.00 included; [entity=m4] 13.25 included → 53.75 = 53.75
+1/8 Step 7 [Member 0]
+    Formula: (+ step6 1)
+    Working: (+ step6 1) = 8.25 = 8.25
+1/8 Step 7 [Member 1]
+    Formula: (+ step6 1)
+    Working: (+ step6 1) = 9.50 = 9.50
+1/8 Step 7 [Member 2]
+    Formula: (+ step6 1)
+    Working: (+ step6 1) = 10.75 = 10.75
+1/8 Step 7 [Member 3]
+    Formula: (+ step6 1)
+    Working: (+ step6 1) = 12.00 = 12.00
+1/8 Step 7 [Member 4]
+    Formula: (+ step6 1)
+    Working: (+ step6 1) = 13.25 = 13.25
+1/9 Σ Step 8 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 9.25 included; [entity=m1] 10.50 included; [entity=m2] 11.75 included; [entity=m3] 13.00 included; [entity=m4] 14.25 included → 58.75 = 58.75
+1/9 Step 8 [Member 0]
+    Formula: (+ step7 1)
+    Working: (+ step7 1) = 9.25 = 9.25
+1/9 Step 8 [Member 1]
+    Formula: (+ step7 1)
+    Working: (+ step7 1) = 10.50 = 10.50
+1/9 Step 8 [Member 2]
+    Formula: (+ step7 1)
+    Working: (+ step7 1) = 11.75 = 11.75
+1/9 Step 8 [Member 3]
+    Formula: (+ step7 1)
+    Working: (+ step7 1) = 13.00 = 13.00
+1/9 Step 8 [Member 4]
+    Formula: (+ step7 1)
+    Working: (+ step7 1) = 14.25 = 14.25
+1/10 Σ Step 9 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 10.25 included; [entity=m1] 11.50 included; [entity=m2] 12.75 included; [entity=m3] 14.00 included; [entity=m4] 15.25 included → 63.75 = 63.75
+1/10 Step 9 [Member 0]
+    Formula: (+ step8 1)
+    Working: (+ step8 1) = 10.25 = 10.25
+1/10 Step 9 [Member 1]
+    Formula: (+ step8 1)
+    Working: (+ step8 1) = 11.50 = 11.50
+1/10 Step 9 [Member 2]
+    Formula: (+ step8 1)
+    Working: (+ step8 1) = 12.75 = 12.75
+1/10 Step 9 [Member 3]
+    Formula: (+ step8 1)
+    Working: (+ step8 1) = 14.00 = 14.00
+1/10 Step 9 [Member 4]
+    Formula: (+ step8 1)
+    Working: (+ step8 1) = 15.25 = 15.25
+1/11 Σ Step 10 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 11.25 included; [entity=m1] 12.50 included; [entity=m2] 13.75 included; [entity=m3] 15.00 included; [entity=m4] 16.25 included → 68.75 = 68.75
+1/11 Step 10 [Member 0]
+    Formula: (+ step9 1)
+    Working: (+ step9 1) = 11.25 = 11.25
+1/11 Step 10 [Member 1]
+    Formula: (+ step9 1)
+    Working: (+ step9 1) = 12.50 = 12.50
+1/11 Step 10 [Member 2]
+    Formula: (+ step9 1)
+    Working: (+ step9 1) = 13.75 = 13.75
+1/11 Step 10 [Member 3]
+    Formula: (+ step9 1)
+    Working: (+ step9 1) = 15.00 = 15.00
+1/11 Step 10 [Member 4]
+    Formula: (+ step9 1)
+    Working: (+ step9 1) = 16.25 = 16.25
+1/12 Σ Step 11 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 12.25 included; [entity=m1] 13.50 included; [entity=m2] 14.75 included; [entity=m3] 16.00 included; [entity=m4] 17.25 included → 73.75 = 73.75
+1/12 Step 11 [Member 0]
+    Formula: (+ step10 1)
+    Working: (+ step10 1) = 12.25 = 12.25
+1/12 Step 11 [Member 1]
+    Formula: (+ step10 1)
+    Working: (+ step10 1) = 13.50 = 13.50
+1/12 Step 11 [Member 2]
+    Formula: (+ step10 1)
+    Working: (+ step10 1) = 14.75 = 14.75
+1/12 Step 11 [Member 3]
+    Formula: (+ step10 1)
+    Working: (+ step10 1) = 16.00 = 16.00
+1/12 Step 11 [Member 4]
+    Formula: (+ step10 1)
+    Working: (+ step10 1) = 17.25 = 17.25
+1/13 Σ Step 12 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 13.25 included; [entity=m1] 14.50 included; [entity=m2] 15.75 included; [entity=m3] 17.00 included; [entity=m4] 18.25 included → 78.75 = 78.75
+1/13 Step 12 [Member 0]
+    Formula: (+ step11 1)
+    Working: (+ step11 1) = 13.25 = 13.25
+1/13 Step 12 [Member 1]
+    Formula: (+ step11 1)
+    Working: (+ step11 1) = 14.50 = 14.50
+1/13 Step 12 [Member 2]
+    Formula: (+ step11 1)
+    Working: (+ step11 1) = 15.75 = 15.75
+1/13 Step 12 [Member 3]
+    Formula: (+ step11 1)
+    Working: (+ step11 1) = 17.00 = 17.00
+1/13 Step 12 [Member 4]
+    Formula: (+ step11 1)
+    Working: (+ step11 1) = 18.25 = 18.25
+1/14 Σ Step 13 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 14.25 included; [entity=m1] 15.50 included; [entity=m2] 16.75 included; [entity=m3] 18.00 included; [entity=m4] 19.25 included → 83.75 = 83.75
+1/14 Step 13 [Member 0]
+    Formula: (+ step12 1)
+    Working: (+ step12 1) = 14.25 = 14.25
+1/14 Step 13 [Member 1]
+    Formula: (+ step12 1)
+    Working: (+ step12 1) = 15.50 = 15.50
+1/14 Step 13 [Member 2]
+    Formula: (+ step12 1)
+    Working: (+ step12 1) = 16.75 = 16.75
+1/14 Step 13 [Member 3]
+    Formula: (+ step12 1)
+    Working: (+ step12 1) = 18.00 = 18.00
+1/14 Step 13 [Member 4]
+    Formula: (+ step12 1)
+    Working: (+ step12 1) = 19.25 = 19.25
+1/15 Σ Step 14 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 15.25 included; [entity=m1] 16.50 included; [entity=m2] 17.75 included; [entity=m3] 19.00 included; [entity=m4] 20.25 included → 88.75 = 88.75
+1/15 Step 14 [Member 0]
+    Formula: (+ step13 1)
+    Working: (+ step13 1) = 15.25 = 15.25
+1/15 Step 14 [Member 1]
+    Formula: (+ step13 1)
+    Working: (+ step13 1) = 16.50 = 16.50
+1/15 Step 14 [Member 2]
+    Formula: (+ step13 1)
+    Working: (+ step13 1) = 17.75 = 17.75
+1/15 Step 14 [Member 3]
+    Formula: (+ step13 1)
+    Working: (+ step13 1) = 19.00 = 19.00
+1/15 Step 14 [Member 4]
+    Formula: (+ step13 1)
+    Working: (+ step13 1) = 20.25 = 20.25
+1/16 Σ Step 15 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 16.25 included; [entity=m1] 17.50 included; [entity=m2] 18.75 included; [entity=m3] 20.00 included; [entity=m4] 21.25 included → 93.75 = 93.75
+1/16 Step 15 [Member 0]
+    Formula: (+ step14 1)
+    Working: (+ step14 1) = 16.25 = 16.25
+1/16 Step 15 [Member 1]
+    Formula: (+ step14 1)
+    Working: (+ step14 1) = 17.50 = 17.50
+1/16 Step 15 [Member 2]
+    Formula: (+ step14 1)
+    Working: (+ step14 1) = 18.75 = 18.75
+1/16 Step 15 [Member 3]
+    Formula: (+ step14 1)
+    Working: (+ step14 1) = 20.00 = 20.00
+1/16 Step 15 [Member 4]
+    Formula: (+ step14 1)
+    Working: (+ step14 1) = 21.25 = 21.25
+1/17 Σ Step 16 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 17.25 included; [entity=m1] 18.50 included; [entity=m2] 19.75 included; [entity=m3] 21.00 included; [entity=m4] 22.25 included → 98.75 = 98.75
+1/17 Step 16 [Member 0]
+    Formula: (+ step15 1)
+    Working: (+ step15 1) = 17.25 = 17.25
+1/17 Step 16 [Member 1]
+    Formula: (+ step15 1)
+    Working: (+ step15 1) = 18.50 = 18.50
+1/17 Step 16 [Member 2]
+    Formula: (+ step15 1)
+    Working: (+ step15 1) = 19.75 = 19.75
+1/17 Step 16 [Member 3]
+    Formula: (+ step15 1)
+    Working: (+ step15 1) = 21.00 = 21.00
+1/17 Step 16 [Member 4]
+    Formula: (+ step15 1)
+    Working: (+ step15 1) = 22.25 = 22.25
+1/18 Σ Step 17 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 18.25 included; [entity=m1] 19.50 included; [entity=m2] 20.75 included; [entity=m3] 22.00 included; [entity=m4] 23.25 included → 103.75 = 103.75
+1/18 Step 17 [Member 0]
+    Formula: (+ step16 1)
+    Working: (+ step16 1) = 18.25 = 18.25
+1/18 Step 17 [Member 1]
+    Formula: (+ step16 1)
+    Working: (+ step16 1) = 19.50 = 19.50
+1/18 Step 17 [Member 2]
+    Formula: (+ step16 1)
+    Working: (+ step16 1) = 20.75 = 20.75
+1/18 Step 17 [Member 3]
+    Formula: (+ step16 1)
+    Working: (+ step16 1) = 22.00 = 22.00
+1/18 Step 17 [Member 4]
+    Formula: (+ step16 1)
+    Working: (+ step16 1) = 23.25 = 23.25
+1/19 Σ Step 18 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 19.25 included; [entity=m1] 20.50 included; [entity=m2] 21.75 included; [entity=m3] 23.00 included; [entity=m4] 24.25 included → 108.75 = 108.75
+1/19 Step 18 [Member 0]
+    Formula: (+ step17 1)
+    Working: (+ step17 1) = 19.25 = 19.25
+1/19 Step 18 [Member 1]
+    Formula: (+ step17 1)
+    Working: (+ step17 1) = 20.50 = 20.50
+1/19 Step 18 [Member 2]
+    Formula: (+ step17 1)
+    Working: (+ step17 1) = 21.75 = 21.75
+1/19 Step 18 [Member 3]
+    Formula: (+ step17 1)
+    Working: (+ step17 1) = 23.00 = 23.00
+1/19 Step 18 [Member 4]
+    Formula: (+ step17 1)
+    Working: (+ step17 1) = 24.25 = 24.25
+1/20 Σ Step 19 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 20.25 included; [entity=m1] 21.50 included; [entity=m2] 22.75 included; [entity=m3] 24.00 included; [entity=m4] 25.25 included → 113.75 = 113.75
+1/20 Step 19 [Member 0]
+    Formula: (+ step18 1)
+    Working: (+ step18 1) = 20.25 = 20.25
+1/20 Step 19 [Member 1]
+    Formula: (+ step18 1)
+    Working: (+ step18 1) = 21.50 = 21.50
+1/20 Step 19 [Member 2]
+    Formula: (+ step18 1)
+    Working: (+ step18 1) = 22.75 = 22.75
+1/20 Step 19 [Member 3]
+    Formula: (+ step18 1)
+    Working: (+ step18 1) = 24.00 = 24.00
+1/20 Step 19 [Member 4]
+    Formula: (+ step18 1)
+    Working: (+ step18 1) = 25.25 = 25.25
+1/21 Σ Step 20 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 21.25 included; [entity=m1] 22.50 included; [entity=m2] 23.75 included; [entity=m3] 25.00 included; [entity=m4] 26.25 included → 118.75 = 118.75
+1/21 Step 20 [Member 0]
+    Formula: (+ step19 1)
+    Working: (+ step19 1) = 21.25 = 21.25
+1/21 Step 20 [Member 1]
+    Formula: (+ step19 1)
+    Working: (+ step19 1) = 22.50 = 22.50
+1/21 Step 20 [Member 2]
+    Formula: (+ step19 1)
+    Working: (+ step19 1) = 23.75 = 23.75
+1/21 Step 20 [Member 3]
+    Formula: (+ step19 1)
+    Working: (+ step19 1) = 25.00 = 25.00
+1/21 Step 20 [Member 4]
+    Formula: (+ step19 1)
+    Working: (+ step19 1) = 26.25 = 26.25
+1/22 Σ Step 21 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 22.25 included; [entity=m1] 23.50 included; [entity=m2] 24.75 included; [entity=m3] 26.00 included; [entity=m4] 27.25 included → 123.75 = 123.75
+1/22 Step 21 [Member 0]
+    Formula: (+ step20 1)
+    Working: (+ step20 1) = 22.25 = 22.25
+1/22 Step 21 [Member 1]
+    Formula: (+ step20 1)
+    Working: (+ step20 1) = 23.50 = 23.50
+1/22 Step 21 [Member 2]
+    Formula: (+ step20 1)
+    Working: (+ step20 1) = 24.75 = 24.75
+1/22 Step 21 [Member 3]
+    Formula: (+ step20 1)
+    Working: (+ step20 1) = 26.00 = 26.00
+1/22 Step 21 [Member 4]
+    Formula: (+ step20 1)
+    Working: (+ step20 1) = 27.25 = 27.25
+1/23 Σ Step 22 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 23.25 included; [entity=m1] 24.50 included; [entity=m2] 25.75 included; [entity=m3] 27.00 included; [entity=m4] 28.25 included → 128.75 = 128.75
+1/23 Step 22 [Member 0]
+    Formula: (+ step21 1)
+    Working: (+ step21 1) = 23.25 = 23.25
+1/23 Step 22 [Member 1]
+    Formula: (+ step21 1)
+    Working: (+ step21 1) = 24.50 = 24.50
+1/23 Step 22 [Member 2]
+    Formula: (+ step21 1)
+    Working: (+ step21 1) = 25.75 = 25.75
+1/23 Step 22 [Member 3]
+    Formula: (+ step21 1)
+    Working: (+ step21 1) = 27.00 = 27.00
+1/23 Step 22 [Member 4]
+    Formula: (+ step21 1)
+    Working: (+ step21 1) = 28.25 = 28.25
+1/24 Σ Step 23 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 24.25 included; [entity=m1] 25.50 included; [entity=m2] 26.75 included; [entity=m3] 28.00 included; [entity=m4] 29.25 included → 133.75 = 133.75
+1/24 Step 23 [Member 0]
+    Formula: (+ step22 1)
+    Working: (+ step22 1) = 24.25 = 24.25
+1/24 Step 23 [Member 1]
+    Formula: (+ step22 1)
+    Working: (+ step22 1) = 25.50 = 25.50
+1/24 Step 23 [Member 2]
+    Formula: (+ step22 1)
+    Working: (+ step22 1) = 26.75 = 26.75
+1/24 Step 23 [Member 3]
+    Formula: (+ step22 1)
+    Working: (+ step22 1) = 28.00 = 28.00
+1/24 Step 23 [Member 4]
+    Formula: (+ step22 1)
+    Working: (+ step22 1) = 29.25 = 29.25
+1/25 Σ Step 24 (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [entity=m0] 25.25 included; [entity=m1] 26.50 included; [entity=m2] 27.75 included; [entity=m3] 29.00 included; [entity=m4] 30.25 included → 138.75 = 138.75
+1/25 Step 24 [Member 0]
+    Formula: (+ step23 1)
+    Working: (+ step23 1) = 25.25 = 25.25
+1/25 Step 24 [Member 1]
+    Formula: (+ step23 1)
+    Working: (+ step23 1) = 26.50 = 26.50
+1/25 Step 24 [Member 2]
+    Formula: (+ step23 1)
+    Working: (+ step23 1) = 27.75 = 27.75
+1/25 Step 24 [Member 3]
+    Formula: (+ step23 1)
+    Working: (+ step23 1) = 29.00 = 29.00
+1/25 Step 24 [Member 4]
+    Formula: (+ step23 1)
+    Working: (+ step23 1) = 30.25 = 30.25
+1/26 Table sum
+    Formula: (sum (map (fn [row] row.amount) facts))
+    Working: (fn [row] row.amount) = [value unavailable] → (map (fn [row] row.amount) facts) = [value unavailable] → (sum (map (fn [row] row.amount) facts)) = 325 = 325.00
+1/27 Member sum
+    Formula: (dim/sum all.step24)
+    Working: (dim/sum all.step24) = 138.75 = 138.75
+1/28 Combined answer
+    Formula: (+ table-sum member-sum)
+    Working: (+ table-sum member-sum) = 463.75 = 463.75

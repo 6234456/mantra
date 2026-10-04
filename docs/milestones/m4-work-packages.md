@@ -1,7 +1,9 @@
 # M4 工作包：嵌入与规模
 
-> 状态（2026-10-04）：P1–P8 已实现并有实际专项验收；P9 最终联合验收仍待完成。
-> M3 已完成。本文不宣布 M4、v1.0 或公开 Maven 发布完成。
+> 状态（2026-10-04）：联合 `1.0.0-rc.1` 候选的实现与功能验收已完成；冻结性能与独立复核通过。
+> 测量源码为 `ae9af84bde3f82cc86787e908aab7be76ddecee9`，对应远端 CI 已通过。
+> 最终源码发行修订及 CI 见 `v1.0.0-rc.1` tag 与[发行候选记录](../release-candidate.md)的 release receipt。
+> 本文不宣布稳定 `1.0.0` 或 Maven Central 发布完成。
 > 依据：[路线图](../roadmap.md) M4、T1–T6、R7，[实施盘点](m4-implementation-plan.md)。
 
 ## 1. 必读与顺序
@@ -36,6 +38,9 @@ Normein 继续锁定，不改其源码。所有展示应用保持领域逻辑在
 摘要不匹配、不兼容引擎和未列出的 include/import 资源。加载后使用捕获的同一字节参与解析和指纹。
 classpath 不写回；可写案例必须位于宿主明确提供的目录。不能把包的只读资源权限当作任意文件写权限。
 跨包链接只能经宿主显式注册的解析器，包声明本身不授予网络或文件系统权限。
+目录加载默认 `STRICT_HANDLES`，不支持安全句柄的文件系统明确失败，不自动降级。
+`TRUSTED_LOCAL` 只能由宿主显式选择，采用合作式目录的身份/摘要检查，
+不声称防御同权限恶意进程的并发重命名。
 
 ### 2.3 版本与迁移
 
@@ -87,27 +92,30 @@ what-if 使用调用者显式选定的参数集并保留来源，不伪称在有
 探针后、最终运行前已冻结批量预算：10,000 个不同案例、1,120,000 次独立数值比对，
 总耗时不超过 300 秒，进程堆设为 512 MiB，heap-pool peak 总和不超过 1 GiB；
 运行期计划编译与 VALUE_ONLY evidence materialization 为零，所有打开会话均成功关闭。
-[实际批量报告](../performance-m4.md)记录 20,875 ms、333,947,640 字节 peak 总和、
-22 次初始计划编译、22 次会话打开/成功关闭和 560,000 次实际求值。
-这是一轮最终批量实测，不是十轮分布，也不替代最终源码冻结后的性能回归。
-M2 既有预算仍适用，XLSX 尾延迟在 M6 前继续审查。
+[M4 历史批量报告](../performance-m4.md)保留 20,875 ms、333,947,640 字节 peak 总和。
+[RC.1 冻结验收](../performance-v1.md)实际运行 10,000 个不同案例，完成 1,120,000 次精确比对，
+耗时 22,777 ms，heap-pool peak 总和 333,767,296 字节；22 个内核会话全部成功关闭。
+初始模板有 22 个计划，560,000 次实际求值；运行期计划编译和 VALUE_ONLY evidence 均为零。
+这是一次批量实测，不是多轮分布；390 个常规/期间样本另行独立复核，全部保留并通过原预算。
+Combined XLSX 的独立 JFR 实录已完成，详见 M6；不据此解释未复现的 M2 长尾。
 
 ## 5. 已实现与实际验收记录
 
-以下是已经执行的专项证据，不能将不同运行留下的 XML 相加为一次全量测试。
-最终源码、ABI、站点和 CI 仍须在同一冻结修订上联合验收。
+以下记录已由候选全量检查及[远端 CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941)
+复验；不能将不同运行留下的 XML 相加为一次全量测试。冻结测量对应上述 `ae9af84` 修订。
+文档与独立 profiler 的后续修改将由最终发行修订单独记录，不反标为测量时已存在。
 
-| 包 | 已实现及执行证据 | 当前剩余出口 |
+| 包 | 已实现及候选验收证据 | 发布或支持边界 |
 | --- | --- | --- |
-| P1 | `CompiledCalculation`、`CompiledCalculationSession`、类型化绑定和不可变内核计划；P1/P2 的 22 项专项测试实际通过 | 最终全量回归与六库 ABI 复验 |
-| P2 | 顺序流式 `forEach`；独立 10k JSONL 的逐值核对、真实物理计数与关闭记录；见批量报告 | 最终源码冻结后的重复验收 |
-| P3 | `mantra-packages` 的有界捕获、摘要与范围检查；directory/JAR 应用加载、显式 `PackageCatalog` 授权及导入端口已执行 | 最新导入、权限与资源预算修复的完整复验 |
-| P4 | 显式日期的期效、重叠/缺档、what-if 与按键参数选择；参数来源随实际结果保留 | 最终包与 consumer 回归 |
-| P5 | 迁移 prepare/preview/apply，字节及来源图修订 CAS；ESt 旧/新版本共存示例实际运行 | 最新受控 re-preview、token 容量与并发回归 |
-| P6 | 有容量的动态表；真实 fixed-assets、IFRS 16 文件插入/删除/重排、保存重开并核对独立数值；keyed scalar、固定 scope、分摊、类型与审计过期回归已执行；硬化后 76 项 Excel 测试实际通过 | 其后新增导入 round-trip 测试及最终全量复验；不声称原生 Excel GUI 已认证 |
-| P7 | 六库全量 `checkLegacyAbi`、真实 Int→Long 二进制破坏反例和五个隔离 Java/Kotlin consumer 实际通过；本地 sources/KDoc/POM staging 已检查 | 最终 ABI/consumer 重跑及独立公开发布前置 |
-| P8 | 原八个应用及 M6 两个中性应用均有 manifest；directory/JAR 应用验收和十应用工作台 fixtures 实际生成；英文教程/嵌入说明已执行 | 最终十应用全量数值、严格站点与 CI |
-| P9 | 已有专项日志、浏览器流程和批量证据 | 最终 `check`、严格站点、冻结性能、远端 CI 与清理记录尚待联合完成 |
+| P1 | `CompiledCalculation`、`CompiledCalculationSession`、类型化绑定和不可变内核计划；22 项 P1/P2 专项及候选全量/六库 ABI 检查通过 | 不把公开编译入口统计写成内核私有 cache miss |
+| P2 | 不同 ID 的实际顺序流式 10k；1,120,000 精确比对、零运行期编译/evidence、22 成功关闭；冻结预算通过 | 一轮批量耗时，不是多轮 median/p95 |
+| P3 | 有界捕获、摘要与版本范围、directory/JAR、`PackageCatalog` 授权、导入与资源预算；当前完整检查通过 | strict 默认；trusted-local 显式；任意 ZIP 导入不在首版范围 |
+| P4 | 显式日期的期效、重叠/缺档、what-if、按键参数与出处；包及 consumer 回归通过 | 无隐式“今天”或 latest 选择 |
+| P5 | prepare/preview/apply、字节及来源图 CAS、有界 token 和受控重预览；旧/新 ESt、并发与 live 迁移验收通过 | 合作式锁不等于恶意并发写入隔离 |
+| P6 | fixed-assets、IFRS 16 插入/删除/重排、保存重开逐值核对；keyed scalar、固定 scope、分摊、类型、审计过期及导入 round-trip 全量通过 | 容量/公式形状有界；不声称原生 Excel GUI 认证 |
+| P7 | 六库全量 ABI、真实 Int→Long 二进制反例、五个隔离 POM-only Java/Kotlin consumer；六份本地制品/POM/sources/KDoc 通过 | 本地 staging 不是公开上传；namespace/signing/Normein 制品仍缺 |
+| P8 | 十应用 package/fixtures/三格式及独立逐值检查、英文教程和严格离线站点通过 | 应用不作为库制品发布；文档更新后的严格站点已重建/检查通过 |
+| P9 | 全 `check`、UI/浏览器/实际 package live 清理、390 样本独立核对、实际批量、JFR 和候选远端 CI 通过 | 源码发行身份及最终 CI 以 tag/release receipt 为准；Maven 发布设定待维护者决定 |
 
 公开统计采用实际 API 名称和口径：`CompilationStatistics.syntaxCompilerCalls`、
 `semanticCompilerCalls` 是公开编译入口调用次数，不能称为内核私有 cache miss；
@@ -124,4 +132,7 @@ M2 既有预算仍适用，XLSX 尾延迟在 M6 前继续审查。
 
 P1–P9 全部通过；八个应用以方案包加载；至少一个公开 API 批量示例与 ESt 显式迁移实际运行；
 10,000 案例达到冻结预算；T1 动态成员增删完成；公共 ABI 门进入 CI；文档与版本记录准确。
-实际 Maven 上传、签名/namespace 和 Normein 对应制品是独立发布前置，staging 不等于已经公开发布。
+当前 RC.1 实现与功能验收满足上述工程范围；最终源码发行修订及 CI 以 `v1.0.0-rc.1` tag
+和[发行候选记录](../release-candidate.md)的 release receipt 为准。
+Maven Central 上传尚未执行。namespace、signing 和公开 Normein 0.3.0 制品
+仍待维护者决定并配置；staging 不等于已经公开发布。

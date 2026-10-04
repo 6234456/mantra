@@ -6,6 +6,12 @@ This monorepo contains the engine and domain demonstration applications under `a
 
 **The applications are demonstrations only. They are not production tax or accounting software and do not provide tax or accounting advice.** Their simplifications and verification sources are documented in each application's README. Mantra is pre-1.0; APIs and DSL contracts may change with documented version changes. Library artifacts have not yet been published; coordinated publication with `normein-dsl` is planned in the [roadmap](docs/roadmap.md).
 
+The current `1.0.0-rc.1` source candidate includes M4 embedding/packages, M5 language tools and
+documentation, and the M6 specification, conformance and acceptance checks. See the
+[release candidate evidence](docs/release-candidate.md), [final performance report](docs/performance-v1.md)
+and [scoped security review](docs/security-review-v1.md). Stable Maven publication still requires the
+public pinned kernel artifact and publisher namespace/signing configuration.
+
 ```text
 schema + case + parameters ─▶ mantra-core ─▶ calculation values and traces
                                       │
@@ -121,7 +127,7 @@ in schema dimension order. Omitting `--coord` selects the complete aggregate.
     (total total-cost "Total costs")))
 ```
 
-Schemas define input contracts and calculations. Cases provide inputs, parameter overrides and allowed extensions. Layouts arrange and format the same values without changing them. See the [DSL reference](docs/dsl-reference.md) for the host forms and `mantra.calc@1` functions.
+Schemas define input contracts and calculations. Cases provide inputs, parameter overrides and allowed extensions. Layouts arrange and format the same values without changing them. See the [DSL reference](docs/dsl-reference.md) for the host forms and `mantra.calc@2` functions.
 
 For a paper with source-level audit steps, calculate through `Mantra.calculateForAudit`; `AuditOptions`
 bounds capture and reports truncation. Ordinary `Mantra.calculate` remains available when no audit
