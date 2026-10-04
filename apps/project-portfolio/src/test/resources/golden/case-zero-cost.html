@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supplied project portfolio</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Supplied project portfolio</h1>
+<p class="subtitle">Fictional selected proposals and capacity limits</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Mandant</dt><dd>Project portfolio: Free selected proposals and undefined ratio</dd></div>
+<div><dt>Zeitraum</dt><dd>2026 showcase</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Supplied project portfolio v1.0.0 [project.portfolio/supplied-plan]</dd></div>
+</dl>
+</header>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Aufbau der Berechnung</h2>
+<ol class="mainline" aria-label="Hauptlinie">
+<li class="step">
+<a class="card" href="#table-1"><span class="step-no">Hauptlinie 1</span><span class="title">Proposed and selected amounts</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-2"><span class="step-no">Hauptlinie 2</span><span class="title">Selected department totals</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Hauptlinie 3</span><span class="title">Portfolio limits and crossfoot</span><span class="value"></span></a>
+</li>
+</ol>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> Proposed and selected amounts</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Selected department totals</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Portfolio limits and crossfoot</a></li>
+<li><a href="#audit"><span class="ref">§</span> Berechnungsnachweis</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Proposed and selected amounts</p>
+<h2><span class="ref">1</span>Proposed and selected amounts</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Fictional tooling upgrade</th>
+<th class="right num c-member">Fictional service refresh</th>
+<th class="right num c-member">Fictional prototype</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t1-r1" data-section="project-plan" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Proposed benefit</span></td>
+<td class="right num c-member" data-column="membersproposal-A">140,00</td>
+<td class="right num c-member" data-column="membersproposal-B">75,00</td>
+<td class="right num c-member" data-column="membersproposal-C">68,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">283,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r2" data-section="project-plan" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Proposed hours</span></td>
+<td class="right num c-member" data-column="membersproposal-A">70</td>
+<td class="right num c-member" data-column="membersproposal-B">50</td>
+<td class="right num c-member" data-column="membersproposal-C">60</td>
+<td class="right num c-crosstotal" data-column="cross-total">180</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r3" data-section="project-plan" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Supplied selection</span></td>
+<td class="right num c-member" data-column="membersproposal-A">✓</td>
+<td class="right num c-member" data-column="membersproposal-B">–</td>
+<td class="right num c-member" data-column="membersproposal-C">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r4" data-section="project-plan" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit</span></td>
+<td class="right num c-member" data-column="membersproposal-A">140,00</td>
+<td class="right num c-member" data-column="membersproposal-B">0,00</td>
+<td class="right num c-member" data-column="membersproposal-C">68,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">208,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r5" data-section="project-plan" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected hours</span></td>
+<td class="right num c-member" data-column="membersproposal-A">70</td>
+<td class="right num c-member" data-column="membersproposal-B">0</td>
+<td class="right num c-member" data-column="membersproposal-C">60</td>
+<td class="right num c-crosstotal" data-column="cross-total">130</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r6" data-section="project-plan" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit less cost</span></td>
+<td class="right num c-member" data-column="membersproposal-A">140,00</td>
+<td class="right num c-member" data-column="membersproposal-B">0,00</td>
+<td class="right num c-member" data-column="membersproposal-C">68,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">208,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t1-r7" data-section="project-plan" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Proposal cost, benefit and hours are nonnegative</span></td>
+<td class="right num c-member" data-column="membersproposal-A">✓</td>
+<td class="right num c-member" data-column="membersproposal-B">✓</td>
+<td class="right num c-member" data-column="membersproposal-C">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t1-r8" data-section="project-plan" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Benefit / selected cost</span></td>
+<td class="right num c-member" data-column="membersproposal-A">undefined</td>
+<td class="right num c-member" data-column="membersproposal-B">undefined</td>
+<td class="right num c-member" data-column="membersproposal-C">undefined</td>
+<td class="right num c-crosstotal" data-column="cross-total">undefined</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Selected department totals</p>
+<h2><span class="ref">2</span>Selected department totals</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Fictional delivery team</th>
+<th class="right num c-member">Fictional research team</th>
+<th class="right num c-crosstotal">Gesamt</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t2-r1" data-section="department-plan" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit</span></td>
+<td class="right num c-member" data-column="membersdepartment-DELIVERY">140,00</td>
+<td class="right num c-member" data-column="membersdepartment-RESEARCH">68,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">208,00</td>
+</tr>
+<tr class="value info" id="t2-r2" data-section="department-plan" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected hours</span></td>
+<td class="right num c-member" data-column="membersdepartment-DELIVERY">70</td>
+<td class="right num c-member" data-column="membersdepartment-RESEARCH">60</td>
+<td class="right num c-crosstotal" data-column="cross-total">130</td>
+</tr>
+<tr class="value info" id="t2-r3" data-section="department-plan" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit less cost</span></td>
+<td class="right num c-member" data-column="membersdepartment-DELIVERY">140,00</td>
+<td class="right num c-member" data-column="membersdepartment-RESEARCH">68,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">208,00</td>
+</tr>
+<tr class="value info" id="t2-r4" data-section="department-plan" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Benefit / selected cost</span></td>
+<td class="right num c-member" data-column="membersdepartment-DELIVERY">undefined</td>
+<td class="right num c-member" data-column="membersdepartment-RESEARCH">undefined</td>
+<td class="right num c-crosstotal" data-column="cross-total">undefined</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 3 Portfolio limits and crossfoot</p>
+<h2><span class="ref">3</span>Portfolio limits and crossfoot</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-label">
+<col class="c-value">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-value">Hauptspalte</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t3-r1" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit</span></td>
+<td class="right num c-value" data-column="value">208,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t3-r2" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected hours</span></td>
+<td class="right num c-value" data-column="value">130</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t3-r3" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected benefit less cost</span></td>
+<td class="right num c-value" data-column="value">208,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t3-r4" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Cost limit less selected cost</span></td>
+<td class="right num c-value" data-column="value">120,00</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t3-r5" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Hours available less selected hours</span></td>
+<td class="right num c-value" data-column="value">10</td>
+<td class="center c-status" data-column="status"></td>
+</tr>
+<tr class="value info" id="t3-r6" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selection fits supplied cost limit</span></td>
+<td class="right num c-value" data-column="value">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t3-r7" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selection fits supplied hour limit</span></td>
+<td class="right num c-value" data-column="value">✓</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+<tr class="value info" id="t3-r8" data-section="portfolio-summary" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Selected cost agrees with independent fictional total</span></td>
+<td class="right num c-value" data-column="value">0,00</td>
+<td class="center c-status" data-column="status">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Berechnungsnachweis</h2>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Proposed benefit (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [proposal=A] 140.00 included; [proposal=B] 75.00 included; [proposal=C] 68.00 included → 283.00</div></td>
+<td class="right num">283,00</td>
+</tr>
+<tr id="audit-t1-r1-A">
+<td class="left cite"><a href="#t1-r1">1/1</a></td>
+<td class="left">Proposed benefit <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(decimal/round proposal.benefit currency-scale)</code><div class="working">(decimal/round proposal.benefit currency-scale) = 140.00</div></td>
+<td class="right num">140,00</td>
+</tr>
+<tr id="audit-t1-r1-B">
+<td class="left cite"><a href="#t1-r1">1/1</a></td>
+<td class="left">Proposed benefit <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(decimal/round proposal.benefit currency-scale)</code><div class="working">(decimal/round proposal.benefit currency-scale) = 75.00</div></td>
+<td class="right num">75,00</td>
+</tr>
+<tr id="audit-t1-r1-C">
+<td class="left cite"><a href="#t1-r1">1/1</a></td>
+<td class="left">Proposed benefit <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(decimal/round proposal.benefit currency-scale)</code><div class="working">(decimal/round proposal.benefit currency-scale) = 68.00</div></td>
+<td class="right num">68,00</td>
+</tr>
+<tr id="audit-t1-r2-aggregate">
+<td class="left cite"><a href="#t1-r2">1/2 Σ</a></td>
+<td class="left">Proposed hours (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [proposal=A] 70 included; [proposal=B] 50 included; [proposal=C] 60 included → 180</div></td>
+<td class="right num">180</td>
+</tr>
+<tr id="audit-t1-r4-aggregate">
+<td class="left cite"><a href="#t1-r4">1/4 Σ</a></td>
+<td class="left">Selected benefit (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [proposal=A] 140.00 included; [proposal=B] 0 included; [proposal=C] 68.00 included → 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t1-r4-A">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Selected benefit <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-benefit 0)</code><div class="working">(if proposal.selected proposed-benefit 0) = 140.00 → gewählter Zweig: proposed-benefit</div></td>
+<td class="right num">140,00</td>
+</tr>
+<tr id="audit-t1-r4-B">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Selected benefit <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-benefit 0)</code><div class="working">(if proposal.selected proposed-benefit 0) = 0 → gewählter Zweig: 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t1-r4-C">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Selected benefit <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-benefit 0)</code><div class="working">(if proposal.selected proposed-benefit 0) = 68.00 → gewählter Zweig: proposed-benefit</div></td>
+<td class="right num">68,00</td>
+</tr>
+<tr id="audit-t1-r5-aggregate">
+<td class="left cite"><a href="#t1-r5">1/5 Σ</a></td>
+<td class="left">Selected hours (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [proposal=A] 70 included; [proposal=B] 0 included; [proposal=C] 60 included → 130</div></td>
+<td class="right num">130</td>
+</tr>
+<tr id="audit-t1-r5-A">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Selected hours <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-hours 0)</code><div class="working">(if proposal.selected proposed-hours 0) = 70 → gewählter Zweig: proposed-hours</div></td>
+<td class="right num">70</td>
+</tr>
+<tr id="audit-t1-r5-B">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Selected hours <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-hours 0)</code><div class="working">(if proposal.selected proposed-hours 0) = 0 → gewählter Zweig: 0</div></td>
+<td class="right num">0</td>
+</tr>
+<tr id="audit-t1-r5-C">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">Selected hours <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(if proposal.selected proposed-hours 0)</code><div class="working">(if proposal.selected proposed-hours 0) = 60 → gewählter Zweig: proposed-hours</div></td>
+<td class="right num">60</td>
+</tr>
+<tr id="audit-t1-r6-aggregate">
+<td class="left cite"><a href="#t1-r6">1/6 Σ</a></td>
+<td class="left">Selected benefit less cost (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [proposal=A] 140.00 included; [proposal=B] 0 included; [proposal=C] 68.00 included → 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t1-r6-A">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Selected benefit less cost <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(- selected-benefit selected-cost)</code><div class="working">(- selected-benefit selected-cost) = 140.00</div></td>
+<td class="right num">140,00</td>
+</tr>
+<tr id="audit-t1-r6-B">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Selected benefit less cost <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(- selected-benefit selected-cost)</code><div class="working">(- selected-benefit selected-cost) = 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t1-r6-C">
+<td class="left cite"><a href="#t1-r6">1/6</a></td>
+<td class="left">Selected benefit less cost <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(- selected-benefit selected-cost)</code><div class="working">(- selected-benefit selected-cost) = 68.00</div></td>
+<td class="right num">68,00</td>
+</tr>
+<tr id="audit-t1-r7-A">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Proposal cost, benefit and hours are nonnegative <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0))</code><div class="working">(&gt;= proposed-cost 0) = true → (&gt;= proposed-benefit 0) = true → (&gt;= proposed-hours 0) = true → (and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r7-B">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Proposal cost, benefit and hours are nonnegative <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0))</code><div class="working">(&gt;= proposed-cost 0) = true → (&gt;= proposed-benefit 0) = true → (&gt;= proposed-hours 0) = true → (and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r7-C">
+<td class="left cite"><a href="#t1-r7">1/7</a></td>
+<td class="left">Proposal cost, benefit and hours are nonnegative <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0))</code><div class="working">(&gt;= proposed-cost 0) = true → (&gt;= proposed-benefit 0) = true → (&gt;= proposed-hours 0) = true → (and (&gt;= proposed-cost 0) (&gt;= proposed-benefit 0) (&gt;= proposed-hours 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r8-aggregate">
+<td class="left cite"><a href="#t1-r8">1/8 Σ</a></td>
+<td class="left">Benefit / selected cost (Gesamt)</td>
+<td class="left"><code class="formula">Σ selected-benefit ÷ Σ selected-cost</code><div class="working">[proposal=A] 140.00 / 0.00 included; [proposal=B] 0 / 0 included; [proposal=C] 68.00 / 0.00 included → Σ selected-benefit = 208.00; Σ selected-cost = 0.00 → 208.00 ÷ 0.00 (round 6 half-up) = undefined [zero-denominator]</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t1-r8-A">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Benefit / selected cost <span class="member">Fictional tooling upgrade</span></td>
+<td class="left"><code class="formula">(if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))</code><div class="working">(= selected-cost 0) = true → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t1-r8-B">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Benefit / selected cost <span class="member">Fictional service refresh</span></td>
+<td class="left"><code class="formula">(if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))</code><div class="working">(= selected-cost 0) = true → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t1-r8-C">
+<td class="left cite"><a href="#t1-r8">1/8</a></td>
+<td class="left">Benefit / selected cost <span class="member">Fictional prototype</span></td>
+<td class="left"><code class="formula">(if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))</code><div class="working">(= selected-cost 0) = true → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t2-r1-aggregate">
+<td class="left cite"><a href="#t2-r1">2/1 Σ</a></td>
+<td class="left">Selected benefit (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [department=DELIVERY] 140.00 included; [department=RESEARCH] 68.00 included → 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t2-r1-DELIVERY">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Selected benefit <span class="member">Fictional delivery team</span></td>
+<td class="left"><code class="formula">(dim/rollup all.selected-benefit relation_proposal department.key)</code><div class="working">(dim/rollup all.selected-benefit relation_proposal department.key) = 140.00</div></td>
+<td class="right num">140,00</td>
+</tr>
+<tr id="audit-t2-r1-RESEARCH">
+<td class="left cite"><a href="#t2-r1">2/1</a></td>
+<td class="left">Selected benefit <span class="member">Fictional research team</span></td>
+<td class="left"><code class="formula">(dim/rollup all.selected-benefit relation_proposal department.key)</code><div class="working">(dim/rollup all.selected-benefit relation_proposal department.key) = 68.00</div></td>
+<td class="right num">68,00</td>
+</tr>
+<tr id="audit-t2-r2-aggregate">
+<td class="left cite"><a href="#t2-r2">2/2 Σ</a></td>
+<td class="left">Selected hours (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [department=DELIVERY] 70 included; [department=RESEARCH] 60 included → 130</div></td>
+<td class="right num">130</td>
+</tr>
+<tr id="audit-t2-r2-DELIVERY">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Selected hours <span class="member">Fictional delivery team</span></td>
+<td class="left"><code class="formula">(dim/rollup all.selected-hours relation_proposal department.key)</code><div class="working">(dim/rollup all.selected-hours relation_proposal department.key) = 70</div></td>
+<td class="right num">70</td>
+</tr>
+<tr id="audit-t2-r2-RESEARCH">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Selected hours <span class="member">Fictional research team</span></td>
+<td class="left"><code class="formula">(dim/rollup all.selected-hours relation_proposal department.key)</code><div class="working">(dim/rollup all.selected-hours relation_proposal department.key) = 60</div></td>
+<td class="right num">60</td>
+</tr>
+<tr id="audit-t2-r3-aggregate">
+<td class="left cite"><a href="#t2-r3">2/3 Σ</a></td>
+<td class="left">Selected benefit less cost (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [department=DELIVERY] 140.00 included; [department=RESEARCH] 68.00 included → 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t2-r3-DELIVERY">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Selected benefit less cost <span class="member">Fictional delivery team</span></td>
+<td class="left"><code class="formula">(- department-benefit department-cost)</code><div class="working">(- department-benefit department-cost) = 140.00</div></td>
+<td class="right num">140,00</td>
+</tr>
+<tr id="audit-t2-r3-RESEARCH">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Selected benefit less cost <span class="member">Fictional research team</span></td>
+<td class="left"><code class="formula">(- department-benefit department-cost)</code><div class="working">(- department-benefit department-cost) = 68.00</div></td>
+<td class="right num">68,00</td>
+</tr>
+<tr id="audit-t2-r4-aggregate">
+<td class="left cite"><a href="#t2-r4">2/4 Σ</a></td>
+<td class="left">Benefit / selected cost (Gesamt)</td>
+<td class="left"><code class="formula">Σ department-benefit ÷ Σ department-cost</code><div class="working">[department=DELIVERY] 140.00 / 0.00 included; [department=RESEARCH] 68.00 / 0.00 included → Σ department-benefit = 208.00; Σ department-cost = 0.00 → 208.00 ÷ 0.00 (round 6 half-up) = undefined [zero-denominator]</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t2-r4-DELIVERY">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Benefit / selected cost <span class="member">Fictional delivery team</span></td>
+<td class="left"><code class="formula">(if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6))</code><div class="working">(= department-cost 0) = true → (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t2-r4-RESEARCH">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Benefit / selected cost <span class="member">Fictional research team</span></td>
+<td class="left"><code class="formula">(if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6))</code><div class="working">(= department-cost 0) = true → (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t3-r1">
+<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<td class="left">Selected benefit</td>
+<td class="left"><code class="formula">(dim/sum all.selected-benefit)</code><div class="working">(dim/sum all.selected-benefit) = 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t3-r2">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Selected hours</td>
+<td class="left"><code class="formula">(dim/sum all.selected-hours)</code><div class="working">(dim/sum all.selected-hours) = 130</div></td>
+<td class="right num">130</td>
+</tr>
+<tr id="audit-t3-r3">
+<td class="left cite"><a href="#t3-r3">3/3</a></td>
+<td class="left">Selected benefit less cost</td>
+<td class="left"><code class="formula">(- portfolio-benefit portfolio-cost)</code><div class="working">(- portfolio-benefit portfolio-cost) = 208.00</div></td>
+<td class="right num">208,00</td>
+</tr>
+<tr id="audit-t3-r4">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Cost limit less selected cost</td>
+<td class="left"><code class="formula">(- budget-limit portfolio-cost)</code><div class="working">(- budget-limit portfolio-cost) = 120.00</div></td>
+<td class="right num">120,00</td>
+</tr>
+<tr id="audit-t3-r5">
+<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<td class="left">Hours available less selected hours</td>
+<td class="left"><code class="formula">(- hour-limit portfolio-hours)</code><div class="working">(- hour-limit portfolio-hours) = 10</div></td>
+<td class="right num">10</td>
+</tr>
+<tr id="audit-t3-r6">
+<td class="left cite"><a href="#t3-r6">3/6</a></td>
+<td class="left">Selection fits supplied cost limit</td>
+<td class="left"><code class="formula">(&lt;= (decimal/round portfolio-cost currency-scale) budget-limit)</code><div class="working">(decimal/round portfolio-cost currency-scale) = 0.00 → (&lt;= (decimal/round portfolio-cost currency-scale) budget-limit) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-r7">
+<td class="left cite"><a href="#t3-r7">3/7</a></td>
+<td class="left">Selection fits supplied hour limit</td>
+<td class="left"><code class="formula">(&lt;= portfolio-hours hour-limit)</code><div class="working">(&lt;= portfolio-hours hour-limit) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t3-r8">
+<td class="left cite"><a href="#t3-r8">3/8</a></td>
+<td class="left">Selected cost agrees with independent fictional total</td>
+<td class="left"><code class="formula">(decimal/round portfolio-cost currency-scale) ≈ reported-cost (± 0)</code><div class="working">(decimal/round portfolio-cost currency-scale) = 0.00; reported-cost = 0.00 → 0.00 − 0.00 = 0.00 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
+<div class="findings"><strong>Hinweise</strong><ul>
+<li class="warning"><code>MANTRA-AGGREGATE-ZERO-DENOMINATOR</code> Ratio project-benefit-cost has a zero aggregate denominator <span class="loc">project-portfolio/schema.mantra:31:5</span></li>
+<li class="warning"><code>MANTRA-AGGREGATE-ZERO-DENOMINATOR</code> Ratio department-benefit-cost has a zero aggregate denominator <span class="loc">project-portfolio/schema.mantra:40:5</span></li>
+</ul></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

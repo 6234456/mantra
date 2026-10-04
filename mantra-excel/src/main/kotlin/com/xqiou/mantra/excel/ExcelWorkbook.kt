@@ -20,9 +20,15 @@ class ExcelOptions(
     val maxConvergenceSteps: Int = 100_000,
     /** One read request spanning paper construction, formula translation and POI evaluation. */
     val reading: CalculationOptions = CalculationOptions(),
+    /** Explicit row capacities for live structured input tables. Empty keeps snapshot-shaped export. */
+    dynamicTableCapacities: Map<String, Int> = emptyMap(),
 ) {
+    val dynamicTableCapacities: Map<String, Int> = java.util.Collections.unmodifiableMap(
+        LinkedHashMap(dynamicTableCapacities),
+    )
     init {
         require(maxSheets > 0 && maxCells > 0 && maxConvergenceSteps >= 0)
+        require(dynamicTableCapacities.values.all { it in 1..10_000 })
     }
 }
 
@@ -61,6 +67,7 @@ class ExcelWorkbook internal constructor(
     private val recordAddresses: Map<Triple<String, String, String>, String>,
     private val tableAddresses: Map<Triple<String, Int, String>, String>,
     private val aggregateAddresses: Map<Pair<String, Map<String, String>>, String> = emptyMap(),
+    internal val dynamicTables: DynamicWorkbookTables? = null,
 ) : AutoCloseable {
     override fun close() = workbook.close()
 
@@ -135,19 +142,39 @@ class ExcelWorkbook internal constructor(
      * A1 address (`'Sheet'!$C$5`) of a node's cell for a member coordinate.
      * `aggregate.<nodeId>` with an empty coordinate addresses the first visible cross-total cell.
      */
-    fun address(nodeId: String, coord: Coord = emptyList()): String? = nodeAddresses[nodeId]?.get(coord)
+    fun address(nodeId: String, coord: Coord = emptyList()): String? {
+        if (nodeId in dynamicTables?.keyedInputs.orEmpty()) return dynamicTables!!.keyedInputAddress(nodeId, coord)
+        val resolved = if (dynamicTables?.isDynamicNode(nodeId) ==
+            true
+        ) {
+            dynamicTables.resolveCoordinate(nodeId, coord) ?: return null
+        } else {
+            coord
+        }
+        return nodeAddresses[nodeId]?.get(resolved)
+    }
 
     /** A1 address of an exported reduction, with dimensions explicitly fixed to member keys. */
     fun aggregateAddress(nodeId: String, fixed: Map<String, String> = emptyMap()): String? =
         aggregateAddresses[nodeId to fixed] ?: if (fixed.isEmpty()) address("aggregate.$nodeId") else null
 
     /** A1 address of a table-input cell: row identified by the member key of a dimension drawn from the table. */
-    fun recordAddress(dimension: String, key: String, column: String): String? =
+    fun recordAddress(dimension: String, key: String, column: String): String? = if (dimension in
+        dynamicTables?.dimensions.orEmpty()
+    ) {
+        dynamicTables!!.recordAddress(dimension, key, column)
+    } else {
         recordAddresses[Triple(dimension, key, column)]
+    }
 
     /** A1 address of a table-input cell, with a zero-based row index. */
-    fun tableAddress(inputId: String, rowIndex: Int, column: String): String? =
+    fun tableAddress(inputId: String, rowIndex: Int, column: String): String? = if (inputId in
+        dynamicTables?.tables.orEmpty()
+    ) {
+        dynamicTables!!.tableAddress(inputId, rowIndex, column)
+    } else {
         tableAddresses[Triple(inputId, rowIndex, column)]
+    }
 
     fun write(path: java.nio.file.Path) {
         path.toAbsolutePath().parent?.let { java.nio.file.Files.createDirectories(it) }

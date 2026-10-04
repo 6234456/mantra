@@ -8,6 +8,11 @@ export function nodeValue(run: Run, node?: string | null, coord = ''): string | 
   return node ? run.values[node]?.[coord]?.display : undefined
 }
 
+/** Panel summaries explicitly show the engine's whole-domain reduction when the result has dimensions. */
+export function panelValue(run: Run, node?: string | null): string | undefined {
+  return nodeValue(run, node) ?? (node ? nodeValue(run, `aggregate.${node}`) : undefined)
+}
+
 /** WorkingPaperBuilder appends the member coordinates to each row audit anchor. */
 export function auditForCell(
   paper: Paper | undefined,

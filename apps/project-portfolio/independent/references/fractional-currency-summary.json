@@ -1,0 +1,16 @@
+{
+  "id": "fractional-currency",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [],
+  "undefined": [
+    "project-benefit-cost@B"
+  ],
+  "cost": "120.01",
+  "benefit": "208.01",
+  "hours": "130",
+  "selectedProjects": [
+    "A",
+    "C"
+  ]
+}

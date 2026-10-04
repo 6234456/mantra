@@ -86,11 +86,11 @@ internal fun retainExcelEagerErrors(errors: X.Scalar, body: X): X {
         )
         is X.Vec -> {
             val creation = excelOrderedErrors(listOf(errors, body.creationErrors ?: Ex.ZERO))
-            X.Vec(body.items, creation, body.deferred)
+            X.Vec(body.items, creation, body.deferred, body.presence)
         }
         is X.MapX -> {
             if (body.keys.isEmpty()) throw Untranslatable("eager-error let cannot return an empty map")
-            X.MapX(body.keys, body.values.map { retainExcelEagerErrors(errors, it) })
+            X.MapX(body.keys, body.values.map { retainExcelEagerErrors(errors, it) }, body.liveKeys)
         }
         is X.Range -> {
             if (body.keys.isEmpty()) throw Untranslatable("eager-error let cannot return an empty member map")
@@ -101,7 +101,7 @@ internal fun retainExcelEagerErrors(errors: X.Scalar, body: X): X {
 }
 
 /** The callback is translated only when a consumer asks for an element, under its actual lazy guard. */
-internal class DeferredExcelItems(private val source: List<X>, private val transform: (X) -> X) : AbstractList<X>() {
+internal class DeferredExcelItems<T>(private val source: List<T>, private val transform: (T) -> X) : AbstractList<X>() {
     override val size: Int get() = source.size
 
     // Deliberately no cross-consumer cache: materialized helpers belong to the consumer's IF/run guard.

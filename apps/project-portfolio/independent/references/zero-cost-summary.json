@@ -1,0 +1,33 @@
+{
+  "id": "zero-cost",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [
+    {
+      "code": "MANTRA-AGGREGATE-ZERO-DENOMINATOR",
+      "node": "project-benefit-cost",
+      "severity": "warning"
+    },
+    {
+      "code": "MANTRA-AGGREGATE-ZERO-DENOMINATOR",
+      "node": "department-benefit-cost",
+      "severity": "warning"
+    }
+  ],
+  "undefined": [
+    "department-benefit-cost@*",
+    "department-benefit-cost@DELIVERY",
+    "department-benefit-cost@RESEARCH",
+    "project-benefit-cost@*",
+    "project-benefit-cost@A",
+    "project-benefit-cost@B",
+    "project-benefit-cost@C"
+  ],
+  "cost": "0.00",
+  "benefit": "208.00",
+  "hours": "130",
+  "selectedProjects": [
+    "A",
+    "C"
+  ]
+}

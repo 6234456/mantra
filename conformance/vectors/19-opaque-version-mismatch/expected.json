@@ -1,0 +1,13 @@
+{
+  "succeeded": false,
+  "validationPassed": true,
+  "values": {},
+  "diagnostics": [
+    {
+      "code": "MANTRA-CASE-SCHEMA-VERSION",
+      "category": "structural",
+      "severity": "error",
+      "effect": "technical-failure"
+    }
+  ]
+}

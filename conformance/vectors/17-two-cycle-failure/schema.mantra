@@ -1,0 +1,2 @@
+(schema conformance/two-cycle
+  (line oscillating "Oscillating" (calc/converge (fn [^Decimal current] (- 1 current)) 0 4 0) {:op :info}))

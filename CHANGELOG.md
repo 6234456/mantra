@@ -1,9 +1,28 @@
 # Changelog
 
-## Unreleased — v0.5 / M4 (implementation in progress)
+## 1.0.0-rc.1 — M4–M6 candidate (not yet published)
 
-- Compile-once workers, streamed batches, confined scheme packages, effective parameter selection,
-  explicit migrations, live table-shaped XLSX and public ABI checks are being implemented.
+- Add immutable compiled templates, owner-confined reusable sessions and streamed typed batches,
+  with physical compilation/session/evaluation counters. The lease demonstration supplies an
+  independently checked 10,000-case embedding example.
+- Add captured directory and classpath-JAR scheme packages, exact schema identities, dated
+  parameter selection, explicit reviewed migrations and a generic package workbench. Strict
+  directory handles remain the default; cooperative local capture requires an explicit policy.
+- Add bounded dynamic XLSX members, typed keyed inputs and saved/reopened edit checks for assets
+  and leases. Audit snapshots remain protected and automatically show stale/current status.
+- Protect six complete public library surfaces with ABI baselines, a real binary-break
+  counterexample, local binary/source/KDoc staging and five isolated Java/Kotlin POM consumers.
+- Add a bounded UTF-16 stdio LSP, thin VS Code and IntelliJ clients, compiled embedding/CLI
+  tutorials, a strict offline site with ten application showcases, PDF exports, diagnostic
+  localization, package editing capabilities and persisted system/light/dark appearance.
+- Add a v1 language specification, independent 24-vector conformance corpus, compatibility
+  policy and neutral energy-budget/project-portfolio demonstrations without new engine primitives.
+- Bound imports, ZIP container views, export readers, migration intent, HTTP transport and LSP
+  frames; preserve actual error cells, UTF-8 failures, table coordinates, dates, zero and false.
+  Upgrade POI to 5.5.1 and track every declared package resource in incremental application tests.
+- Local functional, independent application, ABI/consumer, tutorial/site and browser checks pass.
+  Final source-frozen performance/JFR, remote CI and source publication remain in acceptance.
+  Public Maven upload requires namespace/signing configuration and the public pinned Normein artifact.
 
 ## v0.4 / M3 (not published as library artifacts)
 

@@ -1,0 +1,24 @@
+{
+  "id": "missing-approval",
+  "succeeded": true,
+  "validationPassed": false,
+  "expectedBusiness": [
+    {
+      "code": "MANTRA-INPUT-REQUIRED",
+      "node": "projects",
+      "severity": "error",
+      "row-index": 0,
+      "column": "approval-note"
+    }
+  ],
+  "undefined": [
+    "project-benefit-cost@B"
+  ],
+  "cost": "120.00",
+  "benefit": "208.00",
+  "hours": "130",
+  "selectedProjects": [
+    "A",
+    "C"
+  ]
+}

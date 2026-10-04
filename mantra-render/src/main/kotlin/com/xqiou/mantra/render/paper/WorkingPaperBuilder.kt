@@ -812,14 +812,15 @@ class WorkingPaperBuilder(
         value
     }
 
-    private fun format(node: ViewNode, value: Value): String =
-        if (value == Value.Nil && node.type.isNumeric && (node.line != null || node.total != null)) {
-            "undefined"
-        } else if ((node.check != null || node.reconcile != null) && value is Value.Bool) {
-            if (value.value) "✓" else "✗"
-        } else {
-            numbers.value(value, presentationOf(node.id)?.format, presentationOf(node.id)?.precision)
-        }
+    private fun format(node: ViewNode, value: Value): String = if (value == Value.Nil && node.type.isNumeric &&
+        (node.line != null || node.total != null)
+    ) {
+        "undefined"
+    } else if ((node.check != null || node.reconcile != null) && value is Value.Bool) {
+        if (value.value) "✓" else "✗"
+    } else {
+        numbers.value(value, presentationOf(node.id)?.format, presentationOf(node.id)?.precision)
+    }
 
     private fun validationStatus(node: ViewNode): String = when {
         node.validations.values.any { it.passed == false } -> "✗"
@@ -956,7 +957,11 @@ class WorkingPaperBuilder(
     }
 
     private fun roundedText(raw: Value, final: Value, rounding: com.xqiou.mantra.core.model.Rounding?): String =
-        rounding?.takeIf { raw is Value.Num && final is Value.Num && raw.value.compareTo(final.value) != 0 }
+        rounding?.takeIf {
+            raw is Value.Num &&
+                final is Value.Num &&
+                raw.value.compareTo(final.value) != 0
+        }
             ?.let {
                 " → round(${(raw as Value.Num).value.toPlainString()}; ${roundingText(it)}) = " +
                     (final as Value.Num).value.toPlainString()

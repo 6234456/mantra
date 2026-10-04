@@ -1,0 +1,14 @@
+{
+  "name": "readings",
+  "format": "csv",
+  "options": {
+    "input": "readings",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": "",
+    "path": "data/readings.csv"
+  },
+  "case": "case-demo.mantra",
+  "schema": "energy.budget/monthly-plan",
+  "schema-version": "1.0.0"
+}

@@ -1,0 +1,111 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "worth@X": {
+      "n": "2"
+    },
+    "worth@Y": {
+      "n": "3"
+    },
+    "worth@Z": {
+      "n": "7"
+    },
+    "rolled@G1": {
+      "n": "5"
+    },
+    "rolled@G2": {
+      "n": "7"
+    },
+    "worth@*": {
+      "n": "12"
+    },
+    "records": [
+      {
+        "map": [
+          [
+            {
+              "kw": "id"
+            },
+            {
+              "kw": "X"
+            }
+          ],
+          [
+            {
+              "kw": "zone"
+            },
+            {
+              "kw": "G1"
+            }
+          ],
+          [
+            {
+              "kw": "amount"
+            },
+            {
+              "n": "2"
+            }
+          ]
+        ]
+      },
+      {
+        "map": [
+          [
+            {
+              "kw": "id"
+            },
+            {
+              "kw": "Y"
+            }
+          ],
+          [
+            {
+              "kw": "zone"
+            },
+            {
+              "kw": "G1"
+            }
+          ],
+          [
+            {
+              "kw": "amount"
+            },
+            {
+              "n": "3"
+            }
+          ]
+        ]
+      },
+      {
+        "map": [
+          [
+            {
+              "kw": "id"
+            },
+            {
+              "kw": "Z"
+            }
+          ],
+          [
+            {
+              "kw": "zone"
+            },
+            {
+              "kw": "G2"
+            }
+          ],
+          [
+            {
+              "kw": "amount"
+            },
+            {
+              "n": "7"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  "diagnostics": []
+}

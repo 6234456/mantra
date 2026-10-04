@@ -1,0 +1,13 @@
+public final class com/xqiou/mantra/server/WorkbenchServer : java/lang/AutoCloseable {
+	public fun <init> (Ljava/nio/file/Path;ILjava/nio/file/Path;Lcom/xqiou/mantra/workbench/ExportBudget;Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;ILjava/nio/file/Path;Lcom/xqiou/mantra/workbench/ExportBudget;Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun close ()V
+	public final fun getLocalPort ()I
+	public final fun start ()Lcom/xqiou/mantra/server/WorkbenchServer;
+}
+
+public final class com/xqiou/mantra/server/WorkbenchTransport {
+	public static final field INSTANCE Lcom/xqiou/mantra/server/WorkbenchTransport;
+	public final fun installDefaults ()V
+}
+

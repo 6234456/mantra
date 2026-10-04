@@ -32,6 +32,9 @@ internal class ExcelWorkbookBuilder(
     internal val styles = ExcelStyles(wb, layout.number)
     internal val map: SchemaMap = view.structure
     internal val translator = FormulaTranslator(this, view.functions)
+    internal val dynamic: DynamicWorkbookTables? by lazy {
+        if (options.dynamicTableCapacities.isEmpty()) null else DynamicWorkbookTables(this)
+    }
 
     internal data class Slot(val sheet: XSSFSheet, val row: Int, val col: Int) {
         val address: String get() = "'${sheet.sheetName.replace(
@@ -47,7 +50,12 @@ internal class ExcelWorkbookBuilder(
     internal val members: Map<String, List<XMember>> by lazy {
         view.dimensions.mapValues { (id, decl) ->
             reader.chargeScans()
-            if (decl.fromTable == null && decl.periods == null) {
+            val liveTokens = dynamic?.memberTokens(id)
+            if (liveTokens != null) {
+                liveTokens.mapIndexed { index, token ->
+                    XMember(token, view.members[id]?.getOrNull(index)?.label.orEmpty(), index)
+                }
+            } else if (decl.fromTable == null && decl.periods == null) {
                 decl.members.mapIndexed { i, m ->
                     reader.chargeScans()
                     XMember(m.key, m.label, i)
@@ -104,6 +112,7 @@ internal class ExcelWorkbookBuilder(
             layoutInputs()
             layoutParams()
             layoutHelpers()
+            layoutDynamicOutputs()
             defineNames()
             writeValuesAndFormulas()
             writeBusinessChecks()
@@ -142,6 +151,7 @@ internal class ExcelWorkbookBuilder(
                 },
                 tableSlots.mapValues { (_, slot) -> slot.address },
                 reductionSlots.mapValues { (_, slot) -> slot.address },
+                dynamic?.also { it.detach() },
             )
         } catch (error: Exception) {
             runCatching { wb.close() }
@@ -309,7 +319,7 @@ internal class ExcelWorkbookBuilder(
         is Value.Vec -> X.Vec(value.items.map(::literal))
         is Value.MapV -> X.MapX(
             value.entries.keys.map {
-                (it as? Value.Kw)?.name ?: it.toString()
+                (it as? Value.Kw)?.name ?: (it as? Value.Text)?.value ?: it.toString()
             },
             value.entries.values.map(::literal),
         )
@@ -330,10 +340,19 @@ internal class ExcelWorkbookBuilder(
                     record(relation.id, key, relation.parentKeyColumn ?: "parent-key")
                         ?: throw Untranslatable("$nodeId has no parent cell for $key")
                 },
+                liveKeys = dynamic?.memberTokens(relation.id)?.let {
+                    keys.map { key -> dynamic!!.key(relation.id, key) }
+                },
             )
         }
         val vertex = view.nodes[nodeId] ?: return null
         if (vertex.kind == NodeKind.INPUT && vertex.type == ValueType.TABLE) {
+            dynamic?.tables?.get(nodeId)?.let { table ->
+                val rows = (0 until table.capacity).map { row ->
+                    X.MapX(table.columns.map { it.name }, table.columns.map { dynamic!!.field(nodeId, row, it.name) })
+                }
+                return X.Vec(rows, presence = rows.indices.map { dynamic!!.rowPresent(nodeId, it) })
+            }
             val count = (view.case.inputs[nodeId] as? Value.Vec)?.items?.size ?: 0
             return X.Vec(
                 (0 until count).map { row ->
@@ -368,7 +387,12 @@ internal class ExcelWorkbookBuilder(
         ) {
             return literal(parameterValue)
         }
-        val extra = vertex.dims.filter { it !in contextDims }
+        val publicFixed = contextDims.zip(contextCoord).filter { (axis, key) ->
+            axis in dynamic?.dimensions.orEmpty() && key !in dynamic!!.memberTokens(axis).orEmpty()
+        }.toMap()
+        val storageDims = contextDims.filter { it !in publicFixed }
+        val storageCoord = storageDims.map { contextCoord[contextDims.indexOf(it)] }
+        val extra = vertex.dims.filter { it !in storageDims }
         // A memberless dimension has no worksheet range. Preserve its empty-map shape for
         // count/get/vals, while aggregation consumes it as the additive identity.
         if (extra.isNotEmpty() && vertex.dims.any { members[it].isNullOrEmpty() }) {
@@ -376,18 +400,30 @@ internal class ExcelWorkbookBuilder(
         }
         val slots = nodeSlots[nodeId] ?: throw Untranslatable("$nodeId has no cell")
         if (extra.isEmpty()) {
-            val coord = vertex.dims.map { contextCoord[contextDims.indexOf(it)] }
+            val coord = vertex.dims.map { storageCoord[storageDims.indexOf(it)] }
             reader.chargeCoordinateVisits()
             return slots[coord]?.let { ref(it, kindOf(vertex)) }
                 ?: throw Untranslatable("$nodeId has no cell for $coord")
         }
-        val fixed = contextDims.zip(contextCoord).toMap()
+        val fixed = storageDims.zip(storageCoord).toMap()
         fun nested(index: Int, assignment: Map<String, String>): X {
             if (index == vertex.dims.size) {
                 reader.chargeCoordinateVisits()
                 val coordinate = vertex.dims.map(assignment::getValue)
-                return slots[coordinate]?.let { ref(it, kindOf(vertex)) }
+                val value = slots[coordinate]?.let { ref(it, kindOf(vertex)) }
                     ?: throw Untranslatable("$nodeId has no cell for $coordinate")
+                val presence = vertex.dims.mapIndexedNotNull { at, dimension ->
+                    dynamic?.takeIf { dimension in it.dimensions }?.present(dimension, coordinate[at])
+                }
+                return if (presence.isEmpty()) {
+                    value
+                } else {
+                    Ex.iff(
+                        boundedReductionBoolean("AND", presence),
+                        value,
+                        Ex.EMPTY,
+                    ).copy(kind = value.kind, numericOrNil = value.numericOrNil, booleanOrNil = value.booleanOrNil)
+                }
             }
             val dimension = vertex.dims[index]
             fixed[dimension]?.let { return nested(index + 1, assignment + (dimension to it)) }
@@ -395,13 +431,19 @@ internal class ExcelWorkbookBuilder(
                 reader.chargeScans()
                 it.key
             }
-            return X.MapX(keys, keys.map { nested(index + 1, assignment + (dimension to it)) })
+            val map = X.MapX(
+                keys,
+                keys.map { nested(index + 1, assignment + (dimension to it)) },
+                liveKeys = dynamic?.memberTokens(dimension)?.let { keys.map { key -> dynamic!!.key(dimension, key) } },
+            )
+            return publicFixed[dimension]?.let { translator.mapLookup(map, Ex.text(it)) } ?: map
         }
         return nested(0, emptyMap())
     }
 
     override fun record(dim: String, key: String, field: String): X? {
         reader.checkpoint()
+        dynamic?.record(dim, key, field)?.let { return it }
         val decl = view.dimensions[dim] ?: return null
         if (decl.periods != null) {
             val current = view.members[dim].orEmpty().firstOrNull {

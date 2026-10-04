@@ -18,7 +18,16 @@ import java.time.LocalDate
 import java.util.Base64
 
 /** Validates JSON request shapes before invoking workspace operations. */
-internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
+internal class WorkbenchRequests private constructor(
+    private val parseText: (String, String, Boolean, String, String?) -> Value,
+    private val tableKey: (String, String) -> String?,
+    private val parseRow: (String, String, Map<String, String>) -> Value.MapV,
+) {
+    constructor(
+        catalog: WorkspaceCatalog,
+    ) : this(catalog::parseEditText, catalog::tableKeyColumn, catalog::parseEditRowText)
+    constructor(catalog: com.xqiou.mantra.workbench.packages.PackageWorkspaceCatalog) :
+        this(catalog::parseEditText, catalog::tableKeyColumn, catalog::parseEditRowText)
     private data class EditAddress(val node: String, val coord: List<String>, val cell: Pair<String, String>?)
     val json = ObjectMapper().enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
         .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
@@ -215,7 +224,7 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
         fun valueOrText(node: JsonNode, id: String, parameter: Boolean, column: String? = null): Value {
             if (node.has("value") == node.has("text")) bad("Provide exactly one of value and text")
             return if (node.has("text")) {
-                catalog.parseEditText(caseId, id, parameter, string(node, "text"), column)
+                parseText(caseId, id, parameter, string(node, "text"), column)
             } else {
                 parseValue(node["value"])
             }
@@ -239,7 +248,7 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
                             target.cell.first,
                             target.cell.second,
                             value,
-                            catalog.tableKeyColumn(caseId, target.node),
+                            tableKey(caseId, target.node),
                         )
                     }
                 }
@@ -253,7 +262,7 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
                             target.node,
                             target.cell.first,
                             target.cell.second,
-                            catalog.tableKeyColumn(caseId, target.node),
+                            tableKey(caseId, target.node),
                         )
                     }
                 }
@@ -290,7 +299,7 @@ internal class WorkbenchRequests(private val catalog: WorkspaceCatalog) {
                             }
                             column to value.textValue()
                         }
-                        catalog.parseEditRowText(caseId, table, texts)
+                        parseRow(caseId, table, texts)
                     }
                     CaseTextEditor.Operation.InsertRow(table, row, op["index"]?.let { integer(op, "index") })
                 }

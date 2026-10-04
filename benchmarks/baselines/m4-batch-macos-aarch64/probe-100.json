@@ -1,0 +1,11 @@
+{"requestedCases":100,"completedCases":100,"checkedCases":100,"exactNumericComparisons":11200,
+ "succeededCases":100,"validationFailedCases":0,"technicalFailedCases":0,
+ "batchFailure":null,"elapsedMillis":1374,
+ "peakHeapPoolSumBytes":322419720,
+ "packageRevision":"d336a6f2ee59c3e18668b6a67724ff8e7cf972e01726060a095238d28bd9c4ae","referenceSha256":"715049290ac763f1c578abf4325fefd944453fc8c0fcaba793f7ab929105961d","actualSha256":"e1d48cf31e441bb9c3e18df895f6ffa4d887d496e1efc7bbdb8fb516ce267112",
+ "compilation":{"syntaxCompilerCalls":22,"semanticCompilerCalls":22,
+                "executionPlanCompilations":22,"formulaCount":22},
+ "statistics":{"sessionOpens":22,"sessionCloseAttempts":22,"successfulSessionCloses":22,
+               "executionPlanCompilations":0,"rowCycles":5600,"physicalRowPreparations":5600,
+               "logicalExpressionEvaluations":5600,"frameAllocations":22,
+               "valueOnlyEvidenceMaterializations":0},"environment":{"java":"21.0.12.1","vendor":"Azul Systems, Inc.","os":"Mac OS X","arch":"aarch64","kernelArtifact":"application-code:mantra.calc:2","kernelSha256":"1e653d9873d1c8c9620ff316a8157a464b27f585549bf3391ba3994c09822943","directoryPolicy":"TRUSTED_LOCAL"}}

@@ -1,0 +1,2 @@
+(schema conformance/version {:version "2025.2"}
+  (line known-zero "Known zero" 0 {:op :info}))

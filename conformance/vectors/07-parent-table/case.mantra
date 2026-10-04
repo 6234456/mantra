@@ -1,0 +1,1 @@
+(case parent (inputs {:records [{:id :X :zone :G1 :amount 2} {:id :Y :zone :G1 :amount 3} {:id :Z :zone :G2 :amount 7}]}))

@@ -1,0 +1,80 @@
+{
+  "name": "mantra-language-tools",
+  "displayName": "Mantra Language Tools",
+  "description": "Static language services through the Mantra stdio language server.",
+  "version": "0.1.0",
+  "publisher": "mantra",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.106.0",
+    "node": ">=22.13.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./out/src/extension.js",
+  "activationEvents": [
+    "onLanguage:mantra"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "mantra",
+        "aliases": [
+          "Mantra"
+        ],
+        "extensions": [
+          ".mantra"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "mantra.restartLanguageServer",
+        "title": "Mantra: Restart Language Server"
+      }
+    ],
+    "configuration": {
+      "title": "Mantra",
+      "properties": {
+        "mantra.languageServer.command": {
+          "type": "string",
+          "default": "mantra-lsp",
+          "scope": "resource",
+          "description": "Installed executable. Never downloaded or built by the extension."
+        },
+        "mantra.languageServer.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "description": "Separate process arguments; no shell parsing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "test": "npm run compile && node --test out/test/*.test.js",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "10.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.14",
+    "@types/vscode": "1.106.0",
+    "typescript": "5.8.3"
+  }
+}

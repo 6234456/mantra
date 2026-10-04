@@ -125,6 +125,10 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
 
     fun scalar(form: DslForm, ctx: Ctx): X.Scalar = toScalar(translate(form, ctx))
 
+    internal fun translateGuarded(form: DslForm, ctx: Ctx, enabled: X.Scalar): X = withLazyGuard(enabled) {
+        translate(form, ctx)
+    }
+
     fun translate(form: DslForm, ctx: Ctx): X {
         resolver.chargeScans()
         form.number?.let { return Ex.num(it) }
@@ -391,15 +395,24 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                 val function = translate(args[0], ctx)
                 val source = translate(args[1], ctx) as? X.Vec ?: throw Untranslatable("map source must be a vector")
                 X.Vec(
-                    DeferredExcelItems(source.items) { item -> invokeCallable(function, listOf(item)) },
+                    DeferredExcelItems(source.items.withIndex().toList()) { indexed ->
+                        val present = source.presence?.get(indexed.index)
+                        if (present == null) {
+                            invokeCallable(function, listOf(indexed.value))
+                        } else {
+                            val value = withLazyGuard(present) { invokeCallable(function, listOf(indexed.value)) }
+                            X.Branches(listOf(present to value, null to X.Nil))
+                        }
+                    },
                     excelOrderedErrors(listOf(eagerErrors(function), eagerErrors(source)), ::materialize),
                     deferred = true,
+                    presence = source.presence,
                 )
             }
             "vec" -> {
                 arity(1)
                 when (val source = translate(args[0], ctx)) {
-                    is X.Vec -> X.Vec(source.items.toList(), source.creationErrors)
+                    is X.Vec -> X.Vec(source.items.toList(), source.creationErrors, presence = source.presence)
                     X.Nil -> X.Vec(emptyList())
                     else -> throw Untranslatable("vec cannot faithfully materialize ${source::class.simpleName}")
                 }
@@ -415,11 +428,11 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                     args.getOrNull(4)?.let { translate(it, ctx) },
                 )
             }
-            "dim/min" -> Ex.fn("MIN", aggregateArgs(translate(args[0], ctx)))
-            "dim/max" -> Ex.fn("MAX", aggregateArgs(translate(args[0], ctx)))
+            "dim/min" -> dimensionExtreme(translate(args[0], ctx), "MIN")
+            "dim/max" -> dimensionExtreme(translate(args[0], ctx), "MAX")
             "vals" -> when (val m = translate(args[0], ctx)) {
                 is X.Range -> X.Vec(m.cells)
-                is X.MapX -> X.Vec(m.values)
+                is X.MapX -> X.Vec(m.values, presence = m.liveKeys?.map { Ex.cmp("<>", it, Ex.EMPTY) })
                 else -> throw Untranslatable("vals of ${m::class.simpleName}")
             }
             "count" -> {
@@ -430,7 +443,22 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                     is X.MapX -> value.keys.size
                     else -> throw Untranslatable("count")
                 }
-                retainEagerErrors(eagerErrors(value, forceSequence = true), Ex.num(length.toLong()))
+                val count = when {
+                    value is X.Vec && value.presence != null -> Ex.fn(
+                        "SUM",
+                        value.presence.map {
+                            Ex.iff(it, Ex.num(1), Ex.ZERO)
+                        },
+                    )
+                    value is X.MapX && value.liveKeys != null -> Ex.fn(
+                        "SUM",
+                        value.liveKeys.map {
+                            Ex.iff(Ex.cmp("<>", it, Ex.EMPTY), Ex.num(1), Ex.ZERO)
+                        },
+                    )
+                    else -> Ex.num(length.toLong())
+                }
+                retainEagerErrors(eagerErrors(value, forceSequence = true), count)
             }
             "apply" -> {
                 val fnName = args.firstOrNull()?.symbol ?: throw Untranslatable("apply of computed function")
@@ -613,22 +641,58 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         else -> throw Untranslatable("dim/sum source is not a numeric collection")
     }
 
+    /** Real member identities, never the virtual slot strings, select dynamic map values. */
+    internal fun mapLookup(map: X.MapX, key: X.Scalar, default: X = X.Nil): X {
+        val literal = key.text.takeIf { Ex.isTextLiteral(key) }?.removeSurrounding("\"")?.replace("\"\"", "\"")
+        if (map.liveKeys == null && literal != null) return map.values.getOrNull(map.keys.indexOf(literal)) ?: default
+        val identities = map.liveKeys ?: map.keys.map(Ex::text)
+        val branches = X.Branches(
+            identities.mapIndexed { index, candidate ->
+                Ex.fn("AND", Ex.cmp("<>", candidate, Ex.EMPTY), Ex.cmp("=", candidate, key), kind = XKind.BOOL) to
+                    map.values[index]
+            } + listOf(null to default),
+        )
+        return if (branches.cases.all { it.second is X.Scalar || it.second == X.Nil }) toScalar(branches) else branches
+    }
+
+    private fun dimensionExtreme(value: X, operation: String): X.Scalar {
+        fun leaves(source: X): List<X.Scalar> = when (source) {
+            X.Nil -> emptyList()
+            is X.Range -> source.cells
+            is X.MapX -> source.values.flatMap(::leaves)
+            is X.Vec -> source.items.flatMap(::leaves)
+            is X.Scalar -> listOf(source)
+            is X.Branches -> listOf(toScalar(source))
+            else -> throw Untranslatable("$operation needs a numeric member collection")
+        }
+        val candidates = leaves(value).map { candidate ->
+            // Cell arguments let MIN/MAX ignore nonnumeric/absent values; errors remain errors.
+            materialize(
+                Ex.iff(
+                    Ex.fn("ISERROR", candidate, kind = XKind.BOOL),
+                    candidate,
+                    Ex.iff(Ex.fn("ISNUMBER", candidate, kind = XKind.BOOL), candidate, Ex.EMPTY),
+                ),
+            )
+        }
+        if (candidates.isEmpty()) return Ex.EMPTY
+        fun extreme(items: List<X.Scalar>): X.Scalar {
+            val chunks = if (items.size > 200) items.chunked(200).map { materialize(extreme(it)) } else items
+            val count = Ex.fn("COUNT", chunks)
+            return Ex.iff(Ex.cmp("=", count, Ex.ZERO), Ex.EMPTY, Ex.fn(operation, chunks))
+        }
+        // Preserve an error even when every candidate is absent or nonnumeric.
+        return retainEagerErrors(eagerErrors(value, forceSequence = true), extreme(candidates)).let(::toScalar)
+    }
+
     private fun get(args: List<DslForm>, ctx: Ctx): X {
-        val key = args[1].keyword ?: args[1].string ?: throw Untranslatable("get with computed key")
+        val key = args[1].keyword?.let(Ex::text) ?: args[1].string?.let(Ex::text) ?: scalar(args[1], ctx)
         val default = args.getOrNull(2)?.let { translate(it, ctx) }
         fun pick(m: X): X = when (m) {
-            is X.Range -> m.cells.getOrNull(m.keys.indexOf(key)) ?: default ?: X.Nil
-            is X.MapX -> m.values.getOrNull(m.keys.indexOf(key)) ?: default ?: X.Nil
+            is X.Range -> mapLookup(X.MapX(m.keys, m.cells), key, default ?: X.Nil)
+            is X.MapX -> mapLookup(m, key, default ?: X.Nil)
             is X.Branches -> X.Branches(m.cases.map { (c, v) -> c to pick(v) }).let {
-                if (it.cases.all { case ->
-                        case.second is X.Scalar ||
-                            case.second == X.Nil
-                    }
-                ) {
-                    toScalar(it)
-                } else {
-                    it
-                }
+                if (it.cases.all { case -> case.second is X.Scalar || case.second == X.Nil }) toScalar(it) else it
             }
             else -> throw Untranslatable("get on ${m::class.simpleName}")
         }
@@ -687,40 +751,53 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         boundary: String? = null,
         ordered: X? = null,
     ): X.Scalar {
-        val (keys, amounts) = keyedValues(values, "dim/rollup")
-        val (relationKeys, parents) = keyedValues(relation, "dim/rollup relation")
-        if (boundary != null) {
+        fun map(source: X): X.MapX = when (source) {
+            is X.MapX -> source
+            is X.Range -> X.MapX(source.keys, source.cells)
+            else -> throw Untranslatable("dim/rollup needs member maps")
+        }
+        val source = map(values)
+        val parents = map(relation)
+        val identities = source.liveKeys ?: source.keys.map(Ex::text)
+        val relationIdentities = parents.liveKeys ?: parents.keys.map(Ex::text)
+        fun parent(key: X.Scalar) = toScalar(mapLookup(parents, key))
+        val related = identities.map { key ->
+            Ex.iff(Ex.cmp("=", key, Ex.EMPTY), Ex.TRUE, Ex.cmp("<>", parent(key), Ex.EMPTY))
+        }
+        var valid = if (related.isEmpty()) Ex.TRUE else Ex.fn("AND", related, XKind.BOOL)
+        val reduced = if (boundary == null) {
+            val terms = identities.mapIndexed { index, key ->
+                Ex.iff(
+                    Ex.fn("AND", Ex.cmp("<>", key, Ex.EMPTY), Ex.cmp("=", parent(key), target), kind = XKind.BOOL),
+                    toScalar(source.values[index]),
+                    Ex.ZERO,
+                )
+            }
+            Ex.fn("SUM", terms.ifEmpty { listOf(Ex.ZERO) })
+        } else {
             if (boundary != "first" && boundary != "last") throw Untranslatable("dim/rollup boundary $boundary")
             val sequence = (ordered as? X.Vec)?.items ?: throw Untranslatable("dim/rollup needs ordered keys")
-            val order = sequence.map { item ->
-                val scalar = toScalar(item)
-                scalar.text.removeSurrounding("\"").replace("\"\"", "\"")
+            val keys = sequence.map(::toScalar)
+            if (keys.any { !Ex.isTextLiteral(it) } || keys.distinct().size != keys.size) {
+                throw Untranslatable("dim/rollup order must be a unique declared keyword sequence")
             }
-            if (order.distinct().size != order.size || !order.containsAll(relationKeys) ||
-                keys.any { it !in relationKeys || it !in order }
-            ) {
-                throw Untranslatable("dim/rollup keys require a unique complete declared order and parent relation")
+            val inOrder = relationIdentities.map { key ->
+                Ex.iff(
+                    Ex.cmp("=", key, Ex.EMPTY),
+                    Ex.TRUE,
+                    if (keys.isEmpty()) Ex.FALSE else Ex.fn("OR", keys.map { Ex.cmp("=", it, key) }, XKind.BOOL),
+                )
             }
-            val candidates = if (boundary == "first") order else order.reversed()
-            return candidates.foldRight(Ex.ZERO) { key, rest ->
-                val parentIndex = relationKeys.indexOf(key)
-                if (parentIndex < 0) {
-                    rest
-                } else {
-                    val index = keys.indexOf(key)
-                    val value = if (index < 0) Ex.EMPTY else amounts[index]
-                    val selected = Ex.iff(Ex.fn("ISNUMBER", value, kind = XKind.BOOL), value, Ex.EMPTY)
-                    val result = Ex.iff(Ex.cmp("=", parents[parentIndex], target), selected, rest)
-                    if (result.text.length > 1000) materialize(result) else result
-                }
+            valid = Ex.fn("AND", listOf(valid) + inOrder, XKind.BOOL)
+            val candidates = if (boundary == "first") keys else keys.reversed()
+            candidates.foldRight(Ex.ZERO) { key, rest ->
+                val value = toScalar(mapLookup(source, key))
+                val selected = Ex.iff(Ex.fn("ISNUMBER", value, kind = XKind.BOOL), value, Ex.EMPTY)
+                val result = Ex.iff(Ex.cmp("=", parent(key), target), selected, rest)
+                if (result.text.length > 1000) materialize(result) else result
             }
         }
-        val terms = keys.mapIndexed { index, key ->
-            val parentIndex = relationKeys.indexOf(key)
-            if (parentIndex < 0) throw Untranslatable("dim/rollup relation missing $key")
-            Ex.iff(Ex.cmp("=", parents[parentIndex], target), amounts[index], Ex.ZERO)
-        }
-        return Ex.fn("SUM", terms.ifEmpty { listOf(Ex.ZERO) })
+        return Ex.iff(valid, reduced, Ex.fn("NA"))
     }
 
     /**
@@ -731,70 +808,66 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         val (keys, w) = keyedValues(weights, "alloc/pro-rata")
         if (keys.isEmpty()) return X.MapX(emptyList(), emptyList())
         if (keys.size > 12) throw Untranslatable("alloc/pro-rata with more than 12 members")
-        val total = if (weights is X.Range) Ex.fn("SUM", Ex.atom(weights.text)) else Ex.chain("+", w, Ex.ADD)
-        val factor = Ex.pow10(scale)
+        val liveKeys = (weights as? X.MapX)?.liveKeys
+        val present = keys.indices.map { index -> liveKeys?.get(index)?.let { Ex.cmp("<>", it, Ex.EMPTY) } ?: Ex.TRUE }
+        val amounts = w.mapIndexed { index, value ->
+            Ex.iff(present[index], Ex.iff(Ex.cmp("=", value, Ex.EMPTY), Ex.ZERO, value), Ex.ZERO)
+        }
+        val total = materialize(Ex.fn("SUM", amounts))
+        val factor = materialize(Ex.pow10(scale))
         val scaled = scale.text != "0"
-        fun q(m: Int): X.Scalar = Ex.div(Ex.mul(amount, w[m]), total).let { if (scaled) Ex.mul(it, factor) else it }
-        fun floor(m: Int) = Ex.fn("INT", q(m))
-        fun remainder(m: Int) = Ex.sub(q(m), floor(m))
-        val units = Ex.sub(
-            Ex.fn("ROUND", if (scaled) Ex.mul(amount, factor) else amount, Ex.ZERO),
-            Ex.chain("+", keys.indices.map(::floor), Ex.ADD),
+        val quotas = keys.indices.map { index ->
+            val quotient = Ex.div(Ex.mul(amount, amounts[index]), total)
+            materialize(if (scaled) Ex.mul(quotient, factor) else quotient)
+        }
+        val floors = quotas.map { materialize(Ex.fn("INT", it)) }
+        val remainders = keys.indices.map { materialize(Ex.sub(quotas[it], floors[it])) }
+        val units = materialize(
+            Ex.sub(
+                Ex.fn("ROUND", if (scaled) Ex.mul(amount, factor) else amount, Ex.ZERO),
+                Ex.fn("SUM", floors),
+            ),
         )
-        val values = keys.indices.map { j ->
-            val ahead = keys.indices.filter { it != j }.map { m ->
-                Ex.cmp(
-                    if (m <
-                        j
-                    ) {
-                        ">="
-                    } else {
-                        ">"
-                    },
-                    remainder(m),
-                    remainder(j),
+        val values = keys.indices.map { index ->
+            val ahead = keys.indices.filter { it != index }.map { other ->
+                Ex.iff(
+                    present[other],
+                    Ex.cmp(
+                        if (other < index) ">=" else ">",
+                        remainders[other],
+                        remainders[index],
+                    ),
+                    Ex.FALSE,
                 )
             }
-            val rank = if (ahead.isEmpty()) Ex.num(1) else Ex.chain("+", listOf(Ex.num(1)) + ahead, Ex.ADD)
-            val value = Ex.add(floor(j), Ex.fn("IF", Ex.cmp("<=", rank, units), Ex.num(1), Ex.ZERO))
-            if (scaled) Ex.div(value, factor) else value
+            val rank = materialize(Ex.chain("+", listOf(Ex.num(1)) + ahead, Ex.ADD))
+            val value = Ex.add(floors[index], Ex.fn("IF", Ex.cmp("<=", rank, units), Ex.num(1), Ex.ZERO))
+            Ex.iff(present[index], if (scaled) Ex.div(value, factor) else value, Ex.EMPTY)
         }
-        return X.MapX(keys, values)
+        return X.MapX(keys, values, liveKeys)
     }
 
     /** Sequential allocation: each key receives min(cap, what is left after the keys before it). */
     private fun waterfall(amount: X.Scalar, caps: X): X {
-        val keys: List<String>
-        val c: List<X>
-        when (caps) {
-            is X.MapX -> {
-                keys = caps.keys
-                c = caps.values
-            }
-            is X.Range -> {
-                keys = caps.keys
-                c = caps.cells
-            }
+        val map = when (caps) {
+            is X.MapX -> caps
+            is X.Range -> X.MapX(caps.keys, caps.cells)
             else -> throw Untranslatable("alloc/waterfall needs a member map")
         }
-        if (c.dropLast(1).any {
-                it == X.Nil
-            }
-        ) {
-            throw Untranslatable("alloc/waterfall: only the last capacity may be unlimited")
+        var remaining = Ex.fn("MAX", Ex.ZERO, amount)
+        val values = map.keys.indices.map { index ->
+            val present = map.liveKeys?.get(index)?.let { Ex.cmp("<>", it, Ex.EMPTY) } ?: Ex.TRUE
+            val cap = toScalar(map.values[index])
+            val share = Ex.iff(
+                Ex.cmp("=", cap, Ex.EMPTY),
+                remaining,
+                Ex.fn("MIN", remaining, Ex.fn("MAX", Ex.ZERO, cap)),
+            )
+            val value = materialize(Ex.iff(present, share, Ex.EMPTY))
+            remaining = materialize(Ex.fn("MAX", Ex.ZERO, Ex.sub(remaining, Ex.iff(present, value, Ex.ZERO))))
+            value
         }
-        val positive = Ex.fn("MAX", Ex.ZERO, amount)
-        val values = keys.indices.map { j ->
-            val left = if (j ==
-                0
-            ) {
-                positive
-            } else {
-                Ex.fn("MAX", Ex.ZERO, Ex.sub(positive, Ex.chain("+", c.take(j).map { toScalar(it) }, Ex.ADD)))
-            }
-            if (c[j] == X.Nil) left else Ex.fn("MIN", Ex.fn("MAX", Ex.ZERO, toScalar(c[j])), left)
-        }
-        return X.MapX(keys, values)
+        return X.MapX(map.keys, values, map.liveKeys)
     }
 
     /** Value of the last band whose threshold is not above x (thresholds ascending). */

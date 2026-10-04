@@ -1,0 +1,5 @@
+(schema conformance/params
+  (param multiplier 10)
+  (param feature-enabled true)
+  (param offset-factor 1)
+  (line computed "Computed" (+ multiplier offset-factor) {:op :info}))

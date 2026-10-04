@@ -61,7 +61,9 @@ internal fun reductionDocument(
 }
 
 internal fun aggregateCoordinate(view: CalculationView, fixed: Map<String, String>): List<String> =
-    view.dimensionOrder(fixed.keys).map { "$it=${fixed.getValue(it)}" }
+    view.dimensionOrder(fixed.keys).map {
+        "$it=${fixed.getValue(it)}"
+    }
 
 internal fun reductionExplanation(
     view: CalculationView,

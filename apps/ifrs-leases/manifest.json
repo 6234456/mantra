@@ -1,0 +1,304 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.ifrs-leases",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 8166,
+      "sha256": "99dea382a145e330d04165ce80049f0182be80b983226de1ee983c45538f3357"
+    },
+    {
+      "path": "batch/README.md",
+      "role": "documentation",
+      "byteLength": 4344,
+      "sha256": "d39c8687cf1d7cb517f3631ec1d51a21f891e3fc3b9a8b878eca9a2e9e99bd72"
+    },
+    {
+      "path": "batch/independent_batch.py",
+      "role": "documentation",
+      "byteLength": 5378,
+      "sha256": "b698d508b4dbcefdb032db1b6f1649091348fbf7306e00350b6e10514be52517"
+    },
+    {
+      "path": "batch/reference-small.jsonl",
+      "role": "documentation",
+      "byteLength": 26225,
+      "sha256": "e47365422a5cf7957e387be53dff8e73b064b19e2a64a6b52d0ad14eb9a939af"
+    },
+    {
+      "path": "batch/reference-small.manifest.json",
+      "role": "documentation",
+      "byteLength": 857,
+      "sha256": "389346a70c307ae493993843816fbfde8d77eeb5aed31e2c503be1c1bf48e6a7"
+    },
+    {
+      "path": "batch/reference.manifest.json",
+      "role": "documentation",
+      "byteLength": 858,
+      "sha256": "3bd6bc84c8927242d91484fd01f0f673685271ff449675ca0017d0219376800e"
+    },
+    {
+      "path": "case-commencement-payment.mantra",
+      "role": "case",
+      "byteLength": 1171,
+      "sha256": "c3b2d1e6526d23e93715368baf5dda1c88c3dcdf590df298daed576149bc74b9"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1689,
+      "sha256": "06bcd79376e7422dc8daa888f8a7b330c3b2fe921fcde5695beaa154bce55dac"
+    },
+    {
+      "path": "case-negative-payment.mantra",
+      "role": "case",
+      "byteLength": 1286,
+      "sha256": "acd25c11597c0c9fe63586b51070da031aecf70f76975d9e0c1fd5ae70ae5419"
+    },
+    {
+      "path": "case-negative-rate-outside-demo.mantra",
+      "role": "case",
+      "byteLength": 1311,
+      "sha256": "fa44dff34231e873d58f7e0c0b804e934c84aab3fb207cce3d1d72681b9e0e96"
+    },
+    {
+      "path": "case-single-period.mantra",
+      "role": "case",
+      "byteLength": 1143,
+      "sha256": "49befd82aa152b4c57dfbf85b9cc9da2d2151e7ce807259d769e8cf66ad7ee1e"
+    },
+    {
+      "path": "case-unreconciled.mantra",
+      "role": "case",
+      "byteLength": 1824,
+      "sha256": "d74b9c7ee6ea372b4d2fae5bdfb4db6de3c67641f198e74ea727bf11980af76e"
+    },
+    {
+      "path": "data/leases.csv",
+      "role": "data",
+      "byteLength": 196,
+      "sha256": "2c48f309f7892250da3b1a96035c3cedadd4e56d14000b5931985494d7ecc551"
+    },
+    {
+      "path": "data/payments.csv",
+      "role": "data",
+      "byteLength": 123,
+      "sha256": "b1bad361225c08a1ec106d186109a26af5c82cc2b08363500bcc997ab6b4c366"
+    },
+    {
+      "path": "data/periods.csv",
+      "role": "data",
+      "byteLength": 88,
+      "sha256": "40dd4079b45acc2af457b921d7f53cd15974c0f90fa1698589926715317c6662"
+    },
+    {
+      "path": "data/reported-closing.csv",
+      "role": "data",
+      "byteLength": 131,
+      "sha256": "4465f86b151f61160d46a45c8bc071b18b6e370415a5c8583f44c2d98d1965bb"
+    },
+    {
+      "path": "fixtures/commencement-payment.json",
+      "role": "documentation",
+      "byteLength": 1577,
+      "sha256": "af8bf45bf493691b1ba9a0d0dd36fb305772723711c5218fcd72170ed67ab54d"
+    },
+    {
+      "path": "fixtures/demo.json",
+      "role": "documentation",
+      "byteLength": 1998,
+      "sha256": "2e4a20d2a3c648879b3b3be0e47dd03a2f50738d22e6d23e67a1cc0023a0365d"
+    },
+    {
+      "path": "fixtures/negative-payment.json",
+      "role": "documentation",
+      "byteLength": 1774,
+      "sha256": "fe2b9316a0cd1452bad5b6e4e8d1bc92333f09b27cf6c96f77e3128f0d824e31"
+    },
+    {
+      "path": "fixtures/negative-rate-outside-demo.json",
+      "role": "documentation",
+      "byteLength": 1592,
+      "sha256": "552aa48bb647ee7a1e35d161cae4dbb82820531b69c3f8258e22ad98eb914f4b"
+    },
+    {
+      "path": "fixtures/single-period.json",
+      "role": "documentation",
+      "byteLength": 1537,
+      "sha256": "f2b23480ec1f29ab2f6b422ec94c7f5522190181abc350ab25e3dcf9ff413e5d"
+    },
+    {
+      "path": "fixtures/unreconciled.json",
+      "role": "documentation",
+      "byteLength": 2006,
+      "sha256": "608fe7c220bfb442902a7c9a0f5a6701da43a668525528fd89b0a83cf3449d3c"
+    },
+    {
+      "path": "import-templates/leases.json",
+      "role": "import-template",
+      "byteLength": 277,
+      "sha256": "13f4ad66afc7b77436c11a0b83d59242f062d100f4effed98e88e02792c9f7a1"
+    },
+    {
+      "path": "import-templates/payments.json",
+      "role": "import-template",
+      "byteLength": 289,
+      "sha256": "1fa771bd8b4e48a9d2132a2a7c500e51810565fb8e3e0c1b43638fb94e56fc06"
+    },
+    {
+      "path": "import-templates/periods.json",
+      "role": "import-template",
+      "byteLength": 289,
+      "sha256": "0423cacb0f1a9322999c5e26893d58f67cee059815de8533285bdfeb7a82aba7"
+    },
+    {
+      "path": "import-templates/reported-closing.json",
+      "role": "import-template",
+      "byteLength": 308,
+      "sha256": "3667a66a1169a8e97dbffb0c6174479d235a42d8021eab4080653a6128ced14c"
+    },
+    {
+      "path": "layout-transpose.mantra",
+      "role": "layout",
+      "byteLength": 389,
+      "sha256": "e15539d905222c52b3e504f26ef34753c9f26e3b0c5f8cf636d1a55299e2d2aa"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 779,
+      "sha256": "8883df16cdca0fa0d68ff83d04ec3bc966aabc3b89f0f507c8531f0525995026"
+    },
+    {
+      "path": "params-precision.mantra",
+      "role": "parameters",
+      "byteLength": 216,
+      "sha256": "a028f1999e8882d8367ec45d95131f62d4f9d0ec984c956107c6635a180cfb51"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 5930,
+      "sha256": "d7a33e02917a94130181e3b5dbe69e8613ff27e3916d99efad29ff05b52fcc48"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 13946,
+      "sha256": "ae13347687037c5be10e38332adcd6cf5a00fc21b56855172ff9bf11eebd4930"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "ifrs.ifrs16/precision",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-precision.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "ifrs.ifrs16/transpose-paper",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout-transpose.mantra"
+    },
+    {
+      "id": "ifrs.ifrs16/working-paper",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ifrs-leases-commencement-payment",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-commencement-payment.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    },
+    {
+      "id": "ifrs-leases-demo",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    },
+    {
+      "id": "ifrs-leases-negative-payment",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-negative-payment.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    },
+    {
+      "id": "ifrs-leases-negative-rate-outside-demo",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-negative-rate-outside-demo.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    },
+    {
+      "id": "ifrs-leases-single-period",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-single-period.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    },
+    {
+      "id": "ifrs-leases-unreconciled",
+      "schema": {
+        "id": "ifrs.ifrs16/lessee-schedule",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-unreconciled.mantra",
+      "parameters": [],
+      "layout": "ifrs.ifrs16/working-paper"
+    }
+  ],
+  "dependencies": []
+}

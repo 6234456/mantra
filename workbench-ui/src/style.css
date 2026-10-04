@@ -58,6 +58,94 @@ input:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+:root[data-theme='dark'] {
+  --paper: #161a20;
+  --sheet: #1d232b;
+  --field: #252d37;
+  --bar: #1b2129;
+  --rail: #202731;
+  --ink: #f0ede6;
+  --ink-2: #c9c7c1;
+  --ink-3: #aaa9a5;
+  --line: #48515d;
+  --line-soft: #343d48;
+  --line-aux: #616a75;
+  --blue: #a6caff;
+  --blue-strong: #cee1ff;
+  --blue-tint: #2a3e5b;
+  --blue-field: #24364d;
+  --blue-line: #6686b3;
+  --siena: #ffc098;
+  --siena-strong: #ffdabf;
+  --siena-tint: #503329;
+  --siena-field: #3e2d27;
+  --siena-line: #a4745c;
+  --aux: #b0aba1;
+  --error: #ffaea5;
+  --error-tint: #4a2d2c;
+}
+.theme-control select {
+  padding: 5px 7px;
+  color: var(--ink);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  transform: translateY(-200%);
+  z-index: 20;
+  padding: 10px 14px;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 2px solid var(--blue);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+@media print {
+  :root,
+  :root[data-theme='dark'] {
+    color-scheme: light;
+    --paper: white;
+    --sheet: white;
+    --field: white;
+    --bar: white;
+    --rail: white;
+    --line: #aaa;
+    --line-soft: #ddd;
+    --line-aux: #999;
+    --blue-tint: #eee;
+    --blue-field: #eee;
+    --siena-tint: #eee;
+    --siena-field: #eee;
+    --error-tint: #eee;
+    --ink: black;
+    --ink-2: #333;
+    --ink-3: #444;
+  }
+  .app-bar,
+  .skip-link,
+  .theme-control {
+    display: none;
+  }
+  .sheet {
+    border-radius: 0;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
 h1,
 h2,
 h3,

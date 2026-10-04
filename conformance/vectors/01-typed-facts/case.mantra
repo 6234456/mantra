@@ -1,0 +1,1 @@
+(case typed (inputs {:input-quantity 0 :input-enabled false :input-tag :alpha :input-title "alpha" :input-stamp "2026-02-28"}))

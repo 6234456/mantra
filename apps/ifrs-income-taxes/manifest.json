@@ -1,0 +1,165 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.ifrs-income-taxes",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 3434,
+      "sha256": "972469e8431c5b6918ee62c9068d4a0589afe7c1e483eca2519d574ad3b359d7"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1400,
+      "sha256": "82c9a5759fd38eb34e1a35941ec60c6d35fa31caa58d07b5070b41780e80d140"
+    },
+    {
+      "path": "case-loss.mantra",
+      "role": "case",
+      "byteLength": 657,
+      "sha256": "c88c1aed7d5fccff0953233617fe7858d0a72118d34a08f5e5da04a83a6e8c4f"
+    },
+    {
+      "path": "case-unreconciled.mantra",
+      "role": "case",
+      "byteLength": 1780,
+      "sha256": "9d2abcf387956a38898be636d7fa9382bc3f8c19ad622c145c411c8c737ed009"
+    },
+    {
+      "path": "case-zero-profit.mantra",
+      "role": "case",
+      "byteLength": 759,
+      "sha256": "2872f4e9b093c987b3ec2ce56b4941bf3b4a9cb051e5cd66ab4716f2d6f4104d"
+    },
+    {
+      "path": "data/tax-adjustments.csv",
+      "role": "data",
+      "byteLength": 378,
+      "sha256": "1d8d236e61166bd35ebfa712c81f738aba4299bd364c86b9c198fbe568fde729"
+    },
+    {
+      "path": "data/tax-entities.csv",
+      "role": "data",
+      "byteLength": 126,
+      "sha256": "e2cb0441563c4c6d26e09b53031ed23a86428642fe8fd4a5d5edcc4972b34189"
+    },
+    {
+      "path": "import-templates/tax-adjustments.json",
+      "role": "import-template",
+      "byteLength": 287,
+      "sha256": "8e048c9eb8ae2ed7cf71c904744ea01b0a9eb4521ce495a8c074e3c3c00b92a6"
+    },
+    {
+      "path": "import-templates/tax-entities.json",
+      "role": "import-template",
+      "byteLength": 278,
+      "sha256": "6daa925fd255eafb40a9cdfbb9c14856e4c7e0de94d9046f4e2cfe8f9c4893c3"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 752,
+      "sha256": "77d2e84c39460c0b7e658a488bcd97e4b6d8303ab707b45ca8fe0083c51a6173"
+    },
+    {
+      "path": "params-precision.mantra",
+      "role": "parameters",
+      "byteLength": 252,
+      "sha256": "4ee5d7511878170602c371a20fa0783dd82fdb4188027fecc4615fb4d77fcc75"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 3901,
+      "sha256": "66b4f39ff92c3b1f8040baf589c0f5ad1936b743d1f34b8f92e985186ae3e18d"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 3542,
+      "sha256": "2df04dc19ed8edb3900233be9519586745f5c07e112ddd94d9aaddf3f44fb401"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "ifrs.ias12/precision",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-precision.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "ifrs.ias12/rate-reconciliation-paper",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ias12-demo",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/rate-reconciliation-paper"
+    },
+    {
+      "id": "ias12-loss",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-loss.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/rate-reconciliation-paper"
+    },
+    {
+      "id": "ias12-unreconciled",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-unreconciled.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/rate-reconciliation-paper"
+    },
+    {
+      "id": "ias12-zero-profit",
+      "schema": {
+        "id": "ifrs.ias12/rate-reconciliation",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-zero-profit.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/rate-reconciliation-paper"
+    }
+  ],
+  "dependencies": []
+}

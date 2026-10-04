@@ -1,0 +1,18 @@
+;; Fictional independent facts from independent/fixtures/fractional-currency.json.
+(case project-portfolio-fractional-currency
+  {:schema "project.portfolio/supplied-plan" :schema-version "1.0.0"
+   :parameters ["project.portfolio/2026"] :layout "project.portfolio/plan"
+   :title "Project portfolio: Half-cent proposal amounts" :period "2026 showcase"
+   :expected-business []}
+
+  (inputs
+    {:budget-limit 120.01 :hour-limit 140 :reported-cost 120.01
+     :departments [
+      {:id :DELIVERY :title "Fictional delivery team"}
+      {:id :RESEARCH :title "Fictional research team"}
+     ]
+     :projects [
+      {:id :A :title "Fictional tooling upgrade" :department-id :DELIVERY :cost 80.005 :benefit 140.005 :hours 70 :selected true :approval-note "Fictional selection A"}
+      {:id :B :title "Fictional service refresh" :department-id :DELIVERY :cost 50 :benefit 75 :hours 50 :selected false :approval-note nil}
+      {:id :C :title "Fictional prototype" :department-id :RESEARCH :cost 40.004 :benefit 68.004 :hours 60 :selected true :approval-note "Fictional selection C"}
+     ]}))

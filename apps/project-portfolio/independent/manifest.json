@@ -1,0 +1,82 @@
+{
+  "status": "INDEPENDENT_REFERENCE_ENGINE_UNEXECUTED",
+  "fixtureCount": 6,
+  "files": [
+    {
+      "path": "fixtures/demo.json",
+      "sha256": "5088c88bf3b4e4c7656b0d76db6f2bb117bde4713c91dfb5dc5f4d090a726a27"
+    },
+    {
+      "path": "references/demo-values.json",
+      "sha256": "b67b5fc3dc8daf77a39ddec572c9f487614c87c805a254281609dde421b62664"
+    },
+    {
+      "path": "references/demo-summary.json",
+      "sha256": "1b957517507c3dd87df3abdfdb3c6438633dc8a3aba4053e1729d57f87da8744"
+    },
+    {
+      "path": "fixtures/none-selected.json",
+      "sha256": "e5a27e3a52087798ab249399796bb345bea4db2780c7f881c6aac2c0cf885408"
+    },
+    {
+      "path": "references/none-selected-values.json",
+      "sha256": "ba4b8a4162f2bd487fb8b47c16fd729d34762167b4a3ec8843a93d1d5a369144"
+    },
+    {
+      "path": "references/none-selected-summary.json",
+      "sha256": "a94a7666cb76117f354ecff589d839e763cd10cd3a41733f6a5428d6ea41ba5c"
+    },
+    {
+      "path": "fixtures/over-budget.json",
+      "sha256": "21eb8fa222181ff176803b903ee88b80bee5ce6250d8d07d482da29403189e69"
+    },
+    {
+      "path": "references/over-budget-values.json",
+      "sha256": "27e325079d5bcc01a178cee24f3ea4ca2244b3aa4304a2425b3b5367264a7999"
+    },
+    {
+      "path": "references/over-budget-summary.json",
+      "sha256": "276cd457c72ae5d09a8da585e04ee6661821c93e58c6735f74b72465170e0cf7"
+    },
+    {
+      "path": "fixtures/fractional-currency.json",
+      "sha256": "d2016446b1942498e7734d765753307b42d77f6e8c0360b7c3d7abc22875dd03"
+    },
+    {
+      "path": "references/fractional-currency-values.json",
+      "sha256": "fc1792f610ab1b2fafc0931b6d03a2c55dfe7bc224f9876aa422ce9b96658596"
+    },
+    {
+      "path": "references/fractional-currency-summary.json",
+      "sha256": "ce21e1c04bad0f9f67425d4d7d58d2e6c80b242ea6e017edf1485de448eb6cd1"
+    },
+    {
+      "path": "fixtures/missing-approval.json",
+      "sha256": "ee51a140a50195c96bf748edfd8488286c7b4154726765a858885d259aa8155e"
+    },
+    {
+      "path": "references/missing-approval-values.json",
+      "sha256": "b67b5fc3dc8daf77a39ddec572c9f487614c87c805a254281609dde421b62664"
+    },
+    {
+      "path": "references/missing-approval-summary.json",
+      "sha256": "680e447cd3762b3c31d50b009146c8b2602bf0c1ffe636dcca4ad76ae262d887"
+    },
+    {
+      "path": "fixtures/zero-cost.json",
+      "sha256": "48a3d7f097798db82e265e8e5d5fa0ab691cdc17e84472a71fa06f9d2ad0dae8"
+    },
+    {
+      "path": "references/zero-cost-values.json",
+      "sha256": "e868b51bdde5e017c771b40852a3fad5fb5710cc3be0c3ef31c6461a1a95c48a"
+    },
+    {
+      "path": "references/zero-cost-summary.json",
+      "sha256": "76c34344992978a3d35668f5a52b215e3355f75811872dd3192418807e1f6f56"
+    },
+    {
+      "path": "reference.py",
+      "sha256": "621b96aea79b297c0cda51c3b399a61f632ba41d2bef28f9500c84e82fdc4366"
+    }
+  ]
+}

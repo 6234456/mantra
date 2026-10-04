@@ -1,0 +1,1 @@
+(case stocks (inputs {:base {:A 100 :B 40} :change {:A {:P1 5 :P2 7 :P3 -2} :B {:P1 3 :P2 -1 :P3 4}}}))

@@ -1,0 +1,17 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "multiplier": {
+      "n": "0"
+    },
+    "feature-enabled": false,
+    "offset-factor": {
+      "n": "30"
+    },
+    "computed": {
+      "n": "30"
+    }
+  },
+  "diagnostics": []
+}

@@ -140,7 +140,12 @@ object Fixtures {
         Files.createDirectories(target)
         val files = linkedMapOf<String, Any?>()
         fun write(file: String, data: Any?): String {
-            val envelope = WorkbenchJson.envelope(snapshot.revision, "0.4.0-SNAPSHOT", normein, data)
+            val envelope = WorkbenchJson.envelope(
+                snapshot.revision,
+                com.xqiou.mantra.core.api.RuntimeVersions.mantra,
+                normein,
+                data,
+            )
             Files.writeString(target.resolve(file), WorkbenchJson.write(envelope) + "\n")
             return "${prefix.trimEnd('/')}/$slug/$file"
         }

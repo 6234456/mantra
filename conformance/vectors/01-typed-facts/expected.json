@@ -1,0 +1,19 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "input-quantity": {
+      "n": "0"
+    },
+    "input-enabled": false,
+    "input-tag": {
+      "kw": "alpha"
+    },
+    "input-title": "alpha",
+    "input-stamp": {
+      "date": "2026-02-28"
+    },
+    "input-note": null
+  },
+  "diagnostics": []
+}

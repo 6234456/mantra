@@ -130,7 +130,24 @@ internal fun ExcelWorkbookBuilder.writeBusinessChecks() {
     controls.forEach { node ->
         nodeSlots[node.id]?.keys.orEmpty().forEach { coord ->
             val current = row
-            text(sheet, current, 0, node.label + if (coord.isEmpty()) "" else " [${coord.joinToString("/")}]")
+            text(
+                sheet,
+                current,
+                0,
+                node.label +
+                    if (coord.isEmpty()) {
+                        ""
+                    } else {
+                        " [${(
+                            dynamic?.initialCoordinate(node.dims, coord) ?: coord.map {
+                                if (it.startsWith("\u0000")) "reserved" else it
+                            }
+                            ).joinToString("/")}]"
+                    },
+            )
+            dynamicCoordinateCaption(node, coord)?.let { title ->
+                setFormula(Slot(sheet, current, 0), node.id) { title }
+            }
             setFormula(Slot(sheet, current, 2), node.id) {
                 val status = Ex.iff(businessPredicate(node, coord), Ex.text("✓"), Ex.text("✗"))
                 Ex.iff(applicable(node, coord), status, Ex.EMPTY)
@@ -154,10 +171,32 @@ internal fun ExcelWorkbookBuilder.writeBusinessChecks() {
         if (input.type != ValueType.TABLE) {
             nodeSlots[node.id]?.forEach { (coord, valueSlot) ->
                 val context = FormulaTranslator.Ctx(node.dims, coord)
-                val caption = node.label + if (coord.isEmpty()) "" else " [${coord.joinToString("/")}]"
+                val caption =
+                    node.label +
+                        if (coord.isEmpty()) {
+                            ""
+                        } else {
+                            " [${(
+                                dynamic?.initialCoordinate(node.dims, coord) ?: coord.map {
+                                    if (it.startsWith("\u0000")) "reserved" else it
+                                }
+                                ).joinToString("/")}]"
+                        }
+                val coordinateTitle = dynamicCoordinateCaption(node, coord)
                 if (required || input.requiredWhen != null) {
                     val active = applicable(node, coord)
-                    decision("$caption · required", view.inputProvided(node.id, coord), active) { presence ->
+                    val keyedProvided = dynamicInputProvided(node, coord)
+                    decision(
+                        "$caption · required",
+                        if (keyedProvided ==
+                            null
+                        ) {
+                            view.inputProvided(node.id, coord)
+                        } else {
+                            null
+                        },
+                        active,
+                    ) { presence ->
                         val predicate = if (required) {
                             Ex.TRUE
                         } else {
@@ -165,9 +204,14 @@ internal fun ExcelWorkbookBuilder.writeBusinessChecks() {
                                 translator.scalar(it.form, context)
                             } ?: Ex.TRUE
                         }
-                        val fact = ref(requireNotNull(presence), XKind.BOOL)
+                        val fact = keyedProvided ?: ref(requireNotNull(presence), XKind.BOOL)
                         val present = Ex.fn("AND", fact, filled(valueSlot), kind = XKind.BOOL)
                         Ex.iff(predicate, present, Ex.TRUE)
+                    }
+                    coordinateTitle?.let { title ->
+                        setFormula(Slot(sheet, row - 1, 0), node.id) {
+                            Ex.chain("&", listOf(title, Ex.text(" · required")), Ex.CONCAT, XKind.TEXT)
+                        }
                     }
                 }
                 for ((key, operator) in listOf("min" to ">=", "max" to "<=")) {
@@ -179,13 +223,31 @@ internal fun ExcelWorkbookBuilder.writeBusinessChecks() {
                             Ex.TRUE,
                         )
                     }
+                    coordinateTitle?.let { title ->
+                        setFormula(Slot(sheet, row - 1, 0), node.id) {
+                            Ex.chain("&", listOf(title, Ex.text(" · $key")), Ex.CONCAT, XKind.TEXT)
+                        }
+                    }
                 }
             }
         } else {
             val records = (view.case.inputs[node.id] as? Value.Vec)?.items.orEmpty()
             if (required || input.requiredWhen != null) {
                 val active = applicable(node, emptyList())
-                decision("${node.label} · required", view.inputProvided(node.id), active) { presence ->
+                val liveProvided = dynamic?.tables?.get(node.id)?.let {
+                    Ex.cmp(">", dynamic!!.rowCount(node.id), Ex.ZERO)
+                }
+                decision(
+                    "${node.label} · required",
+                    if (liveProvided ==
+                        null
+                    ) {
+                        view.inputProvided(node.id)
+                    } else {
+                        null
+                    },
+                    active,
+                ) { presence ->
                     val predicate = if (required) {
                         Ex.TRUE
                     } else {
@@ -193,32 +255,64 @@ internal fun ExcelWorkbookBuilder.writeBusinessChecks() {
                             translator.scalar(it.form, FormulaTranslator.Ctx(emptyList(), emptyList()))
                         } ?: Ex.TRUE
                     }
-                    Ex.iff(predicate, ref(requireNotNull(presence), XKind.BOOL), Ex.TRUE)
+                    Ex.iff(predicate, liveProvided ?: ref(requireNotNull(presence), XKind.BOOL), Ex.TRUE)
                 }
             }
             input.minRows?.let { minimum ->
                 decision("${node.label} · minimum rows", active = applicable(node, emptyList())) {
-                    // The exported table has a fixed record set. Clear cells do not delete records;
-                    // changing rows in the workbench regenerates both this count and the formulas.
-                    Ex.cmp(">=", Ex.num(records.size.toLong()), Ex.num(minimum.toLong()))
+                    val count = dynamic?.tables?.get(node.id)?.let { dynamic!!.rowCount(node.id) }
+                        ?: Ex.num(records.size.toLong())
+                    Ex.cmp(">=", count, Ex.num(minimum.toLong()))
                 }
             }
-            records.indices.forEach { index ->
+            val liveTable = dynamic?.tables?.get(node.id)
+            val indices = liveTable?.let { 0 until it.capacity } ?: records.indices
+            indices.forEach { index ->
                 val fields = input.columns.map { column ->
-                    val slot = tableSlots[Triple(node.id, index, column.name)]
-                        ?: throw Untranslatable("${node.id} row $index has no ${column.name} cell")
-                    ref(slot, if (column.type.isNumeric) XKind.NUM else XKind.ANY)
+                    if (liveTable != null) {
+                        dynamic!!.field(node.id, index, column.name)
+                    } else {
+                        val slot = tableSlots[Triple(node.id, index, column.name)]
+                            ?: throw Untranslatable("${node.id} row $index has no ${column.name} cell")
+                        ref(slot, if (column.type.isNumeric) XKind.NUM else XKind.ANY)
+                    }
                 }
                 val record = X.MapX(input.columns.map { it.name }, fields)
                 val context = FormulaTranslator.Ctx(emptyList(), emptyList(), mapOf("row" to record))
                 input.columns.filter { it.requiredWhen != null }.forEach { column ->
-                    val valueSlot = tableSlots.getValue(Triple(node.id, index, column.name))
+                    val valueSlot = if (liveTable ==
+                        null
+                    ) {
+                        tableSlots.getValue(Triple(node.id, index, column.name))
+                    } else {
+                        null
+                    }
                     val caption = "${node.label} [${index + 1}] · ${column.name}"
                     val provided = view.inputProvided(node.id, rowIndex = index, column = column.name)
-                    decision(caption, provided, applicable(node, emptyList())) { presence ->
+                    val active = if (liveTable == null) {
+                        applicable(node, emptyList())
+                    } else {
+                        Ex.fn(
+                            "AND",
+                            applicable(node, emptyList()),
+                            dynamic!!.rowPresent(node.id, index),
+                            kind = XKind.BOOL,
+                        )
+                    }
+                    decision(caption, if (liveTable == null) provided else null, active) { presence ->
                         val requiredNow = translator.scalar(column.requiredWhen!!.form, context)
-                        val fact = ref(requireNotNull(presence), XKind.BOOL)
-                        val supplied = Ex.fn("AND", fact, filled(valueSlot), kind = XKind.BOOL)
+                        val supplied = if (liveTable == null) {
+                            val fact = ref(requireNotNull(presence), XKind.BOOL)
+                            Ex.fn("AND", fact, filled(requireNotNull(valueSlot)), kind = XKind.BOOL)
+                        } else {
+                            val value = dynamic!!.field(node.id, index, column.name)
+                            Ex.fn(
+                                "AND",
+                                Ex.cmp("<>", value, Ex.EMPTY),
+                                Ex.cmp(">", Ex.fn("LEN", Ex.fn("TRIM", value, kind = XKind.TEXT)), Ex.ZERO),
+                                kind = XKind.BOOL,
+                            )
+                        }
                         Ex.iff(requiredNow, supplied, Ex.TRUE)
                     }
                 }

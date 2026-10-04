@@ -11,6 +11,8 @@ import com.xqiou.mantra.render.layout.LayoutSpec
 import com.xqiou.mantra.render.layout.Presets
 import com.xqiou.mantra.render.paper.WorkingPaper
 import com.xqiou.mantra.render.paper.WorkingPaperBuilder
+import com.xqiou.mantra.render.pdf.PdfOptions
+import com.xqiou.mantra.render.pdf.PdfRenderer
 import com.xqiou.mantra.render.text.TextRenderer
 import java.nio.file.Files
 import java.nio.file.Path
@@ -39,8 +41,9 @@ object Render {
         view: CalculationView,
         layout: LayoutSpec = defaultLayout(view),
         options: CalculationOptions = CalculationOptions(),
-    ): WorkingPaper =
-        view.openReader(options).use { reader -> WorkingPaperBuilder(view, layout, reader = reader).build() }
+    ): WorkingPaper = view.openReader(options).use { reader ->
+        WorkingPaperBuilder(view, layout, reader = reader).build()
+    }
 
     /** Shares a caller-owned read epoch; the caller closes [reader]. */
     fun paper(view: CalculationView, layout: LayoutSpec, reader: CalculationReader): WorkingPaper =
@@ -78,4 +81,16 @@ object Render {
 
     fun text(view: CalculationView, layout: LayoutSpec = defaultLayout(view), includeAudit: Boolean = false): String =
         TextRenderer.render(paper(view, layout), includeAudit)
+
+    fun pdf(
+        result: CalculationResult,
+        layout: LayoutSpec = defaultLayout(result),
+        options: PdfOptions = PdfOptions(),
+    ): ByteArray = PdfRenderer.render(paper(result, layout), options)
+
+    fun pdf(
+        view: CalculationView,
+        layout: LayoutSpec = defaultLayout(view),
+        options: PdfOptions = PdfOptions(),
+    ): ByteArray = PdfRenderer.render(paper(view, layout), options)
 }

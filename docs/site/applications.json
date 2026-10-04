@@ -1,10 +1,246 @@
 [
-  {"id":"de-est","title":"German income tax","description":"Progressive tax, choices, person dimensions and linked historical loss facts.","schema":"schema.mantra","case":"case-mustermann.mantra","verification":"verify_expected.py","focus":"Tariff boundaries, parameter variants and the separately documented M3 cross-year cases. The README defines the legislative and simplification boundary."},
-  {"id":"ifrs-impairment","title":"IFRS impairment","description":"Shared corporate assets, weighted allocation, discounted cash flows and capped loss allocation.","schema":"schema.mantra","case":"case-demo.mantra","verification":"verify_expected.py","focus":"No-loss boundaries, weight customization, capped capacity and independent Decimal/Fraction amounts."},
-  {"id":"cost-accounting","title":"Cost accounting","description":"Cost collection across orders and products, reconciliation and weighted unit-cost totals.","schema":"schema.mantra","case":"case-demo.mantra","verification":"verify_expected.py","focus":"Zero pools, source-to-order reconciliation, editable inputs and ratio aggregation."},
-  {"id":"ifrs-income-taxes","title":"IFRS income taxes","description":"A fictional IAS 12 rate reconciliation and temporary-difference measurement.","schema":"schema.mantra","case":"case-demo.mantra","verification":"verify_expected.py","focus":"Loss and zero-profit cases, nonblocking reconciliation failures and explicit precision variants."},
-  {"id":"fixed-assets","title":"Fixed assets","description":"Asset-by-period depreciation, prior-period balances and first/last stock aggregation.","schema":"schema.mantra","case":"case-demo.mantra","verification":"verify_expected.py","focus":"Partial years, residual floors, fully depreciated assets, rounding residue and independent roll-forward amounts."},
-  {"id":"ifrs-leases","title":"IFRS leases","description":"Lease liabilities and right-of-use assets across continuous periods.","schema":"schema.mantra","case":"case-demo.mantra","verification":"verify_expected.py","focus":"Zero rates, single-period leases, period cash-flow discounting, matrix/transposed papers and edited-payment recalculation."},
-  {"id":"de-gewst","title":"German trade tax","description":"A fictional 2025 natural-person trade assessment with financing classifications and links to income-tax facts.","schema":"schema.mantra","case":"case-rate-400.mantra","verification":"verify_m3_expected.py","focus":"M3 application integration: financing and personal allowances, municipality rates, historical scope and BUSINESS findings. Check the current acceptance report; these pages do not certify legal completeness."},
-  {"id":"circular-calculation","title":"Circular calculations","description":"Neutral bonus and gross-up agreements with explicit rounded callbacks and bounded convergence.","schema":"bonus/schema.mantra","case":"bonus/case-bonus-main.mantra","verification":"verify_m3_expected.py","focus":"M3 application integration: seed-dependent fixed points, cent cycles, tolerance/residual distinctions and genuine non-convergence. Source certificates remain distinct from runtime trace."}
+  {
+    "id": "de-est",
+    "title": "German income tax",
+    "description": "Progressive tax, choices, person dimensions and linked historical loss facts.",
+    "schema": "schema.mantra",
+    "case": "case-mustermann.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Tariff boundaries, parameter variants and the separately documented M3 cross-year cases. The README defines the legislative and simplification boundary.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Cross-year independent arithmetic",
+        "path": "independent/_reference.py"
+      },
+      {
+        "label": "Frozen M3 source manifest",
+        "path": "independent/manifest.json"
+      },
+      {
+        "label": "Primary-source purposes",
+        "path": "independent/primary-sources.json"
+      },
+      {
+        "label": "Explicit migration walkthrough",
+        "path": "migration/README.md"
+      }
+    ]
+  },
+  {
+    "id": "ifrs-impairment",
+    "title": "IFRS impairment",
+    "description": "Shared corporate assets, weighted allocation, discounted cash flows and capped loss allocation.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "No-loss boundaries, weight customization, capped capacity and independent Decimal/Fraction amounts.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Fraction/Decimal reference arithmetic",
+        "path": "verify_expected.py"
+      },
+      {
+        "label": "Current source manifest",
+        "path": "source-manifest.json"
+      }
+    ]
+  },
+  {
+    "id": "cost-accounting",
+    "title": "Cost accounting",
+    "description": "Cost collection across orders and products, reconciliation and weighted unit-cost totals.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Zero pools, source-to-order reconciliation, editable inputs and ratio aggregation.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Decimal reference arithmetic",
+        "path": "verify_expected.py"
+      },
+      {
+        "label": "Fictional posting facts",
+        "path": "data/primary-postings.csv"
+      }
+    ]
+  },
+  {
+    "id": "ifrs-income-taxes",
+    "title": "IFRS income taxes",
+    "description": "A fictional IAS 12 rate reconciliation and temporary-difference measurement.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Loss and zero-profit cases, nonblocking reconciliation failures and explicit precision variants.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Decimal reference arithmetic",
+        "path": "verify_expected.py"
+      },
+      {
+        "label": "Fictional entity facts",
+        "path": "data/tax-entities.csv"
+      },
+      {
+        "label": "Fictional adjustment facts",
+        "path": "data/tax-adjustments.csv"
+      }
+    ]
+  },
+  {
+    "id": "fixed-assets",
+    "title": "Fixed assets",
+    "description": "Asset-by-period depreciation, prior-period balances and first/last stock aggregation.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Partial years, residual floors, fully depreciated assets, rounding residue and independent roll-forward amounts.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Current source manifest",
+        "path": "source-manifest.json"
+      },
+      {
+        "label": "Fictional demo facts",
+        "path": "fixtures/demo.json"
+      },
+      {
+        "label": "Precision policy",
+        "path": "parameters.json"
+      }
+    ]
+  },
+  {
+    "id": "ifrs-leases",
+    "title": "IFRS leases",
+    "description": "Lease liabilities and right-of-use assets across continuous periods.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Zero rates, single-period leases, period cash-flow discounting, matrix/transposed papers and edited-payment recalculation.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Current source manifest",
+        "path": "source-manifest.json"
+      },
+      {
+        "label": "Fictional demo facts",
+        "path": "fixtures/demo.json"
+      },
+      {
+        "label": "Streaming batch walkthrough",
+        "path": "batch/README.md"
+      }
+    ]
+  },
+  {
+    "id": "de-gewst",
+    "title": "German trade tax",
+    "description": "A fictional 2025 natural-person trade assessment with financing classifications and links to income-tax facts.",
+    "schema": "schema.mantra",
+    "case": "case-rate-400.mantra",
+    "verification": "verify_m3_expected.py",
+    "focus": "M3 application integration: financing and personal allowances, municipality rates, historical scope and BUSINESS findings. Check the current acceptance report; these pages do not certify legal completeness.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Independent trade arithmetic",
+        "path": "independent/_reference.py"
+      },
+      {
+        "label": "Source manifest",
+        "path": "independent/manifest.json"
+      },
+      {
+        "label": "Primary-source purposes",
+        "path": "independent/primary-sources.json"
+      }
+    ]
+  },
+  {
+    "id": "circular-calculation",
+    "title": "Circular calculations",
+    "description": "Neutral bonus and gross-up agreements with explicit rounded callbacks and bounded convergence.",
+    "schema": "bonus/schema.mantra",
+    "case": "bonus/case-bonus-main.mantra",
+    "verification": "verify_m3_expected.py",
+    "focus": "M3 application integration: seed-dependent fixed points, cent cycles, tolerance/residual distinctions and genuine non-convergence. Source certificates remain distinct from runtime trace.",
+    "tutorial": "tutorial.html",
+    "source_documents": [
+      {
+        "label": "Independent rational certificates",
+        "path": "independent/_reference.py"
+      },
+      {
+        "label": "Source manifest",
+        "path": "independent/manifest.json"
+      },
+      {
+        "label": "Source/simplification purposes",
+        "path": "independent/primary-sources.json"
+      }
+    ]
+  },
+  {
+    "id": "energy-budget",
+    "title": "Energy budget",
+    "description": "Fictional monthly site storage, imported/exported energy and separately rounded tariff costs.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Existing primitives only: monthly prev, first/last stocks, conserved flows, weighted coverage, zero demand, fractional readings and a deliberate reported-stock BUSINESS mismatch.",
+    "tutorial": "neutral-domains.html#monthly-energy",
+    "source_documents": [
+      {
+        "label": "Decimal/Fraction reference arithmetic",
+        "path": "independent/reference.py"
+      },
+      {
+        "label": "Fictional demo facts",
+        "path": "independent/fixtures/demo.json"
+      },
+      {
+        "label": "Source manifest",
+        "path": "independent/manifest.json"
+      },
+      {
+        "label": "Primary-source purpose",
+        "path": "independent/primary-sources.json"
+      }
+    ]
+  },
+  {
+    "id": "project-portfolio",
+    "title": "Project portfolio",
+    "description": "A supplied fictional proposal selection, department rollups and cost/hour capacity checks.",
+    "schema": "schema.mantra",
+    "case": "case-demo.mantra",
+    "verification": "verify_expected.py",
+    "focus": "Existing primitives only: Boolean false, selected-zero totals, weighted benefit/cost, cent rounding, conditional-required notes, budget/hour overruns and undefined zero-cost ratios.",
+    "tutorial": "neutral-domains.html#supplied-project-selection",
+    "source_documents": [
+      {
+        "label": "Decimal/Fraction reference arithmetic",
+        "path": "independent/reference.py"
+      },
+      {
+        "label": "Fictional demo facts",
+        "path": "independent/fixtures/demo.json"
+      },
+      {
+        "label": "Source manifest",
+        "path": "independent/manifest.json"
+      },
+      {
+        "label": "Primary-source purpose",
+        "path": "independent/primary-sources.json"
+      }
+    ]
+  }
 ]

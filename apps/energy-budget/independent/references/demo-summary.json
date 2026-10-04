@@ -1,0 +1,11 @@
+{
+  "id": "demo",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [],
+  "undefined": [
+    "local-coverage@B/P3"
+  ],
+  "closing": "0",
+  "netCost": "31.84"
+}

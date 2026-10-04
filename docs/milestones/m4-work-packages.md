@@ -1,13 +1,15 @@
 # M4 工作包：嵌入与规模
 
-> 状态：契约准备，实施在 M3 验收通过后接入。M3 未被本文件标为完成。
+> 状态（2026-10-04）：P1–P8 已实现并有实际专项验收；P9 最终联合验收仍待完成。
+> M3 已完成。本文不宣布 M4、v1.0 或公开 Maven 发布完成。
 > 依据：[路线图](../roadmap.md) M4、T1–T6、R7，[实施盘点](m4-implementation-plan.md)。
 
 ## 1. 必读与顺序
 
 先读架构、引擎与应用职责契约、工作台 v4 契约、M3 工作包、M2 性能记录。
 Normein 继续锁定，不改其源码。所有展示应用保持领域逻辑在 `apps/`。
-先锁定下面的语义，再实施编译、包、迁移与动态输出。库实现、独立预期、文档与验收分别审阅。
+下面的语义已用于实际实现。库实现、独立预期、文档与验收分别审阅；
+历史准备盘点只记录开工时的缺口，当前状态以本文及实际验收报告为准。
 
 ## 2. 实施契约
 
@@ -27,7 +29,7 @@ Normein 继续锁定，不改其源码。所有展示应用保持领域逻辑在
 
 ### 2.2 方案包
 
-首版准备 `manifest.json`、目录和 classpath/JAR 资源；独立 ZIP 导入的提问尚未得到答复，
+首版已实现 `manifest.json`、目录和 classpath/JAR 资源；独立 ZIP 导入的提问尚未得到答复，
 这里采用推荐范围作为工程假设，不记为人类确认。JAR 是 classpath 容器，不能借此提供任意 ZIP 导入。
 清单声明包 ID、strict SemVer 包版本、引擎版本范围、资源角色、相对路径、字节长度与 SHA-256。
 清单自身、每个资源及累计资源都设预算；拒绝绝对路径、越界 `..`、重复身份、目录符号链接逃逸、
@@ -82,10 +84,43 @@ what-if 使用调用者显式选定的参数集并保留来源，不伪称在有
 保留 M0–M3 冻结事实和复算脚本。租赁批量使用原 IFRS 16 独立 Fraction/Decimal 公式，
 新增记录只扩展虚构事实；动态表插删的预期先由独立脚本算出，再核对核心和工作簿。
 10,000 案例须真的不同 ID、逐值核对、记录编译/会话次数和内存，不重复返回同一个快照。
-首次技术探针后，在本文件冻结设备口径下的时间/内存预算，再执行最终验收；目前不虚构已达标数值。
+探针后、最终运行前已冻结批量预算：10,000 个不同案例、1,120,000 次独立数值比对，
+总耗时不超过 300 秒，进程堆设为 512 MiB，heap-pool peak 总和不超过 1 GiB；
+运行期计划编译与 VALUE_ONLY evidence materialization 为零，所有打开会话均成功关闭。
+[实际批量报告](../performance-m4.md)记录 20,875 ms、333,947,640 字节 peak 总和、
+22 次初始计划编译、22 次会话打开/成功关闭和 560,000 次实际求值。
+这是一轮最终批量实测，不是十轮分布，也不替代最终源码冻结后的性能回归。
 M2 既有预算仍适用，XLSX 尾延迟在 M6 前继续审查。
 
-## 5. 退出条件
+## 5. 已实现与实际验收记录
+
+以下是已经执行的专项证据，不能将不同运行留下的 XML 相加为一次全量测试。
+最终源码、ABI、站点和 CI 仍须在同一冻结修订上联合验收。
+
+| 包 | 已实现及执行证据 | 当前剩余出口 |
+| --- | --- | --- |
+| P1 | `CompiledCalculation`、`CompiledCalculationSession`、类型化绑定和不可变内核计划；P1/P2 的 22 项专项测试实际通过 | 最终全量回归与六库 ABI 复验 |
+| P2 | 顺序流式 `forEach`；独立 10k JSONL 的逐值核对、真实物理计数与关闭记录；见批量报告 | 最终源码冻结后的重复验收 |
+| P3 | `mantra-packages` 的有界捕获、摘要与范围检查；directory/JAR 应用加载、显式 `PackageCatalog` 授权及导入端口已执行 | 最新导入、权限与资源预算修复的完整复验 |
+| P4 | 显式日期的期效、重叠/缺档、what-if 与按键参数选择；参数来源随实际结果保留 | 最终包与 consumer 回归 |
+| P5 | 迁移 prepare/preview/apply，字节及来源图修订 CAS；ESt 旧/新版本共存示例实际运行 | 最新受控 re-preview、token 容量与并发回归 |
+| P6 | 有容量的动态表；真实 fixed-assets、IFRS 16 文件插入/删除/重排、保存重开并核对独立数值；keyed scalar、固定 scope、分摊、类型与审计过期回归已执行；硬化后 76 项 Excel 测试实际通过 | 其后新增导入 round-trip 测试及最终全量复验；不声称原生 Excel GUI 已认证 |
+| P7 | 六库全量 `checkLegacyAbi`、真实 Int→Long 二进制破坏反例和五个隔离 Java/Kotlin consumer 实际通过；本地 sources/KDoc/POM staging 已检查 | 最终 ABI/consumer 重跑及独立公开发布前置 |
+| P8 | 原八个应用及 M6 两个中性应用均有 manifest；directory/JAR 应用验收和十应用工作台 fixtures 实际生成；英文教程/嵌入说明已执行 | 最终十应用全量数值、严格站点与 CI |
+| P9 | 已有专项日志、浏览器流程和批量证据 | 最终 `check`、严格站点、冻结性能、远端 CI 与清理记录尚待联合完成 |
+
+公开统计采用实际 API 名称和口径：`CompilationStatistics.syntaxCompilerCalls`、
+`semanticCompilerCalls` 是公开编译入口调用次数，不能称为内核私有 cache miss；
+`executionPlanCompilations` 按表达式计数，不能把一个模板称为全方案只有一个内核计划。
+`CompiledExecutionStatistics` 分别报告打开、关闭尝试、成功关闭，以及公开内核的 row/frame/evidence 计数。
+`BatchSummary` 只统计实际交付的当前案例；失败项不能借用 worker 上一成功 `result`。
+
+模板可共享；`CalculationSession`、编译 worker、`CaseGraphRunner` 和 `CalculationReader`
+各自在打开线程使用和关闭。增量编辑的 `RecalculationStats.reusedTasks` 是请求前保留的完成任务数，
+不是访问命中次数；`executionSessions` 是保留会话数，不是本轮新打开次数。
+不可变结果可跨线程；每次公开计算有新 epoch，每次纸面/导出有独立读 epoch，不能每格刷新预算。
+
+## 6. 退出条件
 
 P1–P9 全部通过；八个应用以方案包加载；至少一个公开 API 批量示例与 ESt 显式迁移实际运行；
 10,000 案例达到冻结预算；T1 动态成员增删完成；公共 ABI 门进入 CI；文档与版本记录准确。

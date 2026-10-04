@@ -134,6 +134,7 @@ private data class BindingSnapshot(
 internal class PrevLowering(
     private val syntaxCompiler: DslCompiler = DslCompiler(),
     private val semanticCompiler: DslSemanticCompiler = DslSemanticCompiler(),
+    private val compiling: CompilationMeter? = null,
 ) {
     fun compile(
         request: DslCompileRequest,
@@ -142,6 +143,7 @@ internal class PrevLowering(
         /** Rebuild/cache the existing scope with OPTIONAL declarations and unchanged host types. */
         scopeWithRoots: (List<DslRootDeclaration>) -> DslAnalysisScope,
     ): PrevCompileResult {
+        compiling?.syntax()
         val syntax = when (val result = syntaxCompiler.compile(request)) {
             is DslCompileResult.Failure -> return PrevCompileResult.Failure(result.diagnostics)
             is DslCompileResult.Success -> result.expression
@@ -207,6 +209,7 @@ internal class PrevLowering(
 
         // No lowering: retain the ordinary path including named-definition type metadata.
         if (drafts.isEmpty()) {
+            compiling?.semantic()
             return when (val result = semanticCompiler.compile(request, environment, scopeWithRoots(emptyList()))) {
                 is DslCompileResult.Failure -> PrevCompileResult.Failure(result.diagnostics)
                 is DslCompileResult.Success -> PrevCompileResult.Success(
@@ -234,6 +237,7 @@ internal class PrevLowering(
                 DslRootDeclaration(binding.firstPeriodRoot, DslType.Boolean, DslFieldPresence.OPTIONAL),
             )
         }
+        compiling?.semantic()
         val compiled = when (
             val result = semanticCompiler.compileDraft(
                 DslDraftCompileRequest(

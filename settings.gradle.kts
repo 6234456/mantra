@@ -2,12 +2,15 @@ rootProject.name = "mantra"
 
 // Library: generic engine capabilities only (no domain business logic).
 include(":mantra-core")
+include(":mantra-packages")
 include(":mantra-render")
 include(":mantra-excel")
 include(":mantra-cli")
 include(":mantra-workbench")
 include(":mantra-server")
+include(":mantra-lsp")
 include(":benchmarks")
+include(":conformance-adapter")
 
 // Complete domain demonstrations. Each owns its documents and acceptance tests and depends only
 // on library modules; applications are never published as Maven library artifacts.
@@ -20,6 +23,8 @@ include(
     ":apps:ifrs-leases",
     ":apps:de-gewst",
     ":apps:circular-calculation",
+    ":apps:energy-budget",
+    ":apps:project-portfolio",
 )
 
 // ── Normein DSL kernel (pinned composite build) ─────────────────────────────

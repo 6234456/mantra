@@ -1,0 +1,3 @@
+(schema conformance/nonterminating
+  (line exact-third "Exact third" (/ 1 3) {:op :info})
+  (line independent "Independent" 7 {:op :info}))

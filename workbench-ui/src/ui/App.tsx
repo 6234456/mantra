@@ -2,9 +2,12 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { Address, CaseSummary, Compare, Explain, Paper, Panel, Run, Structure } from '../types'
 import type { WorkbenchData } from '../data'
 import { configuredData, WorkbenchReadError } from '../data'
+import { PackageData } from '../packages/PackageData'
+import { PackageEvidence } from '../packages/PackageEvidence'
+import { ThemeControl } from './ThemeControl'
 import { addressFromPath, addressKey, addressToPath, casePath, provenancePath } from '../address'
 import { chooseLanguage, language, t } from '../i18n'
-import { auditForCell, nodeValue } from '../viewModel'
+import { auditForCell, nodeValue, panelValue } from '../viewModel'
 import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
@@ -169,10 +172,16 @@ export function App() {
   const [refresh, setRefresh] = useState(0)
   const [editEffect, setEditEffect] = useState<Compare | undefined>()
   useEffect(() => setEditEffect(undefined), [current.caseId, current.groupId])
-  const data = useMemo(configuredData, [])
+  const data = useMemo(
+    () =>
+      document.querySelector('meta[name="mantra-package-workspace"]')?.getAttribute('content') === 'on'
+        ? new PackageData()
+        : configuredData(),
+    [],
+  )
   const [streamError, setStreamError] = useState<string>()
   useEffect(() => {
-    if (import.meta.env.VITE_WORKBENCH_MODE !== 'live') return
+    if (data instanceof PackageData || import.meta.env.VITE_WORKBENCH_MODE !== 'live') return
     const source = new EventSource('/api/v1/events')
     let revision: string | undefined
     let hadError = false
@@ -199,7 +208,7 @@ export function App() {
     source.addEventListener('documentChanged', onChanged)
     source.addEventListener('workspaceError', onWorkspaceError)
     return () => source.close()
-  }, [])
+  }, [data])
   const workspace = useLoad((signal) => data.workspace(signal), [data, refresh])
   const caseId = current.caseId ?? workspace.data?.cases[0]?.id
   const structure = useLoad(
@@ -238,6 +247,9 @@ export function App() {
     )
   return (
     <div className="app-shell">
+      <a href="#workbench-main" className="skip-link">
+        {lang === 'de' ? 'Zum Inhalt' : 'Skip to content'}
+      </a>
       <AppBar
         cases={workspace.data.cases}
         selectedCase={selectedCase}
@@ -259,7 +271,17 @@ export function App() {
             navigate={navigate}
           />
         )}
-        <main className="content" key={refresh}>
+        <main id="workbench-main" tabIndex={-1} className="content" key={refresh}>
+          {data instanceof PackageData && caseId && (
+            <PackageEvidence
+              data={data}
+              caseId={caseId}
+              revision={run.data?.revision}
+              refresh={refresh}
+              lang={lang}
+              onSaved={() => setRefresh((value) => value + 1)}
+            />
+          )}
           {failure && (
             <div className="error-banner" role="alert">
               <strong>{failure.message}</strong>
@@ -404,6 +426,7 @@ function AppBar({
     run?.diagnostics.filter((item) => item.severity === 'error' && item.category === 'business').length ?? 0
   return (
     <header className="app-bar">
+      <ThemeControl lang={lang} />
       <Link href={`${casePath(caseId)}/overview`} navigate={navigate} className="brand-link">
         <Brand />
       </Link>
@@ -444,7 +467,7 @@ function AppBar({
         )}
       </span>
       <span className="bar-result">
-        {paper?.headline?.value ?? (run && structure ? nodeValue(run, headlineNode(structure)) : '')}
+        {paper?.headline?.value ?? (run && structure ? panelValue(run, headlineNode(structure)) : '')}
       </span>
       <Link href={`${casePath(caseId)}/export`} navigate={navigate} className="primary-button">
         {t('export', lang)}
@@ -507,7 +530,7 @@ function Sidebar({
                 >
                   <span className="step-dot">{step.step}</span>
                   <span>{step.title}</span>
-                  <b>{nodeValue(run, step.result)}</b>
+                  <b>{panelValue(run, step.result)}</b>
                 </Link>
                 {related.map((panel) => (
                   <Link
@@ -522,7 +545,7 @@ function Sidebar({
                     <b>
                       {panel.entries.length > 1
                         ? `→ ${panel.entries.map((entry) => entry.step).join(' · ')}`
-                        : nodeValue(run, panel.result)}
+                        : panelValue(run, panel.result)}
                     </b>
                   </Link>
                 ))}
@@ -544,7 +567,7 @@ function Sidebar({
             >
               <span className="aux-dot" />
               <span>{panel.title}</span>
-              <b>{nodeValue(run, panel.result)}</b>
+              <b>{panelValue(run, panel.result)}</b>
             </Link>
           ))}
         </div>
@@ -604,7 +627,7 @@ function MainlineMap({
             <Link href={panelLink(caseId, step.panel)} navigate={navigate} className="station-title">
               {step.title}
             </Link>
-            <strong className="station-value">{nodeValue(run, step.result) ?? t('noResult', lang)}</strong>
+            <strong className="station-value">{panelValue(run, step.result) ?? t('noResult', lang)}</strong>
           </div>
         ))}
       </div>
@@ -616,7 +639,7 @@ function MainlineMap({
               {panel.title}
               <small>→ {panel.entries.map((entry) => entry.step).join(' · ')}</small>
             </span>
-            <b>{nodeValue(run, panel.result)}</b>
+            <b>{panelValue(run, panel.result)}</b>
           </Link>
         ))}
       </div>
@@ -626,7 +649,7 @@ function MainlineMap({
             <Link key={panel.id} href={panelLink(caseId, panel.id)} navigate={navigate} className="aux-card">
               <span className="aux-dot" />
               {panel.title}
-              <b>{nodeValue(run, panel.result)}</b>
+              <b>{panelValue(run, panel.result)}</b>
             </Link>
           ))}
         </div>
@@ -677,7 +700,7 @@ function Overview({
           <h2>
             {paperHeadline?.label ?? structure.nodes?.[headline ?? '']?.label ?? structure.mainline.at(-1)?.title}
           </h2>
-          <strong>{paperHeadline?.value ?? nodeValue(run, headline) ?? '—'}</strong>
+          <strong>{paperHeadline?.value ?? panelValue(run, headline) ?? '—'}</strong>
         </section>
         <section className="sheet info-card">
           <span className="eyebrow">{t('diagnostics', lang)}</span>
@@ -736,7 +759,7 @@ function Compass({
             <span className="step-dot">{step.step}</span>
             <span>
               {step.title}
-              <small>{nodeValue(run, step.result)}</small>
+              <small>{panelValue(run, step.result)}</small>
             </span>
           </Link>
         ))}
@@ -839,7 +862,7 @@ function PanelPage({
           <span className={`role-badge ${panel.role}`}>{panel.role}</span>
           <h1>{panel.title}</h1>
         </div>
-        <strong>{nodeValue(run, panel.result)}</strong>
+        <strong>{panelValue(run, panel.result)}</strong>
       </div>
       {(!!choice.data?.data.options.length ||
         !!table?.rows.some((row) => row.kind.toLowerCase() === 'option' && row.node === choiceNode)) && (

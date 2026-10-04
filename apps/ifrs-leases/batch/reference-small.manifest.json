@@ -1,0 +1,27 @@
+{
+  "status": "INDEPENDENT_REFERENCE_GENERATED_ENGINE_UNEXECUTED",
+  "cases": 6,
+  "policy": "Frozen fictional rates/payments; source reported balances independently Decimal-derived; no liability clamp; cent half-up rounding.",
+  "records": {
+    "path": "reference-small.jsonl",
+    "byteLength": 26225,
+    "sha256": "e47365422a5cf7957e387be53dff8e73b064b19e2a64a6b52d0ad14eb9a939af"
+  },
+  "sources": [
+    {
+      "path": "independent_batch.py",
+      "sha256": "a2bdb861a6f409f371ef37a4c4d8cc5e477ff4059a88009735b1da60199957fb"
+    },
+    {
+      "path": "../verify_expected.py",
+      "sha256": "ae13347687037c5be10e38332adcd6cf5a00fc21b56855172ff9bf11eebd4930"
+    }
+  ],
+  "binding": {
+    "schemaId": "ifrs.ifrs16/lessee-schedule",
+    "schemaVersion": "0.1",
+    "versionMode": "legacy-exact",
+    "parameterIds": [],
+    "currencyScale": 2
+  }
+}

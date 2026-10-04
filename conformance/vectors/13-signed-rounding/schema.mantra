@@ -1,0 +1,10 @@
+(schema conformance/rounding
+  (line rounded-half-up "Half up" (decimal/round -1.25 1 :half-up) {:op :info})
+  (line rounded-half-even "Half even" (decimal/round -1.25 1 :half-even) {:op :info})
+  (line rounded-half-down "Half down" (decimal/round -1.25 1 :half-down) {:op :info})
+  (line rounded-floor "Floor" (decimal/round -1.25 1 :floor) {:op :info})
+  (line rounded-ceiling "Ceiling" (decimal/round -1.25 1 :ceiling) {:op :info})
+  (line rounded-down "Down" (decimal/round -1.25 1 :down) {:op :info})
+  (line rounded-up "Up" (decimal/round -1.25 1 :up) {:op :info})
+  (line third "Explicit third" (decimal/divide 1 3 3 :half-up) {:op :info})
+  (line unrounded "Unrounded" 2.345 {:precision 0 :op :info}))

@@ -1,0 +1,16 @@
+{
+  "id": "demo",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [],
+  "undefined": [
+    "project-benefit-cost@B"
+  ],
+  "cost": "120.00",
+  "benefit": "208.00",
+  "hours": "130",
+  "selectedProjects": [
+    "A",
+    "C"
+  ]
+}

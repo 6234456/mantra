@@ -1,0 +1,672 @@
+public abstract interface class com/xqiou/mantra/workbench/AuthoringTarget {
+}
+
+public final class com/xqiou/mantra/workbench/AuthoringTarget$Extension : com/xqiou/mantra/workbench/AuthoringTarget {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/AuthoringTarget$Extension;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/AuthoringTarget$Extension;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/AuthoringTarget$Extension;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getSlot ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/AuthoringTarget$FormulaSlot : com/xqiou/mantra/workbench/AuthoringTarget {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/AuthoringTarget$FormulaSlot;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/AuthoringTarget$FormulaSlot;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/AuthoringTarget$FormulaSlot;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/BoundSources {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/BoundSources;
+	public final fun load (Lcom/xqiou/mantra/core/model/CaseData;Lcom/xqiou/mantra/core/model/Schema;Ljava/nio/file/Path;Ljava/nio/file/Path;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+	public static synthetic fun load$default (Lcom/xqiou/mantra/workbench/BoundSources;Lcom/xqiou/mantra/core/model/CaseData;Lcom/xqiou/mantra/core/model/Schema;Ljava/nio/file/Path;Ljava/nio/file/Path;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+	public final fun loadCaptured (Lcom/xqiou/mantra/core/model/CaseData;Lcom/xqiou/mantra/core/model/Schema;Ljava/util/List;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+	public static synthetic fun loadCaptured$default (Lcom/xqiou/mantra/workbench/BoundSources;Lcom/xqiou/mantra/core/model/CaseData;Lcom/xqiou/mantra/core/model/Schema;Ljava/util/List;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+}
+
+public final class com/xqiou/mantra/workbench/BoundSources$Loaded {
+	public fun <init> (Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Lcom/xqiou/mantra/core/model/CaseData;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/BoundSources$Loaded;Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/BoundSources$Loaded;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCase ()Lcom/xqiou/mantra/core/model/CaseData;
+	public final fun getFiles ()Ljava/util/List;
+	public final fun getOverridden ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CasePackageLoader : com/xqiou/mantra/core/api/CasePackageResolver {
+	public fun <init> (Ljava/nio/file/Path;Lcom/xqiou/mantra/workbench/CasePackageOverrides;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;Lcom/xqiou/mantra/workbench/CasePackageOverrides;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun binding (Lcom/xqiou/mantra/core/api/CanonicalCaseKey;)Lcom/xqiou/mantra/workbench/CasePackageLoader$Binding;
+	public final fun getRoot ()Ljava/nio/file/Path;
+	public fun identify (Lcom/xqiou/mantra/core/api/CaseReference;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/api/CanonicalCaseKey;
+	public fun load (Lcom/xqiou/mantra/core/api/CanonicalCaseKey;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+}
+
+public final class com/xqiou/mantra/workbench/CasePackageLoader$Binding {
+	public fun <init> (Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+	public final fun component2 ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/workbench/CasePackageLoader$Binding;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CasePackageLoader$Binding;Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CasePackageLoader$Binding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLayout ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun getPackageData ()Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+	public final fun getParameterIds ()Ljava/util/List;
+	public final fun getSourceOverrides ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CasePackageOverrides {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;Ljava/nio/file/Path;Z)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;Ljava/nio/file/Path;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/nio/file/Path;
+	public final fun component6 ()Ljava/util/List;
+	public final fun component7 ()Ljava/nio/file/Path;
+	public final fun component8 ()Z
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;Ljava/nio/file/Path;Z)Lcom/xqiou/mantra/workbench/CasePackageOverrides;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CasePackageOverrides;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;Ljava/nio/file/Path;ZILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CasePackageOverrides;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIncludeLayout ()Z
+	public final fun getLayout ()Ljava/lang/String;
+	public final fun getLayoutPath ()Ljava/nio/file/Path;
+	public final fun getParameterPaths ()Ljava/util/List;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getRootCase ()Ljava/lang/String;
+	public final fun getSchemaPath ()Ljava/nio/file/Path;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/CaseTextEditor;
+	public final fun apply (Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
+}
+
+public abstract interface class com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$AddExtension : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddExtension;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddExtension;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddExtension;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getSlot ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$AddSource : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddSource;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddSource;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$AddSource;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKind ()Ljava/lang/String;
+	public final fun getOptions ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$BindFormula : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$BindFormula;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$BindFormula;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$BindFormula;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearCell : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearCell;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearCell;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearCell;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getKeyColumn ()Ljava/lang/String;
+	public final fun getRow ()Ljava/lang/String;
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearInput : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearInput;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearInput;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ClearInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$DeleteRow : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;I)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun copy (Ljava/lang/String;I)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$DeleteRow;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$DeleteRow;Ljava/lang/String;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$DeleteRow;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndex ()I
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$InsertRow : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value$MapV;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value$MapV;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value$MapV;Ljava/lang/Integer;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$InsertRow;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$InsertRow;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value$MapV;Ljava/lang/Integer;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$InsertRow;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndex ()Ljava/lang/Integer;
+	public final fun getRow ()Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$MoveRow : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Ljava/lang/String;II)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$MoveRow;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$MoveRow;Ljava/lang/String;IIILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$MoveRow;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFrom ()I
+	public final fun getTable ()Ljava/lang/String;
+	public final fun getTo ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveExtension : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveExtension;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveExtension;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveExtension;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getSlot ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveSource : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveSource;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveSource;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$RemoveSource;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndex ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$ResetParam : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ResetParam;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ResetParam;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$ResetParam;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$SetBindings : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Z)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Z)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetBindings;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetBindings;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetBindings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClearLayout ()Z
+	public final fun getLayout ()Ljava/lang/String;
+	public final fun getParameters ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$SetCell : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Lcom/xqiou/mantra/core/model/Value;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetCell;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetCell;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetCell;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getKeyColumn ()Ljava/lang/String;
+	public final fun getRow ()Ljava/lang/String;
+	public final fun getTable ()Ljava/lang/String;
+	public final fun getValue ()Lcom/xqiou/mantra/core/model/Value;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$SetInput : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/core/model/Value;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/util/List;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetInput;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetInput;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetInput;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getValue ()Lcom/xqiou/mantra/core/model/Value;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$SetMeta : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetMeta;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetMeta;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetMeta;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$SetParam : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/core/model/Value;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetParam;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetParam;Ljava/lang/String;Lcom/xqiou/mantra/core/model/Value;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$SetParam;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getValue ()Lcom/xqiou/mantra/core/model/Value;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$UnbindFormula : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UnbindFormula;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UnbindFormula;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UnbindFormula;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateExtension : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateExtension;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateExtension;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateExtension;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getSlot ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateRow : com/xqiou/mantra/workbench/CaseTextEditor$Operation {
+	public fun <init> (Ljava/lang/String;ILcom/xqiou/mantra/core/model/Value$MapV;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun copy (Ljava/lang/String;ILcom/xqiou/mantra/core/model/Value$MapV;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateRow;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateRow;Ljava/lang/String;ILcom/xqiou/mantra/core/model/Value$MapV;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/CaseTextEditor$Operation$UpdateRow;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIndex ()I
+	public final fun getRow ()Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun getTable ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/EditorValueParser {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/EditorValueParser;
+	public final fun parse (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
+	public static synthetic fun parse$default (Lcom/xqiou/mantra/workbench/EditorValueParser;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
+}
+
+public final class com/xqiou/mantra/workbench/ExplainAddress {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Lkotlin/Pair;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lkotlin/Pair;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Lkotlin/Pair;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Lkotlin/Pair;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/ExplainAddress;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/ExplainAddress;Ljava/lang/String;Ljava/util/List;Lkotlin/Pair;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/ExplainAddress;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCase ()Ljava/lang/String;
+	public final fun getCell ()Lkotlin/Pair;
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getExpectedRevision ()Ljava/lang/String;
+	public final fun getNode ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/ExportBudget {
+	public fun <init> ()V
+	public fun <init> (III)V
+	public synthetic fun <init> (IIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (III)Lcom/xqiou/mantra/workbench/ExportBudget;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/ExportBudget;IIIILjava/lang/Object;)Lcom/xqiou/mantra/workbench/ExportBudget;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMaxBytes ()I
+	public final fun getMaxCells ()I
+	public final fun getMaxSheets ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/Fixtures {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/Fixtures;
+	public final fun write (Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;)Lcom/xqiou/mantra/workbench/Fixtures$Entry;
+	public static synthetic fun write$default (Lcom/xqiou/mantra/workbench/Fixtures;Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/Fixtures$Entry;
+	public final fun writeMany (Ljava/util/List;Ljava/nio/file/Path;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/Map;)Ljava/util/List;
+	public static synthetic fun writeMany$default (Lcom/xqiou/mantra/workbench/Fixtures;Ljava/util/List;Ljava/nio/file/Path;Ljava/lang/String;Ljava/nio/file/Path;Ljava/util/Map;ILjava/lang/Object;)Ljava/util/List;
+}
+
+public final class com/xqiou/mantra/workbench/Fixtures$Entry {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/Fixtures$Entry;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/Fixtures$Entry;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/Fixtures$Entry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFiles ()Ljava/util/Map;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/ImportFiles {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/ImportFiles;
+	public static final field MAX_BYTES I
+	public final fun inspect (Ljava/lang/String;Ljava/lang/String;[B)Ljava/util/Map;
+}
+
+public final class com/xqiou/mantra/workbench/PackageImports : com/xqiou/mantra/packages/PackageDataImporter {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/PackageImports;
+	public fun import (Lcom/xqiou/mantra/core/model/Schema;Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/model/CaseData;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoCloseable {
+	public static final field Companion Lcom/xqiou/mantra/workbench/WorkspaceCatalog$Companion;
+	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExportBudget;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExportBudget;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun authoring (Ljava/lang/String;Lcom/xqiou/mantra/workbench/AuthoringTarget;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public fun close ()V
+	public final fun commitEdits (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun compare (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun envelope (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;)Ljava/lang/String;
+	public final fun explain (Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExplainAddress;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun explain$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExplainAddress;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun export (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)[B
+	public static synthetic fun export$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)[B
+	public final fun exportPreview (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun exportPreview$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun getRoot ()Ljava/nio/file/Path;
+	public final fun importApply (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLjava/util/Map;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun importTemplates ()Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun parseEditRowText (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun parseEditText (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
+	public static synthetic fun parseEditText$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
+	public final fun previewEdits (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun redo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun removeSource (Ljava/lang/String;Ljava/lang/String;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun saveImportTemplate (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun sources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun undo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun workspace ()Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun workspaceStamp (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;
+	public static synthetic fun workspaceStamp$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceCatalog$Companion {
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/Map;
+	public final fun getRevision ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceCatalog$FileMarker {
+	public fun <init> (JLjava/nio/file/attribute/FileTime;Ljava/lang/String;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/nio/file/attribute/FileTime;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (JLjava/nio/file/attribute/FileTime;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$FileMarker;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$FileMarker;JLjava/nio/file/attribute/FileTime;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$FileMarker;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getModified ()Ljava/nio/file/attribute/FileTime;
+	public final fun getSize ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;I)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun component4 ()I
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;Ljava/lang/String;Ljava/util/Map;Ljava/util/Map;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFiles ()Ljava/util/Map;
+	public final fun getMetadata ()Ljava/util/Map;
+	public final fun getNextVerifyIndex ()I
+	public final fun getRevision ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceException : java/lang/RuntimeException {
+	public fun <init> (Lcom/xqiou/mantra/workbench/WorkspaceProblem;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/workbench/WorkspaceProblem;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCurrentRevision ()Ljava/lang/String;
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getProblem ()Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+}
+
+public final class com/xqiou/mantra/workbench/WorkspaceProblem : java/lang/Enum {
+	public static final field CONFLICT Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static final field INVALID Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static final field NOT_FOUND Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static final field REQUEST Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static final field TOO_LARGE Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+	public static fun values ()[Lcom/xqiou/mantra/workbench/WorkspaceProblem;
+}
+
+public final class com/xqiou/mantra/workbench/json/WorkbenchDocuments {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;
+	public final fun aggregate (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;)Ljava/util/Map;
+	public static synthetic fun aggregate$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun compare (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/util/List;Ljava/lang/String;)Ljava/util/Map;
+	public static synthetic fun compare$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun diagnostic (Lcom/xqiou/mantra/core/Diagnostic;)Ljava/util/Map;
+	public final fun diagnostics (Ljava/util/List;)Ljava/util/Map;
+	public final fun explain (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/core/view/ExplainTrace;Lkotlin/Pair;Lcom/xqiou/mantra/core/model/Value;Lcom/xqiou/mantra/core/api/CalculationReader;)Ljava/util/Map;
+	public static synthetic fun explain$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/core/view/ExplainTrace;Lkotlin/Pair;Lcom/xqiou/mantra/core/model/Value;Lcom/xqiou/mantra/core/api/CalculationReader;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun memberMap (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;)Ljava/util/Map;
+	public static synthetic fun memberMap$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun paper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;)Ljava/util/Map;
+	public final fun paper (Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/core/view/CalculationView;Ljava/lang/String;)Ljava/util/Map;
+	public static synthetic fun paper$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public static synthetic fun paper$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/core/view/CalculationView;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun parameters (Lcom/xqiou/mantra/core/view/CalculationView;)Ljava/util/Map;
+	public final fun run (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CaseRunResult;)Ljava/util/Map;
+	public static synthetic fun run$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CaseRunResult;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun structure (Lcom/xqiou/mantra/core/view/CalculationView;)Ljava/util/Map;
+}
+
+public final class com/xqiou/mantra/workbench/json/WorkbenchJson {
+	public static final field CONTRACT Ljava/lang/String;
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/json/WorkbenchJson;
+	public final fun envelope (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/util/Map;
+	public final fun value (Lcom/xqiou/mantra/core/model/Value;)Ljava/lang/Object;
+	public final fun value (Lcom/xqiou/mantra/core/model/Value;Lcom/xqiou/mantra/core/api/CalculationReader;)Ljava/lang/Object;
+	public final fun write (Ljava/lang/Object;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/packages/EditablePackageCase {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationStore;Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationStore;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/MigrationStore;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()I
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationStore;Ljava/lang/String;I)Lcom/xqiou/mantra/workbench/packages/EditablePackageCase;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/packages/EditablePackageCase;Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationStore;Ljava/lang/String;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/packages/EditablePackageCase;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCase ()Ljava/lang/String;
+	public final fun getMaxBytes ()I
+	public final fun getStore ()Lcom/xqiou/mantra/packages/MigrationStore;
+	public final fun getStorePath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/packages/PackageDirectoryWorkspace {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/packages/PackageDirectoryWorkspace;
+	public final fun open (Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/DirectoryPolicy;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;
+	public static synthetic fun open$default (Lcom/xqiou/mantra/workbench/packages/PackageDirectoryWorkspace;Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/DirectoryPolicy;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;
+}
+
+public final class com/xqiou/mantra/workbench/packages/PackageMount {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;)Lcom/xqiou/mantra/workbench/packages/PackageMount;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/packages/PackageMount;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/packages/PackageMount;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSnapshot ()Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog {
+	public fun <init> (Ljava/util/List;Ljava/util/Map;Ljava/util/List;Lcom/xqiou/mantra/core/api/CalculationOptions;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/Map;Ljava/util/List;Lcom/xqiou/mantra/core/api/CalculationOptions;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun applyMigration (Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun edit (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Z)Ljava/util/Map;
+	public static synthetic fun edit$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZILjava/lang/Object;)Ljava/util/Map;
+	public final fun evaluate (Ljava/lang/String;ZLcom/xqiou/mantra/core/api/CaseExplainAddress;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog$Execution;
+	public static synthetic fun evaluate$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;ZLcom/xqiou/mantra/core/api/CaseExplainAddress;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog$Execution;
+	public final fun explain (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public static synthetic fun explain$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun export (Ljava/lang/String;Ljava/lang/String;)[B
+	public final fun export (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExportBudget;)[B
+	public final fun exportPreview (Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public final fun exportPreview (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExportBudget;)Ljava/util/Map;
+	public static synthetic fun exportPreview$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun parseEditRowText (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/core/model/Value$MapV;
+	public final fun parseEditText (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
+	public static synthetic fun parseEditText$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
+	public final fun previewMigration (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public final fun restore (Ljava/lang/String;Ljava/lang/String;Z)Ljava/util/Map;
+	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun workspace ()Ljava/util/Map;
+}
+
+public final class com/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog$Execution {
+	public final fun getGraph ()Lcom/xqiou/mantra/core/api/CaseRunResult;
+	public final fun getLayout ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun getRevision ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/packages/PackageWorkspaceConfig {
+	public static final field INSTANCE Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceConfig;
+	public final fun open (Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/SemanticVersion;Ljava/lang/ClassLoader;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;
+	public final fun open ([BLjava/nio/file/Path;Lcom/xqiou/mantra/packages/SemanticVersion;Ljava/lang/ClassLoader;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;
+	public static synthetic fun open$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceConfig;Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/SemanticVersion;Ljava/lang/ClassLoader;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;
+}
+

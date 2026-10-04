@@ -26,7 +26,17 @@ internal fun ExcelWorkbookBuilder.layoutRemainingInputs(sheet: XSSFSheet, start:
         coordinates(node.dims).filter { it !in slots }.forEach { coord ->
             text(sheet, row, 0, node.label)
             text(sheet, row, 1, node.id, StyleKey(muted = true))
-            coord.forEachIndexed { index, key -> text(sheet, row, 2 + index, key) }
+            coord.forEachIndexed { index, key ->
+                val axis = node.dims[index]
+                if (axis in
+                    dynamic?.dimensions.orEmpty()
+                ) {
+                    presentation +=
+                        Slot(sheet, row, 2 + index) to { dynamic!!.key(axis, key) }
+                } else {
+                    text(sheet, row, 2 + index, key)
+                }
+            }
             val slot = Slot(sheet, row++, 2 + coord.size)
             slots[coord] = slot
             valueStyles[slot] =
@@ -50,7 +60,17 @@ internal fun ExcelWorkbookBuilder.layoutRemainingComputations(sheet: XSSFSheet, 
         coordinates(dims).filter { it !in slots }.forEach { coord ->
             text(sheet, row, 0, label)
             text(sheet, row, 1, id, StyleKey(muted = true))
-            coord.forEachIndexed { index, key -> text(sheet, row, 2 + index, key) }
+            coord.forEachIndexed { index, key ->
+                val axis = dims[index]
+                if (axis in
+                    dynamic?.dimensions.orEmpty()
+                ) {
+                    presentation +=
+                        Slot(sheet, row, 2 + index) to { dynamic!!.key(axis, key) }
+                } else {
+                    text(sheet, row, 2 + index, key)
+                }
+            }
             val slot = Slot(sheet, row++, 2 + coord.size)
             slots[coord] = slot
             valueStyles[slot] = style

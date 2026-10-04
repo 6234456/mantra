@@ -1,0 +1,13 @@
+{
+  "succeeded": false,
+  "validationPassed": true,
+  "values": {},
+  "diagnostics": [
+    {
+      "code": "MANTRA-RUN-LIMIT",
+      "category": "evaluation",
+      "severity": "error",
+      "effect": "technical-failure"
+    }
+  ]
+}

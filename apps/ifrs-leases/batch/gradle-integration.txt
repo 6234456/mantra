@@ -1,0 +1,13 @@
+// Add to the application's existing build.gradle.kts after module integration.
+dependencies {
+    implementation(project(":mantra-core"))
+    implementation(project(":mantra-packages"))
+}
+
+tasks.register<JavaExec>("leaseBatchDemo") {
+    group = "application"
+    description = "Runs the explicitly configured typed lease stream and independent value checks."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.xqiou.mantra.apps.leases.LeaseBatchDemo")
+    // Supply options explicitly via the normal JavaExec --args mechanism; no unmeasured hard budget.
+}

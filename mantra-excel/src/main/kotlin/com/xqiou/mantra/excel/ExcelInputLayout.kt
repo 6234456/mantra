@@ -25,6 +25,7 @@ internal fun ExcelWorkbookBuilder.layoutInputs() {
     sheet.setColumnWidth(0, 58 * 256)
     sheet.setColumnWidth(1, 30 * 256)
     (2..14).forEach { sheet.setColumnWidth(it, 16 * 256) }
+    layoutKeyedInputs()
     var r = 2
     val unplaced = view.nodes.values.filter { it.kind == NodeKind.INPUT }.filter { it.id !in nodeSlots }
     val groups = unplaced.groupBy { input ->
@@ -60,7 +61,13 @@ internal fun ExcelWorkbookBuilder.layoutInputs() {
                     val dim = input.dims.single()
                     if (headerDim != dim) {
                         members[dim].orEmpty().forEachIndexed { i, m ->
-                            text(sheet, r, 2 + i, m.label, StyleKey(bold = true, align = HorizontalAlignment.RIGHT))
+                            if (dim in dynamic?.dimensions.orEmpty()) {
+                                presentation +=
+                                    Slot(sheet, r, 2 + i) to
+                                    { translator.toScalar(dynamic!!.record(dim, m.key, "label") ?: X.Nil) }
+                            } else {
+                                text(sheet, r, 2 + i, m.label, StyleKey(bold = true, align = HorizontalAlignment.RIGHT))
+                            }
                         }
                         r++
                         headerDim = dim
@@ -90,6 +97,10 @@ internal fun ExcelWorkbookBuilder.layoutInputs() {
 }
 
 internal fun ExcelWorkbookBuilder.layoutTableInput(sheet: XSSFSheet, start: Int, input: ViewNode): Int {
+    if (input.id in options.dynamicTableCapacities) {
+        layoutDynamicTableInput(input)
+        return start
+    }
     var r = start
     text(sheet, r++, 0, input.label, StyleKey(bold = true))
     val columns = input.input!!.columns

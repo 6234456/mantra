@@ -1,0 +1,346 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.energy-budget",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 3850,
+      "sha256": "e717835a1757d81fa1a529c9f96780a99367ccfec69852519e353aaad167768b"
+    },
+    {
+      "path": "case-all-zero-demand.mantra",
+      "role": "case",
+      "byteLength": 1133,
+      "sha256": "a808a6d6099194d0a9d0344b4bcef961067a36f70793a3e099bfa3e1c37fc971"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1030,
+      "sha256": "62c653c1ebff3a9f7dcfffc116a96020548b4b4ab7c0ff173c9830da3646c152"
+    },
+    {
+      "path": "case-fractional-measurements.mantra",
+      "role": "case",
+      "byteLength": 792,
+      "sha256": "d5a211e93f60f5de94fd8edd5fc001bc7edbdae29945c830fe79ac827e7607ae"
+    },
+    {
+      "path": "case-single-site.mantra",
+      "role": "case",
+      "byteLength": 704,
+      "sha256": "259f247db82644448ff3f388f13ff1f4703ede0dda1a4b675f4492e9fcb5ba34"
+    },
+    {
+      "path": "case-unreconciled.mantra",
+      "role": "case",
+      "byteLength": 1135,
+      "sha256": "29d6b55b030a1607d8e556ba047ca09fe8a82512ebba9e85362627bc174891d9"
+    },
+    {
+      "path": "case-zero-capacity.mantra",
+      "role": "case",
+      "byteLength": 1030,
+      "sha256": "be7cf471082ab9b9f3fec64744653b8c7de3f9d6e32706b8c25228919967a2ef"
+    },
+    {
+      "path": "data/readings.csv",
+      "role": "data",
+      "byteLength": 132,
+      "sha256": "48639e3a58e45273cdca21f22300b871099f04612aebfb64cee5533cd240e27d"
+    },
+    {
+      "path": "data/sites.csv",
+      "role": "data",
+      "byteLength": 92,
+      "sha256": "ca60f1835f869bb5073d4aeb470fa822c1761c3ad7f38e8df565a3fc887cfd44"
+    },
+    {
+      "path": "import-templates/readings.json",
+      "role": "import-template",
+      "byteLength": 284,
+      "sha256": "f559c01da3f514bf43151bd80929d8facb131dc06ef7ce9313a65809c441d9ad"
+    },
+    {
+      "path": "import-templates/sites.json",
+      "role": "import-template",
+      "byteLength": 275,
+      "sha256": "c1916adae1bcbb7d7f826806fc6fae8e68c50ffff977e018651fcce0643017bf"
+    },
+    {
+      "path": "independent/fixtures/all-zero-demand.json",
+      "role": "documentation",
+      "byteLength": 1495,
+      "sha256": "2a59121d26c4203733e008778fcc20450a8a580ef38c8dbefdc9b744a5fe4d87"
+    },
+    {
+      "path": "independent/fixtures/demo.json",
+      "role": "documentation",
+      "byteLength": 1488,
+      "sha256": "5f026fa19dc10accca89beaf5cd67d5c7e2685fa48213e455d9922f6229e7cd6"
+    },
+    {
+      "path": "independent/fixtures/fractional-measurements.json",
+      "role": "documentation",
+      "byteLength": 1027,
+      "sha256": "b61d8acb9801fc22cb11b6a3f27368ef1e2b9a799cd693fe8c1510c0a68be874"
+    },
+    {
+      "path": "independent/fixtures/single-site.json",
+      "role": "documentation",
+      "byteLength": 975,
+      "sha256": "f616c7faee79733b6e8a678d139aaaa70b656f8ab590817ac6a93fa17ee80b0d"
+    },
+    {
+      "path": "independent/fixtures/unreconciled.json",
+      "role": "documentation",
+      "byteLength": 1496,
+      "sha256": "f80c83dca8913cf7d02439abd6867acc286e01af6459a649420719f553f5c7fc"
+    },
+    {
+      "path": "independent/fixtures/zero-capacity.json",
+      "role": "documentation",
+      "byteLength": 1494,
+      "sha256": "c1774a49a585f1a357d7ae8591e857d6babdf7490ae55a53a0a6b450381e185c"
+    },
+    {
+      "path": "independent/primary-sources.json",
+      "role": "documentation",
+      "byteLength": 347,
+      "sha256": "eb277bf58ad9c831dffbcfc4df04cf8811acd21f8e925d4fd7d91d040a803c9c"
+    },
+    {
+      "path": "independent/reference.py",
+      "role": "documentation",
+      "byteLength": 10844,
+      "sha256": "6ce36f03213e8eb021ac3bfaadef761b7e34266ba8af565d60bfc878a326162b"
+    },
+    {
+      "path": "independent/references/all-zero-demand-summary.json",
+      "role": "documentation",
+      "byteLength": 613,
+      "sha256": "aa14cb18441ff3fee940004ad84b073cdeb42364180da50a967b0bf83ee93710"
+    },
+    {
+      "path": "independent/references/all-zero-demand-values.json",
+      "role": "documentation",
+      "byteLength": 4785,
+      "sha256": "d247e71b1a8bf3732d7c3f560b0703b44805e7ca21b4ee51151200e85f97ea26"
+    },
+    {
+      "path": "independent/references/demo-summary.json",
+      "role": "documentation",
+      "byteLength": 182,
+      "sha256": "1974000a0e2d0b7e65197c6323b2f2b12175c0cc89a01ba78a82182136bbe6ad"
+    },
+    {
+      "path": "independent/references/demo-values.json",
+      "role": "documentation",
+      "byteLength": 5200,
+      "sha256": "e76d4689a258e50881be945e43b2f5a00ddf25e66970ab2686773fb00a194e4f"
+    },
+    {
+      "path": "independent/references/fractional-measurements-summary.json",
+      "role": "documentation",
+      "byteLength": 175,
+      "sha256": "823c980f2603d4c892a898ef47563709d991a682c6e02477e8fed3b42bbfe4b3"
+    },
+    {
+      "path": "independent/references/fractional-measurements-values.json",
+      "role": "documentation",
+      "byteLength": 3673,
+      "sha256": "f2c9a2293849d886c265a682ce1dcf87ef63bb672794815d1ef79b49e31e6df6"
+    },
+    {
+      "path": "independent/references/single-site-summary.json",
+      "role": "documentation",
+      "byteLength": 160,
+      "sha256": "d6bdca507f884c9622d989cd9355576686ff2d60d3a327113ebc0d2bc7d2e0b3"
+    },
+    {
+      "path": "independent/references/single-site-values.json",
+      "role": "documentation",
+      "byteLength": 3479,
+      "sha256": "17c527bfb3fcf82159b82af67ad651730dc98f9ac9aed3b60e9007ed6c928239"
+    },
+    {
+      "path": "independent/references/unreconciled-summary.json",
+      "role": "documentation",
+      "byteLength": 364,
+      "sha256": "f3a0895b40af82c8659d551efe4a08f536c50690f1c241fe1cd16a9fa71cb7a4"
+    },
+    {
+      "path": "independent/references/unreconciled-values.json",
+      "role": "documentation",
+      "byteLength": 5205,
+      "sha256": "e01dc90b74b197bb78a61108775266e2b50227633a69ac53c54ea468c55dec3e"
+    },
+    {
+      "path": "independent/references/zero-capacity-summary.json",
+      "role": "documentation",
+      "byteLength": 191,
+      "sha256": "1feba9a5e4a6db049c7d7cdffc94703e08a3a3f297ae9c0bed59d8a0e5f96868"
+    },
+    {
+      "path": "independent/references/zero-capacity-values.json",
+      "role": "documentation",
+      "byteLength": 5185,
+      "sha256": "153ba7fba1bdb4a671adc005d7aff571630856a31b5b1a56015a6ce066b69c37"
+    },
+    {
+      "path": "layout-transpose.mantra",
+      "role": "layout",
+      "byteLength": 494,
+      "sha256": "e2b5a8038fc329a639752fc6b0c726137be8178f0d825f580e86f584cff3b428"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 336,
+      "sha256": "a9cea66871a8c2ea7f6e1303cd389356dba2022c53e2071ca5d309fe011a6ddc"
+    },
+    {
+      "path": "params.mantra",
+      "role": "parameters",
+      "byteLength": 320,
+      "sha256": "6e2b91d7e314d7c2ab3576430aa45aa23526818d87a5cd4074c0abf86d83c6f9"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 5471,
+      "sha256": "edfa9d1dc0937bb8d9d8559afd4c2eccfd87a13766680da720f40cf6a8d87da8"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 1408,
+      "sha256": "aecc364afd09eb2930fd3abda5841fcfcb168ef58c6901629a484a9dcf9ddd96"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "energy.budget/2026-Q1",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "params.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "energy.budget/transpose",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "layout-transpose.mantra"
+    },
+    {
+      "id": "energy.budget/matrix",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "energy-budget-all-zero-demand",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-all-zero-demand.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    },
+    {
+      "id": "energy-budget-demo",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    },
+    {
+      "id": "energy-budget-fractional-measurements",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-fractional-measurements.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    },
+    {
+      "id": "energy-budget-single-site",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-single-site.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    },
+    {
+      "id": "energy-budget-unreconciled",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-unreconciled.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    },
+    {
+      "id": "energy-budget-zero-capacity",
+      "schema": {
+        "id": "energy.budget/monthly-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-zero-capacity.mantra",
+      "parameters": [
+        "energy.budget/2026-Q1"
+      ],
+      "layout": "energy.budget/matrix"
+    }
+  ],
+  "dependencies": []
+}

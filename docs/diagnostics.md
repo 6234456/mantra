@@ -57,6 +57,27 @@ The adapter normally exposes them inside a `MANTRA-EVALUATION` message. Other `D
 from the pinned Normein kernel and are outside this repository's static-code inventory. Preserve the
 cause text and inspect the matching locked kernel documentation when troubleshooting it.
 
+## Import failures
+
+`MANTRA-DATA-UTF8`, `MANTRA-DATA-XLSX-CELL`, `MANTRA-DATA-XLSX-CONTAINER`,
+`MANTRA-DATA-XLSX-LIMIT` and `MANTRA-DATA-XLSX-NAME` are structural errors. They reject the
+import before its values can become calculation inputs. Malformed UTF-8 is decoded with `REPORT`;
+Excel error cells remain technical failures, preserving the concrete error in the original message.
+Neither failure is converted into a successful missing, zero or replacement-character fact.
+
+XLSX preflight bounds the immutable capture to 10 MiB compressed, 1,000 entries, 16 MiB expanded per
+entry and 64 MiB expanded per archive view before POI opens a workbook. Local headers and the central
+directory must select the same entry names, expanded lengths and SHA-256 content digests. It does not
+change POI's global ZIP settings. Upload inspection projects the limit failure as `TOO_LARGE`.
+Host cancellation, deadline and run-budget failures retain their original structured failure and
+evaluation category; they are not rewritten as import errors.
+
+Named member cells must identify every declared axis in canonical order. Unknown, ambiguous,
+partial or invalid range names are errors; valid two-dimensional names become nested case maps.
+Explicit numeric zero and Boolean false remain supplied values. Cell failures retain their input
+address and, for table cells, their zero-based row index and column. `MANTRA-DATA-XLSX` remains a
+structural warning when the source supplies no recognized named input cells.
+
 ## Complete static inventory
 
 This table covers every complete static diagnostic/cause string in `mantra-*/src/main/**/*.kt`.
@@ -108,7 +129,12 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-DATA-PATH` | structural | A requested JSON source path is absent. |
 | `MANTRA-DATA-SOURCE` | structural | An external source declaration is unsupported or its file cannot be loaded. |
 | `MANTRA-DATA-UNKNOWN-INPUT` | structural | A source mapping targets an undeclared input. |
-| `MANTRA-DATA-XLSX` | structural | A workbook source cannot be read or supplies no usable named input cells. |
+| `MANTRA-DATA-UTF8` | structural | CSV or JSON import bytes are not valid UTF-8; the import is rejected without replacing characters. |
+| `MANTRA-DATA-XLSX` | structural | A workbook source supplies no recognized named input cells. |
+| `MANTRA-DATA-XLSX-CELL` | structural | An input workbook cell contains an Excel error, an invalid date serial or an unsupported value; import fails without a nil or zero substitute. |
+| `MANTRA-DATA-XLSX-CONTAINER` | structural | The workbook ZIP is malformed, duplicates entries, lacks required OOXML parts or has inconsistent local and central contents. |
+| `MANTRA-DATA-XLSX-LIMIT` | structural | A workbook import exceeds its compressed-byte, entry-count, per-entry expanded-byte or total expanded-byte limit. |
+| `MANTRA-DATA-XLSX-NAME` | structural | A named input cell has an unknown, incomplete or ambiguous coordinate, a conflicting sanitized name or an invalid cell reference. |
 | `MANTRA-DEFN` | structural | A schema or case function declaration is malformed. |
 | `MANTRA-DIMENSION` | structural | A dimension declaration lacks a valid identifier, members or table source. |
 | `MANTRA-DIMENSION-KEY` | structural | A dimension member key is missing, invalid or duplicated. |
@@ -251,3 +277,54 @@ node/member coordinates; they are not bypassed merely because a schema contains 
 | `MANTRA-RUN-DEADLINE` | evaluation | The shared effective run deadline was reached. |
 | `MANTRA-RUN-LIMIT` | evaluation | A cumulative counter or high-water bound was exceeded; typed usage includes counter, limit and attempted amount. |
 | `MANTRA-SCHEMA-VERSION` | structural | Schema version must be nonblank literal text. |
+
+## M4 package and explicit migration contracts
+
+Package and migration failures are structural request failures. Source BUSINESS diagnostics remain
+attached to their actual calculation and never become package-load or migration failures.
+
+| Code | Category | Meaning |
+| --- | --- | --- |
+| `MANTRA-COMPILE-INCOMPATIBLE` | structural | The compile incompatible contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-COMPILE-INPUT` | structural | The compile input contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-COMPILE-PLAN` | structural | The compile plan contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-BINDING` | structural | The migration binding contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-COMMIT` | structural | The migration commit contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-EDIT` | structural | The migration edit contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-LIMIT` | structural | The migration limit contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-REVIEW` | structural | The supplied token does not identify the exact reviewed migration preview. |
+| `MANTRA-MIGRATION-STALE` | structural | Case bytes, the source graph or target resources changed after the reviewed preview. |
+| `MANTRA-MIGRATION-STORE` | structural | The migration store contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-MIGRATION-TECHNICAL` | structural | The target evaluation has a technical failure; no migration is committed. |
+| `MANTRA-PACKAGE-BINDING` | structural | The package binding contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-CONTAINER` | structural | The package container contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-DATE` | structural | The package date contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-DATE-GAP` | structural | No declared candidate provides a required parameter key at the explicit effective date. |
+| `MANTRA-PACKAGE-DATE-OVERLAP` | structural | More than one declared candidate provides the same required key at the effective date. |
+| `MANTRA-PACKAGE-DEPENDENCY` | structural | The package dependency contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-DUPLICATE` | structural | The package duplicate contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-ENGINE` | structural | The package engine comparator intersection excludes the supplied engine version. |
+| `MANTRA-PACKAGE-INTEGRITY` | structural | Captured resource bytes do not match the manifest length or SHA-256 digest. |
+| `MANTRA-PACKAGE-IMPORT` | structural | A captured-data importer is missing or changed the source-owned case or link identity. |
+| `MANTRA-PACKAGE-LIMIT` | structural | The package limit contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-MANIFEST` | structural | The package manifest contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-PARAMETERS` | structural | The package parameters contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-PATH` | structural | A resource path is noncanonical, escapes its container or follows a prohibited symbolic link. |
+| `MANTRA-PACKAGE-RANGE` | structural | The package range contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-RESOURCE` | structural | The package resource contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-ROLE` | structural | The package role contract failed; correct the explicit request or resources before retrying. |
+| `MANTRA-PACKAGE-SECURE-READ` | structural | The selected filesystem cannot provide the explicitly required directory-relative access capability. |
+| `MANTRA-PACKAGE-SOURCE-CHANGED` | structural | A cooperative directory capture detected a file or directory change before the capture completed. |
+| `MANTRA-PACKAGE-UNLISTED` | structural | A requested resource is not declared in the captured manifest. |
+| `MANTRA-PACKAGE-UNREGISTERED` | structural | A referenced package has not been explicitly mounted by the host. |
+| `MANTRA-PACKAGE-UTF8` | structural | A captured resource is not valid UTF-8. |
+| `MANTRA-PACKAGE-VERSION` | structural | The package version contract failed; correct the explicit request or resources before retrying. |
+
+## PDF export
+
+| Code | Category | Meaning |
+| --- | --- | --- |
+| `MANTRA-PDF-LIMIT` | presentation | PDF row, page, column, header or byte capacity was exceeded; no incomplete PDF is returned. |
+| `MANTRA-PDF-GLYPH` | presentation | A text glyph cannot be encoded by the embedded font; export fails explicitly. |
+
+| `MANTRA-PACKAGE-HOST-BINDING` | structural | The writable host case has an invalid or stale package binding; review its explicit package identity and source revision. |

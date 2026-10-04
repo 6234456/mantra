@@ -26,6 +26,12 @@ import type {
 import { addressToPath } from './address'
 
 export interface WorkbenchData {
+  /** Optional explicit host edit capability; legacy file workspaces retain their existing controls. */
+  canEditCase?(caseId: string): boolean
+  /** Transport capabilities are separate from a host case's write permission. */
+  canManageSources?(caseId: string): boolean
+  canAuthorCase?(caseId: string): boolean
+  canCompareParameters?(caseId: string): boolean
   workspace(signal?: AbortSignal): Promise<Workspace>
   structure(caseId: string, signal?: AbortSignal): Promise<Envelope<Structure>>
   run(caseId: string, signal?: AbortSignal): Promise<Envelope<Run>>
@@ -35,7 +41,7 @@ export interface WorkbenchData {
   diagnostics(caseId: string, signal?: AbortSignal): Promise<Envelope<Diagnostics>>
   compare(caseId: string, parameterSets: string[], signal?: AbortSignal): Promise<Envelope<Compare>>
   exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
-  exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt', layout?: string): string | undefined
+  exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt' | 'pdf', layout?: string): string | undefined
   edit(
     caseId: string,
     baseRevision: string,
@@ -256,7 +262,7 @@ export class LiveData implements WorkbenchData {
       contract,
     )
   }
-  exportUrl(id: string, format: 'xlsx' | 'html' | 'txt', layout?: string) {
+  exportUrl(id: string, format: 'xlsx' | 'html' | 'txt' | 'pdf', layout?: string) {
     return `${apiCase(id)}/export.${format}${layout ? `?layout=${encodeURIComponent(layout)}` : ''}`
   }
 }
@@ -407,7 +413,7 @@ export class FixtureData implements WorkbenchData {
     if (typeof path !== 'string') throw new Error('Export preview fixture unavailable')
     return contract(await json<Envelope<ExportPreview>>(path, signal))
   }
-  exportUrl(_id: string, _format: 'xlsx' | 'html' | 'txt', _layout?: string) {
+  exportUrl(_id: string, _format: 'xlsx' | 'html' | 'txt' | 'pdf', _layout?: string) {
     return undefined
   }
 }

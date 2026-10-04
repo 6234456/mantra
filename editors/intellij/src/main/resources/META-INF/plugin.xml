@@ -1,0 +1,25 @@
+<idea-plugin>
+  <id>com.xqiou.mantra.language-tools</id>
+  <name>Mantra Language Tools</name>
+  <vendor>Mantra</vendor>
+  <version>0.1.0</version>
+  <idea-version since-build="252"/>
+  <description><![CDATA[Static Mantra diagnostics and protocol-backed language actions, using a locally installed language server. No evaluation, engine embedding, or native/paid LSP dependency.]]></description>
+  <depends>com.intellij.modules.platform</depends>
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.xqiou.mantra.editor.MantraProjectService"/>
+  </extensions>
+  <actions>
+    <group id="Mantra.LanguageTools" text="Mantra" popup="true">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <action id="Mantra.Start" class="com.xqiou.mantra.editor.MantraActions$Start" text="Start Language Server…"/>
+      <action id="Mantra.Stop" class="com.xqiou.mantra.editor.MantraActions$Stop" text="Stop Language Server"/>
+      <separator/>
+      <action id="Mantra.Completion" class="com.xqiou.mantra.editor.MantraActions$Completion" text="Complete at Caret"/>
+      <action id="Mantra.Hover" class="com.xqiou.mantra.editor.MantraActions$Hover" text="Hover at Caret"/>
+      <action id="Mantra.Definition" class="com.xqiou.mantra.editor.MantraActions$Definition" text="Go to Definition"/>
+      <action id="Mantra.References" class="com.xqiou.mantra.editor.MantraActions$References" text="Find References"/>
+      <action id="Mantra.Rename" class="com.xqiou.mantra.editor.MantraActions$Rename" text="Rename Symbol…"/>
+    </group>
+  </actions>
+</idea-plugin>

@@ -1,0 +1,8 @@
+[
+  {
+    "title": "NIST Guide to the SI, Appendix B.9",
+    "url": "https://www.nist.gov/pml/special-publication-811/nist-guide-si-appendix-b-conversion-factors/nist-guide-si-appendix-b9",
+    "purpose": "Energy-unit terminology only; one kWh is 3.6 MJ. No scenario numbers or dispatch algorithm are copied.",
+    "checkedAt": "2026-10-04"
+  }
+]

@@ -180,6 +180,9 @@ class WorkspaceSessionTest {
         return (cell["value"] as Map<*, *>)["n"] as String
     }
 
-    private fun <T> request(executor: ExecutorService, action: () -> T): T =
-        executor.submit(Callable { action() }).get(10, TimeUnit.SECONDS)
+    private fun <T> request(executor: ExecutorService, action: () -> T): T = executor.submit(
+        Callable {
+            action()
+        },
+    ).get(10, TimeUnit.SECONDS)
 }

@@ -8,7 +8,11 @@ import java.security.SecureRandom
 import java.util.UUID
 
 /** Serves the built UI with per-session metadata while confining reads to the UI root. */
-internal class WorkbenchStaticFiles(private val uiDirectory: Path?, private val token: String) {
+internal class WorkbenchStaticFiles(
+    private val uiDirectory: Path?,
+    private val token: String,
+    private val packageMode: Boolean = false,
+) {
     fun serve(exchange: HttpExchange, rawPath: String, head: Boolean) {
         val root = uiDirectory?.toAbsolutePath()?.normalize()?.takeIf(Files::isDirectory)
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Live UI build was not found")
@@ -53,7 +57,8 @@ internal class WorkbenchStaticFiles(private val uiDirectory: Path?, private val 
                     "style-src 'self' 'nonce-$styleNonce'; img-src 'self' data:; " +
                     "object-src 'none'; base-uri 'none'",
             )
-            val meta = "<meta name=\"mantra-session-token\" content=\"$token\">" +
+            val packageMeta = if (packageMode) "<meta name=\"mantra-package-workspace\" content=\"on\">" else ""
+            val meta = packageMeta + "<meta name=\"mantra-session-token\" content=\"$token\">" +
                 "<meta name=\"mantra-style-nonce\" content=\"$styleNonce\">"
             if (!html.contains("</head>")) {
                 return error(

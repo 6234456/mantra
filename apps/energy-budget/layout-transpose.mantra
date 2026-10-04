@@ -1,0 +1,6 @@
+(layout energy.budget/transpose
+  {:title "Monthly energy budget — closing positions"}
+  (table site-register :label (members site) :cross-total)
+  (table energy-flow {:style :transpose :row-dimension site}
+    :label (node opening-storage) (node energy-generation) (node grid-import) (node demand) (node energy-export) (node closing-storage) (node local-coverage))
+  (table energy-cost {:style :transpose :row-dimension site} :label (node import-cost) (node export-credit) (node net-cost)))

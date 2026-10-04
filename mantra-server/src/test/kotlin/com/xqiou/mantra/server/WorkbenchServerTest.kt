@@ -591,13 +591,17 @@ class WorkbenchServerTest {
         }
         WorkbenchServer(root, 0, exportBudget = ExportBudget(maxBytes = 64)).use { server ->
             server.start()
-            assertEquals(200, request(server.localPort, "$path/export-preview").status)
-            val response = request(server.localPort, "$path/export.xlsx")
-            assertEquals(413, response.status, response.body)
-            assertContains(response.body, "MANTRA-WORKBENCH-TOO-LARGE")
-            assertFalse(
-                response.bytes.take(2).toByteArray().contentEquals(byteArrayOf('P'.code.toByte(), 'K'.code.toByte())),
-            )
+            for (route in listOf("export-preview", "export.xlsx")) {
+                val response = request(server.localPort, "$path/$route")
+                assertEquals(413, response.status, response.body)
+                assertContains(response.body, "MANTRA-WORKBENCH-TOO-LARGE")
+                assertFalse(
+                    response.bytes.take(
+                        2,
+                    ).toByteArray().contentEquals(byteArrayOf('P'.code.toByte(), 'K'.code.toByte())),
+                )
+            }
+            assertEquals(200, request(server.localPort, "/api/v1/workspace").status)
         }
     }
 

@@ -41,7 +41,7 @@ layout='apps/de-est/layout.mantra'
   --address aggregate.carrying-closing --coord asset=Machine --out "$task_dir/stock.json"
 "$cli" run apps/ifrs-income-taxes/schema.mantra --case apps/ifrs-income-taxes/case-unreconciled.mantra \
   --out "$task_dir/business-failure.txt"
-"$cli" serve apps --port 0 > "$task_dir/server.log" 2>&1 &
+"$cli" serve apps --directory-policy trusted-local --port 0 > "$task_dir/server.log" 2>&1 &
 server_pid=$!
 for _ in {1..100}; do
   if [[ "$(cat "$task_dir/server.log")" == *'at http://127.0.0.1:'* ]]; then break; fi

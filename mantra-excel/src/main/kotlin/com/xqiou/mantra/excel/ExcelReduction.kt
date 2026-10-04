@@ -73,6 +73,10 @@ private fun ExcelWorkbookBuilder.reductionMembers(
     }.toSet()
     val aligned = fixed.filterKeys { it in related }
     aligned.forEach { (axis, key) ->
+        if (axis in dynamic?.dimensions.orEmpty() && key !in dynamic!!.memberTokens(axis).orEmpty()) {
+            // This is a literal public scope; lookup remains live even if its original member is removed.
+            return@forEach
+        }
         val missing = members[axis].orEmpty().none {
             reader.chargeScans()
             it.key == key
@@ -115,14 +119,17 @@ private fun ExcelWorkbookBuilder.reductionMembers(
 /** Ancestor filters retain editable parent relations, including multi-level hierarchies. */
 private fun ExcelWorkbookBuilder.reductionScope(axis: String, member: String, fixed: Map<String, String>): X.Scalar {
     var dimension = axis
-    var key: X.Scalar = Ex.text(member)
+    var key: X.Scalar = dynamic?.dimensions?.get(axis)?.let { dynamic!!.key(axis, member) } ?: Ex.text(member)
     val tests = mutableListOf<X.Scalar>()
     while (true) {
         fixed[dimension]?.let { wanted ->
+            val wantedKey =
+                dynamic?.memberTokens(dimension)?.takeIf { wanted in it }?.let { dynamic!!.key(dimension, wanted) }
+                    ?: Ex.text(wanted)
             tests += if (key.kind == XKind.TEXT && key.text.startsWith('"')) {
-                if (key == Ex.text(wanted)) Ex.TRUE else Ex.FALSE
+                if (key == wantedKey) Ex.TRUE else Ex.FALSE
             } else {
-                Ex.cmp("=", key, Ex.text(wanted))
+                Ex.cmp("=", key, wantedKey)
             }
         }
         val declaration = view.dimensions[dimension] ?: break
@@ -142,7 +149,16 @@ private fun ExcelWorkbookBuilder.reductionScope(axis: String, member: String, fi
                     record(dimension, candidate.key, column)
                         ?: throw Untranslatable("missing parent relation $dimension.$column"),
                 )
-                Ex.iff(Ex.cmp("=", key, Ex.text(candidate.key)), parentKey, otherwise)
+                Ex.iff(
+                    Ex.cmp(
+                        "=",
+                        key,
+                        dynamic?.dimensions?.get(dimension)?.let { dynamic!!.key(dimension, candidate.key) }
+                            ?: Ex.text(candidate.key),
+                    ),
+                    parentKey,
+                    otherwise,
+                )
             }
         }
         dimension = parent
@@ -171,10 +187,20 @@ private fun disjunction(values: List<X.Scalar>): X.Scalar {
 }
 
 internal fun ExcelWorkbookBuilder.reductionHasActiveMembers(node: ViewNode, fixed: Map<String, String>): X.Scalar =
-    boundedReductionBoolean("OR", reductionMembers(node, fixed).map { it.second })
+    boundedReductionBoolean(
+        "OR",
+        reductionMembers(node, fixed).map {
+            it.second
+        },
+    )
 
-private fun ExcelWorkbookBuilder.compactReduction(value: X.Scalar): X.Scalar =
-    if (value.text.length > 2500) materializeExpression(value) else value
+private fun ExcelWorkbookBuilder.compactReduction(value: X.Scalar): X.Scalar = if (value.text.length >
+    2500
+) {
+    materializeExpression(value)
+} else {
+    value
+}
 
 /** Scratch cells bound length, argument count and nesting independently of the member count. */
 internal fun ExcelWorkbookBuilder.boundedReductionBoolean(operation: String, terms: List<X.Scalar>): X.Scalar {
@@ -186,7 +212,7 @@ internal fun ExcelWorkbookBuilder.boundedReductionBoolean(operation: String, ter
     return boundedReductionBoolean(operation, reductionChunks(terms, operation, XKind.BOOL))
 }
 
-private fun ExcelWorkbookBuilder.boundedReductionSum(terms: List<X.Scalar>): X.Scalar {
+internal fun ExcelWorkbookBuilder.boundedReductionSum(terms: List<X.Scalar>): X.Scalar {
     val result = Ex.fn("SUM", terms.ifEmpty { listOf(Ex.ZERO) })
     if (result.text.length < 6000) return result
     return boundedReductionSum(reductionChunks(terms, "SUM", XKind.NUM))

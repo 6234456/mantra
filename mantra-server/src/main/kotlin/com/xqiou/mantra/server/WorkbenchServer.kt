@@ -13,7 +13,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.SecureRandom
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /** Loopback-only HTTP adapter. All calculation and document resolution are delegated to WorkspaceCatalog. */
 class WorkbenchServer(
@@ -21,16 +24,28 @@ class WorkbenchServer(
     port: Int = 8080,
     private val uiDirectory: Path? = Path.of("workbench-ui/dist").takeIf(Files::isDirectory),
     exportBudget: ExportBudget = ExportBudget(),
+    packageWorkspace: com.xqiou.mantra.workbench.packages.PackageWorkspaceCatalog? = null,
 ) : AutoCloseable {
     private val catalog = WorkspaceCatalog(workspace, exportBudget = exportBudget)
     private val requests = WorkbenchRequests(catalog)
+    private val packageRoutes = packageWorkspace?.let { PackageWorkbenchRoutes(it, exportBudget) }
     private val token = ByteArray(32).also(SecureRandom()::nextBytes).joinToString("") { "%02x".format(it) }
-    private val staticFiles = WorkbenchStaticFiles(uiDirectory, token)
-    private val executor = Executors.newFixedThreadPool(4)
+    private val staticFiles = WorkbenchStaticFiles(uiDirectory, token, packageWorkspace != null)
+    private val executor = ThreadPoolExecutor(
+        4,
+        4,
+        0,
+        TimeUnit.MILLISECONDS,
+        ArrayBlockingQueue(16),
+        ThreadPoolExecutor.AbortPolicy(),
+    )
+    private val transportTimer = ScheduledThreadPoolExecutor(1).apply { removeOnCancelPolicy = true }
+    internal var bodyReadTimeoutMillis = 30_000L
 
     @Volatile private var running = false
     private val events = WorkspaceEvents(catalog) { running }
     private val servers: List<HttpServer> = run {
+        WorkbenchTransport.installDefaults()
         val ipv4 = HttpServer.create(InetSocketAddress("127.0.0.1", port), 16)
         val ipv6 = runCatching {
             HttpServer.create(InetSocketAddress(InetAddress.getByName("::1"), ipv4.address.port), 16)
@@ -50,12 +65,14 @@ class WorkbenchServer(
 
     override fun close() {
         running = false
+        transportTimer.shutdownNow()
         executor.shutdownNow()
         servers.forEach { it.stop(0) }
         catalog.close()
     }
 
     private fun handle(exchange: HttpExchange) {
+        val transportState = java.util.concurrent.atomic.AtomicInteger()
         try {
             exchange.responseHeaders.set("X-Content-Type-Options", "nosniff")
             exchange.responseHeaders.set("Referrer-Policy", "no-referrer")
@@ -83,8 +100,20 @@ class WorkbenchServer(
             if (exchange.requestHeaders.getFirst("Content-Length")?.toLongOrNull()?.let { it > limit } == true) {
                 return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
             }
-            val body = readBody(exchange, limit)
-                ?: return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
+            // Before response headers exist, close() closes the connection directly. This timer
+            // covers stalled bodies independently of engine calculation deadlines.
+            val expiry = transportTimer.schedule({
+                if (transportState.compareAndSet(0, 2)) exchange.close()
+            }, bodyReadTimeoutMillis, TimeUnit.MILLISECONDS)
+            val body =
+                try {
+                    readBody(exchange, limit)
+                } finally {
+                    transportState.compareAndSet(0, 1)
+                    expiry.cancel(false)
+                }
+                    ?: return error(exchange, 413, "MANTRA-WORKBENCH-TOO-LARGE", "Request body exceeds limit")
+            if (transportState.get() == 2) return
             if (path.startsWith("/api/")) {
                 api(exchange, path, method, body)
             } else if (method == "GET" || method == "HEAD") {
@@ -116,6 +145,7 @@ class WorkbenchServer(
                 currentRevision = problem.currentRevision,
             )
         } catch (_: Exception) {
+            if (transportState.get() == 2) return
             error(
                 exchange,
                 500,
@@ -129,6 +159,7 @@ class WorkbenchServer(
     }
 
     private fun api(exchange: HttpExchange, rawPath: String, method: String, body: ByteArray) {
+        if (packageRoutes?.handle(exchange, rawPath, method, body) == true) return
         if (rawPath == "/api/v1/workspace" &&
             method == "GET"
         ) {
@@ -224,7 +255,7 @@ class WorkbenchServer(
             }
             return json(exchange, 200, catalog.envelope(catalog.exportPreview(caseId, query["sheet"], query["layout"])))
         }
-        if (method == "GET" && document in setOf("export.xlsx", "export.html", "export.txt")) {
+        if (method == "GET" && document in setOf("export.xlsx", "export.html", "export.txt", "export.pdf")) {
             val query = query(exchange.requestURI.rawQuery)
             if (query.keys.any { it != "layout" }) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
@@ -232,6 +263,7 @@ class WorkbenchServer(
             val format = document.substringAfter('.')
             val contentType = when (format) {
                 "xlsx" -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                "pdf" -> "application/pdf"
                 "html" -> "text/html; charset=utf-8"
                 else -> "text/plain; charset=utf-8"
             }

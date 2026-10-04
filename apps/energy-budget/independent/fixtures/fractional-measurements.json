@@ -1,0 +1,57 @@
+{
+  "id": "fractional-measurements",
+  "periods": [
+    {
+      "id": "P1",
+      "start": "2026-01-01",
+      "end": "2026-02-01"
+    },
+    {
+      "id": "P2",
+      "start": "2026-02-01",
+      "end": "2026-03-01"
+    },
+    {
+      "id": "P3",
+      "start": "2026-03-01",
+      "end": "2026-04-01"
+    }
+  ],
+  "parameters": {
+    "purchase_rate": ".28",
+    "export_rate": ".10",
+    "currency_scale": 2,
+    "ratio_scale": 6
+  },
+  "sites": [
+    {
+      "id": "A",
+      "title": "Fictional fractional-energy meter",
+      "capacity": ".300",
+      "opening": ".100"
+    }
+  ],
+  "readings": [
+    {
+      "site": "A",
+      "period": "P1",
+      "generation": ".200",
+      "demand": ".130",
+      "reported_closing": "0.170"
+    },
+    {
+      "site": "A",
+      "period": "P2",
+      "generation": ".010",
+      "demand": ".190",
+      "reported_closing": "0.000"
+    },
+    {
+      "site": "A",
+      "period": "P3",
+      "generation": ".330",
+      "demand": ".210",
+      "reported_closing": "0.120"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ import type { Compare, Diagnostic, Diagnostics, Envelope, Structure, Value, Work
 import { casePath } from '../address'
 import { diagnosticPath } from '../diagnostics'
 import { language, t } from '../i18n'
+import { diagnosticDetailsLabel, explainDiagnostic } from '../diagnosticMessages'
 
 const lang = language()
 
@@ -75,12 +76,17 @@ export function ParametersPage({
   onSaved?: () => void
   navigate: (path: string) => void
 }) {
+  const editable = data.canEditCase?.(caseId) !== false
+  const comparable = data.canCompareParameters?.(caseId) !== false
   const parameters = useDocument((signal) => data.parameters(caseId, signal), [data, caseId, refresh])
   const options = workspace.parameters ?? []
   const selectedSet = compareSet ?? ''
   const comparison = useDocument(
-    (signal) => (selectedSet ? data.compare(caseId, [selectedSet], signal) : Promise.reject(new Error('No selection'))),
-    [data, caseId, selectedSet, refresh],
+    (signal) =>
+      selectedSet && comparable
+        ? data.compare(caseId, [selectedSet], signal)
+        : Promise.reject(new Error('No selection')),
+    [data, caseId, selectedSet, comparable, refresh],
   )
   const names = useMemo(
     () => new Map(parameters.data?.parameters.map((item) => [item.id, item.label]) ?? []),
@@ -93,6 +99,9 @@ export function ParametersPage({
         <h1>{t('parameters', lang)}</h1>
         <p>{structure.title}</p>
       </div>
+      {!editable && (
+        <p role="status">{lang === 'de' ? 'Dieser Fall ist schreibgeschützt.' : 'This case is read-only.'}</p>
+      )}
       {stateMessage(parameters.error, parameters.loading)}
       {parameters.data && (
         <section className="sheet parameter-sheet">
@@ -159,6 +168,7 @@ export function ParametersPage({
                   value={parameter.layers.find((layer) => layer.layer === 'case')?.value ?? null}
                   revision={revision}
                   data={data}
+                  editable={editable}
                   onSaved={onSaved}
                 />
               </article>
@@ -176,7 +186,9 @@ export function ParametersPage({
             {lang === 'de' ? 'Vergleichen mit' : 'Compare with'}{' '}
             <select
               value={selectedSet}
+              disabled={!comparable}
               onChange={(event) => {
+                if (data.canCompareParameters?.(caseId) === false) return
                 const set = event.target.value
                 navigate(`${casePath(caseId)}/parameters${set ? `?compare=${encodeURIComponent(set)}` : ''}`)
               }}
@@ -190,6 +202,13 @@ export function ParametersPage({
             </select>
           </label>
         </div>
+        {!comparable && (
+          <p role="status">
+            {lang === 'de'
+              ? 'Der Parametervergleich ist in dieser Ansicht nicht verfügbar.'
+              : 'Parameter comparison is unavailable in this view.'}
+          </p>
+        )}
         {!options.length && (
           <p className="muted">
             {lang === 'de'
@@ -197,8 +216,8 @@ export function ParametersPage({
               : 'No parameter sets are available in this workspace.'}
           </p>
         )}
-        {selectedSet && stateMessage(comparison.error, comparison.loading)}
-        {selectedSet && comparison.data && (
+        {selectedSet && comparable && stateMessage(comparison.error, comparison.loading)}
+        {selectedSet && comparable && comparison.data && (
           <ComparisonResult compare={comparison.data} structure={structure} names={names} />
         )}
       </section>
@@ -213,6 +232,7 @@ function ParameterOverride({
   value,
   revision,
   data,
+  editable,
   onSaved,
 }: {
   caseId: string
@@ -221,12 +241,14 @@ function ParameterOverride({
   value: Value
   revision: string
   data: WorkbenchData
+  editable: boolean
   onSaved: () => void
 }) {
   const [draft, setDraft] = useState(valueText(value) === 'nil' ? '' : valueText(value))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   async function commit(reset: boolean) {
+    if (!editable || data.canEditCase?.(caseId) === false) return
     setBusy(true)
     setError('')
     try {
@@ -244,16 +266,16 @@ function ParameterOverride({
       <input
         id={`param-${id}`}
         value={draft}
-        disabled={busy}
+        disabled={!editable || busy}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' && draft) void commit(false)
+          if (editable && event.key === 'Enter' && draft) void commit(false)
         }}
       />
-      <button type="button" disabled={busy || !draft} onClick={() => void commit(false)}>
+      <button type="button" disabled={!editable || busy || !draft} onClick={() => void commit(false)}>
         {lang === 'de' ? 'Speichern' : 'Save'}
       </button>
-      <button type="button" disabled={busy || !declared} onClick={() => void commit(true)}>
+      <button type="button" disabled={!editable || busy || !declared} onClick={() => void commit(true)}>
         {lang === 'de' ? 'Zurücksetzen' : 'Reset'}
       </button>
       {error && (
@@ -467,7 +489,7 @@ export function DiagnosticsPage({
                   <span>
                     <strong>{finding.code}</strong>
                     <em>{categoryText(finding.category)}</em>
-                    <small>{finding.message}</small>
+                    <small>{explainDiagnostic(finding, lang).summary}</small>
                     {finding.location && <em>{locationText(finding.location)}</em>}
                   </span>
                 </button>
@@ -479,7 +501,11 @@ export function DiagnosticsPage({
               <>
                 <span className={`severity-mark ${active.severity}`}>{active.severity}</span>
                 <h2>{active.code}</h2>
-                <p>{active.message}</p>
+                <p>{explainDiagnostic(active, lang).summary}</p>
+                <div className="finding-original-detail">
+                  <span className="eyebrow">{diagnosticDetailsLabel(lang)}</span>
+                  <p lang="en">{active.message}</p>
+                </div>
                 {active.category === 'business' && (
                   <p className="muted">
                     {lang === 'de'

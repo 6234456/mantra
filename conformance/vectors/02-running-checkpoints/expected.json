@@ -1,0 +1,19 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "checkpoint-a": {
+      "n": "7"
+    },
+    "checkpoint-b": {
+      "n": "12"
+    },
+    "branch-result": {
+      "n": "2"
+    },
+    "final-checkpoint": {
+      "n": "14"
+    }
+  },
+  "diagnostics": []
+}

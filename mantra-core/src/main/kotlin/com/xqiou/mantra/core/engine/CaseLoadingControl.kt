@@ -37,8 +37,9 @@ private class ScopedCaseLoadControl(context: RunContext) : CaseLoadControl {
         current.at(RunStage.IMPORTING) { current.charge(RunCounter.INPUT_ROWS, amount) }
     }
 
-    private fun active(): RunContext =
-        checkNotNull(context) { "Case loading control has expired" }.also { it.checkpoint() }
+    private fun active(): RunContext = checkNotNull(context) {
+        "Case loading control has expired"
+    }.also { it.checkpoint() }
 
     fun expire() {
         context = null

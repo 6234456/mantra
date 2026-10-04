@@ -10,13 +10,17 @@ import java.math.BigDecimal
 object Json {
     class JsonException(message: String) : RuntimeException(message)
 
-    fun parse(text: String, beforeArrayElement: (List<String>) -> Unit = {}, checkpoint: () -> Unit = {}): Value =
-        Parser(text, beforeArrayElement, checkpoint).run {
-            val value = value()
-            skipWhitespace()
-            if (pos != text.length) fail("unexpected trailing content")
-            value
-        }
+    fun parse(
+        text: String,
+        beforeArrayElement: (List<String>) -> Unit = {
+        },
+        checkpoint: () -> Unit = {},
+    ): Value = Parser(text, beforeArrayElement, checkpoint).run {
+        val value = value()
+        skipWhitespace()
+        if (pos != text.length) fail("unexpected trailing content")
+        value
+    }
 
     private class Parser(val text: String, val beforeArrayElement: (List<String>) -> Unit, val checkpoint: () -> Unit) {
         var pos = 0

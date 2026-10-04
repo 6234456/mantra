@@ -91,7 +91,17 @@ internal fun ExcelWorkbookBuilder.writeAudit(paper: WorkingPaper) {
         } else {
             Ex.fn("SUM", Ex.atom(Slot(audit, firstBasisRow, 5).address + ":\$F\$$row"))
         }
-        Ex.iff(Ex.cmp(">", changes, Ex.ZERO), Ex.text("outdated"), Ex.text("current"))
+        val structureChanges = dynamic?.tables?.values.orEmpty().map { table ->
+            val rows = Ex.fn("ROWS", Ex.atom("${table.table.name}[${table.columns.first().name}]"))
+            val original = ((view.case.inputs[table.inputId] as? Value.Vec)?.items?.size ?: 0).coerceAtLeast(1)
+            Ex.iff(Ex.cmp("=", rows, Ex.num(original.toLong())), Ex.ZERO, Ex.num(1))
+        }
+        val keyedChanges = dynamic?.keyedInputs?.values.orEmpty().map { bank ->
+            val rows = Ex.fn("ROWS", Ex.atom("${bank.table.table.name}[fact]"))
+            Ex.iff(Ex.cmp("=", rows, Ex.num(bank.table.capacity.toLong())), Ex.ZERO, Ex.num(1))
+        }
+        val allChanges = Ex.fn("SUM", listOf(changes) + structureChanges + keyedChanges)
+        Ex.iff(Ex.cmp(">", allChanges, Ex.ZERO), Ex.text("outdated"), Ex.text("current"))
     }
     val overview = wb.getSheetAt(0)
     text(overview, 1, 4, if (de) "Audit-Snapshot (bei Erstellung)" else "Audit snapshot (at generation)")
@@ -111,7 +121,9 @@ private data class AuditBasis(
 
 private fun ExcelWorkbookBuilder.auditBasis(): List<AuditBasis> = buildList {
     view.nodes.values.filter { it.kind == NodeKind.INPUT || it.kind == NodeKind.PARAM }.forEach { node ->
-        nodeSlots[node.id].orEmpty().forEach { (coord, slot) ->
+        nodeSlots[node.id].orEmpty().takeUnless {
+            node.id in dynamic?.keyedInputs.orEmpty()
+        }.orEmpty().forEach { (coord, slot) ->
             add(
                 AuditBasis(
                     node.id,
@@ -138,6 +150,40 @@ private fun ExcelWorkbookBuilder.auditBasis(): List<AuditBasis> = buildList {
                         node.parameterSource.orEmpty(),
                         node.parameterValue.toString(),
                         Slot(parameters, parameter.rowNum, 2),
+                    ),
+                )
+            }
+        }
+    }
+    dynamic?.keyedInputs?.values.orEmpty().forEach { bank ->
+        for (row in 0 until bank.table.capacity) {
+            reader.chargeScans()
+            val coord = bank.node.dims.indices.map { index ->
+                val cell = bank.table.table.xssfSheet.getRow(row + 1).getCell(index)
+                if (cell.cellType == CellType.STRING) cell.stringCellValue else ""
+            }
+            bank.table.columns.forEachIndexed { column, field ->
+                val actual = cell(bank.table.table.xssfSheet, row + 1, column)
+                val exact = when (actual.cellType) {
+                    CellType.NUMERIC -> actual.numericCellValue.toString()
+                    CellType.STRING -> actual.stringCellValue
+                    CellType.BOOLEAN -> actual.booleanCellValue.toString()
+                    else -> "nil"
+                }
+                val input = bank.node.trace(coord) as? com.xqiou.mantra.core.view.NodeTrace.Input
+                add(
+                    AuditBasis(
+                        bank.node.id,
+                        "[${row + 1}].${field.name}",
+                        input?.label().orEmpty(),
+                        if (field.name == "fact" &&
+                            coord.all { it.isNotEmpty() }
+                        ) {
+                            bank.node.value(coord).toString()
+                        } else {
+                            exact
+                        },
+                        Slot(bank.table.table.xssfSheet, row + 1, column),
                     ),
                 )
             }

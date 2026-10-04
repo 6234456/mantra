@@ -1,0 +1,12 @@
+// Application example only; no publication of demonstration apps.
+dependencies {
+    implementation(project(":mantra-core"))
+    implementation(project(":mantra-packages"))
+    implementation(project(":mantra-workbench"))
+}
+tasks.register<JavaExec>("estMigrationDemo") {
+    group = "application"
+    description = "Previews or explicitly applies an independently checked historical case migration."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.xqiou.mantra.apps.deest.EStMigrationDemo")
+}

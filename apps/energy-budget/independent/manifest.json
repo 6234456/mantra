@@ -1,0 +1,82 @@
+{
+  "status": "INDEPENDENT_REFERENCE_ENGINE_UNEXECUTED",
+  "fixtureCount": 6,
+  "files": [
+    {
+      "path": "fixtures/demo.json",
+      "sha256": "5f026fa19dc10accca89beaf5cd67d5c7e2685fa48213e455d9922f6229e7cd6"
+    },
+    {
+      "path": "references/demo-values.json",
+      "sha256": "e76d4689a258e50881be945e43b2f5a00ddf25e66970ab2686773fb00a194e4f"
+    },
+    {
+      "path": "references/demo-summary.json",
+      "sha256": "1974000a0e2d0b7e65197c6323b2f2b12175c0cc89a01ba78a82182136bbe6ad"
+    },
+    {
+      "path": "fixtures/zero-capacity.json",
+      "sha256": "c1774a49a585f1a357d7ae8591e857d6babdf7490ae55a53a0a6b450381e185c"
+    },
+    {
+      "path": "references/zero-capacity-values.json",
+      "sha256": "153ba7fba1bdb4a671adc005d7aff571630856a31b5b1a56015a6ce066b69c37"
+    },
+    {
+      "path": "references/zero-capacity-summary.json",
+      "sha256": "1feba9a5e4a6db049c7d7cdffc94703e08a3a3f297ae9c0bed59d8a0e5f96868"
+    },
+    {
+      "path": "fixtures/single-site.json",
+      "sha256": "f616c7faee79733b6e8a678d139aaaa70b656f8ab590817ac6a93fa17ee80b0d"
+    },
+    {
+      "path": "references/single-site-values.json",
+      "sha256": "17c527bfb3fcf82159b82af67ad651730dc98f9ac9aed3b60e9007ed6c928239"
+    },
+    {
+      "path": "references/single-site-summary.json",
+      "sha256": "d6bdca507f884c9622d989cd9355576686ff2d60d3a327113ebc0d2bc7d2e0b3"
+    },
+    {
+      "path": "fixtures/all-zero-demand.json",
+      "sha256": "2a59121d26c4203733e008778fcc20450a8a580ef38c8dbefdc9b744a5fe4d87"
+    },
+    {
+      "path": "references/all-zero-demand-values.json",
+      "sha256": "d247e71b1a8bf3732d7c3f560b0703b44805e7ca21b4ee51151200e85f97ea26"
+    },
+    {
+      "path": "references/all-zero-demand-summary.json",
+      "sha256": "aa14cb18441ff3fee940004ad84b073cdeb42364180da50a967b0bf83ee93710"
+    },
+    {
+      "path": "fixtures/fractional-measurements.json",
+      "sha256": "b61d8acb9801fc22cb11b6a3f27368ef1e2b9a799cd693fe8c1510c0a68be874"
+    },
+    {
+      "path": "references/fractional-measurements-values.json",
+      "sha256": "f2c9a2293849d886c265a682ce1dcf87ef63bb672794815d1ef79b49e31e6df6"
+    },
+    {
+      "path": "references/fractional-measurements-summary.json",
+      "sha256": "823c980f2603d4c892a898ef47563709d991a682c6e02477e8fed3b42bbfe4b3"
+    },
+    {
+      "path": "fixtures/unreconciled.json",
+      "sha256": "f80c83dca8913cf7d02439abd6867acc286e01af6459a649420719f553f5c7fc"
+    },
+    {
+      "path": "references/unreconciled-values.json",
+      "sha256": "e01dc90b74b197bb78a61108775266e2b50227633a69ac53c54ea468c55dec3e"
+    },
+    {
+      "path": "references/unreconciled-summary.json",
+      "sha256": "f3a0895b40af82c8659d551efe4a08f536c50690f1c241fe1cd16a9fa71cb7a4"
+    },
+    {
+      "path": "reference.py",
+      "sha256": "6ce36f03213e8eb021ac3bfaadef761b7e34266ba8af565d60bfc878a326162b"
+    }
+  ]
+}

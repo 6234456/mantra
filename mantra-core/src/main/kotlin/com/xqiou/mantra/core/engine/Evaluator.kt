@@ -45,8 +45,10 @@ internal class Evaluator(
     private val explainTarget: Pair<String, Coord>? = null,
     auditOptions: AuditOptions? = null,
     calculationOptions: CalculationOptions = CalculationOptions(),
+    execution: KernelExecution? = null,
 ) : AutoCloseable {
-    private val kernel = KernelExecution(calculationOptions)
+    private val ownsKernel = execution == null
+    private val kernel = execution ?: KernelExecution(calculationOptions)
     private var epoch: RunContext? = null
     private val context: RunContext get() = checkNotNull(epoch) { "Evaluator has no active run epoch" }
     private fun <T> withinEpoch(next: RunContext, action: () -> T): T {
@@ -960,8 +962,9 @@ internal class Evaluator(
         return build(extra, fixed.filterKeys { it in vertex.dims })
     }
 
-    private fun toKernel(value: Value): com.xqiou.normein.dsl.value.DslValue =
-        Values.toDslControlled(value) { context.charge(RunCounter.HOST_SCANS) }
+    private fun toKernel(value: Value): com.xqiou.normein.dsl.value.DslValue = Values.toDslControlled(value) {
+        context.charge(RunCounter.HOST_SCANS)
+    }
 
     private fun evaluate(
         formula: CompiledFormula,
@@ -1172,7 +1175,9 @@ internal class Evaluator(
         return null
     }
 
-    override fun close() = kernel.close()
+    override fun close() {
+        if (ownsKernel) kernel.close()
+    }
 
     private fun coordText(dims: List<String>, coord: Coord): String = if (coord.isEmpty()) {
         ""

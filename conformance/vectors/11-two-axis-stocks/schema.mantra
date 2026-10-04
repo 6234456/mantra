@@ -1,0 +1,8 @@
+(schema conformance/stocks
+  (dimension unit {:members [:A :B]})
+  (dimension year {:periods {:start "2026-07-01" :unit :year :count 3}})
+  (input base :decimal {:per unit})
+  (input change :decimal {:per [unit year]})
+  (line opening "Opening" (prev closing base) {:per [unit year] :aggregate {:first year} :op :info})
+  (line movement "Movement" change {:per [unit year] :op :info})
+  (line closing "Closing" (+ opening movement) {:per [unit year] :aggregate {:last year} :op :info}))

@@ -24,17 +24,52 @@ internal fun cappedAllocation(
         value as? X.Scalar ?: throw Untranslatable("alloc/capped requires numeric $label")
     fun sum(items: List<X.Scalar>) = Ex.fn("SUM", items.ifEmpty { listOf(Ex.ZERO) })
     fun keep(value: X.Scalar) = materialize(value)
-    val capByKey = caps.keys.zip(caps.values).toMap()
-    val weight = weights.values.map { keep(Ex.fn("MAX", Ex.ZERO, scalar(it, "weights"))) }
-    val cap = keys.map { key -> capByKey[key]?.let { keep(Ex.fn("MAX", Ex.ZERO, scalar(it, "caps"))) } }
+    val liveKeys = weights.liveKeys
+    val identities = liveKeys ?: keys.map(Ex::text)
+    val present = identities.map { if (liveKeys == null) Ex.TRUE else Ex.cmp("<>", it, Ex.EMPTY) }
+    val capKeys = caps.liveKeys ?: caps.keys.map(Ex::text)
+    val weight = weights.values.mapIndexed { index, value ->
+        val numeric = if (value == X.Nil) Ex.ZERO else scalar(value, "weights")
+        keep(
+            Ex.iff(
+                present[index],
+                Ex.iff(Ex.cmp("=", numeric, Ex.EMPTY), Ex.ZERO, Ex.fn("MAX", Ex.ZERO, numeric)),
+                Ex.ZERO,
+            ),
+        )
+    }
+    val cap = identities.mapIndexed { index, key ->
+        if (liveKeys == null && caps.liveKeys == null && keys[index] !in caps.keys) {
+            null
+        } else {
+            var result = Ex.EMPTY
+            for (candidate in capKeys.indices.reversed()) {
+                val value = caps.values[candidate]
+                val numeric = if (value == X.Nil) Ex.ZERO else scalar(value, "caps")
+                val normalized = Ex.iff(Ex.cmp("=", numeric, Ex.EMPTY), Ex.ZERO, Ex.fn("MAX", Ex.ZERO, numeric))
+                val matches = Ex.fn(
+                    "AND",
+                    Ex.cmp("<>", capKeys[candidate], Ex.EMPTY),
+                    Ex.cmp("=", key, capKeys[candidate]),
+                    kind = XKind.BOOL,
+                )
+                result = keep(Ex.iff(matches, normalized, result))
+            }
+            result
+        }
+    }
+    fun capAllows(index: Int) = cap[index]?.let {
+        Ex.iff(Ex.cmp("=", it, Ex.EMPTY), Ex.TRUE, Ex.cmp(">", it, Ex.ZERO))
+    } ?: Ex.TRUE
+    fun limited(index: Int, proportional: X.Scalar) = cap[index]?.let {
+        Ex.iff(Ex.cmp("=", it, Ex.EMPTY), proportional, Ex.fn("MIN", it, proportional))
+    } ?: proportional
     val eligible = keys.indices.map { index ->
         keep(
             Ex.fn(
                 "AND",
                 Ex.cmp(">", weight[index], Ex.ZERO),
-                cap[index]?.let {
-                    Ex.cmp(">", it, Ex.ZERO)
-                } ?: Ex.TRUE,
+                capAllows(index),
                 kind = XKind.BOOL,
             ),
         )
@@ -44,17 +79,30 @@ internal fun cappedAllocation(
         if (limit == null) {
             Ex.FALSE
         } else {
-            val threshold = keep(Ex.iff(eligible[index], Ex.div(limit, weight[index]), Ex.ZERO))
+            val threshold =
+                keep(
+                    Ex.iff(
+                        eligible[index],
+                        Ex.iff(Ex.cmp("=", limit, Ex.EMPTY), Ex.ZERO, Ex.div(limit, weight[index])),
+                        Ex.ZERO,
+                    ),
+                )
             val filledAtThreshold = keep(
                 sum(
                     keys.indices.map { other ->
                         val proportional = Ex.mul(weight[other], threshold)
-                        val limited = cap[other]?.let { Ex.fn("MIN", it, proportional) } ?: proportional
-                        Ex.iff(eligible[other], limited, Ex.ZERO)
+                        val selected = limited(other, proportional)
+                        Ex.iff(eligible[other], selected, Ex.ZERO)
                     },
                 ),
             )
-            keep(Ex.fn("AND", eligible[index], Ex.cmp(">", amount, filledAtThreshold), kind = XKind.BOOL))
+            keep(
+                Ex.iff(
+                    Ex.cmp("=", limit, Ex.EMPTY),
+                    Ex.FALSE,
+                    Ex.fn("AND", eligible[index], Ex.cmp(">", amount, filledAtThreshold), kind = XKind.BOOL),
+                ),
+            )
         }
     }
     val open = keys.indices.map {
@@ -108,5 +156,15 @@ internal fun cappedAllocation(
             ),
         )
     }
-    return X.MapX(keys, values)
+    return X.MapX(
+        keys,
+        if (liveKeys ==
+            null
+        ) {
+            values
+        } else {
+            values.mapIndexed { index, value -> Ex.iff(present[index], value, Ex.EMPTY) }
+        },
+        liveKeys,
+    )
 }

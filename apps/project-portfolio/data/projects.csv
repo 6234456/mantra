@@ -1,0 +1,4 @@
+id,title,department-id,cost,benefit,hours,selected,approval-note
+A,Fictional tooling upgrade,DELIVERY,80,140,70,true,Fictional selection A
+B,Fictional service refresh,DELIVERY,50,75,50,false,
+C,Fictional prototype,RESEARCH,40,68,60,true,Fictional selection C

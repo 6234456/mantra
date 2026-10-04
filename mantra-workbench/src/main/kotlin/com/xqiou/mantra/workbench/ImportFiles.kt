@@ -1,8 +1,10 @@
 package com.xqiou.mantra.workbench
 
+import com.xqiou.mantra.core.MantraException
 import com.xqiou.mantra.core.data.CsvSource
 import com.xqiou.mantra.core.data.Json
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.excel.XlsxSource
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.ByteArrayInputStream
 
@@ -26,7 +28,7 @@ object ImportFiles {
         try {
             when (format) {
                 "csv" -> {
-                    val content = bytes.toString(Charsets.UTF_8).removePrefix("\uFEFF")
+                    val content = decodeImportUtf8(bytes).removePrefix("\uFEFF")
                     val first = content.lineSequence().firstOrNull().orEmpty()
                     val separator = listOf(';', ',', '\t').maxBy { char -> first.count { it == char } }
                     delimiter = separator.toString()
@@ -74,7 +76,7 @@ object ImportFiles {
                     }
                 }
                 "json" -> {
-                    val value = Json.parse(bytes.toString(Charsets.UTF_8))
+                    val value = Json.parse(decodeImportUtf8(bytes))
                     val entries = (value as? Value.MapV)?.entries
                         ?: throw WorkspaceException(WorkspaceProblem.INVALID, "JSON import must contain an object")
                     columns =
@@ -87,6 +89,7 @@ object ImportFiles {
                     rowCount = 1
                 }
                 "xlsx" -> {
+                    XlsxSource.validateContainer(bytes)
                     ByteArrayInputStream(bytes).use { input ->
                         XSSFWorkbook(input).use { workbook ->
                             columns =
@@ -104,6 +107,20 @@ object ImportFiles {
             }
         } catch (error: WorkspaceException) {
             throw error
+        } catch (error: MantraException) {
+            if (error.runFailure != null) throw error
+            throw WorkspaceException(
+                if (error.diagnostics.any {
+                        it.code == "MANTRA-DATA-XLSX-LIMIT"
+                    }
+                ) {
+                    WorkspaceProblem.TOO_LARGE
+                } else {
+                    WorkspaceProblem.INVALID
+                },
+                "Import workbook could not be read",
+                error.diagnostics,
+            )
         } catch (_: Exception) {
             throw WorkspaceException(WorkspaceProblem.INVALID, "Import file could not be read")
         }

@@ -1,0 +1,538 @@
+public final class com/xqiou/mantra/packages/CapturedPackageData {
+	public final fun bytes ()[B
+	public final fun getBinding ()Lcom/xqiou/mantra/core/model/SourceBinding;
+	public final fun getResource ()Lcom/xqiou/mantra/packages/PackageResource;
+	public final fun text ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/CaseMigrationEditor : com/xqiou/mantra/packages/MigrationEditor {
+	public static final field INSTANCE Lcom/xqiou/mantra/packages/CaseMigrationEditor;
+	public fun apply (Lcom/xqiou/mantra/core/read/SourceText;Ljava/util/List;)Lcom/xqiou/mantra/core/read/SourceText;
+}
+
+public abstract interface class com/xqiou/mantra/packages/DirectoryAccess {
+	public abstract fun read (Ljava/lang/String;J)[B
+	public abstract fun verifyUnchanged ()V
+}
+
+public final class com/xqiou/mantra/packages/DirectoryPolicy : java/lang/Enum {
+	public static final field STRICT_HANDLES Lcom/xqiou/mantra/packages/DirectoryPolicy;
+	public static final field TRUSTED_LOCAL Lcom/xqiou/mantra/packages/DirectoryPolicy;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/packages/DirectoryPolicy;
+	public static fun values ()[Lcom/xqiou/mantra/packages/DirectoryPolicy;
+}
+
+public final class com/xqiou/mantra/packages/DirectorySources {
+	public static final field INSTANCE Lcom/xqiou/mantra/packages/DirectorySources;
+	public final fun trustedLocal (Ljava/nio/file/Path;)Lcom/xqiou/mantra/packages/DirectoryAccess;
+}
+
+public final class com/xqiou/mantra/packages/FileMigrationStore : com/xqiou/mantra/packages/MigrationStore {
+	public static final field Companion Lcom/xqiou/mantra/packages/FileMigrationStore$Companion;
+	public fun <init> (Ljava/nio/file/Path;JLcom/xqiou/mantra/packages/DirectoryPolicy;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;JLcom/xqiou/mantra/packages/DirectoryPolicy;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun commit (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/read/SourceText;Lkotlin/jvm/functions/Function1;)V
+	public fun read (Ljava/lang/String;)Lcom/xqiou/mantra/core/read/SourceText;
+}
+
+public final class com/xqiou/mantra/packages/FileMigrationStore$Companion {
+}
+
+public final class com/xqiou/mantra/packages/MigrationCoordinator {
+	public fun <init> (Lcom/xqiou/mantra/packages/MigrationStore;Lcom/xqiou/mantra/packages/MigrationRuntime;Lcom/xqiou/mantra/packages/MigrationEditor;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/packages/MigrationStore;Lcom/xqiou/mantra/packages/MigrationRuntime;Lcom/xqiou/mantra/packages/MigrationEditor;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun apply (Lcom/xqiou/mantra/packages/MigrationPreview;Ljava/lang/String;)Lcom/xqiou/mantra/packages/MigrationReceipt;
+	public final fun preview (Lcom/xqiou/mantra/packages/MigrationPlan;)Lcom/xqiou/mantra/packages/MigrationPreview;
+	public final fun preview (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/MigrationTarget;Ljava/util/List;)Lcom/xqiou/mantra/packages/MigrationPreview;
+}
+
+public abstract interface class com/xqiou/mantra/packages/MigrationEditor {
+	public abstract fun apply (Lcom/xqiou/mantra/core/read/SourceText;Ljava/util/List;)Lcom/xqiou/mantra/core/read/SourceText;
+}
+
+public final class com/xqiou/mantra/packages/MigrationEvaluation {
+	public fun <init> (Lcom/xqiou/mantra/packages/MigrationTarget;Ljava/lang/String;Lcom/xqiou/mantra/core/api/CalculationResult;Ljava/util/List;)V
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getGraphRevision ()Ljava/lang/String;
+	public final fun getResult ()Lcom/xqiou/mantra/core/api/CalculationResult;
+	public final fun getTarget ()Lcom/xqiou/mantra/packages/MigrationTarget;
+}
+
+public abstract interface class com/xqiou/mantra/packages/MigrationOperation {
+}
+
+public final class com/xqiou/mantra/packages/MigrationOperation$BindLayout : com/xqiou/mantra/packages/MigrationOperation {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/packages/MigrationOperation$BindLayout;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationOperation$BindLayout;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationOperation$BindLayout;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/MigrationOperation$BindParameters : com/xqiou/mantra/packages/MigrationOperation {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/xqiou/mantra/packages/MigrationOperation$BindParameters;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationOperation$BindParameters;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationOperation$BindParameters;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIds ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/MigrationOperation$PinSchema : com/xqiou/mantra/packages/MigrationOperation {
+	public fun <init> (Lcom/xqiou/mantra/packages/PackageSchemaBinding;)V
+	public final fun component1 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun copy (Lcom/xqiou/mantra/packages/PackageSchemaBinding;)Lcom/xqiou/mantra/packages/MigrationOperation$PinSchema;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationOperation$PinSchema;Lcom/xqiou/mantra/packages/PackageSchemaBinding;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationOperation$PinSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/MigrationOperation$ReplaceText : com/xqiou/mantra/packages/MigrationOperation {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/packages/MigrationOperation$ReplaceText;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationOperation$ReplaceText;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationOperation$ReplaceText;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpected ()Ljava/lang/String;
+	public final fun getOffset ()I
+	public final fun getReplacement ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/MigrationPlan {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/MigrationTarget;Ljava/util/List;)V
+	public final fun getBaseRevision ()Ljava/lang/String;
+	public final fun getCasePath ()Ljava/lang/String;
+	public final fun getOperations ()Ljava/util/List;
+	public final fun getSource ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun getTarget ()Lcom/xqiou/mantra/packages/MigrationTarget;
+}
+
+public final class com/xqiou/mantra/packages/MigrationPreview {
+	public final fun getAfter ()Lcom/xqiou/mantra/packages/MigrationEvaluation;
+	public final fun getBaseRevision ()Ljava/lang/String;
+	public final fun getBefore ()Lcom/xqiou/mantra/packages/MigrationState;
+	public final fun getCandidate ()Lcom/xqiou/mantra/core/read/SourceText;
+	public final fun getCandidateSha256 ()Ljava/lang/String;
+	public final fun getCasePath ()Ljava/lang/String;
+	public final fun getOperations ()Ljava/util/List;
+	public final fun getOriginal ()Lcom/xqiou/mantra/core/read/SourceText;
+	public final fun getOriginalSha256 ()Ljava/lang/String;
+	public final fun getReviewToken ()Ljava/lang/String;
+	public final fun getSource ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun getTarget ()Lcom/xqiou/mantra/packages/MigrationTarget;
+}
+
+public final class com/xqiou/mantra/packages/MigrationReceipt {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationEvaluation;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lcom/xqiou/mantra/packages/MigrationEvaluation;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationEvaluation;)Lcom/xqiou/mantra/packages/MigrationReceipt;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationReceipt;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/MigrationEvaluation;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationReceipt;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCasePath ()Ljava/lang/String;
+	public final fun getEvaluation ()Lcom/xqiou/mantra/packages/MigrationEvaluation;
+	public final fun getNewSourceSha256 ()Ljava/lang/String;
+	public final fun getOldSourceSha256 ()Ljava/lang/String;
+	public final fun getReviewToken ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/xqiou/mantra/packages/MigrationRuntime {
+	public abstract fun commitIfCurrent (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public abstract fun current (Ljava/lang/String;)Lcom/xqiou/mantra/packages/MigrationState;
+	public abstract fun evaluate (Ljava/lang/String;Lcom/xqiou/mantra/core/read/SourceText;Lcom/xqiou/mantra/packages/MigrationTarget;)Lcom/xqiou/mantra/packages/MigrationEvaluation;
+}
+
+public final class com/xqiou/mantra/packages/MigrationState {
+	public fun <init> (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/api/CalculationResult;Ljava/util/List;)V
+	public final fun getDiagnostics ()Ljava/util/List;
+	public final fun getGraphRevision ()Ljava/lang/String;
+	public final fun getResult ()Lcom/xqiou/mantra/core/api/CalculationResult;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun getSourceSha256 ()Ljava/lang/String;
+}
+
+public abstract interface class com/xqiou/mantra/packages/MigrationStore {
+	public abstract fun commit (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/core/read/SourceText;Lkotlin/jvm/functions/Function1;)V
+	public abstract fun read (Ljava/lang/String;)Lcom/xqiou/mantra/core/read/SourceText;
+}
+
+public final class com/xqiou/mantra/packages/MigrationTarget {
+	public fun <init> (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageIdentity;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/packages/MigrationTarget;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MigrationTarget;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MigrationTarget;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPackageIdentity ()Lcom/xqiou/mantra/packages/PackageIdentity;
+	public final fun getPackageRevision ()Ljava/lang/String;
+	public final fun getParameterSelectionRevision ()Ljava/lang/String;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/MountedPackageCase {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;Lcom/xqiou/mantra/packages/PackageCase;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public final fun component3 ()Lcom/xqiou/mantra/packages/PackageCase;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;Lcom/xqiou/mantra/packages/PackageCase;)Lcom/xqiou/mantra/packages/MountedPackageCase;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/MountedPackageCase;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;Lcom/xqiou/mantra/packages/PackageCase;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MountedPackageCase;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCanonicalPath ()Ljava/lang/String;
+	public final fun getEntry ()Lcom/xqiou/mantra/packages/PackageCase;
+	public final fun getSnapshot ()Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageCase {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageCase;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageCase;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageCase;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getLayout ()Ljava/lang/String;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageCatalog {
+	public fun <init> ()V
+	public final fun register (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSnapshot;)V
+	public final fun resolveCase (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/packages/MountedPackageCase;
+	public static synthetic fun resolveCase$default (Lcom/xqiou/mantra/packages/PackageCatalog;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/MountedPackageCase;
+}
+
+public abstract interface class com/xqiou/mantra/packages/PackageDataImporter {
+	public abstract fun import (Lcom/xqiou/mantra/core/model/Schema;Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/model/CaseData;
+}
+
+public final class com/xqiou/mantra/packages/PackageException : java/lang/RuntimeException {
+	public fun <init> (Lcom/xqiou/mantra/core/Diagnostic;Ljava/lang/Throwable;Ljava/util/List;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/core/Diagnostic;Ljava/lang/Throwable;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDiagnostic ()Lcom/xqiou/mantra/core/Diagnostic;
+	public final fun getDiagnostics ()Ljava/util/List;
+}
+
+public final class com/xqiou/mantra/packages/PackageGraphBinding {
+	public fun <init> (Lcom/xqiou/mantra/packages/MountedPackageCase;Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/packages/ParameterSelection;)V
+	public final fun component1 ()Lcom/xqiou/mantra/packages/MountedPackageCase;
+	public final fun component2 ()Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+	public final fun component3 ()Lcom/xqiou/mantra/packages/ParameterSelection;
+	public final fun copy (Lcom/xqiou/mantra/packages/MountedPackageCase;Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/packages/ParameterSelection;)Lcom/xqiou/mantra/packages/PackageGraphBinding;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageGraphBinding;Lcom/xqiou/mantra/packages/MountedPackageCase;Lcom/xqiou/mantra/core/api/PreparedCasePackage;Lcom/xqiou/mantra/packages/ParameterSelection;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageGraphBinding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCase ()Lcom/xqiou/mantra/packages/MountedPackageCase;
+	public final fun getPrepared ()Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+	public final fun getSelection ()Lcom/xqiou/mantra/packages/ParameterSelection;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageGraphResolver : com/xqiou/mantra/core/api/CasePackageResolver {
+	public fun <init> (Lcom/xqiou/mantra/packages/PackageCatalog;Lcom/xqiou/mantra/packages/PackageDataImporter;Lcom/xqiou/mantra/packages/PackageParameterPolicy;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/packages/PackageCatalog;Lcom/xqiou/mantra/packages/PackageDataImporter;Lcom/xqiou/mantra/packages/PackageParameterPolicy;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun binding (Lcom/xqiou/mantra/core/api/CanonicalCaseKey;)Lcom/xqiou/mantra/packages/PackageGraphBinding;
+	public fun identify (Lcom/xqiou/mantra/core/api/CaseReference;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/api/CanonicalCaseKey;
+	public fun load (Lcom/xqiou/mantra/core/api/CanonicalCaseKey;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/api/PreparedCasePackage;
+}
+
+public final class com/xqiou/mantra/packages/PackageIdentity {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/SemanticVersion;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/SemanticVersion;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/SemanticVersion;)Lcom/xqiou/mantra/packages/PackageIdentity;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Lcom/xqiou/mantra/packages/SemanticVersion;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageIdentity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getVersion ()Lcom/xqiou/mantra/packages/SemanticVersion;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageLayout {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageLayout;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageLayout;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageLayout;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageLimits {
+	public fun <init> (JJJIII)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun copy (JJJIII)Lcom/xqiou/mantra/packages/PackageLimits;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageLimits;JJJIIIILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContainerEntries ()I
+	public final fun getJsonDepth ()I
+	public final fun getManifestBytes ()J
+	public final fun getResourceBytes ()J
+	public final fun getResources ()I
+	public final fun getTotalBytes ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageLoader {
+	public static final field INSTANCE Lcom/xqiou/mantra/packages/PackageLoader;
+	public final fun classpath (Ljava/lang/String;Ljava/lang/ClassLoader;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;Lcom/xqiou/mantra/packages/DirectoryPolicy;)Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public static synthetic fun classpath$default (Lcom/xqiou/mantra/packages/PackageLoader;Ljava/lang/String;Ljava/lang/ClassLoader;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;Lcom/xqiou/mantra/packages/DirectoryPolicy;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public final fun directory (Lcom/xqiou/mantra/packages/DirectoryAccess;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;)Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public final fun directory (Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;Lcom/xqiou/mantra/packages/DirectoryPolicy;)Lcom/xqiou/mantra/packages/PackageSnapshot;
+	public static synthetic fun directory$default (Lcom/xqiou/mantra/packages/PackageLoader;Ljava/nio/file/Path;Lcom/xqiou/mantra/packages/SemanticVersion;Lcom/xqiou/mantra/packages/PackageLimits;Lcom/xqiou/mantra/packages/DirectoryPolicy;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageSnapshot;
+}
+
+public final class com/xqiou/mantra/packages/PackageManifest {
+	public final fun getCases ()Ljava/util/List;
+	public final fun getDependencies ()Ljava/util/List;
+	public final fun getEngine ()Lcom/xqiou/mantra/packages/VersionRange;
+	public final fun getIdentity ()Lcom/xqiou/mantra/packages/PackageIdentity;
+	public final fun getLayouts ()Ljava/util/List;
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getResources ()Ljava/util/List;
+	public final fun getSchemas ()Ljava/util/List;
+}
+
+public final class com/xqiou/mantra/packages/PackageParameterChoice {
+	public fun <init> (Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;Ljava/util/List;Ljava/util/Set;)V
+	public final fun component1 ()Ljava/time/LocalDate;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public final fun component3 ()Ljava/util/List;
+	public final fun component4 ()Ljava/util/Set;
+	public final fun copy (Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;Ljava/util/List;Ljava/util/Set;)Lcom/xqiou/mantra/packages/PackageParameterChoice;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageParameterChoice;Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;Ljava/util/List;Ljava/util/Set;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageParameterChoice;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCandidateIds ()Ljava/util/List;
+	public final fun getEffectiveDate ()Ljava/time/LocalDate;
+	public final fun getMode ()Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public final fun getRequiredKeys ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/xqiou/mantra/packages/PackageParameterPolicy {
+	public abstract fun choice (Lcom/xqiou/mantra/packages/MountedPackageCase;)Lcom/xqiou/mantra/packages/PackageParameterChoice;
+}
+
+public final class com/xqiou/mantra/packages/PackageParameters {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageParameters;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageParameters;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageParameters;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageResource {
+	public fun <init> (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;JLjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;JLjava/lang/String;)Lcom/xqiou/mantra/packages/PackageResource;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageResource;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;JLjava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageResource;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getByteLength ()J
+	public final fun getPath ()Ljava/lang/String;
+	public final fun getRole ()Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public final fun getSha256 ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageResourceRole : java/lang/Enum {
+	public static final field CASE Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field DATA Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field DOCUMENTATION Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field FRAGMENT Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field IMPORT_TEMPLATE Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field LAYOUT Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field MIGRATION Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field PARAMETERS Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static final field SCHEMA Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageResourceRole;
+	public static fun values ()[Lcom/xqiou/mantra/packages/PackageResourceRole;
+}
+
+public final class com/xqiou/mantra/packages/PackageSchema {
+	public fun <init> (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)V
+	public final fun component1 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageSchema;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageSchema;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageSchema;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBinding ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun getPath ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageSchemaBinding {
+	public fun <init> (Lcom/xqiou/mantra/core/model/SchemaIdentity;Lcom/xqiou/mantra/packages/SchemaVersionMode;)V
+	public final fun component1 ()Lcom/xqiou/mantra/core/model/SchemaIdentity;
+	public final fun component2 ()Lcom/xqiou/mantra/packages/SchemaVersionMode;
+	public final fun copy (Lcom/xqiou/mantra/core/model/SchemaIdentity;Lcom/xqiou/mantra/packages/SchemaVersionMode;)Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/core/model/SchemaIdentity;Lcom/xqiou/mantra/packages/SchemaVersionMode;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIdentity ()Lcom/xqiou/mantra/core/model/SchemaIdentity;
+	public final fun getMode ()Lcom/xqiou/mantra/packages/SchemaVersionMode;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/PackageSnapshot {
+	public final fun bytes (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;)[B
+	public static synthetic fun bytes$default (Lcom/xqiou/mantra/packages/PackageSnapshot;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;ILjava/lang/Object;)[B
+	public final fun case (Ljava/lang/String;)Lcom/xqiou/mantra/core/model/CaseData;
+	public final fun dataSources (Ljava/lang/String;)Ljava/util/List;
+	public final fun descriptor (Ljava/lang/String;)Lcom/xqiou/mantra/packages/PackageResource;
+	public final fun getManifest ()Lcom/xqiou/mantra/packages/PackageManifest;
+	public final fun getManifestByteLength ()J
+	public final fun getManifestSha256 ()Ljava/lang/String;
+	public final fun getRevision ()Ljava/lang/String;
+	public final fun getTotalByteLength ()J
+	public final fun layout (Ljava/lang/String;)Lcom/xqiou/mantra/core/read/SourceText;
+	public final fun manifestBytes ()[B
+	public final fun parameters (Ljava/lang/String;)Lcom/xqiou/mantra/core/read/ParameterSet;
+	public final fun schema (Lcom/xqiou/mantra/packages/PackageSchemaBinding;)Lcom/xqiou/mantra/core/model/Schema;
+	public final fun source (Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;)Lcom/xqiou/mantra/core/read/SourceText;
+	public static synthetic fun source$default (Lcom/xqiou/mantra/packages/PackageSnapshot;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageResourceRole;ILjava/lang/Object;)Lcom/xqiou/mantra/core/read/SourceText;
+}
+
+public final class com/xqiou/mantra/packages/ParameterProvenance {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDate;Ljava/time/LocalDate;Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;ZLjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/time/LocalDate;
+	public final fun component11 ()Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public final fun component12 ()Z
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun component4 ()Lcom/xqiou/mantra/packages/PackageIdentity;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/time/LocalDate;
+	public final fun component9 ()Ljava/time/LocalDate;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDate;Ljava/time/LocalDate;Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;ZLjava/lang/String;)Lcom/xqiou/mantra/packages/ParameterProvenance;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/packages/ParameterProvenance;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Lcom/xqiou/mantra/packages/PackageIdentity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/time/LocalDate;Ljava/time/LocalDate;Ljava/time/LocalDate;Lcom/xqiou/mantra/packages/ParameterSelectionMode;ZLjava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/packages/ParameterProvenance;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEffectiveDate ()Ljava/time/LocalDate;
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getMode ()Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public final fun getPackageIdentity ()Lcom/xqiou/mantra/packages/PackageIdentity;
+	public final fun getPackageRevision ()Ljava/lang/String;
+	public final fun getReference ()Ljava/lang/String;
+	public final fun getResourcePath ()Ljava/lang/String;
+	public final fun getResourceSha256 ()Ljava/lang/String;
+	public final fun getSchema ()Lcom/xqiou/mantra/packages/PackageSchemaBinding;
+	public final fun getSetId ()Ljava/lang/String;
+	public final fun getValidForDate ()Z
+	public final fun getValidFrom ()Ljava/time/LocalDate;
+	public final fun getValidUntil ()Ljava/time/LocalDate;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/ParameterSelection {
+	public final fun getParameters ()Ljava/util/List;
+	public final fun getProvenance ()Ljava/util/List;
+	public final fun getRevision ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/ParameterSelectionMode : java/lang/Enum {
+	public static final field EFFECTIVE_DATE Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public static final field WHAT_IF Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+	public static fun values ()[Lcom/xqiou/mantra/packages/ParameterSelectionMode;
+}
+
+public final class com/xqiou/mantra/packages/ParameterSelector {
+	public static final field INSTANCE Lcom/xqiou/mantra/packages/ParameterSelector;
+	public final fun effectiveDate (Lcom/xqiou/mantra/packages/PackageSnapshot;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/time/LocalDate;Ljava/util/List;Ljava/util/Set;)Lcom/xqiou/mantra/packages/ParameterSelection;
+	public final fun whatIf (Lcom/xqiou/mantra/packages/PackageSnapshot;Lcom/xqiou/mantra/packages/PackageSchemaBinding;Ljava/time/LocalDate;Ljava/util/List;Ljava/util/Set;)Lcom/xqiou/mantra/packages/ParameterSelection;
+}
+
+public final class com/xqiou/mantra/packages/SchemaVersionMode : java/lang/Enum {
+	public static final field LEGACY_EXACT Lcom/xqiou/mantra/packages/SchemaVersionMode;
+	public static final field SEMVER Lcom/xqiou/mantra/packages/SchemaVersionMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/packages/SchemaVersionMode;
+	public static fun values ()[Lcom/xqiou/mantra/packages/SchemaVersionMode;
+}
+
+public final class com/xqiou/mantra/packages/SemanticVersion : java/lang/Comparable {
+	public static final field Companion Lcom/xqiou/mantra/packages/SemanticVersion$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/math/BigInteger;Ljava/math/BigInteger;Ljava/math/BigInteger;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun compareTo (Lcom/xqiou/mantra/packages/SemanticVersion;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/SemanticVersion$Companion {
+	public final fun parse (Ljava/lang/String;)Lcom/xqiou/mantra/packages/SemanticVersion;
+}
+
+public final class com/xqiou/mantra/packages/VersionRange {
+	public static final field Companion Lcom/xqiou/mantra/packages/VersionRange$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun contains (Lcom/xqiou/mantra/packages/SemanticVersion;)Z
+	public final fun getText ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/packages/VersionRange$Companion {
+	public final fun parse (Ljava/lang/String;)Lcom/xqiou/mantra/packages/VersionRange;
+}
+

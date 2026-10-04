@@ -1,0 +1,17 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "weighted-rate@A": null,
+    "weighted-rate@B": null,
+    "weighted-rate@*": null
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-AGGREGATE-ZERO-DENOMINATOR",
+      "category": "business",
+      "severity": "warning",
+      "effect": "warning"
+    }
+  ]
+}

@@ -40,6 +40,8 @@ const words = {
     grouping: 'Tausenderzeichen',
     none: 'Keines',
     ambiguous: 'Zahlenformat mehrdeutig. Bitte Dezimal- und Tausenderzeichen ausdrücklich wählen.',
+    readOnly: 'Dieser Fall ist schreibgeschützt.',
+    sourcesReadOnly: 'Datenquellen sind in dieser Ansicht schreibgeschützt.',
   },
   en: {
     eyebrow: 'Data access',
@@ -77,6 +79,8 @@ const words = {
     grouping: 'Grouping separator',
     none: 'None',
     ambiguous: 'Ambiguous number format. Choose decimal and grouping separators explicitly.',
+    readOnly: 'This case is read-only.',
+    sourcesReadOnly: 'Data sources are read-only in this view.',
   },
 }
 
@@ -119,6 +123,11 @@ export function SourcesPage({
 }) {
   const lang = document.documentElement.lang.startsWith('en') ? 'en' : 'de'
   const w = words[lang]
+  const editable = data.canEditCase?.(caseId) !== false
+  function mayManageSources() {
+    return data.canEditCase?.(caseId) !== false && data.canManageSources?.(caseId) !== false
+  }
+  const canManageSources = mayManageSources()
   const [sources, setSources] = useState<SourceBinding[]>([])
   const [sourceRevision, setSourceRevision] = useState('')
   const [loading, setLoading] = useState(true)
@@ -137,6 +146,10 @@ export function SourcesPage({
   const [templateName, setTemplateName] = useState('')
   const inputs = useMemo(() => (structure ? inputFields(structure) : []), [structure])
   useEffect(() => {
+    if (!canManageSources) {
+      setTemplates([])
+      return
+    }
     const controller = new AbortController()
     data
       .importTemplates(controller.signal)
@@ -147,7 +160,7 @@ export function SourcesPage({
         if (!controller.signal.aborted) setError(String(reason))
       })
     return () => controller.abort()
-  }, [data])
+  }, [data, canManageSources])
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true)
@@ -171,7 +184,7 @@ export function SourcesPage({
   }, [caseId, data, revision])
 
   async function choose(file?: File) {
-    if (!file) return
+    if (!mayManageSources() || !file) return
     setError('')
     setInspection(undefined)
     setMapping({})
@@ -186,7 +199,7 @@ export function SourcesPage({
   }
 
   async function inspect() {
-    if (!content || !fileName) return
+    if (!mayManageSources() || !content || !fileName) return
     setBusy(true)
     setError('')
     try {
@@ -239,7 +252,7 @@ export function SourcesPage({
   }
 
   async function apply() {
-    if (!content || !inspection || !revision) return
+    if (!mayManageSources() || !content || !inspection || !revision) return
     setBusy(true)
     setError('')
     try {
@@ -257,7 +270,7 @@ export function SourcesPage({
   }
 
   async function saveTemplate() {
-    if (!templateName) return
+    if (!mayManageSources() || !templateName) return
     setBusy(true)
     setError('')
     try {
@@ -272,6 +285,7 @@ export function SourcesPage({
   }
 
   function selectTemplate(name: string) {
+    if (!mayManageSources()) return
     const template = templates.find((item) => item.name === name)
     if (!template) return
     setFormat(template.format)
@@ -295,6 +309,7 @@ export function SourcesPage({
   }
 
   async function remove(index: number) {
+    if (!mayManageSources()) return
     setBusy(true)
     setError('')
     try {
@@ -316,6 +331,7 @@ export function SourcesPage({
   const mapped = Object.values(mapping).filter(Boolean).length
   const duplicateTargets = new Set(Object.values(mapping).filter(Boolean)).size !== mapped
   const ready =
+    canManageSources &&
     !!revision &&
     !!inspection &&
     (format === 'xlsx' || format === 'json' || (format === 'csv' && mode === 'pairs') || mapped > 0) &&
@@ -329,6 +345,7 @@ export function SourcesPage({
         <h1>{w.title}</h1>
         <p>{w.intro}</p>
       </div>
+      {!canManageSources && <p role="status">{editable ? w.sourcesReadOnly : w.readOnly}</p>}
       <div className="sources-layout">
         <section className="sheet sources-bound">
           <div className="section-heading">
@@ -360,7 +377,7 @@ export function SourcesPage({
                       </small>
                     )}
                   </div>
-                  <button type="button" disabled={busy} onClick={() => remove(source.index)}>
+                  <button type="button" disabled={!canManageSources || busy} onClick={() => remove(source.index)}>
                     {w.remove}
                   </button>
                 </li>
@@ -378,7 +395,11 @@ export function SourcesPage({
           <div className="sources-template">
             <label>
               {w.template}
-              <select defaultValue="" onChange={(event) => selectTemplate(event.target.value)}>
+              <select
+                disabled={!canManageSources}
+                defaultValue=""
+                onChange={(event) => selectTemplate(event.target.value)}
+              >
                 <option value="">—</option>
                 {templates.map((template) => (
                   <option key={template.name} value={template.name}>
@@ -393,6 +414,7 @@ export function SourcesPage({
               {w.file}
               <input
                 type="file"
+                disabled={!canManageSources}
                 accept=".csv,.json,.xlsx,text/csv,application/json"
                 onChange={(event) => void choose(event.target.files?.[0])}
               />
@@ -400,6 +422,7 @@ export function SourcesPage({
             <label>
               {w.format}
               <select
+                disabled={!canManageSources}
                 value={format}
                 onChange={(event) => {
                   setFormat(event.target.value as typeof format)
@@ -411,7 +434,7 @@ export function SourcesPage({
                 <option value="xlsx">XLSX</option>
               </select>
             </label>
-            <button type="button" disabled={!content || busy} onClick={() => void inspect()}>
+            <button type="button" disabled={!canManageSources || !content || busy} onClick={() => void inspect()}>
               {busy ? w.examining : w.inspect}
             </button>
           </div>
@@ -432,7 +455,11 @@ export function SourcesPage({
                   <div className="sources-mode">
                     <label>
                       {w.mode}
-                      <select value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>
+                      <select
+                        disabled={!canManageSources}
+                        value={mode}
+                        onChange={(event) => setMode(event.target.value as typeof mode)}
+                      >
                         <option value="pairs">{w.pairs}</option>
                         <option value="wide">{w.wide}</option>
                       </select>
@@ -440,7 +467,11 @@ export function SourcesPage({
                     {mode === 'wide' && (
                       <label>
                         {w.member}
-                        <select value={memberColumn} onChange={(event) => setMemberColumn(event.target.value)}>
+                        <select
+                          disabled={!canManageSources}
+                          value={memberColumn}
+                          onChange={(event) => setMemberColumn(event.target.value)}
+                        >
                           <option value="">—</option>
                           {inspection.columns.map((column) => (
                             <option key={column.name}>{column.name}</option>
@@ -455,7 +486,11 @@ export function SourcesPage({
                     <div className="sources-mode sources-number-format">
                       <label>
                         {w.decimal}
-                        <select value={decimal} onChange={(event) => setDecimal(event.target.value)}>
+                        <select
+                          disabled={!canManageSources}
+                          value={decimal}
+                          onChange={(event) => setDecimal(event.target.value)}
+                        >
                           <option value="">—</option>
                           <option value=",">,</option>
                           <option value=".">.</option>
@@ -463,7 +498,11 @@ export function SourcesPage({
                       </label>
                       <label>
                         {w.grouping}
-                        <select value={grouping} onChange={(event) => setGrouping(event.target.value)}>
+                        <select
+                          disabled={!canManageSources}
+                          value={grouping}
+                          onChange={(event) => setGrouping(event.target.value)}
+                        >
                           <option value="">{w.none}</option>
                           <option value=".">.</option>
                           <option value=",">,</option>
@@ -492,7 +531,7 @@ export function SourcesPage({
                               <select
                                 aria-label={`${w.target}: ${column.name}`}
                                 value={mapping[column.name] ?? ''}
-                                disabled={column.name === memberColumn && format === 'csv'}
+                                disabled={!canManageSources || (column.name === memberColumn && format === 'csv')}
                                 onChange={(event) =>
                                   setMapping((previous) => ({ ...previous, [column.name]: event.target.value }))
                                 }
@@ -525,6 +564,7 @@ export function SourcesPage({
                   <label>
                     {w.templateName}
                     <input
+                      disabled={!canManageSources}
                       value={templateName}
                       onChange={(event) => setTemplateName(event.target.value)}
                       placeholder="payroll-2025"

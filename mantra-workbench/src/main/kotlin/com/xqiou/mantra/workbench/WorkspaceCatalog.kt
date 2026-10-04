@@ -14,7 +14,12 @@ import com.xqiou.mantra.excel.ExcelExportLimitException
 import com.xqiou.mantra.excel.ExcelOptions
 import com.xqiou.mantra.excel.ExcelWorkbook
 import com.xqiou.mantra.render.Render
+import com.xqiou.mantra.render.html.HtmlRenderer
 import com.xqiou.mantra.render.layout.LayoutSpec
+import com.xqiou.mantra.render.pdf.PdfOptions
+import com.xqiou.mantra.render.pdf.PdfRenderException
+import com.xqiou.mantra.render.pdf.PdfRenderer
+import com.xqiou.mantra.render.text.TextRenderer
 import com.xqiou.mantra.workbench.json.WorkbenchDocuments
 import com.xqiou.mantra.workbench.json.WorkbenchJson
 import java.nio.file.Files
@@ -53,7 +58,7 @@ data class ExplainAddress(
 /** Reads workspace files on every request and owns bounded calculation sessions for dependency reuse. */
 class WorkspaceCatalog(
     directory: Path,
-    private val mantraVersion: String = "0.4.0-SNAPSHOT",
+    private val mantraVersion: String = com.xqiou.mantra.core.api.RuntimeVersions.mantra,
     normeinVersion: String? = null,
     private val exportBudget: ExportBudget = ExportBudget(),
 ) : AutoCloseable {
@@ -201,10 +206,16 @@ class WorkspaceCatalog(
     fun exportPreview(caseId: String, sheet: String? = null, layoutId: String? = null): DocumentResult {
         val resolved = resolve(caseId, scan(), layoutId, audit = true)
         val export = exportWorkbook(resolved)
-        export.use {
-            val description = export.describe(sheet)
-                ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Worksheet was not found")
-            return DocumentResult(resolved.revision, ExportDocuments.preview(description))
+        try {
+            export.use {
+                // Previews share the download's serialized byte ceiling.
+                it.bytes(exportBudget.maxBytes)
+                val description = it.describe(sheet)
+                    ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Worksheet was not found")
+                return DocumentResult(resolved.revision, ExportDocuments.preview(description))
+            }
+        } catch (error: ExcelExportLimitException) {
+            throw WorkspaceException(WorkspaceProblem.TOO_LARGE, error.message.orEmpty())
         }
     }
 
@@ -221,8 +232,41 @@ class WorkspaceCatalog(
                     throw WorkspaceException(WorkspaceProblem.TOO_LARGE, error.message.orEmpty())
                 }
             }
-            "html" -> Render.html(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
-            "txt" -> Render.text(resolved.view, resolved.layout).toByteArray(Charsets.UTF_8)
+            "pdf", "html", "txt" -> resolved.view.openReader().use { reader ->
+                val paper = Render.paper(resolved.view, resolved.layout, reader)
+                PaperExportLimits.checkPaper(paper, exportBudget, reader, html = format == "html")
+                when (format) {
+                    "html" -> PaperExportLimits.boundedUtf8(HtmlRenderer.render(paper), exportBudget.maxBytes)
+                    "txt" -> {
+                        PaperExportLimits.checkTextExpansion(paper, exportBudget, reader)
+                        PaperExportLimits.boundedUtf8(
+                            TextRenderer.render(paper, includeAudit = false),
+                            exportBudget.maxBytes,
+                        )
+                    }
+                    else -> try {
+                        PdfRenderer.render(
+                            paper,
+                            PdfOptions(
+                                maxPages = exportBudget.maxSheets,
+                                maxRows = exportBudget.maxCells,
+                                maxOutputBytes = exportBudget.maxBytes,
+                            ),
+                        )
+                    } catch (error: PdfRenderException) {
+                        throw WorkspaceException(
+                            if (error.code ==
+                                "MANTRA-PDF-LIMIT"
+                            ) {
+                                WorkspaceProblem.TOO_LARGE
+                            } else {
+                                WorkspaceProblem.INVALID
+                            },
+                            error.message.orEmpty(),
+                        )
+                    }
+                }
+            }
             else -> throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Export format was not found")
         }
     }

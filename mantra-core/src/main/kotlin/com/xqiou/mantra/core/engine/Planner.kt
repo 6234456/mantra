@@ -62,6 +62,7 @@ internal class Planner(
     private val sink: DiagnosticSink,
     private val context: RunContext? = null,
     private val requireMaterializedLinks: Boolean = true,
+    private val compiling: CompilationMeter? = null,
 ) {
     private val compiler = DslSemanticCompiler()
     private val environment = MantraKernel.environment
@@ -172,6 +173,7 @@ internal class Planner(
             (schema.functions + case.functions).associate { it.name to NamedSource(it.source, it.location) },
             types,
             ::elementType,
+            compiling,
         )
         if (!validateDefinitions(schema.functions + case.functions)) return null
         compileAll()
@@ -455,6 +457,7 @@ internal class Planner(
     private fun validateDefinitions(functions: List<FunctionDecl>): Boolean {
         if (functions.isEmpty()) return true
         val scope = scopeFor(emptyList())
+        compiling?.semantic()
         return when (
             val result = compiler.compile(
                 DslCompileRequest("nil", namedDefinitions = definitions),

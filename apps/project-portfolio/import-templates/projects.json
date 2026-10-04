@@ -1,0 +1,14 @@
+{
+  "name": "projects",
+  "format": "csv",
+  "options": {
+    "input": "projects",
+    "delimiter": ",",
+    "decimal": ".",
+    "grouping": "",
+    "path": "data/projects.csv"
+  },
+  "case": "case-demo.mantra",
+  "schema": "project.portfolio/supplied-plan",
+  "schema-version": "1.0.0"
+}

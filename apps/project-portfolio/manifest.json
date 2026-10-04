@@ -1,0 +1,331 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.project-portfolio",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 3309,
+      "sha256": "231592dc5347b03429bf91781a954825dd6a9b2bc51a7538757420504bff59d9"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1045,
+      "sha256": "1a8f60a0ab2c3f3f59d209b9c10344b8f442d007009613d0e19e6b19423fc493"
+    },
+    {
+      "path": "case-fractional-currency.mantra",
+      "role": "case",
+      "byteLength": 1090,
+      "sha256": "bad76efea461722317a0944e7097f5abab001f2ea8b2499e03b3c5efc2cd72fa"
+    },
+    {
+      "path": "case-missing-approval.mantra",
+      "role": "case",
+      "byteLength": 1148,
+      "sha256": "8d8e0381b0b3e4c74d1b38e43eb01130c492f12e84696d03a37de1968e1e10da"
+    },
+    {
+      "path": "case-none-selected.mantra",
+      "role": "case",
+      "byteLength": 1201,
+      "sha256": "27e9cf3b4152eb220849af55239422cfc967c530e2a24f21d4ee0592b6cda964"
+    },
+    {
+      "path": "case-over-budget.mantra",
+      "role": "case",
+      "byteLength": 1247,
+      "sha256": "8350f232f60cd7bac99e4e1d22f9c995f2a3a4445f89f8d448ab4532511873cd"
+    },
+    {
+      "path": "case-zero-cost.mantra",
+      "role": "case",
+      "byteLength": 1254,
+      "sha256": "7e0ab2bfb7b0ceee541a4f83cf2cd5ced0d34ba9c3e4671c1ad2312ce6e1e021"
+    },
+    {
+      "path": "data/departments.csv",
+      "role": "data",
+      "byteLength": 75,
+      "sha256": "ea2feaf3f1a4977fe7eea6e603b1b7cad05dce14ef1fd9530724ae48f6f0fb01"
+    },
+    {
+      "path": "data/projects.csv",
+      "role": "data",
+      "byteLength": 259,
+      "sha256": "d46fd097bd8870fffb5b9263589d0935e4df481d87c25a0ffee85876153fdd1e"
+    },
+    {
+      "path": "import-templates/departments.json",
+      "role": "import-template",
+      "byteLength": 298,
+      "sha256": "d4ab3df070163f16834556f9f0edbb8454f71a327d1da2baedcab0ab4921493c"
+    },
+    {
+      "path": "import-templates/projects.json",
+      "role": "import-template",
+      "byteLength": 289,
+      "sha256": "d9740ceefdf8b16b7ebb549e4700a276ebea3021f31a976c122437fb113698b5"
+    },
+    {
+      "path": "independent/fixtures/demo.json",
+      "role": "documentation",
+      "byteLength": 1032,
+      "sha256": "5088c88bf3b4e4c7656b0d76db6f2bb117bde4713c91dfb5dc5f4d090a726a27"
+    },
+    {
+      "path": "independent/fixtures/fractional-currency.json",
+      "role": "documentation",
+      "byteLength": 1066,
+      "sha256": "d2016446b1942498e7734d765753307b42d77f6e8c0360b7c3d7abc22875dd03"
+    },
+    {
+      "path": "independent/fixtures/missing-approval.json",
+      "role": "documentation",
+      "byteLength": 1023,
+      "sha256": "ee51a140a50195c96bf748edfd8488286c7b4154726765a858885d259aa8155e"
+    },
+    {
+      "path": "independent/fixtures/none-selected.json",
+      "role": "documentation",
+      "byteLength": 1000,
+      "sha256": "e5a27e3a52087798ab249399796bb345bea4db2780c7f881c6aac2c0cf885408"
+    },
+    {
+      "path": "independent/fixtures/over-budget.json",
+      "role": "documentation",
+      "byteLength": 1057,
+      "sha256": "21eb8fa222181ff176803b903ee88b80bee5ce6250d8d07d482da29403189e69"
+    },
+    {
+      "path": "independent/fixtures/zero-cost.json",
+      "role": "documentation",
+      "byteLength": 1032,
+      "sha256": "48a3d7f097798db82e265e8e5d5fa0ab691cdc17e84472a71fa06f9d2ad0dae8"
+    },
+    {
+      "path": "independent/primary-sources.json",
+      "role": "documentation",
+      "byteLength": 300,
+      "sha256": "468ee0e783b374f53458605ac73951501b1e127bbcd43cd4edc2a9f6f6322d24"
+    },
+    {
+      "path": "independent/reference.py",
+      "role": "documentation",
+      "byteLength": 9384,
+      "sha256": "621b96aea79b297c0cda51c3b399a61f632ba41d2bef28f9500c84e82fdc4366"
+    },
+    {
+      "path": "independent/references/demo-summary.json",
+      "role": "documentation",
+      "byteLength": 252,
+      "sha256": "1b957517507c3dd87df3abdfdb3c6438633dc8a3aba4053e1729d57f87da8744"
+    },
+    {
+      "path": "independent/references/demo-values.json",
+      "role": "documentation",
+      "byteLength": 1927,
+      "sha256": "b67b5fc3dc8daf77a39ddec572c9f487614c87c805a254281609dde421b62664"
+    },
+    {
+      "path": "independent/references/fractional-currency-summary.json",
+      "role": "documentation",
+      "byteLength": 267,
+      "sha256": "ce21e1c04bad0f9f67425d4d7d58d2e6c80b242ea6e017edf1485de448eb6cd1"
+    },
+    {
+      "path": "independent/references/fractional-currency-values.json",
+      "role": "documentation",
+      "byteLength": 1930,
+      "sha256": "fc1792f610ab1b2fafc0931b6d03a2c55dfe7bc224f9876aa422ce9b96658596"
+    },
+    {
+      "path": "independent/references/missing-approval-summary.json",
+      "role": "documentation",
+      "byteLength": 426,
+      "sha256": "680e447cd3762b3c31d50b009146c8b2602bf0c1ffe636dcca4ad76ae262d887"
+    },
+    {
+      "path": "independent/references/missing-approval-values.json",
+      "role": "documentation",
+      "byteLength": 1927,
+      "sha256": "b67b5fc3dc8daf77a39ddec572c9f487614c87c805a254281609dde421b62664"
+    },
+    {
+      "path": "independent/references/none-selected-summary.json",
+      "role": "documentation",
+      "byteLength": 697,
+      "sha256": "a94a7666cb76117f354ecff589d839e763cd10cd3a41733f6a5428d6ea41ba5c"
+    },
+    {
+      "path": "independent/references/none-selected-values.json",
+      "role": "documentation",
+      "byteLength": 1554,
+      "sha256": "ba4b8a4162f2bd487fb8b47c16fd729d34762167b4a3ec8843a93d1d5a369144"
+    },
+    {
+      "path": "independent/references/over-budget-summary.json",
+      "role": "documentation",
+      "byteLength": 475,
+      "sha256": "276cd457c72ae5d09a8da585e04ee6661821c93e58c6735f74b72465170e0cf7"
+    },
+    {
+      "path": "independent/references/over-budget-values.json",
+      "role": "documentation",
+      "byteLength": 1988,
+      "sha256": "27e325079d5bcc01a178cee24f3ea4ca2244b3aa4304a2425b3b5367264a7999"
+    },
+    {
+      "path": "independent/references/zero-cost-summary.json",
+      "role": "documentation",
+      "byteLength": 723,
+      "sha256": "76c34344992978a3d35668f5a52b215e3355f75811872dd3192418807e1f6f56"
+    },
+    {
+      "path": "independent/references/zero-cost-values.json",
+      "role": "documentation",
+      "byteLength": 1654,
+      "sha256": "e868b51bdde5e017c771b40852a3fad5fb5710cc3be0c3ef31c6461a1a95c48a"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 259,
+      "sha256": "432939ee11d394fef6799822e568716e2b3bc9b8581d0514b6fb947bfd1b5c10"
+    },
+    {
+      "path": "params.mantra",
+      "role": "parameters",
+      "byteLength": 205,
+      "sha256": "3e18222321dee25213daef7a2865b6aba8d587c4ce87951cb98cc38ff36fa2d7"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 5123,
+      "sha256": "ee21657ac4ff5f1e0029b636f9e546c91c649795041678daa2681b13cbad6d85"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 1408,
+      "sha256": "aecc364afd09eb2930fd3abda5841fcfcb168ef58c6901629a484a9dcf9ddd96"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "project.portfolio/2026",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "params.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "project.portfolio/plan",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "project-portfolio-demo",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    },
+    {
+      "id": "project-portfolio-fractional-currency",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-fractional-currency.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    },
+    {
+      "id": "project-portfolio-missing-approval",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-missing-approval.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    },
+    {
+      "id": "project-portfolio-none-selected",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-none-selected.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    },
+    {
+      "id": "project-portfolio-over-budget",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-over-budget.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    },
+    {
+      "id": "project-portfolio-zero-cost",
+      "schema": {
+        "id": "project.portfolio/supplied-plan",
+        "version": "1.0.0",
+        "versionMode": "semver"
+      },
+      "path": "case-zero-cost.mantra",
+      "parameters": [
+        "project.portfolio/2026"
+      ],
+      "layout": "project.portfolio/plan"
+    }
+  ],
+  "dependencies": []
+}

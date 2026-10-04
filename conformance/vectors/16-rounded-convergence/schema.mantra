@@ -1,0 +1,4 @@
+(schema conformance/convergence
+  (defn rounded-step [^Decimal current] (decimal/round (* 0.1 (- 100000 current)) 2))
+  (line bonus "Bonus" (calc/converge rounded-step 0 50 0.01) {:op :info})
+  (line remaining "Remaining" (- 100000 bonus) {:op :info}))

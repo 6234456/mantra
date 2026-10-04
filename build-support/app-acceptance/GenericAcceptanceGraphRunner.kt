@@ -4,6 +4,7 @@ import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.api.AuditOptions
 import com.xqiou.mantra.core.api.CanonicalCaseKey
 import com.xqiou.mantra.core.api.CaseGraphRunner
+import com.xqiou.mantra.core.api.CasePackageResolver
 import com.xqiou.mantra.core.api.CaseReference
 import com.xqiou.mantra.core.api.CaseRunCase
 import com.xqiou.mantra.core.api.CaseRunRequest
@@ -11,11 +12,14 @@ import com.xqiou.mantra.workbench.CasePackageLoader
 import com.xqiou.mantra.workbench.CasePackageOverrides
 
 /** Injection adapter only: loading, graph traversal, version checks and values stay in public SDKs. */
-internal class GenericAcceptanceGraphRunner(private val paths: AcceptancePaths) : AcceptanceCalculationRunner {
+internal class GenericAcceptanceGraphRunner(
+    private val paths: AcceptancePaths,
+    private val loaderFactory: ((AcceptanceCalculationRequest, CanonicalCaseKey) -> CasePackageResolver)? = null,
+) : AcceptanceCalculationRunner {
     override fun calculate(request: AcceptanceCalculationRequest): AcceptanceExecution {
         val binding = request.binding
         val root = CanonicalCaseKey(paths.relative(binding.declaration.path))
-        val loader = CasePackageLoader(
+        val loader = loaderFactory?.invoke(request, root) ?: CasePackageLoader(
             paths.root,
             CasePackageOverrides(
                 root.value,

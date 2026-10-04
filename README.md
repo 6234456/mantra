@@ -9,7 +9,7 @@ This monorepo contains the engine and domain demonstration applications under `a
 ```text
 schema + case + parameters ─▶ mantra-core ─▶ calculation values and traces
                                       │
-                               + layout ─▶ mantra-render ─▶ HTML / Text
+                               + layout ─▶ mantra-render ─▶ HTML / Text / PDF
                                       └──▶ mantra-excel  ─▶ XLSX
                                       └──▶ workbench    ─▶ HTTP / JSON / SSE
 ```
@@ -65,8 +65,14 @@ cd workbench-ui
 npm ci
 VITE_WORKBENCH_MODE=live npm run build
 cd ..
-mantra-cli/build/install/mantra/bin/mantra serve apps --port 8090 --ui workbench-ui/dist
+mantra-cli/build/install/mantra/bin/mantra serve apps --directory-policy trusted-local \
+  --port 8090 --ui workbench-ui/dist
 ```
+
+The example explicitly trusts a cooperative local directory. The default `strict-handles` policy
+requires filesystem support for secure directory handles and never falls back silently. See the
+[package authority and migration guide](docs/site/packages.md) for immutable mounts and explicitly
+authorized editable host cases.
 
 Open `http://127.0.0.1:8090/` in a browser. The reference workbench implements structure, working-paper and diagnostic views, Explain, Compare, parameter layers, case editing with preview and undo/redo, formula authoring, data-source import, export previews and SSE updates. Edits are written to the case documents so that results remain reproducible outside the workbench. The service listens only on loopback and confines file access to the workspace; it is a local reference tool.
 
@@ -80,13 +86,19 @@ After `installDist`, use `mantra-cli/build/install/mantra/bin/mantra`:
 
 | Command | Purpose |
 | --- | --- |
-| `run <schema> --case <case>` | Calculate and render Text, HTML or XLSX; add `--layout`, `--format`, `--out` or `--audit` |
+| `run <schema> --case <case>` | Calculate and render Text, HTML, XLSX or PDF; add `--layout`, `--format`, `--out` or `--audit` |
 | `check <schema> [--case <case>]` | Compile the schema and linked case graph; inspect static structure without executing formulas or business checks |
 | `catalog` | List schema forms, calculation functions, column contents and layout presets |
 | `fixtures <case> [more cases...] --out <dir> [--workspace apps]` | Generate versioned workbench JSON fixtures |
 | `diff <schema> --case <case> --variant-parameters <file[,file...]>` | Compare parameter sets or another case (`--variant-case`); JSON or Text |
 | `explain <schema> --case <case> --address <node> [--coord <member[,member...]>]` | Explain one value with bounded source steps; JSON or Text |
-| `serve <workspace> [--port 8080] [--ui workbench-ui/dist]` | Start the local workbench service |
+| `serve <workspace> [--port 8080] [--ui workbench-ui/dist]` | Start the local workbench; manifest directories are captured as packages |
+| `package-list`, `package-run`, `package-explain`, `package-migration-preview/apply` | Inspect captured packages and explicitly review/apply case migration |
+| `lsp [--stdio]` | Start bounded static authoring services for VS Code and IntelliJ |
+
+The [embedding guide](docs/site/embedding.md) demonstrates compiled templates, typed batches, dated
+parameters and explicit dynamic XLSX capacities. The [English tutorial](docs/site/tutorial.md) starts
+from an invoice schema and exports every supported format. Editor clients are in [editors/](editors/README.md).
 
 Run `mantra help` for full options. XLSX exports report formulas replaced with verified calculation
 values. An unsupported auxiliary formula with no verified value causes an explicit export error.

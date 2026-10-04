@@ -68,68 +68,7 @@ internal fun WorkspaceCatalog.parseEditText(
     parameter: Boolean,
     text: String,
     column: String?,
-): Value {
-    val view = resolved.view
-    val type = if (parameter) {
-        val declared = view.nodes[id]?.parameter?.value
-            ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown parameter $id")
-        when (declared) {
-            is Value.Num -> ValueType.DECIMAL
-            is Value.Bool -> ValueType.BOOLEAN
-            is Value.Kw -> ValueType.KEYWORD
-            else -> ValueType.TEXT
-        }
-    } else {
-        val input = view.nodes[id]?.input ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown input $id")
-        if (column == null) {
-            input.type
-        } else {
-            input.columns.firstOrNull { it.name == column }?.type
-                ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table column $column")
-        }
-    }
-    if (!parameter && column != null && text.isBlank()) return Value.Nil
-    return try {
-        when (type) {
-            ValueType.DECIMAL, ValueType.INTEGER -> {
-                val raw = text.trim()
-                val symbols = DecimalFormatSymbols.getInstance(resolved.layout.number.locale)
-                val group = symbols.groupingSeparator
-                val decimal = symbols.decimalSeparator
-                val pattern =
-                    Regex(
-                        "-?(?:\\d{1,3}(?:${Regex.escape(
-                            group.toString(),
-                        )}\\d{3})+|\\d+)(?:${Regex.escape(decimal.toString())}\\d+)?",
-                    )
-                require(pattern.matches(raw)) { "Invalid decimal text" }
-                val number = BigDecimal(raw.replace(group.toString(), "").replace(decimal, '.'))
-                require(type != ValueType.INTEGER || number.stripTrailingZeros().scale() <= 0) { "Expected an integer" }
-                Value.Num(number)
-            }
-            ValueType.BOOLEAN -> when (text.trim().lowercase()) {
-                "true", "ja" -> Value.Bool(true)
-                "false", "nein" -> Value.Bool(false)
-                else -> throw IllegalArgumentException("Expected a boolean")
-            }
-            ValueType.KEYWORD -> Value.Kw(text.trim().removePrefix(":"))
-            ValueType.DATE -> Value.Date(
-                LocalDate.parse(
-                    text.trim(),
-                    DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT),
-                ),
-            )
-            ValueType.TEXT, ValueType.ANY -> Value.Text(text)
-            ValueType.TABLE -> throw IllegalArgumentException("Table input requires encoded rows")
-        }
-    } catch (error: RuntimeException) {
-        throw WorkspaceException(
-            WorkspaceProblem.INVALID,
-            "Input text was rejected: ${error.message}",
-            listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
-        )
-    }
-}
+): Value = EditorValueParser.parse(resolved.view, resolved.layout, id, parameter, text, column)
 
 /** A table-backed dimension supplies the stable row key; other tables use revision-local indexes. */
 internal fun WorkspaceCatalog.inputTableKeyColumn(caseId: String, table: String): String? {

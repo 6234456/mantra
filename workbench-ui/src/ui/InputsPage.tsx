@@ -4,6 +4,7 @@ import type { Address, Diagnostic, EditOperation, EditResult, InputField, Run, S
 import { casePath } from '../address'
 import { diagnosticsForInput } from '../diagnostics'
 import { language, t } from '../i18n'
+import { diagnosticDetailsLabel, explainDiagnostic } from '../diagnosticMessages'
 import './InputsPage.css'
 import { LinkedSourceEvidence } from './LinkedSourceEvidence'
 
@@ -73,6 +74,7 @@ export function InputsPage({
   navigate: (path: string) => void
   selectedAddress?: Address
 }) {
+  const editable = data.canEditCase?.(caseId) !== false
   const sections = useMemo(() => groups(structure), [structure])
   const active = sections.find((item) => item.id === groupId) ?? sections[0]
   if (!active)
@@ -92,7 +94,10 @@ export function InputsPage({
         <h1>{t('inputs', lang)}</h1>
         <p>{structure.title}</p>
       </div>
-      {!run.validationPassed && (
+      {!editable && (
+        <p role="status">{lang === 'de' ? 'Dieser Fall ist schreibgeschützt.' : 'This case is read-only.'}</p>
+      )}
+      {!run.validationPassed && editable && (
         <p className="input-validation-note" role="status">
           {lang === 'de'
             ? 'Fachliche Prüfungen sind offen. Eingaben können weiter gespeichert werden.'
@@ -118,7 +123,7 @@ export function InputsPage({
           ))}
         </nav>
         <div className="input-main">
-          <section className="sheet input-sheet">
+          <fieldset className="sheet input-sheet" disabled={!editable}>
             <div className="section-heading">
               <div>
                 <span className="eyebrow">{t('inputs', lang)}</span>
@@ -162,7 +167,7 @@ export function InputsPage({
                 </div>
               ),
             )}
-          </section>
+          </fieldset>
           <aside className="sheet input-effect">
             <span className="eyebrow">{lang === 'de' ? 'Wirkung der Eingabe' : 'Input effect'}</span>
             <h2>{active.title}</h2>
@@ -356,7 +361,11 @@ function InputControl({
       )}
       {diagnostics.map((diagnostic, index) => (
         <p className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`} key={index}>
-          {diagnostic.message}
+          {explainDiagnostic(diagnostic, lang).summary}
+          <br />
+          <span className="diagnostic-original-detail">
+            {diagnosticDetailsLabel(lang)}: <span lang="en">{diagnostic.message}</span>
+          </span>
         </p>
       ))}
       <span className="sr-only">{title}</span>
@@ -493,7 +502,11 @@ function TableField({
       </div>
       {tableDiagnostics.map((diagnostic, index) => (
         <p key={index} className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`}>
-          {diagnostic.message}
+          {explainDiagnostic(diagnostic, lang).summary}
+          <br />
+          <span className="diagnostic-original-detail">
+            {diagnosticDetailsLabel(lang)}: <span lang="en">{diagnostic.message}</span>
+          </span>
         </p>
       ))}
       <div className="input-add-row">
@@ -587,7 +600,11 @@ function TableCell({
       )}
       {diagnostics.map((diagnostic, index) => (
         <small className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`} key={index}>
-          {diagnostic.message}
+          {explainDiagnostic(diagnostic, lang).summary}
+          <br />
+          <span className="diagnostic-original-detail">
+            {diagnosticDetailsLabel(lang)}: <span lang="en">{diagnostic.message}</span>
+          </span>
         </small>
       ))}
     </div>

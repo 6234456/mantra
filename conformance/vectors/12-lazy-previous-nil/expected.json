@@ -1,0 +1,21 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "closing@P1": null,
+    "closing@P2": {
+      "n": "5"
+    },
+    "closing@P3": {
+      "n": "5"
+    },
+    "prior@P1": {
+      "n": "9"
+    },
+    "prior@P2": null,
+    "prior@P3": {
+      "n": "5"
+    }
+  },
+  "diagnostics": []
+}

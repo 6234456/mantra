@@ -12,12 +12,65 @@ import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SourceBinding
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.excel.XlsxSource
+import com.xqiou.mantra.packages.CapturedPackageData
 import java.nio.file.Files
 import java.nio.file.Path
 
 /** Replays a case's source declarations and keeps source files in its revision set. */
 object BoundSources {
     data class Loaded(val case: CaseData, val files: List<Path>, val overridden: List<List<String>>)
+
+    /** No path is opened: package importers receive the exact immutable bytes verified by the loader. */
+    fun loadCaptured(
+        case: CaseData,
+        schema: Schema,
+        captured: List<CapturedPackageData>,
+        onRow: () -> Unit = {},
+        checkpoint: () -> Unit = {},
+    ): Loaded {
+        require(captured.map { it.binding } == case.sources) { "Captured imports must match authored source order" }
+        require(captured.map { it.resource.path }.distinct().size == captured.size) { "Duplicate captured data source" }
+        val sink = DiagnosticSink()
+        val paths = captured.map { Path.of(it.resource.path) }
+        val values = linkedMapOf<Path, Map<String, Value>>()
+        val imports = captured.zip(paths).map { (data, path) ->
+            checkpoint()
+            val source = create(data.binding, path, data.bytes(), onRow, checkpoint)
+            object : DataSource {
+                override val description = source.description
+                override fun read(schema: Schema, sink: DiagnosticSink): Map<String, Value> =
+                    source.read(schema, sink).also {
+                        values[path] =
+                            it
+                    }
+            }
+        }
+        val effective = DataSources.apply(case, schema, imports, sink)
+        if (sink.hasErrors) {
+            throw WorkspaceException(
+                WorkspaceProblem.INVALID,
+                "Captured import could not be read",
+                sink.all,
+            )
+        }
+        val overridden = paths.map { path ->
+            values[path].orEmpty().flatMap { (id, value) ->
+                val manual = case.inputs[id] ?: return@flatMap emptyList()
+                (coordinates(value) intersect coordinates(manual)).map { coord ->
+                    if (coord.isEmpty()) id else "$id@$coord"
+                }
+            }.sorted()
+        }
+        return Loaded(effective, paths, overridden)
+    }
+
+    private fun coordinates(value: Value, prefix: String = ""): Set<String> = when (value) {
+        is Value.MapV -> value.entries.flatMap { (key, child) ->
+            val member = (key as? Value.Kw)?.name ?: (key as? Value.Text)?.value ?: return@flatMap emptyList()
+            coordinates(child, if (prefix.isEmpty()) member else "$prefix/$member")
+        }.toSet()
+        else -> setOf(prefix)
+    }
 
     fun load(
         case: CaseData,
@@ -154,13 +207,16 @@ object BoundSources {
                 columns = mapping("columns"),
                 mode = string("mode") ?: "pairs",
                 memberColumn = string("member-column"),
-                capturedText = capturedBytes?.toString(Charsets.UTF_8), onRow = onRow, checkpoint = checkpoint,
+                capturedText = capturedBytes?.let {
+                    decodeImportUtf8(it, binding.location)
+                },
+                onRow = onRow, checkpoint = checkpoint,
             )
             "json" -> JsonSource(
                 file,
                 root = string("root"),
                 mapping = mapping("mapping"),
-                capturedText = capturedBytes?.toString(Charsets.UTF_8),
+                capturedText = capturedBytes?.let { decodeImportUtf8(it, binding.location) },
                 onRow = onRow,
                 checkpoint = checkpoint,
             )

@@ -1,0 +1,28 @@
+{
+  "id": "all-zero-demand",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [
+    {
+      "code": "MANTRA-AGGREGATE-ZERO-DENOMINATOR",
+      "node": "local-coverage",
+      "severity": "warning"
+    }
+  ],
+  "undefined": [
+    "local-coverage@*",
+    "local-coverage@*/P1",
+    "local-coverage@*/P2",
+    "local-coverage@*/P3",
+    "local-coverage@A/*",
+    "local-coverage@A/P1",
+    "local-coverage@A/P2",
+    "local-coverage@A/P3",
+    "local-coverage@B/*",
+    "local-coverage@B/P1",
+    "local-coverage@B/P2",
+    "local-coverage@B/P3"
+  ],
+  "closing": "20",
+  "netCost": "-27.20"
+}

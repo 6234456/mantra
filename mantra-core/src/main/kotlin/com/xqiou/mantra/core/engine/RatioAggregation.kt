@@ -18,7 +18,9 @@ internal class RatioAggregation(
     private val cache = mutableMapOf<Context, RatioAggregateTrace>()
 
     fun aggregate(vertex: LineVertex, dims: List<String>, coord: Coord): RatioAggregateTrace =
-        cache.getOrPut(Context(vertex.id, dims.zip(coord))) { compute(vertex, dims, coord) }
+        cache.getOrPut(Context(vertex.id, dims.zip(coord))) {
+            compute(vertex, dims, coord)
+        }
 
     private fun compute(vertex: LineVertex, dims: List<String>, coord: Coord): RatioAggregateTrace {
         val ratio = checkNotNull(vertex.item.ratio)

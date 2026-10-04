@@ -1,0 +1,1 @@
+(schema conformance/type-error (input input-enabled :boolean))

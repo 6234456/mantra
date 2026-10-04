@@ -1,0 +1,825 @@
+{
+  "format": "mantra-conformance-corpus/1",
+  "language": "Mantra DSL 1",
+  "functionLibrary": "mantra.calc@2",
+  "corpusSha256": "e4f7b4c41891ed45b8cc2949b4caec0971c0f4ac99a6f96096eda9c1c01586ce",
+  "vectors": [
+    {
+      "id": "01-typed-facts",
+      "title": "Zero, false, text, keyword, ISO date and omitted optional fact",
+      "clauses": [
+        "S1.1",
+        "S1.3",
+        "S2.1"
+      ],
+      "schema": "vectors/01-typed-facts/schema.mantra",
+      "case": "vectors/01-typed-facts/case.mantra",
+      "parameters": [],
+      "queries": [
+        "input-quantity",
+        "input-enabled",
+        "input-tag",
+        "input-title",
+        "input-stamp",
+        "input-note"
+      ],
+      "options": [],
+      "expected": "vectors/01-typed-facts/expected.json"
+    },
+    {
+      "id": "02-running-checkpoints",
+      "title": "Signed checkpoint contributions and opaque nested section",
+      "clauses": [
+        "S2.2"
+      ],
+      "schema": "vectors/02-running-checkpoints/schema.mantra",
+      "case": "vectors/02-running-checkpoints/case.mantra",
+      "parameters": [],
+      "queries": [
+        "checkpoint-a",
+        "checkpoint-b",
+        "branch-result",
+        "final-checkpoint"
+      ],
+      "options": [],
+      "expected": "vectors/02-running-checkpoints/expected.json"
+    },
+    {
+      "id": "03-parameter-precedence",
+      "title": "Ordered parameter sets, then explicit case zero and false",
+      "clauses": [
+        "S2.1"
+      ],
+      "schema": "vectors/03-parameter-precedence/schema.mantra",
+      "case": "vectors/03-parameter-precedence/case.mantra",
+      "parameters": [
+        "vectors/03-parameter-precedence/parameters-1.mantra",
+        "vectors/03-parameter-precedence/parameters-2.mantra"
+      ],
+      "queries": [
+        "multiplier",
+        "feature-enabled",
+        "offset-factor",
+        "computed"
+      ],
+      "options": [],
+      "expected": "vectors/03-parameter-precedence/expected.json"
+    },
+    {
+      "id": "04-required-presence",
+      "title": "Default zero does not satisfy required; explicit zero and false do",
+      "clauses": [
+        "S2.1",
+        "S5.2",
+        "S7.1"
+      ],
+      "schema": "vectors/04-required-presence/schema.mantra",
+      "case": "vectors/04-required-presence/case.mantra",
+      "parameters": [],
+      "queries": [
+        "defaulted",
+        "supplied-zero",
+        "supplied-false",
+        "computed"
+      ],
+      "options": [],
+      "expected": "vectors/04-required-presence/expected.json"
+    },
+    {
+      "id": "05-typed-error",
+      "title": "A decimal is not a Boolean and failure has no fabricated value",
+      "clauses": [
+        "S1.3",
+        "S7.1"
+      ],
+      "schema": "vectors/05-typed-error/schema.mantra",
+      "case": "vectors/05-typed-error/case.mantra",
+      "parameters": [],
+      "queries": [
+        "input-enabled"
+      ],
+      "options": [],
+      "expected": "vectors/05-typed-error/expected.json"
+    },
+    {
+      "id": "06-coordinate-and-sum",
+      "title": "Declared member order, indices, contextual map and sum reduction",
+      "clauses": [
+        "S3.1",
+        "S3.2",
+        "S3.3"
+      ],
+      "schema": "vectors/06-coordinate-and-sum/schema.mantra",
+      "case": "vectors/06-coordinate-and-sum/case.mantra",
+      "parameters": [],
+      "queries": [
+        "balance@A",
+        "balance@B",
+        "member-index@A",
+        "member-index@B",
+        "combined",
+        "balance@*"
+      ],
+      "options": [],
+      "expected": "vectors/06-coordinate-and-sum/expected.json"
+    },
+    {
+      "id": "07-parent-table",
+      "title": "Table-backed child identities and explicit parent rollup",
+      "clauses": [
+        "S3.1",
+        "S3.3"
+      ],
+      "schema": "vectors/07-parent-table/schema.mantra",
+      "case": "vectors/07-parent-table/case.mantra",
+      "parameters": [],
+      "queries": [
+        "worth@X",
+        "worth@Y",
+        "worth@Z",
+        "rolled@G1",
+        "rolled@G2",
+        "worth@*",
+        "records"
+      ],
+      "options": [],
+      "expected": "vectors/07-parent-table/expected.json"
+    },
+    {
+      "id": "08-applicability",
+      "title": "False own applicability excludes numeric contribution and business finding",
+      "clauses": [
+        "S3.2",
+        "S5.1"
+      ],
+      "schema": "vectors/08-applicability/schema.mantra",
+      "case": "vectors/08-applicability/case.mantra",
+      "parameters": [],
+      "queries": [
+        "eligible@A",
+        "eligible@B",
+        "eligible@*",
+        "positive@A",
+        "positive@B"
+      ],
+      "options": [],
+      "expected": "vectors/08-applicability/expected.json"
+    },
+    {
+      "id": "09-anchored-months",
+      "title": "Generated periods retain original January month-end anchor",
+      "clauses": [
+        "S4.1",
+        "S4.2",
+        "S4.3"
+      ],
+      "schema": "vectors/09-anchored-months/schema.mantra",
+      "case": "vectors/09-anchored-months/case.mantra",
+      "parameters": [],
+      "queries": [
+        "anchored-end@P1",
+        "anchored-end@P2",
+        "anchored-end@P3",
+        "closing@P1",
+        "closing@P2",
+        "closing@P3",
+        "closing@*"
+      ],
+      "options": [],
+      "expected": "vectors/09-anchored-months/expected.json"
+    },
+    {
+      "id": "10-period-gap",
+      "title": "One-day gap is rejected instead of silently creating a discontinuity",
+      "clauses": [
+        "S4.1",
+        "S7.1"
+      ],
+      "schema": "vectors/10-period-gap/schema.mantra",
+      "case": "vectors/10-period-gap/case.mantra",
+      "parameters": [],
+      "queries": [],
+      "options": [],
+      "expected": "vectors/10-period-gap/expected.json"
+    },
+    {
+      "id": "11-two-axis-stocks",
+      "title": "Boundary selection per series, with remaining series summed",
+      "clauses": [
+        "S3.3",
+        "S4.2",
+        "S4.3"
+      ],
+      "schema": "vectors/11-two-axis-stocks/schema.mantra",
+      "case": "vectors/11-two-axis-stocks/case.mantra",
+      "parameters": [],
+      "queries": [
+        "opening@*",
+        "closing@*",
+        "closing@A/P3",
+        "closing@B/P3",
+        "opening@A/*",
+        "closing@B/*"
+      ],
+      "options": [],
+      "expected": "vectors/11-two-axis-stocks/expected.json"
+    },
+    {
+      "id": "12-lazy-previous-nil",
+      "title": "Only first fallback runs; later prior nil stays nil",
+      "clauses": [
+        "S4.2",
+        "S5.1"
+      ],
+      "schema": "vectors/12-lazy-previous-nil/schema.mantra",
+      "case": "vectors/12-lazy-previous-nil/case.mantra",
+      "parameters": [],
+      "queries": [
+        "closing@P1",
+        "closing@P2",
+        "closing@P3",
+        "prior@P1",
+        "prior@P2",
+        "prior@P3"
+      ],
+      "options": [],
+      "expected": "vectors/12-lazy-previous-nil/expected.json"
+    },
+    {
+      "id": "13-signed-rounding",
+      "title": "Signed rounding modes and display-only precision",
+      "clauses": [
+        "S5.3"
+      ],
+      "schema": "vectors/13-signed-rounding/schema.mantra",
+      "case": "vectors/13-signed-rounding/case.mantra",
+      "parameters": [],
+      "queries": [
+        "rounded-half-up",
+        "rounded-half-even",
+        "rounded-half-down",
+        "rounded-floor",
+        "rounded-ceiling",
+        "rounded-down",
+        "rounded-up",
+        "third",
+        "unrounded"
+      ],
+      "options": [],
+      "expected": "vectors/13-signed-rounding/expected.json"
+    },
+    {
+      "id": "14-nonterminating-error",
+      "title": "Strict division reports technical failure and preserves independent result",
+      "clauses": [
+        "S5.3",
+        "S7.1"
+      ],
+      "schema": "vectors/14-nonterminating-error/schema.mantra",
+      "case": "vectors/14-nonterminating-error/case.mantra",
+      "parameters": [],
+      "queries": [
+        "exact-third",
+        "independent"
+      ],
+      "options": [],
+      "expected": "vectors/14-nonterminating-error/expected.json"
+    },
+    {
+      "id": "15-business-boundary",
+      "title": "Inclusive reconciliation tolerance and distinct error/warning effects",
+      "clauses": [
+        "S5.2",
+        "S7.1"
+      ],
+      "schema": "vectors/15-business-boundary/schema.mantra",
+      "case": "vectors/15-business-boundary/case.mantra",
+      "parameters": [],
+      "queries": [
+        "match-value",
+        "caution",
+        "required-check"
+      ],
+      "options": [],
+      "expected": "vectors/15-business-boundary/expected.json"
+    },
+    {
+      "id": "16-rounded-convergence",
+      "title": "Rounded bonus iteration returns the first qualifying next value",
+      "clauses": [
+        "S5.3",
+        "S5.4"
+      ],
+      "schema": "vectors/16-rounded-convergence/schema.mantra",
+      "case": "vectors/16-rounded-convergence/case.mantra",
+      "parameters": [],
+      "queries": [
+        "bonus",
+        "remaining"
+      ],
+      "options": [],
+      "expected": "vectors/16-rounded-convergence/expected.json"
+    },
+    {
+      "id": "17-two-cycle-failure",
+      "title": "Exhausted two-cycle publishes nil, not the last approximation",
+      "clauses": [
+        "S5.4",
+        "S7.1"
+      ],
+      "schema": "vectors/17-two-cycle-failure/schema.mantra",
+      "case": "vectors/17-two-cycle-failure/case.mantra",
+      "parameters": [],
+      "queries": [
+        "oscillating"
+      ],
+      "options": [],
+      "expected": "vectors/17-two-cycle-failure/expected.json"
+    },
+    {
+      "id": "18-opaque-version",
+      "title": "Exact historical version binding remains opaque",
+      "clauses": [
+        "S6.2"
+      ],
+      "schema": "vectors/18-opaque-version/schema.mantra",
+      "case": "vectors/18-opaque-version/case.mantra",
+      "parameters": [],
+      "queries": [
+        "known-zero"
+      ],
+      "options": [],
+      "expected": "vectors/18-opaque-version/expected.json"
+    },
+    {
+      "id": "19-opaque-version-mismatch",
+      "title": "Similar-looking historical versions are unequal",
+      "clauses": [
+        "S6.2",
+        "S7.1"
+      ],
+      "schema": "vectors/19-opaque-version-mismatch/schema.mantra",
+      "case": "vectors/19-opaque-version-mismatch/case.mantra",
+      "parameters": [],
+      "queries": [],
+      "options": [],
+      "expected": "vectors/19-opaque-version-mismatch/expected.json"
+    },
+    {
+      "id": "20-host-formula-limit",
+      "title": "Host formula bound zero rejects the first formula before publication",
+      "clauses": [
+        "S7.2",
+        "S7.1"
+      ],
+      "schema": "vectors/20-host-formula-limit/schema.mantra",
+      "case": "vectors/20-host-formula-limit/case.mantra",
+      "parameters": [],
+      "queries": [],
+      "options": [
+        "--max-formulas",
+        "0"
+      ],
+      "expected": "vectors/20-host-formula-limit/expected.json"
+    },
+    {
+      "id": "21-licensed-formula-slot",
+      "title": "Case replacement retains licensed roots and declared explicit rounding",
+      "clauses": [
+        "S2.3",
+        "S5.3"
+      ],
+      "schema": "vectors/21-licensed-formula-slot/schema.mantra",
+      "case": "vectors/21-licensed-formula-slot/case.mantra",
+      "parameters": [],
+      "queries": [
+        "customized"
+      ],
+      "options": [],
+      "expected": "vectors/21-licensed-formula-slot/expected.json"
+    },
+    {
+      "id": "22-current-cycle",
+      "title": "Ordinary current dependency cycle is a structural error",
+      "clauses": [
+        "S2.3",
+        "S4.2",
+        "S7.1"
+      ],
+      "schema": "vectors/22-current-cycle/schema.mantra",
+      "case": "vectors/22-current-cycle/case.mantra",
+      "parameters": [],
+      "queries": [],
+      "options": [],
+      "expected": "vectors/22-current-cycle/expected.json"
+    },
+    {
+      "id": "23-weighted-ratio",
+      "title": "Aggregate rate divides aligned totals instead of summing rates",
+      "clauses": [
+        "S3.3",
+        "S5.3"
+      ],
+      "schema": "vectors/23-weighted-ratio/schema.mantra",
+      "case": "vectors/23-weighted-ratio/case.mantra",
+      "parameters": [],
+      "queries": [
+        "weighted-rate@A",
+        "weighted-rate@B",
+        "weighted-rate@*"
+      ],
+      "options": [],
+      "expected": "vectors/23-weighted-ratio/expected.json"
+    },
+    {
+      "id": "24-zero-denominator",
+      "title": "Zero aggregate denominator remains undefined with one nonblocking warning",
+      "clauses": [
+        "S3.3",
+        "S7.1"
+      ],
+      "schema": "vectors/24-zero-denominator/schema.mantra",
+      "case": "vectors/24-zero-denominator/case.mantra",
+      "parameters": [],
+      "queries": [
+        "weighted-rate@A",
+        "weighted-rate@B",
+        "weighted-rate@*"
+      ],
+      "options": [],
+      "expected": "vectors/24-zero-denominator/expected.json"
+    }
+  ],
+  "files": [
+    {
+      "path": "vectors/01-typed-facts/case.mantra",
+      "bytes": 128,
+      "sha256": "de0e29f47ce1a9889a8302b3370ea8fc8db997b9fd701a95549a2455536fb061"
+    },
+    {
+      "path": "vectors/01-typed-facts/expected.json",
+      "bytes": 318,
+      "sha256": "b20b80514ab6685c1948198c90b8cad87c1daf5448cceab8418331633ed8de34"
+    },
+    {
+      "path": "vectors/01-typed-facts/schema.mantra",
+      "bytes": 223,
+      "sha256": "dd6cd167a39844dfb73feb6983c39c7fbd7c103f1242e884d8c372636f1e50c7"
+    },
+    {
+      "path": "vectors/02-running-checkpoints/case.mantra",
+      "bytes": 19,
+      "sha256": "d43a058ce8e35dfc405293812d33bdf9f455803b3de1c1ddc52c5271a66eca84"
+    },
+    {
+      "path": "vectors/02-running-checkpoints/expected.json",
+      "bytes": 274,
+      "sha256": "148c8e4ecfa7e00cb90e77eb520759c6895acdc127b1346cff9cc1e8a35a4696"
+    },
+    {
+      "path": "vectors/02-running-checkpoints/schema.mantra",
+      "bytes": 466,
+      "sha256": "a4920429d308f460a1f51babf7f3b53f2d8a6c81a43d4494668d28308ec74a31"
+    },
+    {
+      "path": "vectors/03-parameter-precedence/case.mantra",
+      "bytes": 62,
+      "sha256": "3673a9224af90db1cba92455c881a304701991a7fc3fa7ad84156bfe2447a870"
+    },
+    {
+      "path": "vectors/03-parameter-precedence/expected.json",
+      "bytes": 250,
+      "sha256": "0f3e3d559d67b6e6c4df19bbc165d1d8b46d0127a63b6f388d6bd59f9294bd67"
+    },
+    {
+      "path": "vectors/03-parameter-precedence/parameters-1.mantra",
+      "bytes": 91,
+      "sha256": "2f3b90e38434019a7385c42b09ff43711d9cfe5e7e63f72c32973060a8f13b62"
+    },
+    {
+      "path": "vectors/03-parameter-precedence/parameters-2.mantra",
+      "bytes": 92,
+      "sha256": "e54ab4d163e53152bdaaddffa137c464fa9a9ecb51938fc5c32c7df79ef0109f"
+    },
+    {
+      "path": "vectors/03-parameter-precedence/schema.mantra",
+      "bytes": 179,
+      "sha256": "529914e89ebb2ad4d208c6e769c54afc73f8d0e7141e000c3e91dde857948703"
+    },
+    {
+      "path": "vectors/04-required-presence/case.mantra",
+      "bytes": 66,
+      "sha256": "5b669edb8eba5dc3dfb789752785a5a79466a0702f353a8465f97254b12a3d2a"
+    },
+    {
+      "path": "vectors/04-required-presence/expected.json",
+      "bytes": 395,
+      "sha256": "67dd6cb9371dd98876af3c44baa4b02af97da87fe853b9266d2849f6dc88d0b3"
+    },
+    {
+      "path": "vectors/04-required-presence/schema.mantra",
+      "bytes": 257,
+      "sha256": "f6cc86c10e19b5a9a204cbf02637b7d0744869cd57f4aaa005d10e1036995ac8"
+    },
+    {
+      "path": "vectors/05-typed-error/case.mantra",
+      "bytes": 41,
+      "sha256": "46e4037f5bc97c38669043c8d901c4a33e5abae477b074c27280261067dddae8"
+    },
+    {
+      "path": "vectors/05-typed-error/expected.json",
+      "bytes": 264,
+      "sha256": "a602df306599a57acbe38459d84273119f053c9e5eaea0772af28d3e28a99967"
+    },
+    {
+      "path": "vectors/05-typed-error/schema.mantra",
+      "bytes": 63,
+      "sha256": "9325fd7c3e78129be144a6b589d17e2d651077b90760908bdaedf068c44f73dd"
+    },
+    {
+      "path": "vectors/06-coordinate-and-sum/case.mantra",
+      "bytes": 47,
+      "sha256": "ce699b407d4ecd578137d3c79ef876ba999517205349873573d9c3fc38c59eaf"
+    },
+    {
+      "path": "vectors/06-coordinate-and-sum/expected.json",
+      "bytes": 348,
+      "sha256": "5c8e517f2755bb9c779bbe3a55ec737265d98a5dcc7be4b6605f113a62fb292f"
+    },
+    {
+      "path": "vectors/06-coordinate-and-sum/schema.mantra",
+      "bytes": 236,
+      "sha256": "38ca168c9aa31c686bda258831a23792e51d37723e8b1913f57232b5563daa34"
+    },
+    {
+      "path": "vectors/07-parent-table/case.mantra",
+      "bytes": 123,
+      "sha256": "489b4d2d16d84f597cd76647cc6297413416ce437bb62632da743486ae048e10"
+    },
+    {
+      "path": "vectors/07-parent-table/expected.json",
+      "bytes": 1679,
+      "sha256": "04959677ad23c3092052ccffa6acae338988e3864e37cd540f1d7338e40e7c7c"
+    },
+    {
+      "path": "vectors/07-parent-table/schema.mantra",
+      "bytes": 380,
+      "sha256": "ea85305bc91a47ed4b4a0676247d2607abe3ba94df1f6fbbe37c0a6aaf4cd707"
+    },
+    {
+      "path": "vectors/08-applicability/case.mantra",
+      "bytes": 55,
+      "sha256": "cf80a1154b1fe3143592852c77bc04461dd1a8ff7ec4e48b7880bc48e87863a1"
+    },
+    {
+      "path": "vectors/08-applicability/expected.json",
+      "bytes": 265,
+      "sha256": "5857a91799d380155aa21ba18b78d66107c4ec55e5e1771880003a65777c9c5e"
+    },
+    {
+      "path": "vectors/08-applicability/schema.mantra",
+      "bytes": 280,
+      "sha256": "5fd37ae30b124b93ba33dd8c67cac506de8096d021561ac3a51d8c3473973da8"
+    },
+    {
+      "path": "vectors/09-anchored-months/case.mantra",
+      "bytes": 92,
+      "sha256": "051911019ff3a71dbc775e0ebc213a7659eb51189893e20ef5b723acb1198e6b"
+    },
+    {
+      "path": "vectors/09-anchored-months/expected.json",
+      "bytes": 345,
+      "sha256": "e4c00ca1ba8c676f3c7d66b0746887b45a218b735f7ac05b3d0b889690864397"
+    },
+    {
+      "path": "vectors/09-anchored-months/schema.mantra",
+      "bytes": 334,
+      "sha256": "9af0dbd47883cfa63a6d8b4bc592a15db58d73434eb23c80af470ee88f773c90"
+    },
+    {
+      "path": "vectors/10-period-gap/case.mantra",
+      "bytes": 11,
+      "sha256": "03e1b48a62fb2e070b18821fe62c932c0b77766e377d93d2af5da9debb8982ba"
+    },
+    {
+      "path": "vectors/10-period-gap/expected.json",
+      "bytes": 242,
+      "sha256": "c7f24a24892b740cd44fb86d955607a65aface5da17402425a1871276435f2a3"
+    },
+    {
+      "path": "vectors/10-period-gap/schema.mantra",
+      "bytes": 185,
+      "sha256": "50b5e54a0f367b2b00524887bfeec6e90cd0021929d40ffa1f2fa686a8ed0c09"
+    },
+    {
+      "path": "vectors/11-two-axis-stocks/case.mantra",
+      "bytes": 104,
+      "sha256": "eb0b715443aadfda5cc3f00841572d881f598077bb5c9ff5cab245e81aae162b"
+    },
+    {
+      "path": "vectors/11-two-axis-stocks/expected.json",
+      "bytes": 357,
+      "sha256": "5265c2cc961adc21a37c7191c0e904dd1037c9f28e49261cb7b7036cff82701c"
+    },
+    {
+      "path": "vectors/11-two-axis-stocks/schema.mantra",
+      "bytes": 487,
+      "sha256": "1e57371038b5aa00b4cdf47c46a10e3b4c5daa76d1422428537cc4f97b9deecd"
+    },
+    {
+      "path": "vectors/12-lazy-previous-nil/case.mantra",
+      "bytes": 13,
+      "sha256": "f91d0054f1b40bae2c9d3b6953324f3fcd96e587fff799bb137d3eb517630c0e"
+    },
+    {
+      "path": "vectors/12-lazy-previous-nil/expected.json",
+      "bytes": 301,
+      "sha256": "b26ce87e7ab062c12fc0e796a6a20a620885c3d67b2d5f63ba4a568161049f38"
+    },
+    {
+      "path": "vectors/12-lazy-previous-nil/schema.mantra",
+      "bytes": 351,
+      "sha256": "994ed45d49fd255c7c428269bd62d23a66f379b94a53d9da3949b65abdf66c89"
+    },
+    {
+      "path": "vectors/13-signed-rounding/case.mantra",
+      "bytes": 16,
+      "sha256": "4479d82297e6fdd3825c78b616d5ab3ab7f7885151d016cf60a1ec912269751b"
+    },
+    {
+      "path": "vectors/13-signed-rounding/expected.json",
+      "bytes": 520,
+      "sha256": "708a24c15e5d07200bdbfd70343d249a8926fb43980b0bcdee1d6cfd5ade6eb6"
+    },
+    {
+      "path": "vectors/13-signed-rounding/schema.mantra",
+      "bytes": 710,
+      "sha256": "11fc2ced8485d997f53c71c5c18d8cdd39957db338690abd4488e6cd6b21943b"
+    },
+    {
+      "path": "vectors/14-nonterminating-error/case.mantra",
+      "bytes": 22,
+      "sha256": "963e40dbfad14efcc181026ce4274c99bb7e3ab55fc26ba42528bdf9f2f4a2d1"
+    },
+    {
+      "path": "vectors/14-nonterminating-error/expected.json",
+      "bytes": 305,
+      "sha256": "63cc210ba330950124f213cfa86292ceaf082f92cb93d99ad3839ef2b84c0fec"
+    },
+    {
+      "path": "vectors/14-nonterminating-error/schema.mantra",
+      "bytes": 140,
+      "sha256": "56251766bd6340e96d2073cd1ff8037f9e2933790d09dbb6641ca9b43823e7bb"
+    },
+    {
+      "path": "vectors/15-business-boundary/case.mantra",
+      "bytes": 16,
+      "sha256": "dbf5373261b5ba8ff35b59fa1fb0fe315def548ee7c7b01c973678f29bc4b49d"
+    },
+    {
+      "path": "vectors/15-business-boundary/expected.json",
+      "bytes": 470,
+      "sha256": "24bb58d0837fee21b55860534a14bb9a23da24aef72923fe7ead71d336bdedae"
+    },
+    {
+      "path": "vectors/15-business-boundary/schema.mantra",
+      "bytes": 197,
+      "sha256": "1b6c08bd14f7cc75639a3d05d60d25bb52ce6696f45783367fb436032b8a62c4"
+    },
+    {
+      "path": "vectors/16-rounded-convergence/case.mantra",
+      "bytes": 19,
+      "sha256": "9fc8a78e69ec14d4f718125f72f87c8cc647f989ba70c84f802ee0884462937d"
+    },
+    {
+      "path": "vectors/16-rounded-convergence/expected.json",
+      "bytes": 182,
+      "sha256": "837102cb44cc9e2a27800c68dce316e32b37cec860cb2e18111242edff443a54"
+    },
+    {
+      "path": "vectors/16-rounded-convergence/schema.mantra",
+      "bytes": 253,
+      "sha256": "a807f04adf029a7614a6e9db3770fc035b33145ad242ba93eb28d77be886410c"
+    },
+    {
+      "path": "vectors/17-two-cycle-failure/case.mantra",
+      "bytes": 19,
+      "sha256": "7cc1c964d6d9eb62ef724788ba251d4fa287b05dbc24fa78b26e7e5ebceb9050"
+    },
+    {
+      "path": "vectors/17-two-cycle-failure/expected.json",
+      "bytes": 270,
+      "sha256": "e73413388e46570d2a8ed7c2544fd7018b94fb33f401a5f06a7d460d258a64f5"
+    },
+    {
+      "path": "vectors/17-two-cycle-failure/schema.mantra",
+      "bytes": 138,
+      "sha256": "71e9c44f4c7a003a70cf760c31eeddc2414ee424e2669759804a2b7b77eb53e3"
+    },
+    {
+      "path": "vectors/18-opaque-version/case.mantra",
+      "bytes": 72,
+      "sha256": "ccd24f25ca078e40879bc56beb247990fa6f739b6c67cb44d40dab25f50e12a4"
+    },
+    {
+      "path": "vectors/18-opaque-version/expected.json",
+      "bytes": 133,
+      "sha256": "95dc1c686150ba32a8ee4aa024e513667bf1eb26fb048dd90b15e4b2d4eb3072"
+    },
+    {
+      "path": "vectors/18-opaque-version/schema.mantra",
+      "bytes": 96,
+      "sha256": "749ccc0b04bdb1061c6044b7149bd19ef341b48413d82c5572e5c31ba1143f0e"
+    },
+    {
+      "path": "vectors/19-opaque-version-mismatch/case.mantra",
+      "bytes": 73,
+      "sha256": "28a53e8b8ba1e110f3d5dcd5c39574b69a604450c43d35083bcdab907c9109e8"
+    },
+    {
+      "path": "vectors/19-opaque-version-mismatch/expected.json",
+      "bytes": 244,
+      "sha256": "beff9199b3fe5455dee795315d466682054512de7109c3c5e816686bb91f9167"
+    },
+    {
+      "path": "vectors/19-opaque-version-mismatch/schema.mantra",
+      "bytes": 96,
+      "sha256": "749ccc0b04bdb1061c6044b7149bd19ef341b48413d82c5572e5c31ba1143f0e"
+    },
+    {
+      "path": "vectors/20-host-formula-limit/case.mantra",
+      "bytes": 15,
+      "sha256": "b31782e553c4a71c5b8697a588d94761fe0c75aeb6eeb8d63d0f8c6be1b26aba"
+    },
+    {
+      "path": "vectors/20-host-formula-limit/expected.json",
+      "bytes": 234,
+      "sha256": "c5a1dab0e4c4eef8b4915766d4912613f6a4f8bb712951d40bf91de0a68416eb"
+    },
+    {
+      "path": "vectors/20-host-formula-limit/schema.mantra",
+      "bytes": 76,
+      "sha256": "a4fe4eb6f225f19c7c0bab2fbfcbfd961f1b714a946576b70b8aff263e8be621"
+    },
+    {
+      "path": "vectors/21-licensed-formula-slot/case.mantra",
+      "bytes": 72,
+      "sha256": "d1a3ac1132e5e9888bf1fdf7e61919118df8be980eea89e694a173de5306dd65"
+    },
+    {
+      "path": "vectors/21-licensed-formula-slot/expected.json",
+      "bytes": 136,
+      "sha256": "d04034ddb5792c66797fa155100811aa4eaced4edd6b96d3d03f0a5957b691af"
+    },
+    {
+      "path": "vectors/21-licensed-formula-slot/schema.mantra",
+      "bytes": 152,
+      "sha256": "b1442888085ac2f3364da28742ffcccd04c513e5838cd36f04e124bfdefc00bf"
+    },
+    {
+      "path": "vectors/22-current-cycle/case.mantra",
+      "bytes": 13,
+      "sha256": "dae4d6966522440b2c4fe8be32bd7274f711bd2182a8e6098c3c4517778867ff"
+    },
+    {
+      "path": "vectors/22-current-cycle/expected.json",
+      "bytes": 230,
+      "sha256": "11c1e426fd19f29b98fd26dbe757d04731339fdd91f0dfc52889a5ea031ae443"
+    },
+    {
+      "path": "vectors/22-current-cycle/schema.mantra",
+      "bytes": 125,
+      "sha256": "7e71d967b1ffd0dd6b9354f385ea9592d502b362c5fe73bb5a5ba558ae7cf7b9"
+    },
+    {
+      "path": "vectors/23-weighted-ratio/case.mantra",
+      "bytes": 90,
+      "sha256": "7bc63c93f7f2a2f0071465d8413f432c9d33e1f52f44e3e843b7ccf26a075609"
+    },
+    {
+      "path": "vectors/23-weighted-ratio/expected.json",
+      "bytes": 240,
+      "sha256": "17b6b6597b81566903c962fbb408c9459aa9caa553e19fca9c39ace0c14cea79"
+    },
+    {
+      "path": "vectors/23-weighted-ratio/schema.mantra",
+      "bytes": 363,
+      "sha256": "e2fd1c2edcc437daef037aa54bb5112249a73f8f5ecb4a9984309aac449922cd"
+    },
+    {
+      "path": "vectors/24-zero-denominator/case.mantra",
+      "bytes": 89,
+      "sha256": "6a2f79cbaa6f9a52d934277450400289ba2bf3b7822c8981e136ca6eda5e4a9b"
+    },
+    {
+      "path": "vectors/24-zero-denominator/expected.json",
+      "bytes": 329,
+      "sha256": "586d2b9b8be859bf4ca5869bb9ee2d5413ba6f83af0ac9f491d580f79ee09326"
+    },
+    {
+      "path": "vectors/24-zero-denominator/schema.mantra",
+      "bytes": 374,
+      "sha256": "0c1e50c278bceffc30bc89112008250db6713e58685907cfc2ab6c1f41cefaab"
+    }
+  ]
+}

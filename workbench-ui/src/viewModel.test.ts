@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Paper, Run } from './types'
-import { auditForCell, nodeValue } from './viewModel'
+import { auditForCell, nodeValue, panelValue } from './viewModel'
 
 const run: Run = {
   caseGraph: null,
@@ -98,6 +98,8 @@ describe('read-only value selection', () => {
       },
     }
     expect(nodeValue(withAggregate, 'aggregate.rate')).toBe('24,9375 %')
+    expect(panelValue(withAggregate, 'rate')).toBe('24,9375 %')
+    expect(nodeValue(withAggregate, 'rate', 'missing')).toBeUndefined()
     expect(nodeValue(withAggregate, 'aggregate.rate', 'entity=A')).toBeUndefined()
     expect(nodeValue(withAggregate, 'rate', 'A')).toBeUndefined()
     expect(nodeValue(withAggregate, 'aggregate.missing')).toBeUndefined()

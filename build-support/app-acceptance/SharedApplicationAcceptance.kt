@@ -109,16 +109,18 @@ class SharedApplicationAcceptance(private val environment: AcceptanceEnvironment
     }
 
     /** Focused amount contracts need their independently declared key/value checks in caller tests. */
-    fun focusedCases(): List<Pair<AcceptanceCaseBinding, AcceptanceExecution>> =
-        environment.ownedCases.filter { it.role == AcceptanceCaseRole.FOCUSED_AMOUNT }.map { entry ->
-            val binding = bind(entry)
-            val execution = environment.calculations.calculate(
-                AcceptanceCalculationRequest(binding, AcceptanceEvidence.FULL),
-            )
-            AcceptanceAssertions.ordinary(binding, execution, environment.sourcePaths)
-            compareIndependentFocusedAmounts(binding, execution.result)
-            binding to execution
-        }
+    fun focusedCases(): List<Pair<AcceptanceCaseBinding, AcceptanceExecution>> = environment.ownedCases.filter {
+        it.role ==
+            AcceptanceCaseRole.FOCUSED_AMOUNT
+    }.map { entry ->
+        val binding = bind(entry)
+        val execution = environment.calculations.calculate(
+            AcceptanceCalculationRequest(binding, AcceptanceEvidence.FULL),
+        )
+        AcceptanceAssertions.ordinary(binding, execution, environment.sourcePaths)
+        compareIndependentFocusedAmounts(binding, execution.result)
+        binding to execution
+    }
 
     private fun compareIndependentFocusedAmounts(binding: AcceptanceCaseBinding, result: CalculationResult) {
         val reference = requireNotNull(binding.declaration.case.text("expected-values")) {
@@ -262,7 +264,7 @@ class SharedApplicationAcceptance(private val environment: AcceptanceEnvironment
         Files.writeString(file, WorkbenchJson.write(values))
     }
 
-    private fun compareWorkbook(result: CalculationResult, layout: LayoutSpec, relativeName: Path) {
+    internal fun compareWorkbook(result: CalculationResult, layout: LayoutSpec, relativeName: Path) {
         val name = relativeName.toString()
         val out = environment.applicationDirectory.resolve("build/out")
         Files.createDirectories(out.resolve(name).parent)

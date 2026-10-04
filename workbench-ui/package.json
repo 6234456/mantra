@@ -1,7 +1,7 @@
 {
   "name": "mantra-workbench-ui",
   "private": true,
-  "version": "0.4.0",
+  "version": "1.0.0-rc.1",
   "type": "module",
   "engines": {
     "node": "^22.13.0 || >=24"

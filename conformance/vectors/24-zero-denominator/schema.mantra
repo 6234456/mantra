@@ -1,0 +1,6 @@
+(schema conformance/zero-denominator
+  (dimension region {:members [:A :B]})
+  (input numerator-value :decimal {:per region})
+  (input denominator-value :decimal {:per region})
+  (line weighted-rate "Rate" (decimal/divide numerator-value denominator-value 6 :half-up)
+    {:per region :aggregate {:ratio [numerator-value denominator-value] :round [6 :half-up]} :op :info}))

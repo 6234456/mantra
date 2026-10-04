@@ -1,0 +1,5 @@
+(layout energy.budget/matrix
+  {:title "Monthly energy budget"}
+  (table site-register :label (members site) :cross-total)
+  (table energy-flow {:style :matrix :row-dimension site} :label (members budget-month) :cross-total :status)
+  (table energy-cost {:style :matrix :row-dimension site} :label (members budget-month) :cross-total))

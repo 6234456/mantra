@@ -4,8 +4,10 @@ import com.xqiou.mantra.core.api.AuditOptions
 import com.xqiou.mantra.core.api.CalculationOptions
 import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.api.CalculationSession
+import com.xqiou.mantra.core.api.CompiledCalculation
 import com.xqiou.mantra.core.api.RunStage
 import com.xqiou.mantra.core.engine.CalculationPlan
+import com.xqiou.mantra.core.engine.CompiledTemplate
 import com.xqiou.mantra.core.engine.Evaluator
 import com.xqiou.mantra.core.engine.LiteralInputRows
 import com.xqiou.mantra.core.engine.Planner
@@ -61,6 +63,28 @@ object Mantra {
         val set = ParameterSetReader.read(source, sink)
         sink.throwIfErrors()
         return checkNotNull(set)
+    }
+
+    /**
+     * Checks immutable compilation shape once. Input facts and domains are validated per actual
+     * case; functions, extensions, formula bindings and parameter types must remain compatible.
+     * The returned template may be shared, while each worker owns its own execution sessions.
+     */
+    fun compile(
+        schema: Schema,
+        bindings: CaseData = CaseData.empty(),
+        parameters: List<ParameterSet> = emptyList(),
+        options: CalculationOptions = CalculationOptions(),
+    ): CompiledCalculation {
+        // The public template receives only detached usage, never this construction context.
+        var usage: com.xqiou.mantra.core.api.RunUsage? = null
+        val template = RunBoundary.independent(options, { checked, observed ->
+            usage = observed
+            checked
+        }) {
+            CompiledTemplate.create(schema, bindings, parameters, it)
+        }
+        return CompiledCalculation(template, checkNotNull(usage))
     }
 
     /** Compiles and orders the calculation; throws [MantraException] with all findings on error. */

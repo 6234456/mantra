@@ -12,7 +12,7 @@ def kotlin_sources(root: Path):
     """Only repository source roots, never the pinned kernel, build output or dependencies."""
     source_roots = [module / 'src' for module in sorted(root.glob('mantra-*')) if module.is_dir()]
     source_roots += [app / 'src' for app in sorted((root / 'apps').glob('*')) if app.is_dir()]
-    source_roots += [root / 'build-support', root / 'benchmarks' / 'src']
+    source_roots += [root / 'build-support', root / 'benchmarks' / 'src', root / 'conformance-adapter' / 'src']
     for directory in source_roots:
         yield from sorted(directory.rglob('*.kt'))
 

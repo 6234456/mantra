@@ -1,0 +1,10 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "known-zero": {
+      "n": "0"
+    }
+  },
+  "diagnostics": []
+}

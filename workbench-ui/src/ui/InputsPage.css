@@ -326,3 +326,8 @@
 .input-add-row input {
   width: 140px;
 }
+
+fieldset.input-sheet {
+  min-inline-size: 0;
+  margin: 0;
+}

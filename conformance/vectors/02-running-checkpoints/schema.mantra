@@ -1,0 +1,12 @@
+(schema conformance/checkpoints
+  (section main "Main"
+    (line inflow "Inflow" 10)
+    (line outflow "Outflow" 3 {:op :minus})
+    (line memorandum "Memorandum" 99 {:op :info})
+    (total checkpoint-a "First checkpoint")
+    (line supplement "Supplement" 5)
+    (total checkpoint-b "Second checkpoint")
+    (section branch "Branch"
+      (line increment "Increment" 2)
+      (total branch-result "Branch result"))
+    (total final-checkpoint "Final checkpoint")))

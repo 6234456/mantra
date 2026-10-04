@@ -1,0 +1,25 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "opening@*": {
+      "n": "140"
+    },
+    "closing@*": {
+      "n": "156"
+    },
+    "closing@A/P3": {
+      "n": "110"
+    },
+    "closing@B/P3": {
+      "n": "46"
+    },
+    "opening@A/*": {
+      "n": "100"
+    },
+    "closing@B/*": {
+      "n": "46"
+    }
+  },
+  "diagnostics": []
+}

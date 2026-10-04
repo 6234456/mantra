@@ -1,0 +1,5 @@
+(schema conformance/applicability
+  (dimension region {:members [:A :B]})
+  (input quantity :decimal {:per region})
+  (line eligible "Eligible" quantity {:per region :when (> quantity 0) :op :info})
+  (check positive "Positive" (> quantity 0) {:per region :when (> quantity 0)}))

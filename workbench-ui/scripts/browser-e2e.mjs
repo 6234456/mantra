@@ -105,6 +105,24 @@ const scenarios = [
     cell: '1,333.33',
     address: 'converged-amount',
   },
+  {
+    id: 'energy-budget/case-demo.mantra',
+    heading: 'Monthly energy budget',
+    result: '31,84',
+    panel: 'energy-flow',
+    cell: '48,000',
+    address: 'grid-import@A/P1',
+    rowLabel: 'Energy imported to serve demand',
+  },
+  {
+    id: 'project-portfolio/case-demo.mantra',
+    heading: 'Supplied project portfolio',
+    result: '—',
+    panel: 'project-plan',
+    cell: '80,00',
+    address: 'selected-cost@A',
+    rowLabel: 'Selected cost',
+  },
 ]
 
 async function freePort() {

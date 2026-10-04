@@ -51,7 +51,9 @@ class BusinessValidationEditingTest : WorkspaceCatalogTestOwner() {
     private fun run(result: WorkspaceCatalog.DocumentResult): Map<*, *> = result.data["run"] as Map<*, *>
 
     private fun findings(result: WorkspaceCatalog.DocumentResult): List<Map<*, *>> =
-        (result.data["diagnostics"] as List<*>).map { it as Map<*, *> }
+        (result.data["diagnostics"] as List<*>).map {
+            it as Map<*, *>
+        }
 
     @Test
     fun `a business error commits successfully and restoring the fact clears validation failure`() {

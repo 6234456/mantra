@@ -1,0 +1,18 @@
+{
+  "succeeded": false,
+  "validationPassed": true,
+  "values": {
+    "exact-third": null,
+    "independent": {
+      "n": "7"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-EVALUATION",
+      "category": "evaluation",
+      "severity": "error",
+      "effect": "technical-failure"
+    }
+  ]
+}

@@ -195,11 +195,13 @@ class CalculationView private constructor(
     fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult =
         openReader().use { it.reduce(nodeId, fixed) }
 
-    fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? =
-        openReader().use { it.coordinate(nodeId, fixed) }
+    fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? = openReader().use {
+        it.coordinate(nodeId, fixed)
+    }
 
-    fun coordinates(nodeId: String, fixed: Map<String, String> = emptyMap()): List<Coord> =
-        openReader().use { it.coordinates(nodeId, fixed) }
+    fun coordinates(nodeId: String, fixed: Map<String, String> = emptyMap()): List<Coord> = openReader().use {
+        it.coordinates(nodeId, fixed)
+    }
 
     internal fun reduceBound(nodeId: String, fixed: Map<String, String>, context: RunContext): AggregationResult =
         context.at(RunStage.REDUCING, context.nodeAddress(nodeId)) {

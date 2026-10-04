@@ -50,6 +50,15 @@ class MarkdownTest(unittest.TestCase):
             with self.subTest(source=source), self.assertRaises(ValueError):
                 self.site.source_file(source, "index.html")
 
+    def test_encoded_literal_and_decoded_anchors_are_checked_without_hiding_missing_ids(self):
+        output = self.site.output / "index.html"
+        for identity in ("member%2Fkind", "member/kind"):
+            output.write_text(f'<div id="{identity}"></div><a href="#member%2Fkind">open</a>')
+            self.assertEqual(sitegen.check_links(self.site.output)["local_links"], 1)
+        output.write_text('<div id="other"></div><a href="#member%2Fkind">open</a>')
+        with self.assertRaisesRegex(ValueError, "missing anchor"):
+            sitegen.check_links(self.site.output)
+
     def test_duplicate_headings_have_distinct_checked_anchors(self):
         body = self.site.markdown('# Intro\n\n# Intro\n\n[Repeat](#intro-1)', self.origin, "index.html")
         output = self.site.output / "index.html"
@@ -147,7 +156,7 @@ class RepositoryTest(unittest.TestCase):
 
     def test_real_checkout_generates_all_application_pages_and_local_indexes(self):
         applications = json.loads((ROOT / "docs/site/applications.json").read_text())
-        self.assertEqual(len(applications), 8)
+        self.assertEqual(len(applications), len([path for path in (ROOT / "apps").iterdir() if (path / "README.md").is_file()]))
         for application in applications:
             self.assertTrue((self.output / "apps" / (application["id"] + ".html")).is_file())
         for name in ("dsl", "functions", "diagnostics", "api"):
@@ -173,17 +182,17 @@ class RepositoryTest(unittest.TestCase):
             self.assertEqual(sitegen.digest(ROOT / name), expected)
         self.assertTrue(all(".deps" not in name for name in self.metadata["source_files"]))
 
-    def test_site_is_offline_and_planned_api_is_explicit(self):
+    def test_site_is_offline_and_delivered_api_is_explicit(self):
         for path in self.output.glob("**/*.html"):
-            if "downloads" in path.parts:
+            if "downloads" in path.parts or "api" in path.relative_to(self.output).parts:
                 continue
             text = path.read_text()
             self.assertIn('<html lang="en">', text)
             self.assertNotIn("<script", text)
             self.assertNotIn('href="https://fonts', text)
             self.assertIn('href="', text)
-        self.assertIn("Planned M4 extensions", (self.output / "reference/api.html").read_text())
-        self.assertIn("M4 update point", (self.output / "embedding.html").read_text())
+        self.assertIn("Embedded execution and package APIs", (self.output / "reference/api.html").read_text())
+        self.assertIn("Compile once and stream typed cases", (self.output / "embedding.html").read_text())
 
     def test_executable_catalog_comparison_rejects_mismatches(self):
         site = sitegen.Site(ROOT, self.output)

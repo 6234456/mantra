@@ -36,8 +36,9 @@ class CalculationReader private constructor(private val view: CalculationView, p
     fun chargeScans(amount: Long = 1): Unit = read { context.charge(RunCounter.HOST_SCANS, amount) }
     fun chargeCoordinateVisits(amount: Long = 1): Unit = read { context.charge(RunCounter.COORDINATE_VISITS, amount) }
 
-    fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult =
-        read { view.reduceBound(nodeId, fixed, context) }
+    fun reduce(nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult = read {
+        view.reduceBound(nodeId, fixed, context)
+    }
     fun reduce(otherView: CalculationView, nodeId: String, fixed: Map<String, String> = emptyMap()): AggregationResult =
         read { otherView.reduceBound(nodeId, fixed, context) }
     fun coordinate(nodeId: String, fixed: Map<String, String>): Coord? =

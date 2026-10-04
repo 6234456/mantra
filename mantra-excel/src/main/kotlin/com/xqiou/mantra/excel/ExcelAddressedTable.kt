@@ -34,6 +34,11 @@ internal fun ExcelWorkbookBuilder.layoutAddressedTable(table: PaperTable) {
             paperCellStyles[slot] = rule
             val address = row.valueAddresses.getOrNull(column)
             if (address == null) {
+                val liveLabel = dynamicPaperLabel(table, index, column)
+                if (liveLabel != null) {
+                    presentation += slot to { liveLabel() }
+                    return@forEachIndexed
+                }
                 text(
                     sheet,
                     r,
@@ -70,11 +75,18 @@ internal fun ExcelWorkbookBuilder.layoutAddressedTable(table: PaperTable) {
                 row.kind == RowKind.OPTION && row.optionKey != null -> {
                     val existing = optionSlots.getOrPut(node.id to row.optionKey!!) {
                         linkedMapOf()
-                    }.putIfAbsent(address.coord, slot)
+                    }.putIfAbsent(dynamic?.storageCoordinate(node.dims, address.coord) ?: address.coord, slot)
                     if (existing != null) presentation += slot to { ref(existing, kindOf(node)) }
                 }
                 else -> {
-                    val existing = nodeSlots.getOrPut(node.id) { linkedMapOf() }.putIfAbsent(address.coord, slot)
+                    val fixed = layout.tables.firstOrNull { it.sectionId == table.id }?.fixed.orEmpty()
+                    if (fixed.keys.any { it in dynamic?.dimensions.orEmpty() }) {
+                        presentation += slot to { reference(node.id, node.dims, address.coord) as? X.Scalar }
+                        return@forEachIndexed
+                    }
+                    val existing = nodeSlots.getOrPut(node.id) {
+                        linkedMapOf()
+                    }.putIfAbsent(dynamic?.storageCoordinate(node.dims, address.coord) ?: address.coord, slot)
                     if (existing != null) presentation += slot to { ref(existing, kindOf(node)) }
                 }
             }

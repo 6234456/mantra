@@ -1,0 +1,119 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.cost-accounting",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 3413,
+      "sha256": "2af067f2cf406b679710e1cb05b00bfdfbe4938ba2a38cb225cf3cb13970d4fa"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1842,
+      "sha256": "0bc12d114586f800170dfc7d82f7f2d1c47acd7228fcd98d2c221873bc4895ad"
+    },
+    {
+      "path": "case-zero-pools.mantra",
+      "role": "case",
+      "byteLength": 1940,
+      "sha256": "32de9148fc5a5184b7110ebe343e477761ba4ffae57383f47210f601f0e038f9"
+    },
+    {
+      "path": "data/primary-postings.csv",
+      "role": "data",
+      "byteLength": 282,
+      "sha256": "c0731985f906e9249c7fe4f065dc592946628d619a47ea51a1696b9e251f9f16"
+    },
+    {
+      "path": "import-templates/primary-postings.json",
+      "role": "import-template",
+      "byteLength": 288,
+      "sha256": "5bfcadc7d93d84b4ded1652a19a3dd8f334525c43856d1cc482447ec1bebfe35"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 1190,
+      "sha256": "c45e4a8213b4f6e2bd46c7864913417b85d5f6676ae13194acaf3aec568b5f69"
+    },
+    {
+      "path": "params-unit-precision.mantra",
+      "role": "parameters",
+      "byteLength": 251,
+      "sha256": "d1b832e2f0fc6fd1cbac8a51854d9b051d6e53748409373373edc5a2c43cdd50"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 7155,
+      "sha256": "31b513cda4e499ae61815eef4933c0955bee061a9e3650170aad2559f597de65"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 3113,
+      "sha256": "afe6f4f0600e78337c057ebdb953a9c7f7f06a122f033344aa8af8d9388d0e41"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "cost.accounting/product-cost",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "cost.accounting/unit-precision",
+      "schema": {
+        "id": "cost.accounting/product-cost",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-unit-precision.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "cost.accounting/product-cost-paper",
+      "schema": {
+        "id": "cost.accounting/product-cost",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "co-demo",
+      "schema": {
+        "id": "cost.accounting/product-cost",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [],
+      "layout": "cost.accounting/product-cost-paper"
+    },
+    {
+      "id": "cost-zero-pools",
+      "schema": {
+        "id": "cost.accounting/product-cost",
+        "version": "0.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-zero-pools.mantra",
+      "parameters": [],
+      "layout": "cost.accounting/product-cost-paper"
+    }
+  ],
+  "dependencies": []
+}

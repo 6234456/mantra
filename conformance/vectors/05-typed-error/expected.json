@@ -1,0 +1,15 @@
+{
+  "succeeded": false,
+  "validationPassed": true,
+  "values": {
+    "input-enabled": null
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-INPUT-TYPE",
+      "category": "structural",
+      "severity": "error",
+      "effect": "technical-failure"
+    }
+  ]
+}

@@ -42,17 +42,27 @@ mantra – calculation-schema engine (Normein DSL)
 
 Usage:
   mantra run <schema.mantra> [--case <case.mantra>] [--workspace <dir>] [--layout <layout.mantra>]
-             [--parameters <file[,file...]>] [--format text|html|xlsx] [--out <file>] [--audit]
+             [--parameters <file[,file...]>] [--format text|html|xlsx|pdf] [--out <file>] [--audit]
   mantra check <schema.mantra> [--case <case.mantra>] [--workspace <dir>] [--parameters <file[,file...]>]
   mantra catalog
+  mantra lsp [--stdio]
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
   mantra serve <workspace> [--port <number>] [--ui <workbench-ui/dist>]
+             [--packages <host-config.json>] [--directory-policy strict-handles|trusted-local]
   mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
               [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
               [--workspace <dir>] [--layout <layout.mantra>] [--format json|text] [--out <file>]
   mantra explain <schema.mantra> --case <case.mantra> --address <node>
                  [--coord <member[,member...]>] [--parameters <file[,file...]>]
                  [--workspace <dir>] [--layout <layout.mantra>] [--format json|text] [--out <file>]
+
+Explicit package commands (separate read-only manifest mounts and writable host cases):
+  mantra package-list --packages <host-config.json>
+  mantra package-run --packages <host-config.json> --case <mount/case-path> [--format json|text|html|xlsx|pdf] [--out <file>]
+  mantra package-explain --packages <host-config.json> --case <mount/case-path> --node <id> [--coord <members>]
+  mantra package-migration-preview --packages <host-config.json> --case <id> --base-revision <sha256> --target-case <id>
+  mantra package-migration-apply --packages <host-config.json> --case <id> --base-revision <sha256> --target-case <id> --review-token <token>
+  mantra package-serve --packages <host-config.json> --workspace <legacy-host-root> [--port <number>] [--ui <dir>]
 
 Commands:
   run      Evaluate the schema for a case and render a working paper (default: text to stdout).
@@ -66,6 +76,7 @@ Commands:
 """
 
 fun main(args: Array<String>) {
+    com.xqiou.mantra.server.WorkbenchTransport.installDefaults()
     // POI logs through log4j-api; use its built-in simple logger instead of a missing backend.
     System.setProperty("log4j2.loggerContextFactory", "org.apache.logging.log4j.simple.SimpleLoggerContextFactory")
     System.setProperty("org.apache.logging.log4j.simplelog.StatusLogger.level", "OFF")
@@ -75,22 +86,40 @@ fun main(args: Array<String>) {
 
 /** The real command dispatcher, with explicit streams and exit status for in-process integration tests. */
 internal fun executeCli(args: Array<String>, out: PrintStream = System.out, err: PrintStream = System.err): Int = try {
-    val options = parseOptions(args.drop(1), out, err)
-    when (val command = args.firstOrNull()) {
-        "run" -> run(options)
-        "check" -> check(options)
-        "catalog" -> catalog(options)
-        "fixtures" -> fixtures(options)
-        "serve" -> serve(options)
-        "diff" -> diff(options)
-        "explain" -> explain(options)
-        null, "help", "--help", "-h" -> out.println(USAGE.trimIndent())
-        else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
+    if (args.firstOrNull() == "lsp") {
+        require(args.drop(1).isEmpty() || args.drop(1) == listOf("--stdio")) { "lsp accepts only --stdio" }
+        com.xqiou.mantra.lsp.main()
+    } else {
+        val options = parseOptions(args.drop(1), out, err)
+        when (val command = args.firstOrNull()) {
+            "run" -> run(options)
+            "check" -> check(options)
+            "catalog" -> catalog(options)
+            "package-list",
+            "package-run",
+            "package-explain",
+            "package-migration-preview",
+            "package-migration-apply",
+            "package-serve",
+            -> {
+                val status = executePackageCli(args, out, err)
+                if (status != 0) throw CliExit(status)
+            }
+            "fixtures" -> fixtures(options)
+            "serve" -> serve(options)
+            "diff" -> diff(options)
+            "explain" -> explain(options)
+            null, "help", "--help", "-h" -> out.println(USAGE.trimIndent())
+            else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
+        }
     }
     0
 } catch (error: CliExit) {
     error.message?.let(err::println)
     error.status
+} catch (error: com.xqiou.mantra.packages.PackageException) {
+    error.diagnostics.forEach(err::println)
+    2
 } catch (error: MantraException) {
     err.println(error.diagnostics.joinToString("\n"))
     2
@@ -267,6 +296,14 @@ private fun run(options: Options) {
     val execution = evaluate(options)
     val result = execution.result
     val layout = execution.layout
+    if (options.named["format"] == "pdf") {
+        val out = options.path("out") ?: fail("--format pdf requires --out <file.pdf>")
+        out.toAbsolutePath().parent?.let(Files::createDirectories)
+        Files.write(out, Render.pdf(result, layout))
+        execution.diagnostics(options)
+        if (!execution.succeeded) throw CliExit(3)
+        return
+    }
     if (options.named["format"] == "xlsx") {
         val out = options.path("out") ?: fail("--format xlsx requires --out <file.xlsx>")
         val workbook = com.xqiou.mantra.excel.ExcelExport.workbook(result, layout)
@@ -317,7 +354,23 @@ private fun serve(options: Options) {
     val ui = options.path("ui")
     if (options.flag("ui") && ui == null) fail("--ui requires a directory")
     if (ui != null && !Files.isDirectory(ui)) fail("--ui directory does not exist: $ui")
-    val server = WorkbenchServer(workspace, port, ui ?: Path.of("workbench-ui/dist").takeIf(Files::isDirectory)).start()
+    val policy = when (options.named["directory-policy"]) {
+        null, "strict-handles" -> com.xqiou.mantra.packages.DirectoryPolicy.STRICT_HANDLES
+        "trusted-local" -> com.xqiou.mantra.packages.DirectoryPolicy.TRUSTED_LOCAL
+        else -> fail("--directory-policy must be strict-handles or trusted-local")
+    }
+    val packages = options.path("packages")?.let {
+        com.xqiou.mantra.workbench.packages.PackageWorkspaceConfig.open(
+            it,
+            com.xqiou.mantra.packages.SemanticVersion.parse(com.xqiou.mantra.core.api.RuntimeVersions.mantra),
+        )
+    } ?: com.xqiou.mantra.workbench.packages.PackageDirectoryWorkspace.open(workspace, policy)
+    val server = WorkbenchServer(
+        workspace,
+        port,
+        ui ?: Path.of("workbench-ui/dist").takeIf(Files::isDirectory),
+        packageWorkspace = packages,
+    ).start()
     Runtime.getRuntime().addShutdownHook(Thread { server.close() })
     options.out.println("mantra: serving ${workspace.toAbsolutePath()} at http://127.0.0.1:${server.localPort}/")
     CountDownLatch(1).await()
@@ -344,7 +397,12 @@ private fun diff(options: Options) {
         requireNotNull(baseExecution.revision),
         requireNotNull(variantExecution.revision),
     )
-    val envelope = WorkbenchJson.envelope(revision, "0.4.0-SNAPSHOT", normeinVersion(options.schemaPath()), document)
+    val envelope = WorkbenchJson.envelope(
+        revision,
+        com.xqiou.mantra.core.api.RuntimeVersions.mantra,
+        normeinVersion(options.schemaPath()),
+        document,
+    )
     val output = when (options.named["format"] ?: "json") {
         "json" -> WorkbenchJson.write(envelope)
         "text" -> buildString {
@@ -434,7 +492,7 @@ private fun explain(options: Options) {
         "json" -> WorkbenchJson.write(
             WorkbenchJson.envelope(
                 revision,
-                "0.4.0-SNAPSHOT",
+                com.xqiou.mantra.core.api.RuntimeVersions.mantra,
                 normeinVersion(options.schemaPath()),
                 document + ("revision" to revision),
             ),
@@ -526,28 +584,9 @@ private fun check(options: Options) {
 
 private fun catalog(options: Options) {
     options.out.println("Schema forms (calculation layer)")
-    listOf(
-        "(schema id {meta} decl*)" to "calculation schema document",
-        "(fragment decl*)" to "included document",
-        "(include \"path\")" to "include a fragment",
-        "(param id literal {opts})" to "template parameter, overridable per case",
-        "(input id :type {opts})" to "user fact (:decimal :integer :boolean :keyword :text :date :table)",
-        "(dimension id {:members [...] | :from table | :periods spec})" to
-            "members or continuous periods; may declare :parent and :parent-key",
-        "(prev node first-expression)" to "previous period at matching coordinates; lazy first-period fallback",
-        "(defn name [^Type arg] body)" to "helper function in Normein DSL",
-        "(section id \"Label\" {opts} item*)" to "grouping; with a total it has a running sum",
-        "(field id \"Label\" {opts})" to "input shown in place",
-        "(line id \"Label\" formula {opts})" to "computed line (Normein expression)",
-        "(formula-slot id \"Label\" default {opts})" to "typed formula hook; cases may use (bind id formula)",
-        "(check id \"Label\" boolean {opts})" to "nonblocking business check with severity, dimensions and conditions",
-        "(reconcile id \"Label\" left right {opts})" to "business check retaining both sides, difference and tolerance",
-        "(total id \"Label\" {opts})" to "running subtotal / total of the section",
-        "(choice id \"Label\" {:rule :min|:max} (option :key \"Label\" formula)+)" to
-            "alternatives (Günstigerprüfung, higher-of)",
-        "(slot id \"Label\" {opts})" to "extension point filled by (extend id ...) in a case",
-        "(note \"Text\")" to "text row",
-    ).forEach { (form, text) -> options.out.println("  %-64s %s".format(form, text)) }
+    com.xqiou.mantra.core.api.language.LanguageCatalog.forms.forEach {
+        options.out.println("  %-64s %s".format(it.syntax, it.summary))
+    }
     options.out.println(
         "  item options: :op :plus|:minus|:info  :per dim|[dims]  :when expr  :round n|[n :mode]  :spread true",
     )
@@ -564,16 +603,8 @@ private fun catalog(options: Options) {
     options.out.println("  (${FunctionCatalog.callableCount} callables in total)")
     options.out.println()
     options.out.println("Layout forms (presentation layer)")
-    options.out.println(
-        "  (layout id {:preset … :locale … :precision … :negative … :zero … :hide-zero … :explain … :signed …} form*)",
-    )
-    options.out.println("  (operators {...})  (columns :tiered|:matrix col*)  (table section-id {opts} col*)")
-    options.out.println("  table axes: :style :matrix|:transpose  :row-dimension dim  :fixed {:dimension :member}")
-    options.out.println("  (attribute :name {opts}?)  application metadata column")
-    options.out.println("  (schedule id*)  (inline id*)  (hide id*)")
-    options.out.println(
-        "  (col id {:content <content> :header \"…\" :width n :align …})  (members dim)  (member dim :key)",
-    )
-    options.out.println("  column contents: ${ColumnContent.catalog.joinToString()}")
+    com.xqiou.mantra.render.layout.LayoutLanguageCatalog.forms.forEach {
+        options.out.println("  %-64s %s".format(it.syntax, it.summary))
+    }
     options.out.println("  presets: ${Presets.ALL.keys.joinToString()}")
 }

@@ -1,0 +1,1 @@
+(case ratio (inputs {:numerator-value {:A 10 :B 40} :denominator-value {:A 100 :B 200}}))

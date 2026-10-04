@@ -1,0 +1,16 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "weighted-rate@A": {
+      "n": ".1"
+    },
+    "weighted-rate@B": {
+      "n": ".2"
+    },
+    "weighted-rate@*": {
+      "n": ".166667"
+    }
+  },
+  "diagnostics": []
+}

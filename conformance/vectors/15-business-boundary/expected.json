@@ -1,0 +1,25 @@
+{
+  "succeeded": true,
+  "validationPassed": false,
+  "values": {
+    "match-value": {
+      "n": ".005"
+    },
+    "caution": false,
+    "required-check": false
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-CHECK-FAILED",
+      "category": "business",
+      "severity": "error",
+      "effect": "validation-failure"
+    },
+    {
+      "code": "MANTRA-CHECK-FAILED",
+      "category": "business",
+      "severity": "warning",
+      "effect": "warning"
+    }
+  ]
+}

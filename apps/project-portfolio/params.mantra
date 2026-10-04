@@ -1,0 +1,4 @@
+(parameters project.portfolio/2026
+  {:for "project.portfolio/supplied-plan" :label "Fictional proposal amount precision"
+   :valid-from "2026-01-01" :valid-until "2027-01-01"}
+  (value currency-scale 2))

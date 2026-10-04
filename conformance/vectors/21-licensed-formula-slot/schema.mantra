@@ -1,0 +1,3 @@
+(schema conformance/formula-slot
+  (input basis :decimal)
+  (formula-slot customized "Customized" basis {:uses [basis] :round [2 :half-up] :op :info}))

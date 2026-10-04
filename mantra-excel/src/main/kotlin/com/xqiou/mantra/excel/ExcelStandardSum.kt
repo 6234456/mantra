@@ -31,8 +31,13 @@ internal fun standardSum(
         }
         else -> throw Untranslatable("sum source shape is unavailable")
     }
-    fun compact(value: X.Scalar): X.Scalar =
-        if (value.text.length > 500 && safeAggregateExpression(value.text)) materialize(value) else value
+    fun compact(value: X.Scalar): X.Scalar = if (value.text.length > 500 &&
+        safeAggregateExpression(value.text)
+    ) {
+        materialize(value)
+    } else {
+        value
+    }
     fun contribution(item: X, literal: DslForm? = null): SumContribution {
         chargeScans(1)
         if (item is X.Branches) {

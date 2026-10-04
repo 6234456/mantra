@@ -4,7 +4,7 @@ import type { ExportPreview } from '../types'
 import { language, t } from '../i18n'
 
 const lang = language()
-type Format = 'xlsx' | 'html' | 'txt'
+type Format = 'xlsx' | 'html' | 'txt' | 'pdf'
 
 function columnName(index: number): string {
   let value = index + 1
@@ -89,7 +89,7 @@ export function ExportPage({
         </label>
         <fieldset>
           <legend className="sr-only">{t('export', lang)}</legend>
-          {(['xlsx', 'html', 'txt'] as const).map((item) => (
+          {(['xlsx', 'html', 'txt', 'pdf'] as const).map((item) => (
             <label key={item} className={format === item ? 'selected' : ''}>
               <input
                 type="radio"
@@ -98,7 +98,7 @@ export function ExportPage({
                 checked={format === item}
                 onChange={() => setFormat(item)}
               />
-              {item === 'xlsx' ? 'Excel (.xlsx)' : item === 'html' ? 'HTML' : 'Text'}
+              {item === 'xlsx' ? 'Excel (.xlsx)' : item === 'html' ? 'HTML' : item === 'pdf' ? 'PDF' : 'Text'}
             </label>
           ))}
         </fieldset>

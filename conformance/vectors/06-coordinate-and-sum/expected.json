@@ -1,0 +1,25 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "balance@A": {
+      "n": "4"
+    },
+    "balance@B": {
+      "n": "6"
+    },
+    "member-index@A": {
+      "n": "0"
+    },
+    "member-index@B": {
+      "n": "1"
+    },
+    "combined": {
+      "n": "10"
+    },
+    "balance@*": {
+      "n": "10"
+    }
+  },
+  "diagnostics": []
+}

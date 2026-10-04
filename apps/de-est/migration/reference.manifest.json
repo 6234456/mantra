@@ -1,0 +1,36 @@
+{
+  "status": "INDEPENDENT_SOURCE_ENGINE_UNEXECUTED",
+  "numericChecks": 50,
+  "booleanChecks": 1,
+  "reference": {
+    "path": "reference.json",
+    "byteLength": 2490,
+    "sha256": "a5c944248c0ec35fcdf6c3e15f1e7fec5b14de6a4d9cbf02ed22851069efc114"
+  },
+  "sources": [
+    {
+      "path": "migration/independent_migration.py",
+      "sha256": "85f744ef95cd10f8e045d86e8dcacc336b6466de8ad61565feeb3b7501d54aae"
+    },
+    {
+      "path": "verify_expected.py",
+      "sha256": "b44b350022c1cb78aeed8c7ee2d05129d7c9f0e104da6eb3d73f9fca8354f908"
+    },
+    {
+      "path": "case-mustermann.mantra",
+      "sha256": "a85c3c67538646b4cba92acea26331172b59fe9b61faa63f9e6173c06e66f927"
+    },
+    {
+      "path": "schema.mantra",
+      "sha256": "ab9497067a863dc99eed6185cbff2466b3ae3c513200585522a2e26bacdc779c"
+    },
+    {
+      "path": "versions/2025.3/schema.mantra",
+      "sha256": "db82ae1da3cff65c9730ac1cb7c1923db8b5de8dbd3590fcb638463ae90a66c5"
+    },
+    {
+      "path": "versions/2025.3/params.mantra",
+      "sha256": "d5a80bba56447db1446c53364273a9d9e15f56025893120653c6655422c16224"
+    }
+  ]
+}

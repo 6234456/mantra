@@ -8,6 +8,19 @@ import './AuthoringPages.css'
 const lang = language()
 const label = (de: string, en: string) => (lang === 'de' ? de : en)
 
+function canAuthor(data: WorkbenchData, caseId: string) {
+  return data.canEditCase?.(caseId) !== false && data.canAuthorCase?.(caseId) !== false
+}
+
+function authoringMessage(data: WorkbenchData, caseId: string) {
+  return data.canEditCase?.(caseId) === false
+    ? label('Dieser Fall ist schreibgeschützt.', 'This case is read-only.')
+    : label(
+        'Formelbearbeitung ist in dieser Ansicht nicht verfügbar.',
+        'Formula authoring is unavailable in this view.',
+      )
+}
+
 export function FormulaSlotCard({
   slot,
   caseId,
@@ -21,8 +34,10 @@ export function FormulaSlotCard({
   data: WorkbenchData
   onSaved: () => void
 }) {
+  const editable = canAuthor(data, caseId)
   const [error, setError] = useState('')
   async function reset() {
+    if (!canAuthor(data, caseId)) return
     setError('')
     try {
       await data.formulaEdit(caseId, revision, { op: 'unbindFormula', id: slot.id }, false)
@@ -53,18 +68,28 @@ export function FormulaSlotCard({
           <p>{slot.uses?.length ? slot.uses.join(' · ') : label('Keine Beschränkung', 'No restriction')}</p>
         </div>
       </div>
-      <FormulaEditor
-        key={`${slot.id}-${slot.binding ?? ''}`}
-        caseId={caseId}
-        revision={revision}
-        target={{ kind: 'formulaSlot', id: slot.id }}
-        initialFormula={slot.binding ?? slot.defaultFormula ?? ''}
-        operation={(formula) => ({ op: 'bindFormula', id: slot.id, formula })}
-        data={data}
-        onSaved={onSaved}
-      />
+      {editable ? (
+        <FormulaEditor
+          key={`${slot.id}-${slot.binding ?? ''}`}
+          caseId={caseId}
+          revision={revision}
+          target={{ kind: 'formulaSlot', id: slot.id }}
+          initialFormula={slot.binding ?? slot.defaultFormula ?? ''}
+          operation={(formula) => ({ op: 'bindFormula', id: slot.id, formula })}
+          data={data}
+          onSaved={onSaved}
+        />
+      ) : (
+        <div className="formula-context">
+          <div>
+            <span className="eyebrow">{label('Wirksame Formel', 'Effective formula')}</span>
+            <code>{slot.binding ?? slot.defaultFormula ?? '—'}</code>
+          </div>
+          <p className="muted">{authoringMessage(data, caseId)}</p>
+        </div>
+      )}
       {slot.binding && (
-        <button type="button" className="formula-secondary" onClick={() => void reset()}>
+        <button type="button" className="formula-secondary" disabled={!editable} onClick={() => void reset()}>
           {label('Auf Standard zurücksetzen', 'Reset to default')}
         </button>
       )}
@@ -94,11 +119,13 @@ function ExtensionCard({
   data: WorkbenchData
   onSaved: () => void
 }) {
+  const editable = canAuthor(data, caseId)
   const node = structure.nodes?.[id]
   const [title, setTitle] = useState(node?.label ?? id)
   const [error, setError] = useState('')
   const initial = typeof node?.formula === 'string' ? node.formula : (node?.formula?.text ?? '')
   async function remove() {
+    if (!canAuthor(data, caseId)) return
     if (!window.confirm(label(`Zeile ${id} entfernen?`, `Remove line ${id}?`))) return
     setError('')
     try {
@@ -117,19 +144,28 @@ function ExtensionCard({
         </div>
         <label>
           {label('Titel', 'Title')}
-          <input value={title} onChange={(event) => setTitle(event.target.value)} />
+          <input disabled={!editable} value={title} onChange={(event) => setTitle(event.target.value)} />
         </label>
       </div>
-      <FormulaEditor
-        caseId={caseId}
-        revision={revision}
-        target={{ kind: 'extension', slot: slot.id, id, title }}
-        initialFormula={initial}
-        operation={(formula) => ({ op: 'updateExtension', slot: slot.id, id, title, formula })}
-        data={data}
-        onSaved={onSaved}
-      />
-      <button type="button" className="formula-secondary" onClick={() => void remove()}>
+      {editable ? (
+        <FormulaEditor
+          caseId={caseId}
+          revision={revision}
+          target={{ kind: 'extension', slot: slot.id, id, title }}
+          initialFormula={initial}
+          operation={(formula) => ({ op: 'updateExtension', slot: slot.id, id, title, formula })}
+          data={data}
+          onSaved={onSaved}
+        />
+      ) : (
+        <div className="formula-context">
+          <div>
+            <span className="eyebrow">{label('Wirksame Formel', 'Effective formula')}</span>
+            <code>{initial || '—'}</code>
+          </div>
+        </div>
+      )}
+      <button type="button" className="formula-secondary" disabled={!editable} onClick={() => void remove()}>
         {label('Zeile entfernen', 'Remove line')}
       </button>
       {error && (
@@ -170,6 +206,7 @@ function ExtensionSlotCard({
   data: WorkbenchData
   onSaved: () => void
 }) {
+  const editable = canAuthor(data, caseId)
   const [id, setId] = useState('')
   const [title, setTitle] = useState('')
   return (
@@ -200,40 +237,45 @@ function ExtensionSlotCard({
           <ReadOnlyExtension key={line} id={line} structure={structure} />
         ),
       )}
-      <div className="extension-new">
-        <span className="eyebrow">{label('Neue Zeile', 'New line')}</span>
-        <div className="extension-title">
-          <label>
-            ID
-            <input value={id} onChange={(event) => setId(event.target.value)} placeholder="new-line" />
-          </label>
-          <label>
-            {label('Titel', 'Title')}
-            <input value={title} onChange={(event) => setTitle(event.target.value)} />
-          </label>
+      {editable && (
+        <div className="extension-new">
+          <span className="eyebrow">{label('Neue Zeile', 'New line')}</span>
+          <div className="extension-title">
+            <label>
+              ID
+              <input value={id} onChange={(event) => setId(event.target.value)} placeholder="new-line" />
+            </label>
+            <label>
+              {label('Titel', 'Title')}
+              <input value={title} onChange={(event) => setTitle(event.target.value)} />
+            </label>
+          </div>
+          {id.trim() && title.trim() ? (
+            <FormulaEditor
+              caseId={caseId}
+              revision={revision}
+              target={{ kind: 'extension', slot: slot.id, id: id.trim(), title: title.trim() }}
+              initialFormula=""
+              operation={(formula) => ({
+                op: 'addExtension',
+                slot: slot.id,
+                id: id.trim(),
+                title: title.trim(),
+                formula,
+              })}
+              data={data}
+              onSaved={onSaved}
+            />
+          ) : (
+            <p className="muted">
+              {label(
+                'ID und Titel eingeben, um eine Formel zu schreiben.',
+                'Enter an ID and title to write a formula.',
+              )}
+            </p>
+          )}
         </div>
-        {id.trim() && title.trim() ? (
-          <FormulaEditor
-            caseId={caseId}
-            revision={revision}
-            target={{ kind: 'extension', slot: slot.id, id: id.trim(), title: title.trim() }}
-            initialFormula=""
-            operation={(formula) => ({
-              op: 'addExtension',
-              slot: slot.id,
-              id: id.trim(),
-              title: title.trim(),
-              formula,
-            })}
-            data={data}
-            onSaved={onSaved}
-          />
-        ) : (
-          <p className="muted">
-            {label('ID und Titel eingeben, um eine Formel zu schreiben.', 'Enter an ID and title to write a formula.')}
-          </p>
-        )}
-      </div>
+      )}
     </section>
   )
 }
@@ -251,6 +293,7 @@ export function ExtensionsPage({
   data: WorkbenchData
   onSaved: () => void
 }) {
+  const editable = canAuthor(data, caseId)
   const slots = structure.slots ?? []
   const formulas = structure.formulaSlots ?? []
   return (
@@ -260,6 +303,7 @@ export function ExtensionsPage({
         <h1>{t('extensions', lang)}</h1>
         <p>{structure.title}</p>
       </div>
+      {!editable && <p role="status">{authoringMessage(data, caseId)}</p>}
       {!slots.length && !formulas.length && (
         <section className="sheet authoring-empty">
           {label(

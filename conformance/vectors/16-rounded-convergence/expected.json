@@ -1,0 +1,13 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "bonus": {
+      "n": "9090.91"
+    },
+    "remaining": {
+      "n": "90909.09"
+    }
+  },
+  "diagnostics": []
+}

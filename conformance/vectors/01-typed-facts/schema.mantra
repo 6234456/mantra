@@ -1,0 +1,7 @@
+(schema conformance/typed
+  (input input-quantity :decimal)
+  (input input-enabled :boolean)
+  (input input-tag :keyword)
+  (input input-title :text)
+  (input input-stamp :date)
+  (input input-note :text {:optional true}))

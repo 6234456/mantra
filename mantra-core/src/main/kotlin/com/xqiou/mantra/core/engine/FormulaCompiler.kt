@@ -29,10 +29,11 @@ internal class FormulaCompiler(
     private val namedSources: Map<String, NamedSource>,
     private val types: PlanTypes,
     private val elementType: (ValueVertex) -> DslType,
+    compiling: CompilationMeter? = null,
 ) {
     private data class ScopeKey(val dims: List<String>, val rowTable: String?, val roots: List<DslRootDeclaration>)
     private val scopes = hashMapOf<ScopeKey, DslAnalysisScope>()
-    private val lowering = PrevLowering()
+    private val lowering = PrevLowering(compiling = compiling)
     private val relationRoots: Map<String, String> get() = dimensions.values
         .filter { it.parentDimension != null }.associate { "relation_${it.id}" to it.id }
 

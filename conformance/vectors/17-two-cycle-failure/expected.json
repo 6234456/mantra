@@ -1,0 +1,15 @@
+{
+  "succeeded": false,
+  "validationPassed": true,
+  "values": {
+    "oscillating": null
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-CALC-NOT-CONVERGED",
+      "category": "evaluation",
+      "severity": "error",
+      "effect": "technical-failure"
+    }
+  ]
+}

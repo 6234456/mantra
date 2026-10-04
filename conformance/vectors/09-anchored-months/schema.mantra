@@ -1,0 +1,5 @@
+(schema conformance/month-end
+  (dimension month {:periods {:start "2026-01-31" :unit :month :count 3}})
+  (input expected-end :date {:per month})
+  (check anchored-end "Anchored end" (= month.end-exclusive expected-end) {:per month})
+  (line closing "Closing" (+ (prev closing 0) 1) {:per month :aggregate {:last month} :op :info}))

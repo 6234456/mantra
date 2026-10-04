@@ -16,7 +16,7 @@ it is not a replacement for the full notices required in a binary distribution.
 | [Normein DSL](https://github.com/6234456/normein) | 0.3.0, commit `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Apache-2.0 | Unmodified calculation kernel, included through a pinned composite build |
 | [Kotlin standard library](https://github.com/JetBrains/kotlin) | 2.2.20 | Apache-2.0 | JVM runtime |
 | [JetBrains annotations](https://github.com/JetBrains/java-annotations) | 13.0 | Apache-2.0 | Kotlin runtime dependency |
-| [Apache POI](https://poi.apache.org/) (`poi`, `poi-ooxml`, `poi-ooxml-lite`) | 5.4.1 | Apache-2.0 | XLSX export, descriptions and import |
+| [Apache POI](https://poi.apache.org/) (`poi`, `poi-ooxml`, `poi-ooxml-lite`) | 5.5.1 | Apache-2.0 | XLSX export, descriptions and import |
 | [Apache XMLBeans](https://xmlbeans.apache.org/) | 5.3.0 | Apache-2.0 | POI OOXML dependency |
 | [Apache Commons](https://commons.apache.org/) | Codec 1.18.0; Collections4 4.4; Compress 1.27.1; IO 2.18.0; Lang3 3.16.0; Math3 3.6.1 | Apache-2.0 | POI and XMLBeans runtime dependencies |
 | [Apache Log4j API](https://logging.apache.org/log4j/2.x/) | 2.24.3 | Apache-2.0 | POI logging API |
@@ -133,3 +133,11 @@ do not imply that third-party trademarks are licensed by Mantra.
 - Preserve upstream copyright, license and NOTICE files in distributions.
 - Recheck this inventory against actual resolved dependencies for each release.
 - Keep the current impairment demonstration fictional; re-review provenance before adding published examples.
+
+## PDF rendering and fonts
+
+`mantra-render` uses Apache PDFBox 3.0.8 under Apache-2.0.
+The unmodified embedded DejaVu Sans regular/bold fonts are distributed with their complete
+Bitstream Vera/Arev notices in `mantra-render/src/main/resources/com/xqiou/mantra/render/pdf/fonts/LICENSE.txt`.
+Their source and SHA-256 values are recorded alongside the font files in `provenance.json`.
+Official font license: https://dejavu-fonts.github.io/License.html.

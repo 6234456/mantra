@@ -1,0 +1,5 @@
+(layout project.portfolio/plan
+  {:title "Supplied project portfolio"}
+  (table project-plan :label (members proposal) :cross-total :status)
+  (table department-plan :label (members department) :cross-total)
+  (table portfolio-summary :label :value :status))

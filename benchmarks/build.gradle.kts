@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":mantra-core"))
     implementation(project(":mantra-render"))
     implementation(project(":mantra-excel"))
-    implementation("org.apache.poi:poi-ooxml:5.4.1")
+    implementation("org.apache.poi:poi-ooxml:5.5.1")
 }
 
 application {

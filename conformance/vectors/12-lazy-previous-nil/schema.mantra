@@ -1,0 +1,6 @@
+(schema conformance/lazy-previous
+  (dimension year {:periods {:start "2026-01-01" :unit :year :count 3}})
+  (line closing "Closing" (if (= year.key :P1) (decimal/divide 1 0) 5)
+    {:per year :aggregate {:last year} :op :info})
+  (line prior "Prior" (prev closing (if (= year.key :P1) 9 (/ 1 0)))
+    {:per year :aggregate {:first year} :op :info}))

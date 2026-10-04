@@ -1,0 +1,16 @@
+{
+  "source": "Bundled LibreOffice runtime 26.909.12148; fonts copied unchanged",
+  "upstreamLicense": "https://dejavu-fonts.github.io/License.html",
+  "files": [
+    {
+      "name": "DejaVuSans.ttf",
+      "bytes": 757076,
+      "sha256": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954"
+    },
+    {
+      "name": "DejaVuSans-Bold.ttf",
+      "bytes": 705684,
+      "sha256": "e6476c1b80502924294eed40894c5b18e06c181444ca953e5334262df9c27724"
+    }
+  ]
+}

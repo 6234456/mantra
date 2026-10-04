@@ -64,3 +64,61 @@ it('inspects a CSV, maps a source column, and applies the source to the case', a
     columns: { Wage: 'amount' },
   })
 })
+
+it.each([
+  { editableCase: false, sourcesEditable: true, message: 'This case is read-only.' },
+  { editableCase: true, sourcesEditable: false, message: 'Data sources are read-only in this view.' },
+])(
+  'keeps captured sources visible without invoking unsupported writes: $message',
+  async ({ editableCase, sourcesEditable, message }) => {
+    document.documentElement.lang = 'en'
+    const sources = vi.fn().mockResolvedValue({
+      revision: '0123456789abcdef',
+      data: {
+        sources: [
+          { index: 0, kind: 'csv', path: 'data/captured.csv', options: { decimal: '.' }, overridden: ['amount'] },
+        ],
+      },
+    })
+    const unsupported = () => {
+      throw new Error('Unsupported source mutation')
+    }
+    const data = {
+      canEditCase: vi.fn(() => editableCase),
+      canManageSources: vi.fn(() => sourcesEditable),
+      sources,
+      importTemplates: vi.fn(unsupported),
+      importInspect: vi.fn(unsupported),
+      importApply: vi.fn(unsupported),
+      saveImportTemplate: vi.fn(unsupported),
+      removeSource: vi.fn(unsupported),
+    } as unknown as WorkbenchData
+    const saved = vi.fn()
+    render(<SourcesPage caseId="case.mantra" revision="0123456789abcdef" data={data} onSaved={saved} />)
+    expect(await screen.findByText('data/captured.csv')).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toBe(message)
+    expect(screen.getByText('Overridden by manual input: amount')).toBeTruthy()
+    expect(sources).toHaveBeenCalledWith('case.mantra', expect.any(AbortSignal))
+    const file = { name: 'new.csv', size: 10, arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0)) }
+    const picker = screen.getByLabelText('File') as HTMLInputElement
+    expect(picker.disabled).toBe(true)
+    fireEvent.change(picker, { target: { files: [file] } })
+    for (const name of ['Remove binding', '2 · Inspect']) {
+      const button = screen.getByRole('button', { name }) as HTMLButtonElement
+      expect(button.disabled).toBe(true)
+      fireEvent.click(button)
+    }
+    expect((screen.getByLabelText('Template') as HTMLSelectElement).disabled).toBe(true)
+    expect((screen.getByLabelText('Format') as HTMLSelectElement).disabled).toBe(true)
+    expect(file.arrayBuffer).not.toHaveBeenCalled()
+    for (const method of [
+      'importTemplates',
+      'importInspect',
+      'importApply',
+      'saveImportTemplate',
+      'removeSource',
+    ] as const)
+      expect(data[method]).not.toHaveBeenCalled()
+    expect(saved).not.toHaveBeenCalled()
+  },
+)

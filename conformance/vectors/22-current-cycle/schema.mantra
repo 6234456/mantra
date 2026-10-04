@@ -1,0 +1,3 @@
+(schema conformance/cycle
+  (line cyclic-a "A" (+ cyclic-b 1) {:op :info})
+  (line cyclic-b "B" (+ cyclic-a 1) {:op :info}))

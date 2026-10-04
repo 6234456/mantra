@@ -1,0 +1,229 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.ifrs-impairment",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 5864,
+      "sha256": "5b4b9d79699c1952c383a3c49ee53619eaf09e2dff7abfd90ce6cf885049cf42"
+    },
+    {
+      "path": "case-capped.mantra",
+      "role": "case",
+      "byteLength": 995,
+      "sha256": "609a67a0d63ec477ff42f3c1fd0882ce8848ee913340e8d7cd63b1796992a625"
+    },
+    {
+      "path": "case-custom-weight.mantra",
+      "role": "case",
+      "byteLength": 915,
+      "sha256": "ba7e6ed5c74c82754afabd0efc9f84af7aaa81a2ef4a57ddd0c0913abac236d4"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 848,
+      "sha256": "8308fc49549b6055e8ea09c48dabd63e087678e7d92d379b3b778ff34f59a014"
+    },
+    {
+      "path": "case-discounted-viu.mantra",
+      "role": "case",
+      "byteLength": 1472,
+      "sha256": "c85e4af72f03f1cb27f1b9f271696c69448dde237d86c1b4eb1832f253909bd2"
+    },
+    {
+      "path": "case-insufficient-capacity.mantra",
+      "role": "case",
+      "byteLength": 1259,
+      "sha256": "55fa59af6c7fdf1334eca21d2199fce3ecc26b2f6eff3441129e20d4b1050c19"
+    },
+    {
+      "path": "case-no-impairment.mantra",
+      "role": "case",
+      "byteLength": 862,
+      "sha256": "33648cbaa2c98da7cacd5ebfb23f4567e711aae09e3644ff8c21ab8294680f2a"
+    },
+    {
+      "path": "data/cgu-assets.csv",
+      "role": "data",
+      "byteLength": 177,
+      "sha256": "673dcef2aef85f7e1bb848c80eeaef6683c3fe10c6d7b7f5f0a272b0b100d900"
+    },
+    {
+      "path": "data/cgus.csv",
+      "role": "data",
+      "byteLength": 110,
+      "sha256": "efc76196c68c2fe1f98511b6a4773d5cb0a35eeef137fbf2a66130639beb3d03"
+    },
+    {
+      "path": "data/forecast-cashflows.csv",
+      "role": "data",
+      "byteLength": 114,
+      "sha256": "16bae18303d8d6f67c1e6b80f9e987028ae4fb24ac2545f57d33f74a066e6c0f"
+    },
+    {
+      "path": "fixtures/capped.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "32142ce896b07c2d2601f2c67a4c2ad8407a2e9c2ad20bb1953324553745c06e"
+    },
+    {
+      "path": "fixtures/discounted-viu.json",
+      "role": "documentation",
+      "byteLength": 718,
+      "sha256": "5d6cc2456dcb7a6eadf4116ed0bcab081090d045bf102ae92192924a7b9c61c4"
+    },
+    {
+      "path": "fixtures/insufficient-capacity.json",
+      "role": "documentation",
+      "byteLength": 638,
+      "sha256": "3fdde78104f4c28d56d3c0c1902fd82770444489c95b3c1428fcd2b42e277454"
+    },
+    {
+      "path": "import-templates/cgu-assets.json",
+      "role": "import-template",
+      "byteLength": 289,
+      "sha256": "c3f2728c108b6c0a6abf17ead50d58af1e80cc253b277efb22593c71f0206961"
+    },
+    {
+      "path": "import-templates/cgus.json",
+      "role": "import-template",
+      "byteLength": 251,
+      "sha256": "e9db961ff903526ad8c9ffc4d13ed7885a18a6bd1e51c0aa9c71eef1324eacb9"
+    },
+    {
+      "path": "import-templates/forecast-cashflows.json",
+      "role": "import-template",
+      "byteLength": 323,
+      "sha256": "93222b659f3f9beadf04a1a6450a0356370ad39039a8daa18a6c0cd4aca0ed2e"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 1466,
+      "sha256": "3b312613dfd282eaf2e68cf67f802c1e45b69d9c6e2223c53bc62c2b58cc26c9"
+    },
+    {
+      "path": "params-cent-precision.mantra",
+      "role": "parameters",
+      "byteLength": 223,
+      "sha256": "191a605e74dcc0fffa0e44cc3b05aa067f245a512c599385f25ce6cd2494a1a4"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 11414,
+      "sha256": "dde30e78e4047795bc05c69a54089aab7ea7661ed78467a6ba61fbb1142d578d"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 16523,
+      "sha256": "b2fc6c593893f3095aa19f137a302022632cd23f2db7504312b2763cbcede8f4"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "ifrs.ias36/cent-precision",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-cent-precision.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "ifrs.ias36/working-paper",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "ias36-capped",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-capped.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    },
+    {
+      "id": "ias36-custom-weight",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-custom-weight.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    },
+    {
+      "id": "ias36-demo",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    },
+    {
+      "id": "ias36-discounted-viu",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-discounted-viu.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    },
+    {
+      "id": "ias36-insufficient-capacity",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-insufficient-capacity.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    },
+    {
+      "id": "ias36-no-impairment",
+      "schema": {
+        "id": "ifrs.ias36/corporate-assets",
+        "version": "0.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-no-impairment.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias36/working-paper"
+    }
+  ],
+  "dependencies": []
+}

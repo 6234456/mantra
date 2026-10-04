@@ -15,7 +15,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -46,9 +46,35 @@ jobs:
         working-directory: workbench-ui
         run: npm ci
       - name: Quality gates, JVM tests and application rendering
-        run: ./gradlew --no-daemon check :mantra-cli:installDist
+        run: ./gradlew --no-daemon check :mantra-cli:installDist :mantra-lsp:installDist :mantra-cli:verifyDocumentationExamples
+      - name: ABI binary counterexample and isolated staged consumers
+        run: ./gradlew --no-daemon --max-workers=1 checkAbiCounterexample checkCleanConsumer
+      - name: Independent corpus runner checks and real stdio LSP
+        run: |
+          python3 conformance/test_runner.py
+          python3 conformance/test_derivations.py
+          python3 scripts/smoke-lsp.py --label standalone --command mantra-lsp/build/install/mantra-lsp/bin/mantra-lsp
+          python3 scripts/smoke-lsp.py --label cli --command mantra-cli/build/install/mantra/bin/mantra lsp --stdio
+          python3 scripts/smoke-package-workbench.py
+      - name: Thin VS Code client
+        working-directory: editors/vscode
+        run: npm ci --ignore-scripts && npm test
+      - name: IntelliJ protocol and document tests without installing an IDE
+        run: ./gradlew --no-daemon -p editors/intellij -PprotocolOnly=true -PlspCommand="$GITHUB_WORKSPACE/mantra-lsp/build/install/mantra-lsp/bin/mantra-lsp" test
       - name: All CLI commands
         run: scripts/smoke-cli.sh
+      - name: Exact documentation commands and complete offline site
+        run: |
+          mantra-cli/build/install/mantra/bin/mantra check docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice
+          mantra-cli/build/install/mantra/bin/mantra run docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice --audit --out build/tutorial/paper.txt
+          mantra-cli/build/install/mantra/bin/mantra run docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice --format html --out build/tutorial/paper.html
+          mantra-cli/build/install/mantra/bin/mantra run docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice --format xlsx --out build/tutorial/workbook.xlsx
+          mantra-cli/build/install/mantra/bin/mantra run docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice --format pdf --audit --out build/tutorial/paper.pdf
+          mantra-cli/build/install/mantra/bin/mantra explain docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice --address charge --format json --out build/tutorial/explain.json
+          mantra-cli/build/install/mantra/bin/mantra catalog > build/tutorial/catalog.txt
+          python3 -m unittest discover -s docs/site/tests
+          python3 scripts/generate-docs-site.py --require-artifacts --catalog build/tutorial/catalog.txt
+          python3 scripts/generate-docs-site.py --check-only
       - name: Independent demonstration calculations
         run: |
           python3 apps/de-est/verify_expected.py --verify-values apps/de-est/build/out/case-mustermann-values.json
@@ -111,6 +137,16 @@ jobs:
           python3 apps/de-est/verify_m3_expected.py --outputs apps/de-est/build/out
           python3 apps/de-gewst/verify_m3_expected.py --outputs apps/de-gewst/build/out
           python3 apps/circular-calculation/verify_m3_expected.py --outputs apps/circular-calculation/build/out
+      - name: Neutral generality demonstrations
+        run: |
+          python3 apps/energy-budget/verify_expected.py --self-test
+          python3 apps/project-portfolio/verify_expected.py --self-test
+          for fixture in demo zero-capacity single-site all-zero-demand fractional-measurements unreconciled; do
+            python3 apps/energy-budget/verify_expected.py --fixture "$fixture" --verify-values "apps/energy-budget/build/out/case-$fixture-values.json"
+          done
+          for fixture in demo none-selected over-budget missing-approval fractional-currency zero-cost; do
+            python3 apps/project-portfolio/verify_expected.py --fixture "$fixture" --verify-values "apps/project-portfolio/build/out/case-$fixture-values.json"
+          done
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test
@@ -132,4 +168,11 @@ jobs:
             apps/*/build/reports/tests/
             apps/*/build/out/
             benchmarks/build/reports/tests/
+            build/staging/
+            build/lsp-smoke/
+            build/tutorial/
+            build/docs-site/
+            build/ui-qa/
+            mantra-render/build/out/pdf/
+            editors/intellij/build/reports/tests/
           if-no-files-found: ignore

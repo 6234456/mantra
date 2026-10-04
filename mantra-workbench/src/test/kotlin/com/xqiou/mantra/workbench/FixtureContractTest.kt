@@ -31,6 +31,8 @@ class FixtureContractTest {
         "ifrs-income-taxes" to "case-demo.mantra",
         "ifrs-income-taxes" to "case-unreconciled.mantra",
         "ifrs-income-taxes" to "case-zero-profit.mantra",
+        "energy-budget" to "case-demo.mantra",
+        "project-portfolio" to "case-demo.mantra",
         "fixed-assets" to "case-demo.mantra",
         "ifrs-leases" to "case-demo.mantra",
         "ifrs-impairment" to "case-discounted-viu.mantra",
@@ -215,7 +217,7 @@ class FixtureContractTest {
     }
 
     @Test
-    fun `all eight applications generate stable browser fixtures satisfying their schemas`() {
+    fun `all ten applications generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
@@ -246,6 +248,12 @@ class FixtureContractTest {
                             ExplainAddress("effective-tax-rate", listOf("North")),
                             ExplainAddress("aggregate.effective-tax-rate"),
                         ),
+                    "energy-budget/case-demo.mantra" to listOf(
+                        ExplainAddress("grid-import", listOf("A", "P1")),
+                    ),
+                    "project-portfolio/case-demo.mantra" to listOf(
+                        ExplainAddress("selected-cost", listOf("A")),
+                    ),
                     "fixed-assets/case-demo.mantra" to listOf(
                         ExplainAddress("carrying-closing", listOf("Machine", "P1")),
                         ExplainAddress("carrying-closing", listOf("Machine", "P2")),

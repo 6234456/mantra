@@ -1,0 +1,262 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.fixed-assets",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 7553,
+      "sha256": "0df34950633b1f88c2b5da7ebcbfafe8c5ac7bd185ba9148a66aee0073c536af"
+    },
+    {
+      "path": "case-demo.mantra",
+      "role": "case",
+      "byteLength": 1781,
+      "sha256": "08dec6e9780276b1998684d67b41d799663791dde0557421b6010fe9ba871d49"
+    },
+    {
+      "path": "case-fully-depreciated.mantra",
+      "role": "case",
+      "byteLength": 1221,
+      "sha256": "0d30dc5a17ef235210e9e85bcd6e2afd7a08f7d04a6f90525534026fab7b6e02"
+    },
+    {
+      "path": "case-partial-year.mantra",
+      "role": "case",
+      "byteLength": 1214,
+      "sha256": "b849d51e618729119eac1c0d628422af060d6d0a8d906c95bf50b6c5cea040e3"
+    },
+    {
+      "path": "case-residual-floor.mantra",
+      "role": "case",
+      "byteLength": 1211,
+      "sha256": "570cfe81ad7f98fbcbe65b6dfe46d3947bd5a1ef0211e2507336d2e54d532fbc"
+    },
+    {
+      "path": "case-rounding-residue.mantra",
+      "role": "case",
+      "byteLength": 1215,
+      "sha256": "c0e6f144ca3191fba00652ca9a3e3f0ed61e43375faf478634b4d8cffd85648e"
+    },
+    {
+      "path": "case-unreconciled.mantra",
+      "role": "case",
+      "byteLength": 1923,
+      "sha256": "bfe174f74ff6ced0f030b10f41609a1a6f7a9e9a692deaa5c36d13c633cd8420"
+    },
+    {
+      "path": "data/assets.csv",
+      "role": "data",
+      "byteLength": 392,
+      "sha256": "9ea2a83be36419350a28644c0ed28988bf02147a86eb5966ebf64673c0f74c7f"
+    },
+    {
+      "path": "data/periods.csv",
+      "role": "data",
+      "byteLength": 138,
+      "sha256": "c3c2a0ea99eef7cf1097b4e1888f1e78fe76e3f797c03f9f46adf0c0820f04e0"
+    },
+    {
+      "path": "data/reported-closing.csv",
+      "role": "data",
+      "byteLength": 70,
+      "sha256": "3808976d9d49b51b0e8119c65b28b72ba2a73f9c6a65100a9402d3b3e50aa3d5"
+    },
+    {
+      "path": "fixtures/demo.json",
+      "role": "documentation",
+      "byteLength": 2513,
+      "sha256": "0136c1dce86e41496d13bad06b368df807289fd78e1a2b0186eca349846aa9d2"
+    },
+    {
+      "path": "fixtures/fully-depreciated.json",
+      "role": "documentation",
+      "byteLength": 1702,
+      "sha256": "7ef1a6792fc696b02eda17aaf4c5adae45ef285c6446734a358af8aa27662bc4"
+    },
+    {
+      "path": "fixtures/partial-year.json",
+      "role": "documentation",
+      "byteLength": 1698,
+      "sha256": "0fea5de0283cd5387698d66c1f587348e08f62b43667e52e7007792e8a2696f6"
+    },
+    {
+      "path": "fixtures/residual-floor.json",
+      "role": "documentation",
+      "byteLength": 1695,
+      "sha256": "13cda5b523a0b4473f216394c51078b46a028365f97255c92b1467e155bca709"
+    },
+    {
+      "path": "fixtures/rounding-residue.json",
+      "role": "documentation",
+      "byteLength": 1682,
+      "sha256": "a3c4ac2086d332735894d06abaec4ca4d9e95365b5ded0b5e0ceace93238d2f1"
+    },
+    {
+      "path": "fixtures/unreconciled.json",
+      "role": "documentation",
+      "byteLength": 2524,
+      "sha256": "b69fb6d9d655b2f062a2f99fc17d52951d3f8074b148270cfde7008cf74628fe"
+    },
+    {
+      "path": "import-templates/assets.json",
+      "role": "import-template",
+      "byteLength": 267,
+      "sha256": "16351a0759bf31a1c4936895613e0088ba8aee33f79053e2e6a22ac357d7b1db"
+    },
+    {
+      "path": "import-templates/periods.json",
+      "role": "import-template",
+      "byteLength": 279,
+      "sha256": "6bad09027beebff009d5d3de8126154c1f9a26fa919a576018a9c7c31a3639e2"
+    },
+    {
+      "path": "import-templates/reported-closing.json",
+      "role": "import-template",
+      "byteLength": 298,
+      "sha256": "528b49033606d353a22631034414ac24bddd3b522b0e03ff19f491293f05b2a0"
+    },
+    {
+      "path": "layout-transpose.mantra",
+      "role": "layout",
+      "byteLength": 412,
+      "sha256": "c208ef60d427e667ca00cee86ea0c7fe08c131493f22978aa253c2a4703d6eef"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 806,
+      "sha256": "1aeee11801fe4cdb6dc98473d0c56de75814765feb7ca51475b524a916ffaac2"
+    },
+    {
+      "path": "params-precision.mantra",
+      "role": "parameters",
+      "byteLength": 201,
+      "sha256": "63a00f86342cb4d070acb52d3daff98e2e29effa2ed0fc17cbf8964616c43b42"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 7118,
+      "sha256": "162d95acd00585ecf5be3c56f21f1004ed7769fd530a3e9b5f37e144fe28ceb4"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 15354,
+      "sha256": "efdf3fa6a0187fe8aca000ef2cc5adcc6dfa988824d302f1d12bb75634639bbf"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "assets/precision",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-precision.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "assets/transpose-paper",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout-transpose.mantra"
+    },
+    {
+      "id": "assets/working-paper",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "fixed-assets-demo",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-demo.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    },
+    {
+      "id": "fixed-assets-fully-depreciated",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-fully-depreciated.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    },
+    {
+      "id": "fixed-assets-partial-year",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-partial-year.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    },
+    {
+      "id": "fixed-assets-residual-floor",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-residual-floor.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    },
+    {
+      "id": "fixed-assets-rounding-residue",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-rounding-residue.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    },
+    {
+      "id": "fixed-assets-unreconciled",
+      "schema": {
+        "id": "assets/cost-model",
+        "version": "0.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-unreconciled.mantra",
+      "parameters": [],
+      "layout": "assets/working-paper"
+    }
+  ],
+  "dependencies": []
+}

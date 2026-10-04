@@ -14,7 +14,7 @@ Download [schema.mantra](repo:docs/site/examples/invoice/schema.mantra). The sch
 
 {{file examples/invoice/schema.mantra clojure}}
 
-The `:version` is an opaque exact identity. Node IDs are references, so choose names that do not collide with callable names. `:round [2 :half-up]` is part of calculation semantics; the layout's precision changes display only.
+This tutorial retains its original `1.0` exact version identity. New distributable schemes can use strict three-component SemVer; historic spellings remain exact. Node IDs are references, so choose names that do not collide with callable names. `:round [2 :half-up]` is part of calculation semantics; the layout's precision changes display only.
 
 ## Supply a parameter layer
 
@@ -46,6 +46,8 @@ mantra-cli/build/install/mantra/bin/mantra run docs/site/examples/invoice/schema
 ```
 
 The run should show basis `1200`, the active parameter layer `0.25`, charge `300.00`, a passing check, and total `300.00`. The exporter reports any unsupported formula fallback explicitly. Treat a fallback or evaluation error as a reviewable export limitation rather than assuming every formula is editable.
+
+PDF is also available with `--format pdf --audit --out build/tutorial/paper.pdf`. It includes bounded A4 pagination, page numbers and the generation-time audit appendix. The bundled font supports Latin/Greek/Cyrillic text; unsupported glyphs fail explicitly.
 
 ## Explain the result
 

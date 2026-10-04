@@ -1,0 +1,21 @@
+{
+  "id": "unreconciled",
+  "succeeded": true,
+  "validationPassed": false,
+  "expectedBusiness": [
+    {
+      "code": "MANTRA-RECONCILE-FAILED",
+      "node": "energy-reconciliation",
+      "coord": [
+        "A",
+        "P2"
+      ],
+      "severity": "error"
+    }
+  ],
+  "undefined": [
+    "local-coverage@B/P3"
+  ],
+  "closing": "0",
+  "netCost": "31.84"
+}

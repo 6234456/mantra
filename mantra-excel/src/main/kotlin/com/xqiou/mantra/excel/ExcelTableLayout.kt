@@ -133,6 +133,13 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                 wrap = true,
             ),
         )
+        (column.content as? ColumnContent.Member)?.takeIf {
+            it.dimension in dynamic?.dimensions.orEmpty()
+        }?.let { member ->
+            presentation +=
+                Slot(sheet, HEADER_ROW, index) to
+                { translator.toScalar(dynamic!!.record(member.dimension, member.key, "label") ?: X.Nil) }
+        }
         sheet.setColumnWidth(index, column.width * 256)
     }
 

@@ -311,8 +311,10 @@ internal class MultidimensionalPaperBuilder(
 
     private fun slice(node: ViewNode, fixed: Map<String, String>) = reader.coordinates(view, node.id, fixed)
 
-    private fun zero(node: ViewNode, coords: List<List<String>>) =
-        coords.all { (node.value(it) as? Value.Num)?.value?.signum() == 0 }
+    private fun zero(node: ViewNode, coords: List<List<String>>) = coords.all {
+        (node.value(it) as? Value.Num)?.value?.signum() ==
+            0
+    }
 
     private fun explainsZero(node: ViewNode, coords: List<List<String>>) = coords.any { coord ->
         val trace = node.trace(coord)

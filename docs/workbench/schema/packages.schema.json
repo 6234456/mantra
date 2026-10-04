@@ -1,0 +1,648 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/packages.schema.json",
+  "title": "Mantra captured-package response v1",
+  "description": "The independent package wrapper embeds unchanged strict mantra.workbench/4 documents.",
+  "type": "object",
+  "required": [
+    "contract",
+    "revision",
+    "data"
+  ],
+  "properties": {
+    "contract": {
+      "const": "mantra.packages/1"
+    },
+    "revision": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "data": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/workspace"
+        },
+        {
+          "$ref": "#/$defs/document"
+        },
+        {
+          "$ref": "#/$defs/migration-preview"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "package-case": {
+      "type": "object",
+      "required": [
+        "id",
+        "caseId",
+        "schema",
+        "schemaVersion",
+        "editable"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "caseId": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "editable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mounted-package": {
+      "type": "object",
+      "required": [
+        "mount",
+        "id",
+        "version",
+        "revision",
+        "readOnly",
+        "resourceCount",
+        "caseCount",
+        "schemaCount",
+        "parameterSetCount",
+        "layoutCount",
+        "capturedBytes",
+        "cases"
+      ],
+      "properties": {
+        "mount": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "readOnly": {
+          "const": true
+        },
+        "resourceCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "caseCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "schemaCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "parameterSetCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layoutCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "capturedBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)$"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/package-case"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace": {
+      "type": "object",
+      "required": [
+        "packages"
+      ],
+      "properties": {
+        "packages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/mounted-package"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "binding": {
+      "type": "object",
+      "required": [
+        "case",
+        "packageId",
+        "packageVersion",
+        "packageRevision",
+        "schema",
+        "schemaVersion",
+        "editableCase",
+        "resourcesReadOnly",
+        "parameterSelectionRevision"
+      ],
+      "properties": {
+        "case": {
+          "type": "string"
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "packageVersion": {
+          "type": "string"
+        },
+        "packageRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "editableCase": {
+          "type": "boolean"
+        },
+        "resourcesReadOnly": {
+          "const": true
+        },
+        "parameterSelectionRevision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "parameter-source": {
+      "type": "object",
+      "required": [
+        "case",
+        "key",
+        "set",
+        "packageId",
+        "packageVersion",
+        "packageRevision",
+        "schema",
+        "schemaVersion",
+        "resource",
+        "sha256",
+        "effectiveDate",
+        "validFrom",
+        "validUntil",
+        "endExclusive",
+        "mode",
+        "validForDate",
+        "reference",
+        "effectiveLayer",
+        "effectiveValue",
+        "selectedSetValue",
+        "overriddenByCase"
+      ],
+      "properties": {
+        "case": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "set": {
+          "type": "string"
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "packageVersion": {
+          "type": "string"
+        },
+        "packageRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resource": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "effectiveDate": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "validFrom": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "validUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "endExclusive": {
+          "const": true
+        },
+        "mode": {
+          "enum": [
+            "declared",
+            "effective-date",
+            "what-if"
+          ]
+        },
+        "validForDate": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effectiveLayer": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Schema default, selected parameter-set identifier, case override, or no parameter source."
+        },
+        "effectiveValue": {
+          "$ref": "value.schema.json"
+        },
+        "selectedSetValue": {
+          "$ref": "value.schema.json"
+        },
+        "overriddenByCase": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sources-data": {
+      "type": "object",
+      "required": [
+        "sources"
+      ],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "index",
+              "kind",
+              "path",
+              "options",
+              "overridden"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "kind": {
+                "type": "string"
+              },
+              "path": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "options": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "value.schema.json"
+                }
+              },
+              "overridden": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "edit-data": {
+      "type": "object",
+      "required": [
+        "document",
+        "preview",
+        "proposedRevision",
+        "diagnostics",
+        "run",
+        "difference"
+      ],
+      "properties": {
+        "document": {
+          "type": "string"
+        },
+        "preview": {
+          "type": "boolean"
+        },
+        "proposedRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        },
+        "run": {
+          "$ref": "run.schema.json#/properties/data"
+        },
+        "difference": {
+          "$ref": "compare.schema.json#/properties/data"
+        }
+      },
+      "additionalProperties": false
+    },
+    "migration-preview": {
+      "type": "object",
+      "required": [
+        "case",
+        "baseRevision",
+        "reviewToken",
+        "source",
+        "target",
+        "original",
+        "candidate",
+        "originalSha256",
+        "candidateSha256",
+        "before",
+        "after",
+        "difference",
+        "diagnostics"
+      ],
+      "properties": {
+        "case": {
+          "type": "string"
+        },
+        "baseRevision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reviewToken": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "schema",
+            "version"
+          ],
+          "properties": {
+            "schema": {
+              "type": "string"
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "target": {
+          "type": "object",
+          "required": [
+            "schema",
+            "version",
+            "packageId",
+            "packageVersion",
+            "packageRevision",
+            "parameterSelectionRevision"
+          ],
+          "properties": {
+            "schema": {
+              "type": "string"
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "packageId": {
+              "type": "string"
+            },
+            "packageVersion": {
+              "type": "string"
+            },
+            "packageRevision": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "parameterSelectionRevision": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "original": {
+          "type": "string"
+        },
+        "candidate": {
+          "type": "string"
+        },
+        "originalSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "candidateSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "before": {
+          "anyOf": [
+            {
+              "$ref": "run.schema.json#/properties/data"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "after": {
+          "anyOf": [
+            {
+              "$ref": "run.schema.json#/properties/data"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "difference": {
+          "anyOf": [
+            {
+              "$ref": "compare.schema.json#/properties/data"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "document": {
+      "type": "object",
+      "required": [
+        "case",
+        "succeeded",
+        "document"
+      ],
+      "properties": {
+        "case": {
+          "type": "string"
+        },
+        "succeeded": {
+          "type": "boolean"
+        },
+        "validationPassed": {
+          "type": "boolean"
+        },
+        "binding": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/binding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parameterSources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter-source"
+          }
+        },
+        "document": {
+          "anyOf": [
+            {
+              "$ref": "run.schema.json"
+            },
+            {
+              "$ref": "structure.schema.json"
+            },
+            {
+              "$ref": "paper.schema.json"
+            },
+            {
+              "$ref": "parameters.schema.json"
+            },
+            {
+              "$ref": "diagnostics.schema.json"
+            },
+            {
+              "$ref": "explain.schema.json"
+            },
+            {
+              "$ref": "export-preview.schema.json"
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "envelope.schema.json"
+                }
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/sources-data"
+                }
+              }
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "envelope.schema.json"
+                }
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/$defs/edit-data"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

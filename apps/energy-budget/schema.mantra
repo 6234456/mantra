@@ -1,0 +1,66 @@
+;; Fictional monthly net dispatch, perfect efficiency and no within-month chronology.
+;; This domain policy belongs to the showcase, not to the Mantra library.
+(schema energy.budget/monthly-plan
+  {:title "Monthly energy budget" :subtitle "Fictional site storage, supply and tariff costs"
+   :version "1.0.0" :preset :ifrs-schedule
+   :mainline [site-register energy-flow energy-cost]}
+  (input sites :table {:label "Fictional site register" :min-rows 1
+    :columns {:id :keyword :title :text :capacity :decimal :opening :decimal}})
+  (input readings :table {:label "Fictional monthly readings" :min-rows 1
+    :columns {:site-id :keyword :month-id :keyword :generation :decimal :demand :decimal :reported-closing :decimal}
+    :references {:site-id site :month-id budget-month}})
+  (param purchase-rate 0.28 {:label "Fictional import price per kWh"})
+  (param export-rate 0.10 {:label "Fictional export credit per kWh"})
+  (param currency-scale 2 {:label "Currency rounding precision"})
+  (dimension site {:label "Site" :from sites :key :id :title :title :total-label "All sites"})
+  (dimension budget-month {:label "Month" :periods {:start "2026-01-01" :unit :month :count 3}
+                    :total-label "First/last stock or total flow"})
+  (section site-register "Storage register" {:per site :display :schedule :op :info}
+    (line storage-capacity "Capacity (kWh)" site.capacity {:op :info :format :number :precision 3})
+    (line initial-storage "Initial storage (kWh)" site.opening {:op :info :format :number :precision 3})
+    (check storage-register-valid "Opening storage is within nonnegative capacity"
+      (and (>= storage-capacity 0) (>= initial-storage 0) (<= initial-storage storage-capacity))))
+  (section energy-flow "Net energy flow (kWh)" {:per [site budget-month] :display :schedule :op :info}
+    (check one-reading-per-month "Exactly one reading exists for this site/month"
+      (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1))
+    (line opening-storage "Opening stored energy" (prev closing-storage site.opening)
+      {:aggregate {:first budget-month} :format :number :precision 3})
+    (line energy-generation "Locally generated energy"
+      (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)
+      {:format :number :precision 3})
+    (line grid-import "Energy imported to serve demand" (max (- demand (+ opening-storage energy-generation)) 0)
+      {:format :number :precision 3})
+    (line demand "Supplied demand"
+      (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)
+      {:op :minus :format :number :precision 3})
+    (line energy-export "Surplus exported above storage capacity" (max (- (+ opening-storage energy-generation) demand site.capacity) 0)
+      {:op :minus :format :number :precision 3})
+    (total closing-storage "Closing stored energy" {:aggregate {:last budget-month} :format :number :precision 3})
+    (line served-locally "Demand served by local generation/storage" (min demand (+ opening-storage energy-generation))
+      {:op :info :format :number :precision 3})
+    (line reported-closing "Independently supplied fictional closing reading"
+      (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)
+      {:op :info :aggregate {:last budget-month} :format :number :precision 3})
+    ;; All source measurements have at most three decimal places. Explicit domain rounding
+    ;; makes this exact measurement comparison robust to Excel binary representation residue.
+    ;; Reconcile is a diagnostic control, so its values do not have numeric reducers.
+    ;; This ordinary INFO line exposes the independently defined difference and its
+    ;; sum across readings without contributing to closing stock or energy costs.
+    (line energy-difference "Closing storage less independent reported reading"
+      (- (decimal/round closing-storage 3) reported-closing)
+      {:op :info :format :number :precision 3})
+    (reconcile energy-reconciliation "Closing storage agrees with reported reading"
+      energy-difference 0 {:tolerance 0})
+    (check energy-readings-nonnegative "Generation and demand are nonnegative" (and (>= energy-generation 0) (>= demand 0)))
+    (check closing-storage-within-capacity "Closing storage is within capacity"
+      (and (>= (decimal/round closing-storage 3) 0) (<= (decimal/round closing-storage 3) site.capacity)))
+    ;; Undefined demand-zero rates stay nil. Ratios are fixed to six decimals in this version.
+    (line local-coverage "Locally served share of demand"
+      (if (= demand 0) nil (decimal/divide served-locally demand 6))
+      {:op :info :format :percent :precision 2
+       :aggregate {:ratio [served-locally demand] :round [6 :half-up]}}))
+  (section energy-cost "Fictional energy costs" {:per [site budget-month] :display :schedule :op :info}
+    ;; Separate cent rounding per monthly purchase/credit; no actual tariff/tax is implied.
+    (line import-cost "Import cost" (decimal/round (* grid-import purchase-rate) currency-scale))
+    (line export-credit "Export credit" (decimal/round (* energy-export export-rate) currency-scale) {:op :minus})
+    (total net-cost "Net cost (credit if negative)")))

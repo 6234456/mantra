@@ -31,7 +31,9 @@ internal fun ExcelWorkbookBuilder.neutral(vertex: ViewNode): X.Scalar = when {
 }
 
 internal fun ExcelWorkbookBuilder.aggregateRef(nodeId: String, fixed: Map<String, String> = emptyMap()): X.Scalar? =
-    view.nodes[nodeId]?.let { reductionFormula(it, fixed) }
+    view.nodes[nodeId]?.let {
+        reductionFormula(it, fixed)
+    }
 
 internal fun ExcelWorkbookBuilder.signLabelFormula(node: ViewNode, suffix: String = ""): X.Scalar? {
     val labels = node.signLabels ?: return null
@@ -71,6 +73,12 @@ internal fun ExcelWorkbookBuilder.sectionConditions(vertex: ViewNode, coord: Coo
 }
 
 internal fun ExcelWorkbookBuilder.conditions(vertex: ViewNode, coord: Coord): List<X.Scalar> = buildList {
+    dynamic?.let { live ->
+        add(live.capacityGuard())
+        vertex.dims.forEachIndexed { index, dimension ->
+            if (dimension in live.dimensions) add(live.present(dimension, coord[index]))
+        }
+    }
     sectionConditions(vertex, coord)?.let(::add)
     vertex.dims.forEachIndexed { i, dim -> activeSlots[dim to coord[i]]?.let { add(ref(it, XKind.BOOL)) } }
     vertex.ownCondition?.let { condition ->
@@ -92,15 +100,22 @@ internal fun ExcelWorkbookBuilder.lineFormula(vertex: ViewNode, coord: Coord): X
     } else {
         FormulaTranslator.Ctx(vertex.dims, coord)
     }
+    val liveGuard = if (dynamic == null) Ex.TRUE else applicable(vertex, coord)
     val core = if (item.spread) {
         val key = coord.last()
-        when (val x = translator.translate(item.formula.form, context)) {
-            is X.MapX -> x.values.getOrNull(x.keys.indexOf(key))?.let(translator::toScalar) ?: Ex.ZERO
+        when (val x = translator.translateGuarded(item.formula.form, context, liveGuard)) {
+            is X.MapX -> translator.mapLookup(
+                x,
+                dynamic?.takeIf {
+                    vertex.dims.last() in it.dimensions
+                }?.key(vertex.dims.last(), key) ?: Ex.text(key),
+                X.Nil,
+            ).let(translator::toScalar)
             is X.Range -> x.cells.getOrNull(x.keys.indexOf(key)) ?: Ex.ZERO
             else -> throw Untranslatable(":spread formula does not produce a member map")
         }
     } else {
-        translator.scalar(item.formula.form, context)
+        translator.toScalar(translator.translateGuarded(item.formula.form, context, liveGuard))
     }
     val preserveNil = vertex.undefinedValues || vertex.boundary != null || item.ratio != null
     val coerced = if (vertex.type.isNumeric && !preserveNil && core.kind == XKind.ANY) {
@@ -279,7 +294,7 @@ internal fun ExcelWorkbookBuilder.setFormula(slot: Slot, nodeId: String, build: 
     val c = cell(slot.sheet, slot.row, slot.col)
     valueStyles[slot]?.let { c.cellStyle = styles.get(it.applyRule(paperCellStyles[slot] ?: StyleSpec())) }
     val previousStrict = strictDynamicFormula
-    strictDynamicFormula = false
+    strictDynamicFormula = dynamic != null
     try {
         val formula = build() ?: return
         try {
@@ -360,8 +375,12 @@ internal fun ExcelWorkbookBuilder.writeValuesAndFormulas() {
             }
             when {
                 vertex.kind == NodeKind.INPUT -> {
-                    writeValue(slot, inputValue(vertex, coord))
-                    writeInputProvenance(slot, vertex, coord)
+                    if (id in dynamic?.keyedInputs.orEmpty()) {
+                        setFormula(slot, id) { dynamicInputValue(vertex, coord) }
+                    } else {
+                        writeValue(slot, inputValue(vertex, coord))
+                        writeInputProvenance(slot, vertex, coord)
+                    }
                     cell(slot.sheet, slot.row, slot.col).cellStyle =
                         styles.get(
                             (valueStyles[slot] ?: StyleKey()).applyRule(

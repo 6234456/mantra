@@ -1,0 +1,20 @@
+;; Fictional independent facts from independent/fixtures/all-zero-demand.json.
+(case energy-budget-all-zero-demand
+  {:schema "energy.budget/monthly-plan" :schema-version "1.0.0"
+   :parameters ["energy.budget/2026-Q1"] :layout "energy.budget/matrix"
+   :title "Energy budget: Zero demand and undefined coverage" :period "2026 showcase"
+   :expected-business [{:code "MANTRA-AGGREGATE-ZERO-DENOMINATOR" :node "local-coverage" :severity :warning}]}
+
+  (inputs
+    {:sites [
+      {:id :A :title "Fictional workshop" :capacity 20 :opening 12}
+      {:id :B :title "Fictional studio without storage" :capacity 0 :opening 0}
+     ]
+     :readings [
+      {:site-id :A :month-id :P1 :generation 30 :demand 0 :reported-closing 20}
+      {:site-id :A :month-id :P2 :generation 100 :demand 0 :reported-closing 20}
+      {:site-id :A :month-id :P3 :generation 20 :demand 0 :reported-closing 20}
+      {:site-id :B :month-id :P1 :generation 80 :demand 0 :reported-closing 0}
+      {:site-id :B :month-id :P2 :generation 40 :demand 0 :reported-closing 0}
+      {:site-id :B :month-id :P3 :generation 10 :demand 0 :reported-closing 0}
+     ]}))

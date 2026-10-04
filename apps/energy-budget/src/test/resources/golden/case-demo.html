@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monthly energy budget</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Monthly energy budget</h1>
+<p class="subtitle">Fictional site storage, supply and tariff costs</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Mandant</dt><dd>Energy budget: Two sites with storage and exports</dd></div>
+<div><dt>Zeitraum</dt><dd>2026 showcase</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Monthly energy budget v1.0.0 [energy.budget/monthly-plan]</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Net cost (credit if negative)</strong> 31,84</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Aufbau der Berechnung</h2>
+<ol class="mainline" aria-label="Hauptlinie">
+<li class="step">
+<a class="card" href="#table-1"><span class="step-no">Hauptlinie 1</span><span class="title">Storage register</span><span class="value"></span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-2"><span class="step-no">Hauptlinie 2</span><span class="title">Net energy flow (kWh)</span><span class="value">0,000</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Hauptlinie 3</span><span class="title">Fictional energy costs</span><span class="value">31,84</span></a>
+</li>
+</ol>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> Storage register</a></li>
+<li><a href="#table-2"><span class="ref">2</span> Net energy flow (kWh)</a></li>
+<li><a href="#table-3"><span class="ref">3</span> Fictional energy costs</a></li>
+<li><a href="#audit"><span class="ref">§</span> Berechnungsnachweis</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 1 Storage register</p>
+<h2><span class="ref">1</span>Storage register</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">Fictional workshop</th>
+<th class="right num c-member">Fictional studio without storage</th>
+<th class="right num c-crosstotal">Gesamt</th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t1-r1" data-section="site-register" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Capacity (kWh)</span></td>
+<td class="right num c-member" data-column="memberssite-A">20,000</td>
+<td class="right num c-member" data-column="memberssite-B">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">20,000</td>
+</tr>
+<tr class="value info" id="t1-r2" data-section="site-register" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Initial storage (kWh)</span></td>
+<td class="right num c-member" data-column="memberssite-A">12,000</td>
+<td class="right num c-member" data-column="memberssite-B">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">12,000</td>
+</tr>
+<tr class="value info" id="t1-r3" data-section="site-register" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Opening storage is within nonnegative capacity</span></td>
+<td class="right num c-member" data-column="memberssite-A">✓</td>
+<td class="right num c-member" data-column="memberssite-B">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 2 Net energy flow (kWh)</p>
+<h2><span class="ref">2</span>Net energy flow (kWh)</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">2026-01-01 – 2026-01-31</th>
+<th class="right num c-member">2026-02-01 – 2026-02-28</th>
+<th class="right num c-member">2026-03-01 – 2026-03-31</th>
+<th class="right num c-crosstotal">Gesamt</th>
+<th class="left c-status">status</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t2-r1" data-section="energy-flow" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Fictional workshop</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r2" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Exactly one reading exists for this site/month</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r3" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening stored energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">12,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">20,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">12,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r4" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally generated energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">30,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">100,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">20,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">150,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r5" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Energy imported to serve demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">48,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">60,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">108,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r6" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Supplied demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">90,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">70,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">100,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">260,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r7" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Surplus exported above storage capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">10,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">10,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="total" id="t2-r8" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing stored energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value" id="t2-r9" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Demand served by local generation/storage</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">42,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">70,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">40,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">152,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r10" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Independently supplied fictional closing reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r11" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage less independent reported reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r12" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage agrees with reported reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,00</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r13" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="13">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Generation and demand are nonnegative</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r14" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="14">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage is within capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r15" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="15">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally served share of demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">46,67 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">100,00 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">40,00 %</td>
+<td class="right num c-crosstotal" data-column="cross-total">58,46 %</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="heading" id="t2-r16" data-section="energy-flow" data-depth="1" data-height="1" data-row-index="16">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Fictional studio without storage</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r17" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="17">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Exactly one reading exists for this site/month</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r18" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="18">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally generated energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">80,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">40,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">10,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">130,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r19" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="19">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Energy imported to serve demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">20,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r20" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="20">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Supplied demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">60,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">60,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">120,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r21" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="21">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Surplus exported above storage capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">10,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">30,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="total" id="t2-r22" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="22">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing stored energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value" id="t2-r23" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="23">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Demand served by local generation/storage</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">60,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">40,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">100,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r24" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="24">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage agrees with reported reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,00</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r25" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="25">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Generation and demand are nonnegative</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r26" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="26">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage is within capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">✓</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r27" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="27">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally served share of demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">100,00 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">66,67 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">undefined</td>
+<td class="right num c-crosstotal" data-column="cross-total">83,33 %</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="heading" id="t2-r28" data-section="energy-flow" data-depth="1" data-height="1" data-row-index="28">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Gesamt</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r29" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="29">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Exactly one reading exists for this site/month</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r30" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="30">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Opening stored energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">12,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">20,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">12,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r31" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="31">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally generated energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">110,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">140,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">30,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">280,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r32" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="32">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Energy imported to serve demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">48,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">60,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">128,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r33" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="33">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Supplied demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">150,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">130,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">100,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">380,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r34" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="34">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Surplus exported above storage capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">10,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">10,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">40,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="total" id="t2-r35" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="35">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing stored energy</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value" id="t2-r36" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="36">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Demand served by local generation/storage</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">102,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">110,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">40,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">252,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r37" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="37">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Independently supplied fictional closing reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">20,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r38" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="38">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage less independent reported reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,000</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,000</td>
+<td class="right num c-crosstotal" data-column="cross-total">0,000</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+<tr class="value" id="t2-r39" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="39">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage agrees with reported reading</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r40" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="40">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Generation and demand are nonnegative</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r41" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="41">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Closing storage is within capacity</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+<td class="left c-status" data-column="status">✓</td>
+</tr>
+<tr class="value" id="t2-r42" data-section="energy-flow" data-depth="2" data-height="0" data-row-index="42">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Locally served share of demand</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">68,00 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">84,62 %</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">40,00 %</td>
+<td class="right num c-crosstotal" data-column="cross-total">66,32 %</td>
+<td class="left c-status" data-column="status"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Hauptlinie › 3 Fictional energy costs</p>
+<h2><span class="ref">3</span>Fictional energy costs</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Bezeichnung</th>
+<th class="right num c-member">2026-01-01 – 2026-01-31</th>
+<th class="right num c-member">2026-02-01 – 2026-02-28</th>
+<th class="right num c-member">2026-03-01 – 2026-03-31</th>
+<th class="right num c-crosstotal">Gesamt</th>
+</tr></thead>
+<tbody>
+<tr class="heading" id="t3-r1" data-section="energy-cost" data-depth="1" data-height="1" data-row-index="1">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Fictional workshop</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r2" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Import cost</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">13,44</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">16,80</td>
+<td class="right num c-crosstotal" data-column="cross-total">30,24</td>
+</tr>
+<tr class="value" id="t3-r3" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Export credit</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">1,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">1,00</td>
+</tr>
+<tr class="total" id="t3-r4" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Net cost (credit if negative)</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">13,44</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">-1,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">16,80</td>
+<td class="right num c-crosstotal" data-column="cross-total">29,24</td>
+</tr>
+<tr class="heading" id="t3-r5" data-section="energy-cost" data-depth="1" data-height="1" data-row-index="5">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Fictional studio without storage</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r6" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Import cost</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">5,60</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">0,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">5,60</td>
+</tr>
+<tr class="value" id="t3-r7" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Export credit</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">2,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">0,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">1,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">3,00</td>
+</tr>
+<tr class="total" id="t3-r8" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Net cost (credit if negative)</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">-2,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">5,60</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">-1,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">2,60</td>
+</tr>
+<tr class="heading" id="t3-r9" data-section="energy-cost" data-depth="1" data-height="1" data-row-index="9">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Gesamt</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1"></td>
+<td class="right num c-member" data-column="membersbudget-month-P2"></td>
+<td class="right num c-member" data-column="membersbudget-month-P3"></td>
+<td class="right num c-crosstotal" data-column="cross-total"></td>
+</tr>
+<tr class="value" id="t3-r10" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Import cost</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">13,44</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">5,60</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">16,80</td>
+<td class="right num c-crosstotal" data-column="cross-total">35,84</td>
+</tr>
+<tr class="value" id="t3-r11" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Export credit</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">2,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">1,00</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">1,00</td>
+<td class="right num c-crosstotal" data-column="cross-total">4,00</td>
+</tr>
+<tr class="total" id="t3-r12" data-section="energy-cost" data-depth="2" data-height="0" data-row-index="12">
+<td class="left c-label" data-column="label"><span class="label" style="--depth:1">Net cost (credit if negative)</span></td>
+<td class="right num c-member" data-column="membersbudget-month-P1">11,44</td>
+<td class="right num c-member" data-column="membersbudget-month-P2">4,60</td>
+<td class="right num c-member" data-column="membersbudget-month-P3">15,80</td>
+<td class="right num c-crosstotal" data-column="cross-total">31,84</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Berechnungsnachweis</h2>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1-aggregate">
+<td class="left cite"><a href="#t1-r1">1/1 Σ</a></td>
+<td class="left">Capacity (kWh) (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A] 20 included; [site=B] 0 included → 20</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t1-r2-aggregate">
+<td class="left cite"><a href="#t1-r2">1/2 Σ</a></td>
+<td class="left">Initial storage (kWh) (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A] 12 included; [site=B] 0 included → 12</div></td>
+<td class="right num">12,000</td>
+</tr>
+<tr id="audit-t1-r3-A">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Opening storage is within nonnegative capacity <span class="member">Fictional workshop</span></td>
+<td class="left"><code class="formula">(and (&gt;= storage-capacity 0) (&gt;= initial-storage 0) (&lt;= initial-storage storage-capacity))</code><div class="working">(&gt;= storage-capacity 0) = true → (&gt;= initial-storage 0) = true → (&lt;= initial-storage storage-capacity) = true → (and (&gt;= storage-capacity 0) (&gt;= initial-storage 0) (&lt;= initial-storage storage-capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t1-r3-B">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Opening storage is within nonnegative capacity <span class="member">Fictional studio without storage</span></td>
+<td class="left"><code class="formula">(and (&gt;= storage-capacity 0) (&gt;= initial-storage 0) (&lt;= initial-storage storage-capacity))</code><div class="working">(&gt;= storage-capacity 0) = true → (&gt;= initial-storage 0) = true → (&lt;= initial-storage storage-capacity) = true → (and (&gt;= storage-capacity 0) (&gt;= initial-storage 0) (&lt;= initial-storage storage-capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-A-P1">
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 1 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-A-P2">
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 0 → gewählter Zweig: 1 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-A-P3">
+<td class="left cite"><a href="#t2-r2">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 1 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-B-P1">
+<td class="left cite"><a href="#t2-r17">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 1 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-B-P2">
+<td class="left cite"><a href="#t2-r17">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 1 → gewählter Zweig: 0</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-none-reading-per-month-B-P3">
+<td class="left cite"><a href="#t2-r17">2/1</a></td>
+<td class="left">Exactly one reading exists for this site/month <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0) = 1 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) = 1 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) = 1 → (= (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) 1 0)) readings)) 0) 1) = true → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 1</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nopening-storage-aggregate">
+<td class="left cite"><a href="#table-2">2/2 Σ</a></td>
+<td class="left">Opening stored energy (Gesamt)</td>
+<td class="left"><code class="formula">first(budget-month)</code><div class="working">first(budget-month): [site=A, budget-month=P1] 12 included; [site=B, budget-month=P1] 0 included → 12</div></td>
+<td class="right num">12,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-A-P1">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 12</div></td>
+<td class="right num">12,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-A-P2">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-A-P3">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 20</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-B-P1">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-B-P2">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nopening-storage-B-P3">
+<td class="left cite"><a href="#t2-r3">2/2</a></td>
+<td class="left">Opening stored energy <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(prev closing-storage site.opening)</code><div class="working">(prev closing-storage site.opening) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-aggregate">
+<td class="left cite"><a href="#table-2">2/3 Σ</a></td>
+<td class="left">Locally generated energy (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 30 included; [site=A, budget-month=P2] 100 included; [site=A, budget-month=P3] 20 included; [site=B, budget-month=P1] 80 included; [site=B, budget-month=P2] 40 included; [site=B, budget-month=P3] 10 included → 280</div></td>
+<td class="right num">280,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-A-P1">
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 30 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 30 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 30 → gewählter Zweig: reading.generation → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">30,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-A-P2">
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 100 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 100 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 100 → gewählter Zweig: 0 → gewählter Zweig: reading.generation → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">100,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-B-P1">
+<td class="left cite"><a href="#t2-r18">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 80 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 80 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 80 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.generation → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">80,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-B-P2">
+<td class="left cite"><a href="#t2-r18">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 40 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 40 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 40 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.generation → gewählter Zweig: 0</div></td>
+<td class="right num">40,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-A-P3">
+<td class="left cite"><a href="#t2-r4">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 20 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 20 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 20 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.generation → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-nenergy-generation-B-P3">
+<td class="left cite"><a href="#t2-r18">2/3</a></td>
+<td class="left">Locally generated energy <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0) = 10 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) = 10 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.generation 0)) readings)) 0) = 10 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.generation</div></td>
+<td class="right num">10,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-aggregate">
+<td class="left cite"><a href="#table-2">2/4 Σ</a></td>
+<td class="left">Energy imported to serve demand (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 48 included; [site=A, budget-month=P2] 0 included; [site=A, budget-month=P3] 60 included; [site=B, budget-month=P1] 0 included; [site=B, budget-month=P2] 20 included; [site=B, budget-month=P3] 0 included → 128</div></td>
+<td class="right num">128,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-A-P1">
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 42 → (- demand (+ opening-storage energy-generation)) = 48 → (max (- demand (+ opening-storage energy-generation)) 0) = 48</div></td>
+<td class="right num">48,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-A-P2">
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 100 → (- demand (+ opening-storage energy-generation)) = -30 → (max (- demand (+ opening-storage energy-generation)) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-B-P1">
+<td class="left cite"><a href="#t2-r19">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 80 → (- demand (+ opening-storage energy-generation)) = -20 → (max (- demand (+ opening-storage energy-generation)) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-B-P2">
+<td class="left cite"><a href="#t2-r19">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 40 → (- demand (+ opening-storage energy-generation)) = 20 → (max (- demand (+ opening-storage energy-generation)) 0) = 20</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-A-P3">
+<td class="left cite"><a href="#t2-r5">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 40 → (- demand (+ opening-storage energy-generation)) = 60 → (max (- demand (+ opening-storage energy-generation)) 0) = 60</div></td>
+<td class="right num">60,000</td>
+</tr>
+<tr id="audit-t2-ngrid-import-B-P3">
+<td class="left cite"><a href="#t2-r19">2/4</a></td>
+<td class="left">Energy imported to serve demand <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(max (- demand (+ opening-storage energy-generation)) 0)</code><div class="working">(+ opening-storage energy-generation) = 10 → (- demand (+ opening-storage energy-generation)) = -10 → (max (- demand (+ opening-storage energy-generation)) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-ndemand-aggregate">
+<td class="left cite"><a href="#table-2">2/5 Σ</a></td>
+<td class="left">Supplied demand (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 90 included; [site=A, budget-month=P2] 70 included; [site=A, budget-month=P3] 100 included; [site=B, budget-month=P1] 60 included; [site=B, budget-month=P2] 60 included; [site=B, budget-month=P3] 0 included → 380</div></td>
+<td class="right num">380,000</td>
+</tr>
+<tr id="audit-t2-ndemand-A-P1">
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 90 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 90 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 90 → gewählter Zweig: reading.demand → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">90,000</td>
+</tr>
+<tr id="audit-t2-ndemand-A-P2">
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 70 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 70 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 70 → gewählter Zweig: 0 → gewählter Zweig: reading.demand → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">70,000</td>
+</tr>
+<tr id="audit-t2-ndemand-B-P1">
+<td class="left cite"><a href="#t2-r20">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 60 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 60 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 60 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.demand → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">60,000</td>
+</tr>
+<tr id="audit-t2-ndemand-B-P2">
+<td class="left cite"><a href="#t2-r20">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 60 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 60 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 60 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.demand → gewählter Zweig: 0</div></td>
+<td class="right num">60,000</td>
+</tr>
+<tr id="audit-t2-ndemand-A-P3">
+<td class="left cite"><a href="#t2-r6">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 100 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 100 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 100 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.demand → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">100,000</td>
+</tr>
+<tr id="audit-t2-ndemand-B-P3">
+<td class="left cite"><a href="#t2-r20">2/5</a></td>
+<td class="left">Supplied demand <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.demand 0)) readings)) 0) = 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.demand</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-aggregate">
+<td class="left cite"><a href="#table-2">2/6 Σ</a></td>
+<td class="left">Surplus exported above storage capacity (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 0 included; [site=A, budget-month=P2] 10 included; [site=A, budget-month=P3] 0 included; [site=B, budget-month=P1] 20 included; [site=B, budget-month=P2] 0 included; [site=B, budget-month=P3] 10 included → 40</div></td>
+<td class="right num">40,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-A-P1">
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 42 → (- (+ opening-storage energy-generation) demand site.capacity) = -68 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-A-P2">
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 100 → (- (+ opening-storage energy-generation) demand site.capacity) = 10 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 10</div></td>
+<td class="right num">10,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-B-P1">
+<td class="left cite"><a href="#t2-r21">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 80 → (- (+ opening-storage energy-generation) demand site.capacity) = 20 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 20</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-B-P2">
+<td class="left cite"><a href="#t2-r21">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 40 → (- (+ opening-storage energy-generation) demand site.capacity) = -20 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-A-P3">
+<td class="left cite"><a href="#t2-r7">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 40 → (- (+ opening-storage energy-generation) demand site.capacity) = -80 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-export-B-P3">
+<td class="left cite"><a href="#t2-r21">2/6</a></td>
+<td class="left">Surplus exported above storage capacity <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(max (- (+ opening-storage energy-generation) demand site.capacity) 0)</code><div class="working">(+ opening-storage energy-generation) = 10 → (- (+ opening-storage energy-generation) demand site.capacity) = 10 → (max (- (+ opening-storage energy-generation) demand site.capacity) 0) = 10</div></td>
+<td class="right num">10,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-aggregate">
+<td class="left cite"><a href="#table-2">2/7 Σ</a></td>
+<td class="left">Closing stored energy (Gesamt)</td>
+<td class="left"><code class="formula">last(budget-month)</code><div class="working">last(budget-month): [site=A, budget-month=P3] 0 included; [site=B, budget-month=P3] 0 included → 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-A-P1">
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">12 + 30 + 48 − 90 − 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-A-P2">
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">0 + 100 + 0 − 70 − 10</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-B-P1">
+<td class="left cite"><a href="#t2-r22">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">0 + 80 + 0 − 60 − 20</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-B-P2">
+<td class="left cite"><a href="#t2-r22">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">0 + 40 + 20 − 60 − 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-A-P3">
+<td class="left cite"><a href="#t2-r8">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">20 + 20 + 60 − 100 − 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-B-P3">
+<td class="left cite"><a href="#t2-r22">2/7</a></td>
+<td class="left">Closing stored energy <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">opening-storage + energy-generation + grid-import − demand − energy-export</code><div class="working">0 + 10 + 0 − 0 − 10</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-aggregate">
+<td class="left cite"><a href="#table-2">2/8 Σ</a></td>
+<td class="left">Demand served by local generation/storage (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 42 included; [site=A, budget-month=P2] 70 included; [site=A, budget-month=P3] 40 included; [site=B, budget-month=P1] 60 included; [site=B, budget-month=P2] 40 included; [site=B, budget-month=P3] 0 included → 252</div></td>
+<td class="right num">252,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-A-P1">
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 42 → (min demand (+ opening-storage energy-generation)) = 42</div></td>
+<td class="right num">42,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-A-P2">
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 100 → (min demand (+ opening-storage energy-generation)) = 70</div></td>
+<td class="right num">70,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-A-P3">
+<td class="left cite"><a href="#t2-r9">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 40 → (min demand (+ opening-storage energy-generation)) = 40</div></td>
+<td class="right num">40,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-B-P1">
+<td class="left cite"><a href="#t2-r23">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 80 → (min demand (+ opening-storage energy-generation)) = 60</div></td>
+<td class="right num">60,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-B-P2">
+<td class="left cite"><a href="#t2-r23">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 40 → (min demand (+ opening-storage energy-generation)) = 40</div></td>
+<td class="right num">40,000</td>
+</tr>
+<tr id="audit-t2-nserved-locally-B-P3">
+<td class="left cite"><a href="#t2-r23">2/8</a></td>
+<td class="left">Demand served by local generation/storage <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(min demand (+ opening-storage energy-generation))</code><div class="working">(+ opening-storage energy-generation) = 10 → (min demand (+ opening-storage energy-generation)) = 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-aggregate">
+<td class="left cite"><a href="#table-2">2/9 Σ</a></td>
+<td class="left">Independently supplied fictional closing reading (Gesamt)</td>
+<td class="left"><code class="formula">last(budget-month)</code><div class="working">last(budget-month): [site=A, budget-month=P3] 0 included; [site=B, budget-month=P3] 0 included → 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-A-P1">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 0 → gewählter Zweig: reading.reported-closing → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-A-P2">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 20 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 20 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 20 → gewählter Zweig: 0 → gewählter Zweig: reading.reported-closing → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">20,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-A-P3">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.reported-closing → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-B-P1">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.reported-closing → gewählter Zweig: 0 → gewählter Zweig: 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-B-P2">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.reported-closing → gewählter Zweig: 0</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nreported-closing-B-P3">
+<td class="left cite"><a href="#t2-r10">2/9</a></td>
+<td class="left">Independently supplied fictional closing reading <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0)</code><div class="working">(fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) = [Wert nicht verfügbar] → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = false → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = false → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (= reading.site-id site.key) = true → (= reading.month-id budget-month.key) = true → (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) = true → (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0) = 0 → (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings) = [Wert nicht verfügbar] → (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) = 0 → (or (sum (map (fn [reading] (if (and (= reading.site-id site.key) (= reading.month-id budget-month.key)) reading.reported-closing 0)) readings)) 0) = 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: 0 → gewählter Zweig: reading.reported-closing</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-aggregate">
+<td class="left cite"><a href="#table-2">2/10 Σ</a></td>
+<td class="left">Closing storage less independent reported reading (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 0.000 included; [site=A, budget-month=P2] 0.000 included; [site=A, budget-month=P3] 0.000 included; [site=B, budget-month=P1] 0.000 included; [site=B, budget-month=P2] 0.000 included; [site=B, budget-month=P3] 0.000 included → 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-A-P1">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-A-P2">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 20.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-A-P3">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-B-P1">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-B-P2">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-difference-B-P3">
+<td class="left cite"><a href="#t2-r11">2/10</a></td>
+<td class="left">Closing storage less independent reported reading <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(- (decimal/round closing-storage 3) reported-closing)</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (- (decimal/round closing-storage 3) reported-closing) = 0.000</div></td>
+<td class="right num">0,000</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-A-P1">
+<td class="left cite"><a href="#t2-r12">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-A-P2">
+<td class="left cite"><a href="#t2-r12">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-A-P3">
+<td class="left cite"><a href="#t2-r12">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-B-P1">
+<td class="left cite"><a href="#t2-r24">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-B-P2">
+<td class="left cite"><a href="#t2-r24">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-reconciliation-B-P3">
+<td class="left cite"><a href="#t2-r24">2/11</a></td>
+<td class="left">Closing storage agrees with reported reading <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">energy-difference ≈ 0 (± 0)</code><div class="working">energy-difference = 0.000; 0 = 0 → 0.000 − 0 = 0.000 (± 0)</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-A-P1">
+<td class="left cite"><a href="#t2-r13">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-A-P2">
+<td class="left cite"><a href="#t2-r13">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-A-P3">
+<td class="left cite"><a href="#t2-r13">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-B-P1">
+<td class="left cite"><a href="#t2-r25">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-B-P2">
+<td class="left cite"><a href="#t2-r25">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nenergy-readings-nonnegative-B-P3">
+<td class="left cite"><a href="#t2-r25">2/12</a></td>
+<td class="left">Generation and demand are nonnegative <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= energy-generation 0) (&gt;= demand 0))</code><div class="working">(&gt;= energy-generation 0) = true → (&gt;= demand 0) = true → (and (&gt;= energy-generation 0) (&gt;= demand 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-A-P1">
+<td class="left cite"><a href="#t2-r14">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 0.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-A-P2">
+<td class="left cite"><a href="#t2-r14">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 20.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 20.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-A-P3">
+<td class="left cite"><a href="#t2-r14">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 0.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-B-P1">
+<td class="left cite"><a href="#t2-r26">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 0.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-B-P2">
+<td class="left cite"><a href="#t2-r26">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 0.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nclosing-storage-within-capacity-B-P3">
+<td class="left cite"><a href="#t2-r26">2/13</a></td>
+<td class="left">Closing storage is within capacity <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity))</code><div class="working">(decimal/round closing-storage 3) = 0.000 → (&gt;= (decimal/round closing-storage 3) 0) = true → (decimal/round closing-storage 3) = 0.000 → (&lt;= (decimal/round closing-storage 3) site.capacity) = true → (and (&gt;= (decimal/round closing-storage 3) 0) (&lt;= (decimal/round closing-storage 3) site.capacity)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-aggregate">
+<td class="left cite"><a href="#table-2">2/14 Σ</a></td>
+<td class="left">Locally served share of demand (Gesamt)</td>
+<td class="left"><code class="formula">Σ served-locally ÷ Σ demand</code><div class="working">[site=A, budget-month=P1] 42 / 90 included; [site=A, budget-month=P2] 70 / 70 included; [site=A, budget-month=P3] 40 / 100 included; [site=B, budget-month=P1] 60 / 60 included; [site=B, budget-month=P2] 40 / 60 included; [site=B, budget-month=P3] 0 / 0 included → Σ served-locally = 252; Σ demand = 380 → 252 ÷ 380 (round 6 half-up) = 0.663158</div></td>
+<td class="right num">66,32 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-A-P1">
+<td class="left cite"><a href="#t2-r15">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = false → (decimal/divide served-locally demand 6) = 0.466667 → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = 0.466667 → gewählter Zweig: (decimal/divide served-locally demand 6)</div></td>
+<td class="right num">46,67 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-A-P2">
+<td class="left cite"><a href="#t2-r15">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = false → (decimal/divide served-locally demand 6) = 1.000000 → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = 1.000000 → gewählter Zweig: (decimal/divide served-locally demand 6)</div></td>
+<td class="right num">100,00 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-A-P3">
+<td class="left cite"><a href="#t2-r15">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = false → (decimal/divide served-locally demand 6) = 0.400000 → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = 0.400000 → gewählter Zweig: (decimal/divide served-locally demand 6)</div></td>
+<td class="right num">40,00 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-B-P1">
+<td class="left cite"><a href="#t2-r27">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = false → (decimal/divide served-locally demand 6) = 1.000000 → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = 1.000000 → gewählter Zweig: (decimal/divide served-locally demand 6)</div></td>
+<td class="right num">100,00 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-B-P2">
+<td class="left cite"><a href="#t2-r27">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = false → (decimal/divide served-locally demand 6) = 0.666667 → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = 0.666667 → gewählter Zweig: (decimal/divide served-locally demand 6)</div></td>
+<td class="right num">66,67 %</td>
+</tr>
+<tr id="audit-t2-nlocal-coverage-B-P3">
+<td class="left cite"><a href="#t2-r27">2/14</a></td>
+<td class="left">Locally served share of demand <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(if (= demand 0) nil (decimal/divide served-locally demand 6))</code><div class="working">(= demand 0) = true → (if (= demand 0) nil (decimal/divide served-locally demand 6)) = nil → gewählter Zweig: nil</div></td>
+<td class="right num">undefined</td>
+</tr>
+<tr id="audit-t3-nimport-cost-aggregate">
+<td class="left cite"><a href="#table-3">3/1 Σ</a></td>
+<td class="left">Import cost (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 13.44 included; [site=A, budget-month=P2] 0.00 included; [site=A, budget-month=P3] 16.80 included; [site=B, budget-month=P1] 0.00 included; [site=B, budget-month=P2] 5.60 included; [site=B, budget-month=P3] 0.00 included → 35.84</div></td>
+<td class="right num">35,84</td>
+</tr>
+<tr id="audit-t3-nimport-cost-A-P1">
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 13.44 → (decimal/round (* grid-import purchase-rate) currency-scale) = 13.44</div></td>
+<td class="right num">13,44</td>
+</tr>
+<tr id="audit-t3-nimport-cost-A-P2">
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 0.00 → (decimal/round (* grid-import purchase-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nimport-cost-A-P3">
+<td class="left cite"><a href="#t3-r2">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 16.80 → (decimal/round (* grid-import purchase-rate) currency-scale) = 16.80</div></td>
+<td class="right num">16,80</td>
+</tr>
+<tr id="audit-t3-nimport-cost-B-P1">
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 0.00 → (decimal/round (* grid-import purchase-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nimport-cost-B-P2">
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 5.60 → (decimal/round (* grid-import purchase-rate) currency-scale) = 5.60</div></td>
+<td class="right num">5,60</td>
+</tr>
+<tr id="audit-t3-nimport-cost-B-P3">
+<td class="left cite"><a href="#t3-r6">3/1</a></td>
+<td class="left">Import cost <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* grid-import purchase-rate) currency-scale)</code><div class="working">(* grid-import purchase-rate) = 0.00 → (decimal/round (* grid-import purchase-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-aggregate">
+<td class="left cite"><a href="#table-3">3/2 Σ</a></td>
+<td class="left">Export credit (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 0.00 included; [site=A, budget-month=P2] 1.00 included; [site=A, budget-month=P3] 0.00 included; [site=B, budget-month=P1] 2.00 included; [site=B, budget-month=P2] 0.00 included; [site=B, budget-month=P3] 1.00 included → 4.00</div></td>
+<td class="right num">4,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-A-P1">
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 0.00 → (decimal/round (* energy-export export-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-A-P2">
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 1.00 → (decimal/round (* energy-export export-rate) currency-scale) = 1.00</div></td>
+<td class="right num">1,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-A-P3">
+<td class="left cite"><a href="#t3-r3">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 0.00 → (decimal/round (* energy-export export-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-B-P1">
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 2.00 → (decimal/round (* energy-export export-rate) currency-scale) = 2.00</div></td>
+<td class="right num">2,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-B-P2">
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 0.00 → (decimal/round (* energy-export export-rate) currency-scale) = 0.00</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t3-nexport-credit-B-P3">
+<td class="left cite"><a href="#t3-r7">3/2</a></td>
+<td class="left">Export credit <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">(decimal/round (* energy-export export-rate) currency-scale)</code><div class="working">(* energy-export export-rate) = 1.00 → (decimal/round (* energy-export export-rate) currency-scale) = 1.00</div></td>
+<td class="right num">1,00</td>
+</tr>
+<tr id="audit-t3-nnet-cost-aggregate">
+<td class="left cite"><a href="#table-3">3/3 Σ</a></td>
+<td class="left">Net cost (credit if negative) (Gesamt)</td>
+<td class="left"><code class="formula">Σ contributions</code><div class="working">Σ contributions: [site=A, budget-month=P1] 13.44 included; [site=A, budget-month=P2] -1.00 included; [site=A, budget-month=P3] 16.80 included; [site=B, budget-month=P1] -2.00 included; [site=B, budget-month=P2] 5.60 included; [site=B, budget-month=P3] -1.00 included → 31.84</div></td>
+<td class="right num">31,84</td>
+</tr>
+<tr id="audit-t3-nnet-cost-A-P1">
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional workshop / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">13.44 − 0.00</div></td>
+<td class="right num">13,44</td>
+</tr>
+<tr id="audit-t3-nnet-cost-A-P2">
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional workshop / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">0.00 − 1.00</div></td>
+<td class="right num">-1,00</td>
+</tr>
+<tr id="audit-t3-nnet-cost-A-P3">
+<td class="left cite"><a href="#t3-r4">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional workshop / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">16.80 − 0.00</div></td>
+<td class="right num">16,80</td>
+</tr>
+<tr id="audit-t3-nnet-cost-B-P1">
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional studio without storage / 2026-01-01 – 2026-01-31</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">0.00 − 2.00</div></td>
+<td class="right num">-2,00</td>
+</tr>
+<tr id="audit-t3-nnet-cost-B-P2">
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional studio without storage / 2026-02-01 – 2026-02-28</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">5.60 − 0.00</div></td>
+<td class="right num">5,60</td>
+</tr>
+<tr id="audit-t3-nnet-cost-B-P3">
+<td class="left cite"><a href="#t3-r8">3/3</a></td>
+<td class="left">Net cost (credit if negative) <span class="member">Fictional studio without storage / 2026-03-01 – 2026-03-31</span></td>
+<td class="left"><code class="formula">import-cost − export-credit</code><div class="working">0.00 − 1.00</div></td>
+<td class="right num">-1,00</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

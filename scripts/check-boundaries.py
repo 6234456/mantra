@@ -6,9 +6,9 @@ import sys
 
 LIBRARIES = {
     'mantra-core', 'mantra-render', 'mantra-excel', 'mantra-workbench',
-    'mantra-server', 'mantra-cli',
+    'mantra-server', 'mantra-cli', 'mantra-packages', 'mantra-lsp',
 }
-PUBLIC_API_CONSUMERS = LIBRARIES | {'benchmarks'}
+PUBLIC_API_CONSUMERS = LIBRARIES | {'benchmarks', 'conformance-adapter'}
 DECLARATIONS = {
     'schema', 'section', 'param', 'input', 'dimension', 'line', 'total',
     'choice', 'slot', 'formula-slot',
@@ -79,7 +79,7 @@ def check(root: Path) -> list[str]:
         build = base / 'build.gradle.kts'
         if build.exists():
             for dependency in PROJECT_DEPENDENCY.findall(without_comments(build.read_text())):
-                if module == 'benchmarks' and dependency.removeprefix(':') not in LIBRARIES:
+                if module in {'benchmarks', 'conformance-adapter'} and dependency.removeprefix(':') not in LIBRARIES:
                     problems.append(f'{build.relative_to(root)}: benchmarks depend on non-library {dependency}')
                 elif dependency.startswith(':apps'):
                     problems.append(f'{build.relative_to(root)}: library depends on application {dependency}')

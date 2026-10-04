@@ -398,3 +398,205 @@ export type ExplainExplanation = {
   link: EnvelopeLink | null
   revision?: string
 }
+
+export type Packages = {
+  contract: 'mantra.packages/1'
+  revision: string | null
+  data: PackagesWorkspace | PackagesDocument | PackagesMigrationPreview
+}
+export type PackagesPackageCase = {
+  id: string
+  caseId: string
+  schema: string
+  schemaVersion: string | null
+  editable: boolean
+}
+export type PackagesMountedPackage = {
+  mount: string
+  id: string
+  version: string
+  revision: string
+  readOnly: true
+  resourceCount: number
+  caseCount: number
+  schemaCount: number
+  parameterSetCount: number
+  layoutCount: number
+  capturedBytes: string
+  cases: Array<PackagesPackageCase>
+}
+export type PackagesWorkspace = { packages: Array<PackagesMountedPackage> }
+export type PackagesBinding = {
+  case: string
+  packageId: string
+  packageVersion: string
+  packageRevision: string
+  schema: string
+  schemaVersion: string | null
+  editableCase: boolean
+  resourcesReadOnly: true
+  parameterSelectionRevision: string | null
+}
+export type PackagesParameterSource = {
+  case: string
+  key: string
+  set: string
+  packageId: string
+  packageVersion: string
+  packageRevision: string
+  schema: string
+  schemaVersion: string | null
+  resource: string
+  sha256: string
+  effectiveDate: string | null
+  validFrom: string | null
+  validUntil: string | null
+  endExclusive: true
+  mode: 'declared' | 'effective-date' | 'what-if'
+  validForDate: boolean | null
+  reference: string | null
+  effectiveLayer: string | null
+  effectiveValue: Value
+  selectedSetValue: Value
+  overriddenByCase: boolean
+}
+export type PackagesSourcesData = {
+  sources: Array<{
+    index: number
+    kind: string
+    path: string | null
+    options: Record<string, Value>
+    overridden: Array<string>
+  }>
+}
+export type PackagesEditData = {
+  document: string
+  preview: boolean
+  proposedRevision: string
+  diagnostics: Array<EnvelopeDiagnostic>
+  run: {
+    succeeded: boolean
+    members: Record<string, Array<{ key: string; label: string }>>
+    values: Record<
+      string,
+      Record<
+        string,
+        {
+          value: Value
+          display: string
+          active: boolean
+          origin?: string
+          source?: string
+          validation?: EnvelopeValidation | null
+          link: EnvelopeLink | null
+        }
+      >
+    >
+    diagnostics: Array<EnvelopeDiagnostic>
+    validationPassed: boolean
+    aggregates?: Record<string, EnvelopeAggregate>
+    caseGraph: EnvelopeCaseGraph | null
+    usage: EnvelopeUsage | null
+    failure: EnvelopeFailure | null
+  }
+  difference: {
+    variant: { parameters: Array<string>; case?: string }
+    mainline: Array<CompareChange & { step: number; panel: string }>
+    changes: Array<{ step: number | null; panel: string | null; items: Array<CompareChange> }>
+    parameterChanges: Array<CompareChange & { baseSource: string; variantSource: string }>
+  }
+}
+export type PackagesMigrationPreview = {
+  case: string
+  baseRevision: string
+  reviewToken: string
+  source: { schema: string; version: string | null }
+  target: {
+    schema: string
+    version: string | null
+    packageId: string
+    packageVersion: string
+    packageRevision: string
+    parameterSelectionRevision: string | null
+  }
+  original: string
+  candidate: string
+  originalSha256: string
+  candidateSha256: string
+  before: {
+    succeeded: boolean
+    members: Record<string, Array<{ key: string; label: string }>>
+    values: Record<
+      string,
+      Record<
+        string,
+        {
+          value: Value
+          display: string
+          active: boolean
+          origin?: string
+          source?: string
+          validation?: EnvelopeValidation | null
+          link: EnvelopeLink | null
+        }
+      >
+    >
+    diagnostics: Array<EnvelopeDiagnostic>
+    validationPassed: boolean
+    aggregates?: Record<string, EnvelopeAggregate>
+    caseGraph: EnvelopeCaseGraph | null
+    usage: EnvelopeUsage | null
+    failure: EnvelopeFailure | null
+  } | null
+  after: {
+    succeeded: boolean
+    members: Record<string, Array<{ key: string; label: string }>>
+    values: Record<
+      string,
+      Record<
+        string,
+        {
+          value: Value
+          display: string
+          active: boolean
+          origin?: string
+          source?: string
+          validation?: EnvelopeValidation | null
+          link: EnvelopeLink | null
+        }
+      >
+    >
+    diagnostics: Array<EnvelopeDiagnostic>
+    validationPassed: boolean
+    aggregates?: Record<string, EnvelopeAggregate>
+    caseGraph: EnvelopeCaseGraph | null
+    usage: EnvelopeUsage | null
+    failure: EnvelopeFailure | null
+  } | null
+  difference: {
+    variant: { parameters: Array<string>; case?: string }
+    mainline: Array<CompareChange & { step: number; panel: string }>
+    changes: Array<{ step: number | null; panel: string | null; items: Array<CompareChange> }>
+    parameterChanges: Array<CompareChange & { baseSource: string; variantSource: string }>
+  } | null
+  diagnostics: Array<EnvelopeDiagnostic>
+}
+export type PackagesDocument = {
+  case: string
+  succeeded: boolean
+  validationPassed?: boolean
+  binding?: PackagesBinding | null
+  parameterSources?: Array<PackagesParameterSource>
+  document:
+    | Run
+    | Structure
+    | Paper
+    | Parameters
+    | Diagnostics
+    | Explain
+    | ExportPreview
+    | (Omit<Envelope, 'data'> & { data: PackagesSourcesData })
+    | (Omit<Envelope, 'data'> & { data: PackagesEditData })
+    | null
+  diagnostics?: Array<EnvelopeDiagnostic>
+}

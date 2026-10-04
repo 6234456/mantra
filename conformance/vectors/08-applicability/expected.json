@@ -1,0 +1,18 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "eligible@A": {
+      "n": "4"
+    },
+    "eligible@B": {
+      "n": "0"
+    },
+    "eligible@*": {
+      "n": "4"
+    },
+    "positive@A": true,
+    "positive@B": null
+  },
+  "diagnostics": []
+}

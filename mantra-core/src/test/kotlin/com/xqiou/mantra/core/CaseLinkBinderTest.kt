@@ -28,8 +28,15 @@ class CaseLinkBinderTest {
             PublicCaseLinkBinder.bind(schema, case.copy(links = sources.map { it.declaration }), sources)
     }
 
-    private fun schema(text: String) =
-        Mantra.loadSchema(SourceText("schema.mantra", text.trimIndent()), SourceResolver { _, _ -> null })
+    private fun schema(text: String) = Mantra.loadSchema(
+        SourceText("schema.mantra", text.trimIndent()),
+        SourceResolver {
+                _,
+                _,
+            ->
+            null
+        },
+    )
 
     private fun target() = schema(
         """

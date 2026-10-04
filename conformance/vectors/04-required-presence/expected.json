@@ -1,0 +1,24 @@
+{
+  "succeeded": true,
+  "validationPassed": false,
+  "values": {
+    "defaulted": {
+      "n": "0"
+    },
+    "supplied-zero": {
+      "n": "0"
+    },
+    "supplied-false": false,
+    "computed": {
+      "n": "0"
+    }
+  },
+  "diagnostics": [
+    {
+      "code": "MANTRA-INPUT-REQUIRED",
+      "category": "business",
+      "severity": "error",
+      "effect": "validation-failure"
+    }
+  ]
+}

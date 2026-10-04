@@ -1,0 +1,1 @@
+(case months (inputs {:expected-end {:P1 "2026-02-28" :P2 "2026-03-31" :P3 "2026-04-30"}}))

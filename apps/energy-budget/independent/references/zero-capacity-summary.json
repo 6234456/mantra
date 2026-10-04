@@ -1,0 +1,11 @@
+{
+  "id": "zero-capacity",
+  "succeeded": true,
+  "validationPassed": true,
+  "expectedBusiness": [],
+  "undefined": [
+    "local-coverage@B/P3"
+  ],
+  "closing": "0",
+  "netCost": "38.80"
+}

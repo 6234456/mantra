@@ -27,9 +27,10 @@ sealed interface X {
         /** Only creation effects of a lazy producer; its item callbacks are deferred. */
         internal val creationErrors: Scalar? = null,
         internal val deferred: Boolean = false,
+        internal val presence: List<Scalar>? = null,
     ) : X
 
-    data class MapX(val keys: List<String>, val values: List<X>) : X
+    data class MapX(val keys: List<String>, val values: List<X>, internal val liveKeys: List<Scalar>? = null) : X
 
     /** A lexical closure inlined at its call sites; never written to a workbook cell. */
     class Callable private constructor(val invoke: (List<X>) -> X, internal val creationErrors: Scalar?) : X {
@@ -86,8 +87,13 @@ object Ex {
 
     fun paren(x: X.Scalar, min: Int): String = if (x.prec < min) "(${x.text})" else x.text
 
-    fun fn(name: String, args: List<X.Scalar>, kind: XKind = XKind.NUM): X.Scalar =
-        if (name == "SUM" && args.size > MAX_FUNCTION_ARGUMENTS) boundedSum(args, kind) else function(name, args, kind)
+    fun fn(name: String, args: List<X.Scalar>, kind: XKind = XKind.NUM): X.Scalar = if (name == "SUM" &&
+        args.size > MAX_FUNCTION_ARGUMENTS
+    ) {
+        boundedSum(args, kind)
+    } else {
+        function(name, args, kind)
+    }
 
     private fun function(name: String, args: List<X.Scalar>, kind: XKind) = X.Scalar(
         "$name(" + args.joinToString(",") {

@@ -1,0 +1,471 @@
+public final class com/xqiou/mantra/excel/Ex {
+	public static final field ADD I
+	public static final field ATOM I
+	public static final field CMP I
+	public static final field CONCAT I
+	public static final field INSTANCE Lcom/xqiou/mantra/excel/Ex;
+	public static final field MUL I
+	public static final field POW I
+	public static final field UNARY I
+	public final fun add (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun atom (Ljava/lang/String;Lcom/xqiou/mantra/excel/XKind;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun atom$default (Lcom/xqiou/mantra/excel/Ex;Ljava/lang/String;Lcom/xqiou/mantra/excel/XKind;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun bin (Ljava/lang/String;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;ILcom/xqiou/mantra/excel/XKind;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun bin$default (Lcom/xqiou/mantra/excel/Ex;Ljava/lang/String;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;ILcom/xqiou/mantra/excel/XKind;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun chain (Ljava/lang/String;Ljava/util/List;ILcom/xqiou/mantra/excel/XKind;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun chain$default (Lcom/xqiou/mantra/excel/Ex;Ljava/lang/String;Ljava/util/List;ILcom/xqiou/mantra/excel/XKind;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun cmp (Ljava/lang/String;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun div (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun fn (Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/excel/XKind;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun fn (Ljava/lang/String;[Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/XKind;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun fn$default (Lcom/xqiou/mantra/excel/Ex;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/excel/XKind;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun fn$default (Lcom/xqiou/mantra/excel/Ex;Ljava/lang/String;[Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/XKind;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun getEMPTY ()Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun getFALSE ()Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun getTRUE ()Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun getZERO ()Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun iff (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun mul (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun neg (Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun num (J)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun num (Ljava/math/BigDecimal;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun paren (Lcom/xqiou/mantra/excel/X$Scalar;I)Ljava/lang/String;
+	public final fun pow10 (Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun round (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Ljava/math/RoundingMode;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun sub (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun text (Ljava/lang/String;)Lcom/xqiou/mantra/excel/X$Scalar;
+}
+
+public final class com/xqiou/mantra/excel/ExcelAuditKt {
+	public static final fun auditSnapshotStatusAddress (Lcom/xqiou/mantra/excel/ExcelWorkbook;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelCellDescription {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/excel/ExcelCellDescription;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelCellDescription;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelCellDescription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAddress ()Ljava/lang/String;
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getKind ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelDescription {
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/excel/ExcelPreview;Ljava/util/List;Lcom/xqiou/mantra/excel/ExcelReport;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/xqiou/mantra/excel/ExcelPreview;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Lcom/xqiou/mantra/excel/ExcelReport;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/excel/ExcelPreview;Ljava/util/List;Lcom/xqiou/mantra/excel/ExcelReport;)Lcom/xqiou/mantra/excel/ExcelDescription;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelDescription;Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/excel/ExcelPreview;Ljava/util/List;Lcom/xqiou/mantra/excel/ExcelReport;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelDescription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNames ()Ljava/util/List;
+	public final fun getPreview ()Lcom/xqiou/mantra/excel/ExcelPreview;
+	public final fun getReport ()Lcom/xqiou/mantra/excel/ExcelReport;
+	public final fun getSelectedSheet ()Ljava/lang/String;
+	public final fun getSheets ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelDynamicTable {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;II)Lcom/xqiou/mantra/excel/ExcelDynamicTable;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelDynamicTable;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;IIILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelDynamicTable;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCapacity ()I
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getInputId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRows ()I
+	public final fun getSheet ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelDynamicTablesKt {
+	public static final fun dynamicTable (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;)Lcom/xqiou/mantra/excel/ExcelDynamicTable;
+	public static final fun dynamicTableRows (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;)Ljava/util/List;
+	public static final fun insertDynamicTableRow (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;ILjava/util/Map;)V
+	public static final fun removeDynamicTableRow (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;I)V
+	public static final fun replaceDynamicTableRows (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;Ljava/util/List;)V
+}
+
+public final class com/xqiou/mantra/excel/ExcelExport {
+	public static final field INSTANCE Lcom/xqiou/mantra/excel/ExcelExport;
+	public final fun workbook (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/excel/ExcelOptions;)Lcom/xqiou/mantra/excel/ExcelWorkbook;
+	public final fun workbook (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/excel/ExcelOptions;)Lcom/xqiou/mantra/excel/ExcelWorkbook;
+	public static synthetic fun workbook$default (Lcom/xqiou/mantra/excel/ExcelExport;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/excel/ExcelOptions;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelWorkbook;
+	public static synthetic fun workbook$default (Lcom/xqiou/mantra/excel/ExcelExport;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/excel/ExcelOptions;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelWorkbook;
+}
+
+public final class com/xqiou/mantra/excel/ExcelExportLimitException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/xqiou/mantra/excel/ExcelFallback {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/excel/ExcelFallback;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelFallback;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelFallback;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCell ()Ljava/lang/String;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getReason ()Ljava/lang/String;
+	public final fun getSheet ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelNameDescription {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/excel/ExcelNameDescription;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelNameDescription;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelNameDescription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRefersTo ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelNames {
+	public static final field INSTANCE Lcom/xqiou/mantra/excel/ExcelNames;
+	public static final field SEPARATOR Ljava/lang/String;
+	public final fun member (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun record (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun sanitize (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelOptions {
+	public fun <init> ()V
+	public fun <init> (ZZZIIILcom/xqiou/mantra/core/api/CalculationOptions;Ljava/util/Map;)V
+	public synthetic fun <init> (ZZZIIILcom/xqiou/mantra/core/api/CalculationOptions;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDynamicTableCapacities ()Ljava/util/Map;
+	public final fun getEvaluate ()Z
+	public final fun getFormulaColumn ()Z
+	public final fun getMaxCells ()I
+	public final fun getMaxConvergenceSteps ()I
+	public final fun getMaxSheets ()I
+	public final fun getReading ()Lcom/xqiou/mantra/core/api/CalculationOptions;
+	public final fun getUseNames ()Z
+}
+
+public final class com/xqiou/mantra/excel/ExcelPreview {
+	public fun <init> (IIZLjava/util/List;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (IIZLjava/util/List;)Lcom/xqiou/mantra/excel/ExcelPreview;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelPreview;IIZLjava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelPreview;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCells ()Ljava/util/List;
+	public final fun getColumns ()I
+	public final fun getRows ()I
+	public final fun getTruncated ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelPrevious {
+	public fun <init> (ZLcom/xqiou/mantra/excel/X;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Lcom/xqiou/mantra/excel/X;
+	public final fun copy (ZLcom/xqiou/mantra/excel/X;)Lcom/xqiou/mantra/excel/ExcelPrevious;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelPrevious;ZLcom/xqiou/mantra/excel/X;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelPrevious;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFirst ()Z
+	public final fun getValue ()Lcom/xqiou/mantra/excel/X;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelReport {
+	public fun <init> (Ljava/util/List;IIILjava/util/List;Ljava/util/List;Lcom/xqiou/mantra/core/api/RunUsage;)V
+	public synthetic fun <init> (Ljava/util/List;IIILjava/util/List;Ljava/util/List;Lcom/xqiou/mantra/core/api/RunUsage;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getEvaluationErrors ()Ljava/util/List;
+	public final fun getFallbacks ()Ljava/util/List;
+	public final fun getFormulaCells ()I
+	public final fun getInputCells ()I
+	public final fun getNames ()I
+	public final fun getReadingUsage ()Lcom/xqiou/mantra/core/api/RunUsage;
+	public final fun getSheets ()Ljava/util/List;
+}
+
+public abstract interface class com/xqiou/mantra/excel/ExcelResolver {
+	public fun chargeScans (J)V
+	public static synthetic fun chargeScans$default (Lcom/xqiou/mantra/excel/ExcelResolver;JILjava/lang/Object;)V
+	public fun checkpoint ()V
+	public fun convergence (Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lkotlin/jvm/functions/Function2;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public abstract fun isDimension (Ljava/lang/String;)Z
+	public abstract fun isNode (Ljava/lang/String;)Z
+	public fun materialize (Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public fun periodKeys (Ljava/lang/String;)Lcom/xqiou/mantra/excel/X$Vec;
+	public fun previous (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/excel/ExcelPrevious;
+	public abstract fun record (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/excel/X;
+	public abstract fun reference (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/excel/X;
+	public fun requireDynamicFormula ()V
+}
+
+public final class com/xqiou/mantra/excel/ExcelResolver$DefaultImpls {
+	public static fun chargeScans (Lcom/xqiou/mantra/excel/ExcelResolver;J)V
+	public static synthetic fun chargeScans$default (Lcom/xqiou/mantra/excel/ExcelResolver;JILjava/lang/Object;)V
+	public static fun checkpoint (Lcom/xqiou/mantra/excel/ExcelResolver;)V
+	public static fun convergence (Lcom/xqiou/mantra/excel/ExcelResolver;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lcom/xqiou/mantra/excel/X$Scalar;Lkotlin/jvm/functions/Function2;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static fun materialize (Lcom/xqiou/mantra/excel/ExcelResolver;Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static fun periodKeys (Lcom/xqiou/mantra/excel/ExcelResolver;Ljava/lang/String;)Lcom/xqiou/mantra/excel/X$Vec;
+	public static fun previous (Lcom/xqiou/mantra/excel/ExcelResolver;Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/excel/ExcelPrevious;
+	public static fun requireDynamicFormula (Lcom/xqiou/mantra/excel/ExcelResolver;)V
+}
+
+public final class com/xqiou/mantra/excel/ExcelSheetDescription {
+	public fun <init> (Ljava/lang/String;II)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun copy (Ljava/lang/String;II)Lcom/xqiou/mantra/excel/ExcelSheetDescription;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/ExcelSheetDescription;Ljava/lang/String;IIILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelSheetDescription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumns ()I
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRows ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelStyles {
+	public fun <init> (Lorg/apache/poi/xssf/usermodel/XSSFWorkbook;Lcom/xqiou/mantra/render/layout/NumberStyle;)V
+	public final fun amountFormat (IZ)Ljava/lang/String;
+	public static synthetic fun amountFormat$default (Lcom/xqiou/mantra/excel/ExcelStyles;IZILjava/lang/Object;)Ljava/lang/String;
+	public final fun get (Lcom/xqiou/mantra/excel/StyleKey;)Lorg/apache/poi/xssf/usermodel/XSSFCellStyle;
+	public final fun percentFormat (I)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/ExcelStylesKt {
+	public static final fun applyRule (Lcom/xqiou/mantra/excel/StyleKey;Lcom/xqiou/mantra/render/layout/StyleSpec;)Lcom/xqiou/mantra/excel/StyleKey;
+}
+
+public final class com/xqiou/mantra/excel/ExcelWorkbook : java/lang/AutoCloseable {
+	public final fun address (Ljava/lang/String;Ljava/util/List;)Ljava/lang/String;
+	public static synthetic fun address$default (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun aggregateAddress (Ljava/lang/String;Ljava/util/Map;)Ljava/lang/String;
+	public static synthetic fun aggregateAddress$default (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun bytes (I)[B
+	public static synthetic fun bytes$default (Lcom/xqiou/mantra/excel/ExcelWorkbook;IILjava/lang/Object;)[B
+	public fun close ()V
+	public final fun describe (Ljava/lang/String;)Lcom/xqiou/mantra/excel/ExcelDescription;
+	public static synthetic fun describe$default (Lcom/xqiou/mantra/excel/ExcelWorkbook;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/ExcelDescription;
+	public final fun getReport ()Lcom/xqiou/mantra/excel/ExcelReport;
+	public final fun getWorkbook ()Lorg/apache/poi/xssf/usermodel/XSSFWorkbook;
+	public final fun recordAddress (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun tableAddress (Ljava/lang/String;ILjava/lang/String;)Ljava/lang/String;
+	public final fun write (Ljava/nio/file/Path;)V
+}
+
+public final class com/xqiou/mantra/excel/Fill : java/lang/Enum {
+	public static final field FALLBACK Lcom/xqiou/mantra/excel/Fill;
+	public static final field HEADER Lcom/xqiou/mantra/excel/Fill;
+	public static final field INPUT Lcom/xqiou/mantra/excel/Fill;
+	public static final field NONE Lcom/xqiou/mantra/excel/Fill;
+	public static final field PARAM Lcom/xqiou/mantra/excel/Fill;
+	public static final field STEP Lcom/xqiou/mantra/excel/Fill;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getRgb ()Ljava/lang/Integer;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/excel/Fill;
+	public static fun values ()[Lcom/xqiou/mantra/excel/Fill;
+}
+
+public final class com/xqiou/mantra/excel/FormulaTranslator {
+	public fun <init> (Lcom/xqiou/mantra/excel/ExcelResolver;Ljava/util/List;)V
+	public final fun scalar (Lcom/xqiou/normein/dsl/form/DslForm;Lcom/xqiou/mantra/excel/FormulaTranslator$Ctx;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun toScalar (Lcom/xqiou/mantra/excel/X;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public final fun translate (Lcom/xqiou/normein/dsl/form/DslForm;Lcom/xqiou/mantra/excel/FormulaTranslator$Ctx;)Lcom/xqiou/mantra/excel/X;
+	public final fun truthy (Lcom/xqiou/mantra/excel/X$Scalar;)Lcom/xqiou/mantra/excel/X$Scalar;
+}
+
+public final class com/xqiou/mantra/excel/FormulaTranslator$Ctx {
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/Map;I)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/Map;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun call (Ljava/util/Map;)Lcom/xqiou/mantra/excel/FormulaTranslator$Ctx;
+	public final fun closure (Ljava/util/Map;)Lcom/xqiou/mantra/excel/FormulaTranslator$Ctx;
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getDepth ()I
+	public final fun getDims ()Ljava/util/List;
+	public final fun getEnv ()Ljava/util/Map;
+	public final fun with (Ljava/util/Map;)Lcom/xqiou/mantra/excel/FormulaTranslator$Ctx;
+}
+
+public final class com/xqiou/mantra/excel/StyleKey {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;ZZZSLcom/xqiou/mantra/excel/Fill;ZZZLorg/apache/poi/ss/usermodel/HorizontalAlignment;ZZSLcom/xqiou/mantra/render/layout/StyleTone;)V
+	public synthetic fun <init> (Ljava/lang/String;ZZZSLcom/xqiou/mantra/excel/Fill;ZZZLorg/apache/poi/ss/usermodel/HorizontalAlignment;ZZSLcom/xqiou/mantra/render/layout/StyleTone;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Lorg/apache/poi/ss/usermodel/HorizontalAlignment;
+	public final fun component11 ()Z
+	public final fun component12 ()Z
+	public final fun component13 ()S
+	public final fun component14 ()Lcom/xqiou/mantra/render/layout/StyleTone;
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun component5 ()S
+	public final fun component6 ()Lcom/xqiou/mantra/excel/Fill;
+	public final fun component7 ()Z
+	public final fun component8 ()Z
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;ZZZSLcom/xqiou/mantra/excel/Fill;ZZZLorg/apache/poi/ss/usermodel/HorizontalAlignment;ZZSLcom/xqiou/mantra/render/layout/StyleTone;)Lcom/xqiou/mantra/excel/StyleKey;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/StyleKey;Ljava/lang/String;ZZZSLcom/xqiou/mantra/excel/Fill;ZZZLorg/apache/poi/ss/usermodel/HorizontalAlignment;ZZSLcom/xqiou/mantra/render/layout/StyleTone;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/StyleKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlign ()Lorg/apache/poi/ss/usermodel/HorizontalAlignment;
+	public final fun getBold ()Z
+	public final fun getDoubleBottom ()Z
+	public final fun getFill ()Lcom/xqiou/mantra/excel/Fill;
+	public final fun getFormat ()Ljava/lang/String;
+	public final fun getHeaderRule ()Z
+	public final fun getIndent ()S
+	public final fun getItalic ()Z
+	public final fun getLink ()Z
+	public final fun getMuted ()Z
+	public final fun getSize ()S
+	public final fun getTone ()Lcom/xqiou/mantra/render/layout/StyleTone;
+	public final fun getTopRule ()Z
+	public final fun getWrap ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/Untranslatable : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getReason ()Ljava/lang/String;
+}
+
+public abstract interface class com/xqiou/mantra/excel/X {
+}
+
+public final class com/xqiou/mantra/excel/X$Branches : com/xqiou/mantra/excel/X {
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Lcom/xqiou/mantra/excel/X$Branches;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/X$Branches;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Branches;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCases ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/X$Callable : com/xqiou/mantra/excel/X {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public final fun getInvoke ()Lkotlin/jvm/functions/Function1;
+}
+
+public final class com/xqiou/mantra/excel/X$MapX : com/xqiou/mantra/excel/X {
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/excel/X$MapX;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/X$MapX;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$MapX;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getKeys ()Ljava/util/List;
+	public final fun getValues ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/X$Nil : com/xqiou/mantra/excel/X {
+	public static final field INSTANCE Lcom/xqiou/mantra/excel/X$Nil;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/X$Range : com/xqiou/mantra/excel/X {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lcom/xqiou/mantra/excel/X$Range;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/X$Range;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Range;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCells ()Ljava/util/List;
+	public final fun getKeys ()Ljava/util/List;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/X$Scalar : com/xqiou/mantra/excel/X {
+	public fun <init> (Ljava/lang/String;ILcom/xqiou/mantra/excel/XKind;ZZ)V
+	public synthetic fun <init> (Ljava/lang/String;ILcom/xqiou/mantra/excel/XKind;ZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Lcom/xqiou/mantra/excel/XKind;
+	public final fun component4 ()Z
+	public final fun component5 ()Z
+	public final fun copy (Ljava/lang/String;ILcom/xqiou/mantra/excel/XKind;ZZ)Lcom/xqiou/mantra/excel/X$Scalar;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/X$Scalar;Ljava/lang/String;ILcom/xqiou/mantra/excel/XKind;ZZILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Scalar;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBooleanOrNil ()Z
+	public final fun getKind ()Lcom/xqiou/mantra/excel/XKind;
+	public final fun getNumericOrNil ()Z
+	public final fun getPrec ()I
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/X$Vec : com/xqiou/mantra/excel/X {
+	public fun <init> (Ljava/util/List;Lcom/xqiou/mantra/excel/X$Scalar;ZLjava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Lcom/xqiou/mantra/excel/X$Scalar;ZLjava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Lcom/xqiou/mantra/excel/X$Scalar;ZLjava/util/List;)Lcom/xqiou/mantra/excel/X$Vec;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/excel/X$Vec;Ljava/util/List;Lcom/xqiou/mantra/excel/X$Scalar;ZLjava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/excel/X$Vec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getItems ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/excel/XKind : java/lang/Enum {
+	public static final field ANY Lcom/xqiou/mantra/excel/XKind;
+	public static final field BOOL Lcom/xqiou/mantra/excel/XKind;
+	public static final field DATE Lcom/xqiou/mantra/excel/XKind;
+	public static final field NUM Lcom/xqiou/mantra/excel/XKind;
+	public static final field TEXT Lcom/xqiou/mantra/excel/XKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/excel/XKind;
+	public static fun values ()[Lcom/xqiou/mantra/excel/XKind;
+}
+
+public final class com/xqiou/mantra/excel/XlsxSource : com/xqiou/mantra/core/data/DataSource {
+	public static final field Companion Lcom/xqiou/mantra/excel/XlsxSource$Companion;
+	public fun <init> (Ljava/nio/file/Path;[BLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;[BLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDescription ()Ljava/lang/String;
+	public fun read (Lcom/xqiou/mantra/core/model/Schema;Lcom/xqiou/mantra/core/DiagnosticSink;)Ljava/util/Map;
+}
+
+public final class com/xqiou/mantra/excel/XlsxSource$Companion {
+	public final fun validateContainer ([BLkotlin/jvm/functions/Function0;)V
+	public static synthetic fun validateContainer$default (Lcom/xqiou/mantra/excel/XlsxSource$Companion;[BLkotlin/jvm/functions/Function0;ILjava/lang/Object;)V
+}
+

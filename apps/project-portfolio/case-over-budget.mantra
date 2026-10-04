@@ -1,0 +1,19 @@
+;; Fictional independent facts from independent/fixtures/over-budget.json.
+(case project-portfolio-over-budget
+  {:schema "project.portfolio/supplied-plan" :schema-version "1.0.0"
+   :parameters ["project.portfolio/2026"] :layout "project.portfolio/plan"
+   :title "Project portfolio: All proposals exceed cost and hours" :period "2026 showcase"
+   :expected-business [{:code "MANTRA-CHECK-FAILED" :node "portfolio-within-budget" :severity :error}
+     {:code "MANTRA-CHECK-FAILED" :node "portfolio-within-capacity" :severity :error}]}
+
+  (inputs
+    {:budget-limit 120 :hour-limit 140 :reported-cost 170.00
+     :departments [
+      {:id :DELIVERY :title "Fictional delivery team"}
+      {:id :RESEARCH :title "Fictional research team"}
+     ]
+     :projects [
+      {:id :A :title "Fictional tooling upgrade" :department-id :DELIVERY :cost 80 :benefit 140 :hours 70 :selected true :approval-note "Fictional selection A"}
+      {:id :B :title "Fictional service refresh" :department-id :DELIVERY :cost 50 :benefit 75 :hours 50 :selected true :approval-note "Fictional selection B"}
+      {:id :C :title "Fictional prototype" :department-id :RESEARCH :cost 40 :benefit 68 :hours 60 :selected true :approval-note "Fictional selection C"}
+     ]}))

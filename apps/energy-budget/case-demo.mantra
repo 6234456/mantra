@@ -1,0 +1,20 @@
+;; Fictional independent facts from independent/fixtures/demo.json.
+(case energy-budget-demo
+  {:schema "energy.budget/monthly-plan" :schema-version "1.0.0"
+   :parameters ["energy.budget/2026-Q1"] :layout "energy.budget/matrix"
+   :title "Energy budget: Two sites with storage and exports" :period "2026 showcase"
+   :expected-business []}
+
+  (inputs
+    {:sites [
+      {:id :A :title "Fictional workshop" :capacity 20 :opening 12}
+      {:id :B :title "Fictional studio without storage" :capacity 0 :opening 0}
+     ]
+     :readings [
+      {:site-id :A :month-id :P1 :generation 30 :demand 90 :reported-closing 0}
+      {:site-id :A :month-id :P2 :generation 100 :demand 70 :reported-closing 20}
+      {:site-id :A :month-id :P3 :generation 20 :demand 100 :reported-closing 0}
+      {:site-id :B :month-id :P1 :generation 80 :demand 60 :reported-closing 0}
+      {:site-id :B :month-id :P2 :generation 40 :demand 60 :reported-closing 0}
+      {:site-id :B :month-id :P3 :generation 10 :demand 0 :reported-closing 0}
+     ]}))

@@ -1,0 +1,55 @@
+;; Fictional one-period proposal totals. Selection is supplied; there is no optimization.
+;; Deterministic additive benefits omit uncertainty, discounting and project dependencies.
+(schema project.portfolio/supplied-plan
+  {:title "Supplied project portfolio" :subtitle "Fictional selected proposals and capacity limits"
+   :version "1.0.0" :preset :ifrs-schedule
+   :mainline [project-plan department-plan portfolio-summary]}
+  (input departments :table {:label "Fictional departments" :min-rows 1 :columns {:id :keyword :title :text}})
+  (input projects :table {:label "Fictional proposals" :min-rows 1
+    :columns {:id :keyword :title :text :department-id :keyword :cost :decimal :benefit :decimal :hours :decimal :selected :boolean
+              :approval-note {:type :text? :required-when row.selected}}
+    :references {:department-id department}})
+  (input budget-limit :decimal {:label "Supplied cost limit" :default 120})
+  (input hour-limit :decimal {:label "Supplied available hours" :default 140})
+  (input reported-cost :decimal {:label "Independent fictional selected-cost total"})
+  (param currency-scale 2 {:label "Proposal amount rounding precision"})
+  (dimension proposal {:label "Project" :from projects :key :id :title :title :parent department :parent-key :department-id})
+  (dimension department {:label "Department" :from departments :key :id :title :title :total-label "All departments"})
+  (section project-plan "Proposed and selected amounts" {:per proposal :display :schedule :op :info}
+    ;; Round each supplied proposal once before selection; unselected totals are explicit zero.
+    (line proposed-cost "Proposed cost" (decimal/round proposal.cost currency-scale) {:op :info})
+    (line proposed-benefit "Proposed benefit" (decimal/round proposal.benefit currency-scale) {:op :info})
+    (line proposed-hours "Proposed hours" proposal.hours {:op :info :format :number})
+    (line proposal-selected "Supplied selection" proposal.selected {:type :boolean :op :info})
+    (line selected-cost "Selected cost" (if proposal.selected proposed-cost 0) {:op :info})
+    (line selected-benefit "Selected benefit" (if proposal.selected proposed-benefit 0) {:op :info})
+    (line selected-hours "Selected hours" (if proposal.selected proposed-hours 0) {:op :info :format :number})
+    (line selected-net-benefit "Selected benefit less cost" (- selected-benefit selected-cost) {:op :info})
+    (check proposal-nonnegative "Proposal cost, benefit and hours are nonnegative"
+      (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0)))
+    ;; Six-decimal fixed precision; free/unselected proposals have an undefined measure.
+    (line project-benefit-cost "Benefit / selected cost"
+      (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))
+      {:op :info :format :number :precision 6
+       :aggregate {:ratio [selected-benefit selected-cost] :round [6 :half-up]}}))
+  (section department-plan "Selected department totals" {:per department :display :schedule :op :info}
+    (line department-cost "Selected cost" (dim/rollup all.selected-cost relation_proposal department.key) {:op :info})
+    (line department-benefit "Selected benefit" (dim/rollup all.selected-benefit relation_proposal department.key) {:op :info})
+    (line department-hours "Selected hours" (dim/rollup all.selected-hours relation_proposal department.key) {:op :info :format :number})
+    (line department-net-benefit "Selected benefit less cost" (- department-benefit department-cost) {:op :info})
+    (line department-benefit-cost "Benefit / selected cost"
+      (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6))
+      {:op :info :format :number :precision 6
+       :aggregate {:ratio [department-benefit department-cost] :round [6 :half-up]}}))
+  (section portfolio-summary "Portfolio limits and crossfoot" {:display :schedule :op :info}
+    (line portfolio-cost "Selected cost" (dim/sum all.selected-cost) {:op :info})
+    (line portfolio-benefit "Selected benefit" (dim/sum all.selected-benefit) {:op :info})
+    (line portfolio-hours "Selected hours" (dim/sum all.selected-hours) {:op :info :format :number})
+    (line portfolio-net-benefit "Selected benefit less cost" (- portfolio-benefit portfolio-cost) {:op :info})
+    (line budget-remaining "Cost limit less selected cost" (- budget-limit portfolio-cost) {:op :info})
+    (line capacity-remaining "Hours available less selected hours" (- hour-limit portfolio-hours) {:op :info :format :number})
+    ;; This aggregate already consists of cent-rounded proposals; the explicit money
+    ;; identity protects Excel comparisons from binary summation residue, not an engine epsilon.
+    (check portfolio-within-budget "Selection fits supplied cost limit" (<= (decimal/round portfolio-cost currency-scale) budget-limit))
+    (check portfolio-within-capacity "Selection fits supplied hour limit" (<= portfolio-hours hour-limit))
+    (reconcile cost-reconciliation "Selected cost agrees with independent fictional total" (decimal/round portfolio-cost currency-scale) reported-cost {:tolerance 0})))

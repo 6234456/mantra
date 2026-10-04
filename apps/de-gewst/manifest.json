@@ -1,0 +1,1012 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.de-gewst",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 4545,
+      "sha256": "c5a6ed198501cd58801cd5547e41e2b127e63e3869d59259375e358bacf77149"
+    },
+    {
+      "path": "case-all-positive-income-zero.mantra",
+      "role": "case",
+      "byteLength": 484,
+      "sha256": "a78c3b43612738f1b2a95819aeb837f6f8e7562e0753f961a28e7411e6b1c656"
+    },
+    {
+      "path": "case-allowance-24499_99.mantra",
+      "role": "case",
+      "byteLength": 473,
+      "sha256": "fc38a3a70ec917e9c7665532c1dbff4f059e0058b22b45ccb2266f18c378c790"
+    },
+    {
+      "path": "case-allowance-24500.mantra",
+      "role": "case",
+      "byteLength": 461,
+      "sha256": "3cefe04d0ab88eb9df3941c47fa842a8ad69ce7dff796fe2d58f3d0857e4eede"
+    },
+    {
+      "path": "case-allowance-24599_99.mantra",
+      "role": "case",
+      "byteLength": 473,
+      "sha256": "ba95f958ef553af421ff53e42a746cc8e78b4f539e40898d02dfa442caf3d8eb"
+    },
+    {
+      "path": "case-allowance-24600.mantra",
+      "role": "case",
+      "byteLength": 461,
+      "sha256": "4dcca10e13e32fefe65af879a3914b2ac90e7498c73313a3b9869b13fca73d73"
+    },
+    {
+      "path": "case-below-historical-minimum.mantra",
+      "role": "case",
+      "byteLength": 832,
+      "sha256": "6caefccd9b6bfe00891fb5f08deca9115e182eafce4a03121d7cd3553a18ff4b"
+    },
+    {
+      "path": "case-financing-threshold-199999.mantra",
+      "role": "case",
+      "byteLength": 535,
+      "sha256": "abb6d9e99b6744be974696d59d437cf209759717c63bb74805b56690b6f1956d"
+    },
+    {
+      "path": "case-financing-threshold-200000.mantra",
+      "role": "case",
+      "byteLength": 535,
+      "sha256": "a0f7ff7c6c9aa83d63bb59ab2cef7d3960fd16369c2215f06281626476e9a39d"
+    },
+    {
+      "path": "case-financing-threshold-200001.mantra",
+      "role": "case",
+      "byteLength": 535,
+      "sha256": "f724c1c758e1694549248cf5eb9846f0928d25cb5e033b5ae68e5631d97143ba"
+    },
+    {
+      "path": "case-historical-minimum-rate.mantra",
+      "role": "case",
+      "byteLength": 756,
+      "sha256": "ae602e4678ba855eeb01c6fc7ed5df1920a46b39c7e640d63b92971e2ec25162"
+    },
+    {
+      "path": "case-missing-category.mantra",
+      "role": "case",
+      "byteLength": 603,
+      "sha256": "12fe75bf4bc5a150014c6d3f83b9bc5b0006b3c3193a399f08b94acc2a441076"
+    },
+    {
+      "path": "case-mixed-fractional-cap-intermediate-only.mantra",
+      "role": "case",
+      "byteLength": 570,
+      "sha256": "adc6eae6ff383b5b97724b5b16027f7ef4233b45fba790837ac7e465fc0566c1"
+    },
+    {
+      "path": "case-mixed-positive-income.mantra",
+      "role": "case",
+      "byteLength": 519,
+      "sha256": "18d92c19f23f0914042fbf9dcf02efbe96c1213cd03b99ddb130939eb2472505"
+    },
+    {
+      "path": "case-negative-expense.mantra",
+      "role": "case",
+      "byteLength": 595,
+      "sha256": "8678c5577a5269afa82eedeba9fa780ef484994e5b7f09112c84f929a4a63341"
+    },
+    {
+      "path": "case-negative-other-income.mantra",
+      "role": "case",
+      "byteLength": 750,
+      "sha256": "bef8ebce39dcd30f1e7100acb589a0aa7270f99c387d1cbd564773cf0833bbc6"
+    },
+    {
+      "path": "case-no-positive-trade-income.mantra",
+      "role": "case",
+      "byteLength": 484,
+      "sha256": "9689b832d3960f74e006448fe983735e13ce8aab7e096d9c9756064206e83d21"
+    },
+    {
+      "path": "case-rate-300.mantra",
+      "role": "case",
+      "byteLength": 711,
+      "sha256": "98ca1da561da8efc01617e43a8f5bbe2062b8b311817e4f74cad1296e2cdcc8c"
+    },
+    {
+      "path": "case-rate-400-csv.mantra",
+      "role": "case",
+      "byteLength": 571,
+      "sha256": "6a18c7b2b22dd8b656c5972359e8e773e8487f36d6866c77938bf1365f3a21cc"
+    },
+    {
+      "path": "case-rate-400.mantra",
+      "role": "case",
+      "byteLength": 711,
+      "sha256": "7d10112ba24011e1c275f5cc7298971b8315905055b86e097c0e9c28b5bcb876"
+    },
+    {
+      "path": "case-rate-450.mantra",
+      "role": "case",
+      "byteLength": 711,
+      "sha256": "3dcd8376285f7aacb98a8682225f4db93a4d38ffcd67b11e2e686629dc96b3f6"
+    },
+    {
+      "path": "case-unsupported-entity.mantra",
+      "role": "case",
+      "byteLength": 793,
+      "sha256": "12390c2c16092c614f07373ee5cac6834221aebae174e42636def9e1bae2deac"
+    },
+    {
+      "path": "data/financing-costs.csv",
+      "role": "data",
+      "byteLength": 99,
+      "sha256": "a538f6e9da1fc0f2f918cd43b0de6fb870835e18daa7491dc25d638ed53c6c86"
+    },
+    {
+      "path": "import-template.csv",
+      "role": "data",
+      "byteLength": 19,
+      "sha256": "ed61c5f59671f62b4ded7ccefa4c6efc7444cd04fa25ec6b1b2e8cd65a38cb88"
+    },
+    {
+      "path": "import-templates/financing-costs.json",
+      "role": "import-template",
+      "byteLength": 297,
+      "sha256": "1c7232cce50bda643b7a0e23f85e0fc19e4f86a5c5a73dc9f92078e8e0c30bc7"
+    },
+    {
+      "path": "independent/_reference.py",
+      "role": "documentation",
+      "byteLength": 19997,
+      "sha256": "b1d287c7292a8970dcb71d1a4cb560d753263df4767831f4f88128614d175ed5"
+    },
+    {
+      "path": "independent/app-values/case-all-positive-income-zero-values.json",
+      "role": "documentation",
+      "byteLength": 642,
+      "sha256": "de68e1ab2f7e00747d9665dc5ee9ab4dfbfaaccc9b3f61213fcfec52a61e5a8d"
+    },
+    {
+      "path": "independent/app-values/case-allowance-24499_99-values.json",
+      "role": "documentation",
+      "byteLength": 668,
+      "sha256": "aa9b25e22322cc065a5f7034d771ae86e590be22acdad8b11937a9a245a3b67a"
+    },
+    {
+      "path": "independent/app-values/case-allowance-24500-values.json",
+      "role": "documentation",
+      "byteLength": 662,
+      "sha256": "79b2a04e1e591e2ffdbdaac3c7beacb1182b60ce65cb6725b204aec7159a2fa4"
+    },
+    {
+      "path": "independent/app-values/case-allowance-24599_99-values.json",
+      "role": "documentation",
+      "byteLength": 668,
+      "sha256": "c98c06becb0ef6c467343d20b801524f9cc76327c8c8f7b9a454f3df3b1d7b50"
+    },
+    {
+      "path": "independent/app-values/case-allowance-24600-values.json",
+      "role": "documentation",
+      "byteLength": 665,
+      "sha256": "02dba75cca98d9da26216d04a8c32b97269f75b9ba1f136efc7c7686d2553f43"
+    },
+    {
+      "path": "independent/app-values/case-below-historical-minimum-values.json",
+      "role": "documentation",
+      "byteLength": 1176,
+      "sha256": "58fb59be105637ccde216e52ccee6dc109e2ba99a0c70406e242fd874c45ccf5"
+    },
+    {
+      "path": "independent/app-values/case-financing-threshold-199999-values.json",
+      "role": "documentation",
+      "byteLength": 847,
+      "sha256": "960b48f76a3e5b9b06d745d0b84e5297fc0770886a2a2d0d98b91a75085d1dc9"
+    },
+    {
+      "path": "independent/app-values/case-financing-threshold-200000-values.json",
+      "role": "documentation",
+      "byteLength": 847,
+      "sha256": "21b3d81b509389e7dd7a7ced017716aa7bb849fa25d7ff040ce120f4b9baf193"
+    },
+    {
+      "path": "independent/app-values/case-financing-threshold-200001-values.json",
+      "role": "documentation",
+      "byteLength": 847,
+      "sha256": "2bf51640c4645cc282c85076ada1668a8d140631ce92ea2ce2c99e8e7da520ed"
+    },
+    {
+      "path": "independent/app-values/case-historical-minimum-rate-values.json",
+      "role": "documentation",
+      "byteLength": 1176,
+      "sha256": "83ecb915c37a00e6ac515e131c170b46dbdf5a72a95c8100efe9a3ac3d724a3c"
+    },
+    {
+      "path": "independent/app-values/case-missing-category-values.json",
+      "role": "documentation",
+      "byteLength": 813,
+      "sha256": "8125682e94747887e2467d52138a689949f547a1df8a789efc2dbaa192248d35"
+    },
+    {
+      "path": "independent/app-values/case-mixed-fractional-cap-intermediate-only-values.json",
+      "role": "documentation",
+      "byteLength": 858,
+      "sha256": "4c37d9b7e89ef591c2a7d2e67aecf320df017d2b4aa39bb2b7d8ff7d2c16cb51"
+    },
+    {
+      "path": "independent/app-values/case-mixed-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 858,
+      "sha256": "4c37d9b7e89ef591c2a7d2e67aecf320df017d2b4aa39bb2b7d8ff7d2c16cb51"
+    },
+    {
+      "path": "independent/app-values/case-negative-expense-values.json",
+      "role": "documentation",
+      "byteLength": 815,
+      "sha256": "355aa8d7cfbe40a3b9376f5ca2fe4827da4f7bc8ea3a51404b6bb6729dcec6ef"
+    },
+    {
+      "path": "independent/app-values/case-negative-other-income-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "3e767ce127f76703c30055716d109db697703ffd82543fc6dc131370a025df50"
+    },
+    {
+      "path": "independent/app-values/case-no-positive-trade-income-values.json",
+      "role": "documentation",
+      "byteLength": 642,
+      "sha256": "de68e1ab2f7e00747d9665dc5ee9ab4dfbfaaccc9b3f61213fcfec52a61e5a8d"
+    },
+    {
+      "path": "independent/app-values/case-rate-300-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "edf371832e7cdeee6199bee7a085ff68ff47f7e30fafa464b33af40622536f1b"
+    },
+    {
+      "path": "independent/app-values/case-rate-400-csv-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "3e767ce127f76703c30055716d109db697703ffd82543fc6dc131370a025df50"
+    },
+    {
+      "path": "independent/app-values/case-rate-400-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "3e767ce127f76703c30055716d109db697703ffd82543fc6dc131370a025df50"
+    },
+    {
+      "path": "independent/app-values/case-rate-450-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "decaa9c873c7d3fec9cd74abc91717394a0204424457e7aea578e9271008b79b"
+    },
+    {
+      "path": "independent/app-values/case-unsupported-entity-values.json",
+      "role": "documentation",
+      "byteLength": 1177,
+      "sha256": "3e767ce127f76703c30055716d109db697703ffd82543fc6dc131370a025df50"
+    },
+    {
+      "path": "independent/case-map.json",
+      "role": "documentation",
+      "byteLength": 33089,
+      "sha256": "211cea5faa39fd20ebaed59bd7c2b2874adff328eb517ef210333cf620ade201"
+    },
+    {
+      "path": "independent/fixtures/trade/all-positive-income-zero.json",
+      "role": "documentation",
+      "byteLength": 828,
+      "sha256": "613ef8acfc0cf8f315ee139bbc5cec493a6e5ded662ce963a8744bbfe7939b46"
+    },
+    {
+      "path": "independent/fixtures/trade/allowance-24499_99.json",
+      "role": "documentation",
+      "byteLength": 829,
+      "sha256": "957bb7383476949a9edaaa923545c489a6e48f7dd4b776462b50c16f8eb8ddc7"
+    },
+    {
+      "path": "independent/fixtures/trade/allowance-24500.json",
+      "role": "documentation",
+      "byteLength": 823,
+      "sha256": "bf760b4add59e8d1ba4c2336265195ee96414bf101d2c5f102bc798ae646a8b3"
+    },
+    {
+      "path": "independent/fixtures/trade/allowance-24599_99.json",
+      "role": "documentation",
+      "byteLength": 829,
+      "sha256": "e8b02abf20eb451f94a34950b7830df48693040514aee2063f670526290d059c"
+    },
+    {
+      "path": "independent/fixtures/trade/allowance-24600.json",
+      "role": "documentation",
+      "byteLength": 823,
+      "sha256": "b5bc83d937a990c791025e619bfcf740aa5428c7bb174320b686a03667febf6b"
+    },
+    {
+      "path": "independent/fixtures/trade/below-historical-minimum.json",
+      "role": "documentation",
+      "byteLength": 1118,
+      "sha256": "bd8b460d495ffe49a6bb64d8f102c9b298b4a143cfda7e61a65060d5e2b1c0d2"
+    },
+    {
+      "path": "independent/fixtures/trade/financing-threshold-199999.json",
+      "role": "documentation",
+      "byteLength": 901,
+      "sha256": "8164e36421a9b88a5e6d9575826373935321d1a3bf3d2a4ecaeb66c5e15d9e67"
+    },
+    {
+      "path": "independent/fixtures/trade/financing-threshold-200000.json",
+      "role": "documentation",
+      "byteLength": 901,
+      "sha256": "447b58dbea849001207de244d9526217050e989132dd087423e8a6f4a15d25af"
+    },
+    {
+      "path": "independent/fixtures/trade/financing-threshold-200001.json",
+      "role": "documentation",
+      "byteLength": 901,
+      "sha256": "f0932e3e99973ce248f0b8c124def40f3967aee05302ff1352a65d79b209ec09"
+    },
+    {
+      "path": "independent/fixtures/trade/historical-minimum-rate.json",
+      "role": "documentation",
+      "byteLength": 1110,
+      "sha256": "75205f2dde8ec0976a28da5872a3087eabedff186e499c353622b8d98f4c13ab"
+    },
+    {
+      "path": "independent/fixtures/trade/missing-category.json",
+      "role": "documentation",
+      "byteLength": 886,
+      "sha256": "a0bb8cf57c484a4cae35379b2b0b533b2b27e3cba2c0f00f0b73efa71e60177a"
+    },
+    {
+      "path": "independent/fixtures/trade/mixed-fractional-cap-intermediate-only.json",
+      "role": "documentation",
+      "byteLength": 944,
+      "sha256": "08b53b239cca05b7bee0ca23f56e63e01712602e4cd334a4467509fb437e9b15"
+    },
+    {
+      "path": "independent/fixtures/trade/mixed-positive-income.json",
+      "role": "documentation",
+      "byteLength": 899,
+      "sha256": "ba902161cb8e49b0aeacf62aa716c02c7db8d8983e8507b2e94800f548676b5e"
+    },
+    {
+      "path": "independent/fixtures/trade/negative-expense.json",
+      "role": "documentation",
+      "byteLength": 887,
+      "sha256": "4a436107a340d81307d1082b2cf7fb70af03c1729442d5004e0c5deef5106afc"
+    },
+    {
+      "path": "independent/fixtures/trade/negative-other-income.json",
+      "role": "documentation",
+      "byteLength": 1113,
+      "sha256": "adb369169ad1fbd108d470453cef86e4ebd838bdbc459148843f5e9a6a56b149"
+    },
+    {
+      "path": "independent/fixtures/trade/no-positive-trade-income.json",
+      "role": "documentation",
+      "byteLength": 832,
+      "sha256": "9ffa148f71e9b30b95a891a12b82ba706ba8f7943b6c283f9dbb2be08dc3a298"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-300.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "6be65ef1d6c2df7fe4aa18529da410889a8bb6fd9573adf0bb656fa699061b5c"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-400.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "6eca8d57e7c52cbbda2bdc3da5c70c1114ec511d66843d3058bd00f7ad40e896"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-450.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "0b70412133c64f7c0ca985b77e5be77b25d556cfc00163c87ba05d6a268fe3f1"
+    },
+    {
+      "path": "independent/fixtures/trade/unsupported-entity.json",
+      "role": "documentation",
+      "byteLength": 1086,
+      "sha256": "9ee2632dca3411c4f5fb34e24194bd468d1508b37c32d5173b6c735fbad52231"
+    },
+    {
+      "path": "independent/parameters.json",
+      "role": "documentation",
+      "byteLength": 2053,
+      "sha256": "96115a4c4c82c945bb90dd3299d2165ef60e41c8b675fb6442c478293ad715d5"
+    },
+    {
+      "path": "independent/primary-sources.json",
+      "role": "documentation",
+      "byteLength": 4179,
+      "sha256": "88a74044be4d00d541ca5b23e921843636448fc0c5c5b77ec0969a71d3c25573"
+    },
+    {
+      "path": "independent/references/trade-all-positive-income-zero-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-all-positive-income-zero-values.json",
+      "role": "documentation",
+      "byteLength": 1346,
+      "sha256": "f7828853729cbc29b2aa39e9be31282f78b66524072e08a965428c14ea9b5952"
+    },
+    {
+      "path": "independent/references/trade-allowance-24499_99-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-allowance-24499_99-values.json",
+      "role": "documentation",
+      "byteLength": 1415,
+      "sha256": "dcbe5abc721bb92ea215e72349df20d914038238df603e621779179444309578"
+    },
+    {
+      "path": "independent/references/trade-allowance-24500-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-allowance-24500-values.json",
+      "role": "documentation",
+      "byteLength": 1397,
+      "sha256": "7e9f0a0e19d05a383154e238e997855b95910e155c9c78dcccc838ea4f5a2062"
+    },
+    {
+      "path": "independent/references/trade-allowance-24599_99-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-allowance-24599_99-values.json",
+      "role": "documentation",
+      "byteLength": 1415,
+      "sha256": "336238466e697edf1fa96ddee21d3c6d23bfed0b101662032d53ddf014f3a646"
+    },
+    {
+      "path": "independent/references/trade-allowance-24600-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-allowance-24600-values.json",
+      "role": "documentation",
+      "byteLength": 1403,
+      "sha256": "6c089cfd33dda7f9d42d651c4244a7a887e4f130f83c636402f08669ea2c2956"
+    },
+    {
+      "path": "independent/references/trade-below-historical-minimum-summary.json",
+      "role": "documentation",
+      "byteLength": 801,
+      "sha256": "032d5ef16e23be0a00728ac37a0cf746e58e31db98923473b6b101996281fe6d"
+    },
+    {
+      "path": "independent/references/trade-below-historical-minimum-values.json",
+      "role": "documentation",
+      "byteLength": 1379,
+      "sha256": "a52807ad5f1ac6bebaba4e965b83391e61e3d45f5b23d82fea8162fe42854531"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-199999-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-199999-values.json",
+      "role": "documentation",
+      "byteLength": 1513,
+      "sha256": "f43cc41a635fb3ed40fee795d8a3ebab3d6de2205feeb96776e2a56f656ed599"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-200000-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-200000-values.json",
+      "role": "documentation",
+      "byteLength": 1513,
+      "sha256": "35367b33c9c7bfb28480d484896336cc475b10e7842ed7154adb7c88190007e5"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-200001-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-financing-threshold-200001-values.json",
+      "role": "documentation",
+      "byteLength": 1513,
+      "sha256": "facfcc9eaa87318f0e56e91f4795665151d356821b14fdf38db27e0d6cdf2b87"
+    },
+    {
+      "path": "independent/references/trade-historical-minimum-rate-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-historical-minimum-rate-values.json",
+      "role": "documentation",
+      "byteLength": 1722,
+      "sha256": "84569b80bcb6421441d7f56ea58a7d447b07890a6e29285a62b3ba97059dfaa3"
+    },
+    {
+      "path": "independent/references/trade-missing-category-summary.json",
+      "role": "documentation",
+      "byteLength": 843,
+      "sha256": "9e4259670ece0d9b7897175d2fcb589388891754360a66e4d49fdc5ffc70d5bb"
+    },
+    {
+      "path": "independent/references/trade-missing-category-values.json",
+      "role": "documentation",
+      "byteLength": 1467,
+      "sha256": "dc1c5e2dd4f04eda473e90f2ebe8bbc5137291bd0d8822842c7c114414361838"
+    },
+    {
+      "path": "independent/references/trade-mixed-fractional-cap-intermediate-only-summary.json",
+      "role": "documentation",
+      "byteLength": 676,
+      "sha256": "8be64c1a8be1a74af51c4c7e12140e0a5b065e9eb0da5931f2d028170cddc5c7"
+    },
+    {
+      "path": "independent/references/trade-mixed-fractional-cap-intermediate-only-values.json",
+      "role": "documentation",
+      "byteLength": 1182,
+      "sha256": "f915551e932b26a29561c872108c692621e7907e3dbad7793129a11d1e8eab94"
+    },
+    {
+      "path": "independent/references/trade-mixed-positive-income-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-mixed-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 1522,
+      "sha256": "92c33df880a5e9f8424789ad47c6ef04693936b387844b02b224b4bbc4a08c48"
+    },
+    {
+      "path": "independent/references/trade-negative-expense-summary.json",
+      "role": "documentation",
+      "byteLength": 850,
+      "sha256": "fab76a3bac0bba8644eb5dade1c4147fbf0e30158531fa086901ad4c23c9d4bb"
+    },
+    {
+      "path": "independent/references/trade-negative-expense-values.json",
+      "role": "documentation",
+      "byteLength": 1493,
+      "sha256": "7fad6ba31994272c4e68a531075732632c29efa5eeef576cb2da5d3914dd8e05"
+    },
+    {
+      "path": "independent/references/trade-negative-other-income-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-negative-other-income-values.json",
+      "role": "documentation",
+      "byteLength": 1719,
+      "sha256": "abcc56c842e0e66bf7acdbdf86229982b99f37b9decab9fc9706868af7c344e3"
+    },
+    {
+      "path": "independent/references/trade-no-positive-trade-income-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-no-positive-trade-income-values.json",
+      "role": "documentation",
+      "byteLength": 1374,
+      "sha256": "f162270b165768293dff1ab490616e88404b5a268fdeaf56ef6cea414ff65380"
+    },
+    {
+      "path": "independent/references/trade-rate-300-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-300-values.json",
+      "role": "documentation",
+      "byteLength": 1725,
+      "sha256": "a38f51b6a2e92b10b4939bf75f4658b3e1fcb2991e83c17d6ce718303c39ad7a"
+    },
+    {
+      "path": "independent/references/trade-rate-400-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-400-values.json",
+      "role": "documentation",
+      "byteLength": 1724,
+      "sha256": "8a91b93eb2be69200cd96bb5eb53387fb830e5083406fa8339fcb052505b5e06"
+    },
+    {
+      "path": "independent/references/trade-rate-450-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-450-values.json",
+      "role": "documentation",
+      "byteLength": 1724,
+      "sha256": "882ce3bc471243c0345a3eff2140a0fa9296bc2cc4a5bfd894d34a4301fcaf92"
+    },
+    {
+      "path": "independent/references/trade-unsupported-entity-summary.json",
+      "role": "documentation",
+      "byteLength": 792,
+      "sha256": "f5acb81548d6406477a397a98bcfd8d1b6d947e2c1a1a0fabcd3fc077b47f2e9"
+    },
+    {
+      "path": "independent/references/trade-unsupported-entity-values.json",
+      "role": "documentation",
+      "byteLength": 1724,
+      "sha256": "8a91b93eb2be69200cd96bb5eb53387fb830e5083406fa8339fcb052505b5e06"
+    },
+    {
+      "path": "independent/trade-cases.csv",
+      "role": "data",
+      "byteLength": 1446,
+      "sha256": "01bab6a94ff5f0e3b5cc65dc62c6f1e060460988d89f6e11b4ee5f70989d0072"
+    },
+    {
+      "path": "independent/versions.json",
+      "role": "documentation",
+      "byteLength": 990,
+      "sha256": "b7ed602d96e9216a537c6782591460d1864cd6af565cc3312a1578373497f6f4"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 552,
+      "sha256": "a9d2eb087e6ad85cc438d51f4052d3088d21a72b16b3f77dd6d3b5f9613c5643"
+    },
+    {
+      "path": "params.mantra",
+      "role": "parameters",
+      "byteLength": 452,
+      "sha256": "ac1d017eb0bcf93720c5f947b017ff6d8fecf707111d5048fc463fda8bd8105e"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 5604,
+      "sha256": "216a44e5e53878b252aee9efa2d12e688a3cf23f52d020e47a06df6138598434"
+    },
+    {
+      "path": "verify_m3_expected.py",
+      "role": "documentation",
+      "byteLength": 5327,
+      "sha256": "fb69440cba41c7579034057a603b928b623973e411ff443cdfce6c8d7869cc09"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "de.gewst/2025-parameters",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "de.gewst/2025-working-paper",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "all-positive-income-zero",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-all-positive-income-zero.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "allowance-24499_99",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-allowance-24499_99.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "allowance-24500",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-allowance-24500.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "allowance-24599_99",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-allowance-24599_99.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "allowance-24600",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-allowance-24600.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "below-historical-minimum",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-below-historical-minimum.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "financing-threshold-199999",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-financing-threshold-199999.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "financing-threshold-200000",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-financing-threshold-200000.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "financing-threshold-200001",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-financing-threshold-200001.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "historical-minimum-rate",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-historical-minimum-rate.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "missing-category",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-missing-category.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "mixed-fractional-cap-intermediate-only",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-mixed-fractional-cap-intermediate-only.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "mixed-positive-income",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-mixed-positive-income.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "negative-expense",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-negative-expense.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "negative-other-income",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-negative-other-income.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "no-positive-trade-income",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-no-positive-trade-income.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "rate-300",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-rate-300.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "rate-400-csv",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-rate-400-csv.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "rate-400",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-rate-400.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "rate-450",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-rate-450.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    },
+    {
+      "id": "unsupported-entity",
+      "schema": {
+        "id": "de.gewst/2025",
+        "version": "2025.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-unsupported-entity.mantra",
+      "parameters": [
+        "de.gewst/2025-parameters"
+      ],
+      "layout": "de.gewst/2025-working-paper"
+    }
+  ],
+  "dependencies": []
+}

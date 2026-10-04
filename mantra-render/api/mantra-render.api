@@ -1,0 +1,854 @@
+public final class com/xqiou/mantra/render/Render {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/Render;
+	public final fun completePaper (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun completePaper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationOptions;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun completePaper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationReader;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public static synthetic fun completePaper$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public static synthetic fun completePaper$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationOptions;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun defaultLayout (Lcom/xqiou/mantra/core/api/CalculationResult;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun defaultLayout (Lcom/xqiou/mantra/core/view/CalculationView;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun html (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;)Ljava/lang/String;
+	public final fun html (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;)Ljava/lang/String;
+	public static synthetic fun html$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun html$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun loadLayout (Ljava/nio/file/Path;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun paper (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun paper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationOptions;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun paper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationReader;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public static synthetic fun paper$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public static synthetic fun paper$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/core/api/CalculationOptions;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/WorkingPaper;
+	public final fun pdf (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/render/pdf/PdfOptions;)[B
+	public final fun pdf (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/render/pdf/PdfOptions;)[B
+	public static synthetic fun pdf$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/render/pdf/PdfOptions;ILjava/lang/Object;)[B
+	public static synthetic fun pdf$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Lcom/xqiou/mantra/render/pdf/PdfOptions;ILjava/lang/Object;)[B
+	public final fun text (Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;Z)Ljava/lang/String;
+	public final fun text (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Z)Ljava/lang/String;
+	public static synthetic fun text$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/api/CalculationResult;Lcom/xqiou/mantra/render/layout/LayoutSpec;ZILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun text$default (Lcom/xqiou/mantra/render/Render;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;ZILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/html/HtmlRenderer {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/html/HtmlRenderer;
+	public final fun render (Lcom/xqiou/mantra/render/paper/WorkingPaper;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/Align : java/lang/Enum {
+	public static final field CENTER Lcom/xqiou/mantra/render/layout/Align;
+	public static final field LEFT Lcom/xqiou/mantra/render/layout/Align;
+	public static final field RIGHT Lcom/xqiou/mantra/render/layout/Align;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/Align;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/Align;
+}
+
+public abstract interface class com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field Companion Lcom/xqiou/mantra/render/layout/ColumnContent$Companion;
+	public fun getNumeric ()Z
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Attribute : com/xqiou/mantra/render/layout/ColumnContent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ColumnContent$Attribute;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/ColumnContent$Attribute;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/ColumnContent$Attribute;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Companion {
+	public final fun getCatalog ()Ljava/util/List;
+	public final fun of (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ColumnContent;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$CrossTotal : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$CrossTotal;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$DefaultImpls {
+	public static fun getNumeric (Lcom/xqiou/mantra/render/layout/ColumnContent;)Z
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Explain : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Explain;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Formula : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Formula;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Label : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Label;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Main : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Main;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Member : com/xqiou/mantra/render/layout/ColumnContent {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ColumnContent$Member;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/ColumnContent$Member;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/ColumnContent$Member;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDimension ()Ljava/lang/String;
+	public final fun getKey ()Ljava/lang/String;
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Members : com/xqiou/mantra/render/layout/ColumnContent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ColumnContent$Members;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/ColumnContent$Members;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/ColumnContent$Members;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDimension ()Ljava/lang/String;
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Node : com/xqiou/mantra/render/layout/ColumnContent {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ColumnContent$Node;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/ColumnContent$Node;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/ColumnContent$Node;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNodeId ()Ljava/lang/String;
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Note : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Note;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Operator : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Operator;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Pre : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Pre;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Reference : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Reference;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$RowNumber : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$RowNumber;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Source : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Source;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Status : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Status;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnContent$Value : com/xqiou/mantra/render/layout/ColumnContent {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/ColumnContent$Value;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getNumeric ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ColumnSpec {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/ColumnContent;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/Align;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/ColumnContent;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/Align;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/xqiou/mantra/render/layout/ColumnContent;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Lcom/xqiou/mantra/render/layout/Align;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/ColumnContent;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/Align;)Lcom/xqiou/mantra/render/layout/ColumnSpec;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/ColumnSpec;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/ColumnContent;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/Align;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/ColumnSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAlign ()Lcom/xqiou/mantra/render/layout/Align;
+	public final fun getContent ()Lcom/xqiou/mantra/render/layout/ColumnContent;
+	public final fun getHeader ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getWidth ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/ExplainMode : java/lang/Enum {
+	public static final field APPENDIX Lcom/xqiou/mantra/render/layout/ExplainMode;
+	public static final field NONE Lcom/xqiou/mantra/render/layout/ExplainMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/ExplainMode;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/ExplainMode;
+}
+
+public final class com/xqiou/mantra/render/layout/LayoutKt {
+	public static final fun styleRole (Lcom/xqiou/mantra/render/layout/ColumnContent;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/LayoutLanguageCatalog {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/LayoutLanguageCatalog;
+	public final fun getForms ()Ljava/util/List;
+}
+
+public final class com/xqiou/mantra/render/layout/LayoutReader {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/LayoutReader;
+	public final fun read (Lcom/xqiou/mantra/core/read/SourceText;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun read (Lcom/xqiou/mantra/core/read/SourceText;Lcom/xqiou/mantra/core/DiagnosticSink;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+}
+
+public final class com/xqiou/mantra/render/layout/LayoutSpec {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/NumberStyle;Lcom/xqiou/mantra/render/layout/Operators;Lcom/xqiou/mantra/render/layout/Texts;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;ZZZZLcom/xqiou/mantra/render/layout/ExplainMode;Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/RowNumberMode;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/NumberStyle;Lcom/xqiou/mantra/render/layout/Operators;Lcom/xqiou/mantra/render/layout/Texts;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;ZZZZLcom/xqiou/mantra/render/layout/ExplainMode;Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/RowNumberMode;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/util/List;
+	public final fun component11 ()Ljava/util/Set;
+	public final fun component12 ()Ljava/util/Set;
+	public final fun component13 ()Ljava/util/Set;
+	public final fun component14 ()Z
+	public final fun component15 ()Z
+	public final fun component16 ()Z
+	public final fun component17 ()Z
+	public final fun component18 ()Lcom/xqiou/mantra/render/layout/ExplainMode;
+	public final fun component19 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component20 ()Ljava/lang/String;
+	public final fun component21 ()Lcom/xqiou/mantra/render/layout/RowNumberMode;
+	public final fun component22 ()Ljava/util/List;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Lcom/xqiou/mantra/render/layout/NumberStyle;
+	public final fun component6 ()Lcom/xqiou/mantra/render/layout/Operators;
+	public final fun component7 ()Lcom/xqiou/mantra/render/layout/Texts;
+	public final fun component8 ()Ljava/util/List;
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/NumberStyle;Lcom/xqiou/mantra/render/layout/Operators;Lcom/xqiou/mantra/render/layout/Texts;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;ZZZZLcom/xqiou/mantra/render/layout/ExplainMode;Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/RowNumberMode;Ljava/util/List;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/NumberStyle;Lcom/xqiou/mantra/render/layout/Operators;Lcom/xqiou/mantra/render/layout/Texts;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;ZZZZLcom/xqiou/mantra/render/layout/ExplainMode;Ljava/util/List;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/RowNumberMode;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getExpandMembers ()Z
+	public final fun getExplain ()Lcom/xqiou/mantra/render/layout/ExplainMode;
+	public final fun getHeader ()Ljava/util/List;
+	public final fun getHidden ()Ljava/util/Set;
+	public final fun getHideZero ()Z
+	public final fun getId ()Ljava/lang/String;
+	public final fun getInline ()Ljava/util/Set;
+	public final fun getMatrixColumns ()Ljava/util/List;
+	public final fun getNumber ()Lcom/xqiou/mantra/render/layout/NumberStyle;
+	public final fun getOperators ()Lcom/xqiou/mantra/render/layout/Operators;
+	public final fun getPreset ()Ljava/lang/String;
+	public final fun getRowNumbers ()Lcom/xqiou/mantra/render/layout/RowNumberMode;
+	public final fun getSchedules ()Ljava/util/Set;
+	public final fun getShowInactive ()Z
+	public final fun getSignedValues ()Z
+	public final fun getStyleRules ()Ljava/util/List;
+	public final fun getSubtitle ()Ljava/lang/String;
+	public final fun getTables ()Ljava/util/List;
+	public final fun getTexts ()Lcom/xqiou/mantra/render/layout/Texts;
+	public final fun getTheme ()Ljava/lang/String;
+	public final fun getTieredColumns ()Ljava/util/List;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun styleFor (Lcom/xqiou/mantra/render/layout/StyleContext;)Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public final fun styleFor (Ljava/util/List;)Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/NegativeStyle : java/lang/Enum {
+	public static final field MINUS Lcom/xqiou/mantra/render/layout/NegativeStyle;
+	public static final field PARENTHESES Lcom/xqiou/mantra/render/layout/NegativeStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/NegativeStyle;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/NegativeStyle;
+}
+
+public final class com/xqiou/mantra/render/layout/NumberStyle {
+	public fun <init> (Ljava/util/Locale;ILcom/xqiou/mantra/render/layout/NegativeStyle;Ljava/lang/String;ZI)V
+	public synthetic fun <init> (Ljava/util/Locale;ILcom/xqiou/mantra/render/layout/NegativeStyle;Ljava/lang/String;ZIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Locale;
+	public final fun component2 ()I
+	public final fun component3 ()Lcom/xqiou/mantra/render/layout/NegativeStyle;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Z
+	public final fun component6 ()I
+	public final fun copy (Ljava/util/Locale;ILcom/xqiou/mantra/render/layout/NegativeStyle;Ljava/lang/String;ZI)Lcom/xqiou/mantra/render/layout/NumberStyle;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/NumberStyle;Ljava/util/Locale;ILcom/xqiou/mantra/render/layout/NegativeStyle;Ljava/lang/String;ZIILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/NumberStyle;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGrouping ()Z
+	public final fun getLocale ()Ljava/util/Locale;
+	public final fun getNegative ()Lcom/xqiou/mantra/render/layout/NegativeStyle;
+	public final fun getPercentPrecision ()I
+	public final fun getPrecision ()I
+	public final fun getZero ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/Operators {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/Operators;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/Operators;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/Operators;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInfo ()Ljava/lang/String;
+	public final fun getMinus ()Ljava/lang/String;
+	public final fun getPlus ()Ljava/lang/String;
+	public final fun getTotal ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/Presets {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/layout/Presets;
+	public final fun getALL ()Ljava/util/Map;
+	public final fun getDE_STAFFEL_3 ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun getDE_STAFFEL_4 ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun getIFRS_SCHEDULE ()Lcom/xqiou/mantra/render/layout/LayoutSpec;
+	public final fun of (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/LayoutSpec;
+}
+
+public final class com/xqiou/mantra/render/layout/RowNumberMode : java/lang/Enum {
+	public static final field GLOBAL Lcom/xqiou/mantra/render/layout/RowNumberMode;
+	public static final field TABLE Lcom/xqiou/mantra/render/layout/RowNumberMode;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/RowNumberMode;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/RowNumberMode;
+}
+
+public final class com/xqiou/mantra/render/layout/RowParity : java/lang/Enum {
+	public static final field EVEN Lcom/xqiou/mantra/render/layout/RowParity;
+	public static final field ODD Lcom/xqiou/mantra/render/layout/RowParity;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/RowParity;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/RowParity;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleContext {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;IIIILjava/lang/String;ZLjava/util/List;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Z
+	public final fun component9 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;IIIILjava/lang/String;ZLjava/util/List;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/StyleContext;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/StyleContext;Ljava/lang/String;Ljava/util/List;IIIILjava/lang/String;ZLjava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/StyleContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClasses ()Ljava/util/List;
+	public final fun getColumnId ()Ljava/lang/String;
+	public final fun getColumnRole ()Ljava/lang/String;
+	public final fun getDepth ()I
+	public final fun getHasRowNumber ()Z
+	public final fun getHeight ()I
+	public final fun getIndent ()I
+	public final fun getRowIndex ()I
+	public final fun getRowKind ()Ljava/lang/String;
+	public final fun getSectionPath ()Ljava/util/List;
+	public final fun getTableId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleFill : java/lang/Enum {
+	public static final field ACCENT Lcom/xqiou/mantra/render/layout/StyleFill;
+	public static final field NONE Lcom/xqiou/mantra/render/layout/StyleFill;
+	public static final field SUBTLE Lcom/xqiou/mantra/render/layout/StyleFill;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/StyleFill;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/StyleFill;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleRule {
+	public fun <init> (Lcom/xqiou/mantra/render/layout/StyleSelector;Lcom/xqiou/mantra/render/layout/StyleSpec;)V
+	public final fun component1 ()Lcom/xqiou/mantra/render/layout/StyleSelector;
+	public final fun component2 ()Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public final fun copy (Lcom/xqiou/mantra/render/layout/StyleSelector;Lcom/xqiou/mantra/render/layout/StyleSpec;)Lcom/xqiou/mantra/render/layout/StyleRule;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/StyleRule;Lcom/xqiou/mantra/render/layout/StyleSelector;Lcom/xqiou/mantra/render/layout/StyleSpec;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/StyleRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getSelector ()Lcom/xqiou/mantra/render/layout/StyleSelector;
+	public final fun getStyle ()Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleSelector {
+	public fun <init> ()V
+	public fun <init> (ZLjava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/RowParity;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (ZLjava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/RowParity;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Lcom/xqiou/mantra/render/layout/RowParity;
+	public final fun component7 ()Ljava/lang/Boolean;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (ZLjava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/RowParity;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/StyleSelector;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/StyleSelector;ZLjava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Lcom/xqiou/mantra/render/layout/RowParity;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/StyleSelector;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAll ()Z
+	public final fun getColumn ()Ljava/lang/String;
+	public final fun getDepth ()Ljava/lang/Integer;
+	public final fun getHasRowNumber ()Ljava/lang/Boolean;
+	public final fun getHeight ()Ljava/lang/Integer;
+	public final fun getIndent ()Ljava/lang/Integer;
+	public final fun getKlass ()Ljava/lang/String;
+	public final fun getNthChild ()Lcom/xqiou/mantra/render/layout/RowParity;
+	public final fun getRowKind ()Ljava/lang/String;
+	public final fun getSection ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun matches (Lcom/xqiou/mantra/render/layout/StyleContext;)Z
+	public final fun matchesBase (Ljava/util/List;)Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleSpec {
+	public fun <init> ()V
+	public fun <init> (Lcom/xqiou/mantra/render/layout/StyleWeight;Lcom/xqiou/mantra/render/layout/StyleTone;Lcom/xqiou/mantra/render/layout/StyleFill;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/render/layout/StyleWeight;Lcom/xqiou/mantra/render/layout/StyleTone;Lcom/xqiou/mantra/render/layout/StyleFill;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcom/xqiou/mantra/render/layout/StyleWeight;
+	public final fun component2 ()Lcom/xqiou/mantra/render/layout/StyleTone;
+	public final fun component3 ()Lcom/xqiou/mantra/render/layout/StyleFill;
+	public final fun copy (Lcom/xqiou/mantra/render/layout/StyleWeight;Lcom/xqiou/mantra/render/layout/StyleTone;Lcom/xqiou/mantra/render/layout/StyleFill;)Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/StyleSpec;Lcom/xqiou/mantra/render/layout/StyleWeight;Lcom/xqiou/mantra/render/layout/StyleTone;Lcom/xqiou/mantra/render/layout/StyleFill;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFill ()Lcom/xqiou/mantra/render/layout/StyleFill;
+	public final fun getTone ()Lcom/xqiou/mantra/render/layout/StyleTone;
+	public final fun getWeight ()Lcom/xqiou/mantra/render/layout/StyleWeight;
+	public fun hashCode ()I
+	public final fun merge (Lcom/xqiou/mantra/render/layout/StyleSpec;)Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleTone : java/lang/Enum {
+	public static final field ACCENT Lcom/xqiou/mantra/render/layout/StyleTone;
+	public static final field DEFAULT Lcom/xqiou/mantra/render/layout/StyleTone;
+	public static final field MUTED Lcom/xqiou/mantra/render/layout/StyleTone;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/StyleTone;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/StyleTone;
+}
+
+public final class com/xqiou/mantra/render/layout/StyleWeight : java/lang/Enum {
+	public static final field BOLD Lcom/xqiou/mantra/render/layout/StyleWeight;
+	public static final field NORMAL Lcom/xqiou/mantra/render/layout/StyleWeight;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/StyleWeight;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/StyleWeight;
+}
+
+public final class com/xqiou/mantra/render/layout/TableSpec {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/TableStyle;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/TableStyle;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Lcom/xqiou/mantra/render/layout/TableStyle;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/lang/Boolean;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/TableStyle;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/render/layout/TableSpec;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/TableSpec;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/TableStyle;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/TableSpec;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getExpandMembers ()Ljava/lang/Boolean;
+	public final fun getFixed ()Ljava/util/Map;
+	public final fun getRowDimension ()Ljava/lang/String;
+	public final fun getSectionId ()Ljava/lang/String;
+	public final fun getStyle ()Lcom/xqiou/mantra/render/layout/TableStyle;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/TableStyle : java/lang/Enum {
+	public static final field MATRIX Lcom/xqiou/mantra/render/layout/TableStyle;
+	public static final field TIERED Lcom/xqiou/mantra/render/layout/TableStyle;
+	public static final field TRANSPOSE Lcom/xqiou/mantra/render/layout/TableStyle;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/TableStyle;
+	public static fun values ()[Lcom/xqiou/mantra/render/layout/TableStyle;
+}
+
+public final class com/xqiou/mantra/render/layout/Texts {
+	public static final field Companion Lcom/xqiou/mantra/render/layout/Texts$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Ljava/lang/String;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Ljava/lang/String;
+	public final fun component14 ()Ljava/lang/String;
+	public final fun component15 ()Ljava/lang/String;
+	public final fun component16 ()Ljava/lang/String;
+	public final fun component17 ()Ljava/lang/String;
+	public final fun component18 ()Ljava/lang/String;
+	public final fun component19 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component20 ()Ljava/lang/String;
+	public final fun component21 ()Ljava/lang/String;
+	public final fun component22 ()Ljava/lang/String;
+	public final fun component23 ()Ljava/lang/String;
+	public final fun component24 ()Ljava/lang/String;
+	public final fun component25 ()Ljava/lang/String;
+	public final fun component26 ()Ljava/lang/String;
+	public final fun component27 ()Ljava/lang/String;
+	public final fun component28 ()Ljava/lang/String;
+	public final fun component29 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component30 ()Ljava/lang/String;
+	public final fun component31 ()Ljava/lang/String;
+	public final fun component32 ()Ljava/lang/String;
+	public final fun component33 ()Ljava/lang/String;
+	public final fun component34 ()Ljava/lang/String;
+	public final fun component35 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/layout/Texts;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/layout/Texts;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILjava/lang/Object;)Lcom/xqiou/mantra/render/layout/Texts;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAudit ()Ljava/lang/String;
+	public final fun getAuditIntro ()Ljava/lang/String;
+	public final fun getAuxiliary ()Ljava/lang/String;
+	public final fun getBranch ()Ljava/lang/String;
+	public final fun getCarriedFrom ()Ljava/lang/String;
+	public final fun getDate ()Ljava/lang/String;
+	public final fun getDiagnostics ()Ljava/lang/String;
+	public final fun getExplain ()Ljava/lang/String;
+	public final fun getFeeds ()Ljava/lang/String;
+	public final fun getFooted ()Ljava/lang/String;
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getIndex ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getLegend ()Ljava/lang/String;
+	public final fun getMain ()Ljava/lang/String;
+	public final fun getMainline ()Ljava/lang/String;
+	public final fun getNotApplicable ()Ljava/lang/String;
+	public final fun getPage ()Ljava/lang/String;
+	public final fun getPeriod ()Ljava/lang/String;
+	public final fun getPre ()Ljava/lang/String;
+	public final fun getPreparedBy ()Ljava/lang/String;
+	public final fun getReference ()Ljava/lang/String;
+	public final fun getResult ()Ljava/lang/String;
+	public final fun getReviewedBy ()Ljava/lang/String;
+	public final fun getRow ()Ljava/lang/String;
+	public final fun getSchedule ()Ljava/lang/String;
+	public final fun getSchema ()Ljava/lang/String;
+	public final fun getSelected ()Ljava/lang/String;
+	public final fun getStatus ()Ljava/lang/String;
+	public final fun getStructure ()Ljava/lang/String;
+	public final fun getSubject ()Ljava/lang/String;
+	public final fun getTable ()Ljava/lang/String;
+	public final fun getTotal ()Ljava/lang/String;
+	public final fun getUserDefined ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/layout/Texts$Companion {
+	public final fun getDE ()Lcom/xqiou/mantra/render/layout/Texts;
+	public final fun getEN ()Lcom/xqiou/mantra/render/layout/Texts;
+}
+
+public final class com/xqiou/mantra/render/paper/AuditEntry {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/core/view/ExplainTrace;Lcom/xqiou/mantra/core/view/RatioAggregateTrace;Lcom/xqiou/mantra/core/view/AggregateTrace;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/core/view/ExplainTrace;Lcom/xqiou/mantra/core/view/RatioAggregateTrace;Lcom/xqiou/mantra/core/view/AggregateTrace;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAggregate ()Lcom/xqiou/mantra/core/view/RatioAggregateTrace;
+	public final fun getAnchor ()Ljava/lang/String;
+	public final fun getCitation ()Ljava/lang/String;
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getExplanation ()Lcom/xqiou/mantra/core/view/ExplainTrace;
+	public final fun getFormula ()Ljava/lang/String;
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getMember ()Ljava/lang/String;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getReduction ()Lcom/xqiou/mantra/core/view/AggregateTrace;
+	public final fun getReference ()Ljava/lang/String;
+	public final fun getResult ()Ljava/lang/String;
+	public final fun getWorking ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/FormulaExplainer {
+	public fun <init> (Lcom/xqiou/mantra/render/paper/NumberFormatter;)V
+	public final fun explain (Lcom/xqiou/normein/dsl/form/DslForm;Ljava/util/Map;Ljava/util/Map;I)Ljava/lang/String;
+	public static synthetic fun explain$default (Lcom/xqiou/mantra/render/paper/FormulaExplainer;Lcom/xqiou/normein/dsl/form/DslForm;Ljava/util/Map;Ljava/util/Map;IILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/NumberFormatter {
+	public fun <init> (Lcom/xqiou/mantra/render/layout/NumberStyle;)V
+	public final fun amount (Ljava/math/BigDecimal;I)Ljava/lang/String;
+	public static synthetic fun amount$default (Lcom/xqiou/mantra/render/paper/NumberFormatter;Ljava/math/BigDecimal;IILjava/lang/Object;)Ljava/lang/String;
+	public final fun explain (Lcom/xqiou/mantra/core/model/Value;)Ljava/lang/String;
+	public final fun percent (Ljava/math/BigDecimal;I)Ljava/lang/String;
+	public static synthetic fun percent$default (Lcom/xqiou/mantra/render/paper/NumberFormatter;Ljava/math/BigDecimal;IILjava/lang/Object;)Ljava/lang/String;
+	public final fun plain (Ljava/math/BigDecimal;)Ljava/lang/String;
+	public final fun value (Lcom/xqiou/mantra/core/model/Value;Ljava/lang/String;Ljava/lang/Integer;)Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/OverviewPanel {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun getEntry ()Ljava/lang/String;
+	public final fun getPanelId ()Ljava/lang/String;
+	public final fun getTableRef ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/OverviewStep {
+	public fun <init> (ILcom/xqiou/mantra/render/paper/OverviewPanel;Ljava/util/List;)V
+	public final fun getBranches ()Ljava/util/List;
+	public final fun getPanel ()Lcom/xqiou/mantra/render/paper/OverviewPanel;
+	public final fun getStep ()I
+}
+
+public final class com/xqiou/mantra/render/paper/PaperColumn {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/ColumnContent;Lcom/xqiou/mantra/render/layout/Align;Ljava/lang/Integer;)V
+	public final fun getAlign ()Lcom/xqiou/mantra/render/layout/Align;
+	public final fun getContent ()Lcom/xqiou/mantra/render/layout/ColumnContent;
+	public final fun getHeader ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getWidth ()Ljava/lang/Integer;
+}
+
+public final class com/xqiou/mantra/render/paper/PaperHeadline {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/render/paper/PaperHeadline;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/paper/PaperHeadline;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/PaperHeadline;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLabel ()Ljava/lang/String;
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/PaperInputGroup {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/render/paper/PaperInputGroup;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/paper/PaperInputGroup;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/PaperInputGroup;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInputs ()Ljava/util/List;
+	public final fun getKey ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/PaperRow {
+	public fun <init> (Lcom/xqiou/mantra/render/paper/RowKind;ILjava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/render/layout/StyleSpec;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/render/paper/RowKind;ILjava/util/List;Ljava/lang/String;Ljava/util/Set;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/util/List;Lcom/xqiou/mantra/render/layout/StyleSpec;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAnchor ()Ljava/lang/String;
+	public final fun getCellContexts ()Ljava/util/List;
+	public final fun getCellStyles ()Ljava/util/List;
+	public final fun getCells ()Ljava/util/List;
+	public final fun getClasses ()Ljava/util/List;
+	public final fun getDepth ()I
+	public final fun getFlags ()Ljava/util/Set;
+	public final fun getKind ()Lcom/xqiou/mantra/render/paper/RowKind;
+	public final fun getLead ()Z
+	public final fun getNodeId ()Ljava/lang/String;
+	public final fun getOptionKey ()Ljava/lang/String;
+	public final fun getSectionId ()Ljava/lang/String;
+	public final fun getStyle ()Lcom/xqiou/mantra/render/layout/StyleSpec;
+	public final fun getValueAddresses ()Ljava/util/List;
+}
+
+public final class com/xqiou/mantra/render/paper/PaperTable {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/render/layout/TableStyle;Ljava/util/List;Ljava/util/List;)V
+	public final fun getBreadcrumb ()Ljava/lang/String;
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getRef ()Ljava/lang/String;
+	public final fun getRows ()Ljava/util/List;
+	public final fun getStyle ()Lcom/xqiou/mantra/render/layout/TableStyle;
+	public final fun getTitle ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/PaperValueAddress {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;ZLjava/util/Map;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;ZLjava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/List;
+	public final fun component3 ()Z
+	public final fun component4 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;ZLjava/util/Map;)Lcom/xqiou/mantra/render/paper/PaperValueAddress;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/paper/PaperValueAddress;Ljava/lang/String;Ljava/util/List;ZLjava/util/Map;ILjava/lang/Object;)Lcom/xqiou/mantra/render/paper/PaperValueAddress;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAggregate ()Z
+	public final fun getCoord ()Ljava/util/List;
+	public final fun getFixed ()Ljava/util/Map;
+	public final fun getNodeId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/RowFlag : java/lang/Enum {
+	public static final field EXPLAINS_ZERO Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field FOOTED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field GRAND Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field INACTIVE Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field INFO Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field NEGATED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field SELECTED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field USER_DEFINED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field VALIDATION_FAILED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static final field VALIDATION_PASSED Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/paper/RowFlag;
+	public static fun values ()[Lcom/xqiou/mantra/render/paper/RowFlag;
+}
+
+public final class com/xqiou/mantra/render/paper/RowKind : java/lang/Enum {
+	public static final field HEADING Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field MEMBER Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field NOTE Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field OPTION Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field REFERENCE Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field RESULT Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field SUBTOTAL Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field TOTAL Lcom/xqiou/mantra/render/paper/RowKind;
+	public static final field VALUE Lcom/xqiou/mantra/render/paper/RowKind;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/xqiou/mantra/render/paper/RowKind;
+	public static fun values ()[Lcom/xqiou/mantra/render/paper/RowKind;
+}
+
+public final class com/xqiou/mantra/render/paper/WorkingPaper {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lcom/xqiou/mantra/render/layout/Texts;Ljava/lang/String;Lcom/xqiou/mantra/render/paper/PaperHeadline;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Lcom/xqiou/mantra/render/layout/Texts;Ljava/lang/String;Lcom/xqiou/mantra/render/paper/PaperHeadline;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAudit ()Ljava/util/List;
+	public final fun getAuxiliary ()Ljava/util/List;
+	public final fun getFindings ()Ljava/util/List;
+	public final fun getHeader ()Ljava/util/List;
+	public final fun getHeadline ()Lcom/xqiou/mantra/render/paper/PaperHeadline;
+	public final fun getInputGroups ()Ljava/util/List;
+	public final fun getLegend ()Ljava/util/List;
+	public final fun getOverview ()Ljava/util/List;
+	public final fun getSubtitle ()Ljava/lang/String;
+	public final fun getTables ()Ljava/util/List;
+	public final fun getTexts ()Lcom/xqiou/mantra/render/layout/Texts;
+	public final fun getTheme ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/paper/WorkingPaperBuilder {
+	public fun <init> (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;ZLcom/xqiou/mantra/core/api/CalculationReader;)V
+	public synthetic fun <init> (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;ZLcom/xqiou/mantra/core/api/CalculationReader;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun build ()Lcom/xqiou/mantra/render/paper/WorkingPaper;
+}
+
+public final class com/xqiou/mantra/render/pdf/PdfOptions {
+	public fun <init> ()V
+	public fun <init> (ZLjava/lang/Boolean;III)V
+	public synthetic fun <init> (ZLjava/lang/Boolean;IIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Ljava/lang/Boolean;
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun component5 ()I
+	public final fun copy (ZLjava/lang/Boolean;III)Lcom/xqiou/mantra/render/pdf/PdfOptions;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/render/pdf/PdfOptions;ZLjava/lang/Boolean;IIIILjava/lang/Object;)Lcom/xqiou/mantra/render/pdf/PdfOptions;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIncludeAudit ()Z
+	public final fun getLandscape ()Ljava/lang/Boolean;
+	public final fun getMaxOutputBytes ()I
+	public final fun getMaxPages ()I
+	public final fun getMaxRows ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/pdf/PdfRenderException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCode ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/render/pdf/PdfRenderer {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/pdf/PdfRenderer;
+	public final fun render (Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/render/pdf/PdfOptions;)[B
+	public static synthetic fun render$default (Lcom/xqiou/mantra/render/pdf/PdfRenderer;Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/render/pdf/PdfOptions;ILjava/lang/Object;)[B
+}
+
+public final class com/xqiou/mantra/render/text/TextRenderer {
+	public static final field INSTANCE Lcom/xqiou/mantra/render/text/TextRenderer;
+	public final fun render (Lcom/xqiou/mantra/render/paper/WorkingPaper;Z)Ljava/lang/String;
+	public static synthetic fun render$default (Lcom/xqiou/mantra/render/text/TextRenderer;Lcom/xqiou/mantra/render/paper/WorkingPaper;ZILjava/lang/Object;)Ljava/lang/String;
+	public final fun renderTable (Lcom/xqiou/mantra/render/paper/PaperTable;)Ljava/lang/String;
+}
+

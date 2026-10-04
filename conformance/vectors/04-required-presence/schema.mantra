@@ -1,0 +1,5 @@
+(schema conformance/required
+  (input defaulted :decimal {:default 0 :required true})
+  (input supplied-zero :decimal {:required true})
+  (input supplied-false :boolean {:required true})
+  (line computed "Computed" (+ defaulted supplied-zero) {:op :info}))

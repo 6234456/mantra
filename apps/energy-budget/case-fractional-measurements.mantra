@@ -1,0 +1,16 @@
+;; Fictional independent facts from independent/fixtures/fractional-measurements.json.
+(case energy-budget-fractional-measurements
+  {:schema "energy.budget/monthly-plan" :schema-version "1.0.0"
+   :parameters ["energy.budget/2026-Q1"] :layout "energy.budget/matrix"
+   :title "Energy budget: Fractional readings and cent rounding" :period "2026 showcase"
+   :expected-business []}
+
+  (inputs
+    {:sites [
+      {:id :A :title "Fictional fractional-energy meter" :capacity .300 :opening .100}
+     ]
+     :readings [
+      {:site-id :A :month-id :P1 :generation .200 :demand .130 :reported-closing 0.170}
+      {:site-id :A :month-id :P2 :generation .010 :demand .190 :reported-closing 0.000}
+      {:site-id :A :month-id :P3 :generation .330 :demand .210 :reported-closing 0.120}
+     ]}))

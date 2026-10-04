@@ -18,6 +18,7 @@ const names = [
   'parameters',
   'export-preview',
   'explain',
+  'packages',
 ]
 const schemas = Object.fromEntries(
   await Promise.all(
@@ -33,8 +34,14 @@ function reference(ref, file) {
   if (!schemas[target]) throw new Error(`Unknown schema reference: ${ref}`)
   if (!pointer) return typeName(target)
   const parts = pointer.split('/').filter(Boolean)
-  if (parts.length !== 2 || parts[0] !== '$defs') throw new Error(`Unsupported schema pointer: ${ref}`)
-  return typeName(target, parts[1])
+  if (parts.length === 2 && parts[0] === '$defs') return typeName(target, parts[1])
+  // Package previews contain raw existing workbench data, without another envelope.
+  if (parts.length === 2 && parts[0] === 'properties' && parts[1] === 'data') {
+    const data = schemas[target].properties?.data
+    if (!data) throw new Error(`Schema has no data projection: ${ref}`)
+    return emit(data, target)
+  }
+  throw new Error(`Unsupported schema pointer: ${ref}`)
 }
 
 function emit(schema, file) {

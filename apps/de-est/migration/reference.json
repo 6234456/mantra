@@ -1,0 +1,77 @@
+{
+  "status": "INDEPENDENT_SOURCE_ENGINE_UNEXECUTED",
+  "source": {
+    "id": "de.est/2025",
+    "version": "2025.2",
+    "versionMode": "legacy-exact"
+  },
+  "target": {
+    "id": "de.est/2025",
+    "version": "2025.3",
+    "versionMode": "legacy-exact"
+  },
+  "effectiveDate": "2025-12-31",
+  "commonNumbers": {
+    "summe-der-einkuenfte": "112380",
+    "vorsorgeaufwendungen@A": "11850.50",
+    "vorsorgeaufwendungen@B": "5511.60",
+    "sonderausgaben-summe": "19562.10",
+    "zumutbare-belastung": "3830.50",
+    "agb-summe": "0",
+    "einkommen": "92817.90",
+    "est-ohne-kfb": "18878",
+    "est-mit-kfb": "15676",
+    "zu-versteuerndes-einkommen": "83217.90",
+    "tarifliche-est": "15676",
+    "ermaessigung-35a": "740.0",
+    "festzusetzende-est": "17996.0",
+    "solidaritaetszuschlag": "0",
+    "kirchensteuer": "1344.24",
+    "abrechnungsergebnis": "1462.24",
+    "abgeltungsteuer": "212.50",
+    "abgeltung-soli": "11.68",
+    "durchschnittlicher-steuersatz": "0.216252",
+    "zahlungsabgleich": "0"
+  },
+  "commonBooleans": {
+    "kfb-guenstiger": true
+  },
+  "targetNumbers": {
+    "opening-loss": "0",
+    "loss-used": "0",
+    "ledger-opening": "0",
+    "ledger-new": "0",
+    "ledger-used": "0",
+    "ledger-carryback": "0",
+    "closing-loss": "0",
+    "verbleibender-verlustvortrag": "0",
+    "ermaessigung-35": "0",
+    "positive-income": "112380",
+    "loss-allowance": "2000000",
+    "loss-deduction-cap": "112380.0",
+    "post-loss-positive-income": "112380",
+    "positive-trade-total": "12400",
+    "all-positive-income": "112380",
+    "section35-income-ratio": "0.110340",
+    "section35-attribution-cap": "1729.68855668268375155722",
+    "tariff-income-floored": "83217",
+    "positive-person-income@A": "78560",
+    "positive-trade-income@A": "12400",
+    "fourfold-messbetrag@A": "0",
+    "gewst-anrechnungsbetrag@A": "0",
+    "positive-person-income@B": "29970",
+    "positive-trade-income@B": "0",
+    "fourfold-messbetrag@B": "0",
+    "gewst-anrechnungsbetrag@B": "0",
+    "positive-person-income@*": "108530",
+    "positive-trade-income@*": "12400",
+    "fourfold-messbetrag@*": "0",
+    "gewst-anrechnungsbetrag@*": "0"
+  },
+  "expectedBusiness": [],
+  "simplifications": [
+    "Original fictional Mustermann facts are reused without any edit.",
+    "Opening/new loss and trade-tax facts are zero defaults; no carryback, source links or new financial facts are inferred.",
+    "The same historical 2025 tariff parameters are used in both versions."
+  ]
+}

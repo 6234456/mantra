@@ -1,0 +1,18 @@
+;; Fictional independent facts from independent/fixtures/missing-approval.json.
+(case project-portfolio-missing-approval
+  {:schema "project.portfolio/supplied-plan" :schema-version "1.0.0"
+   :parameters ["project.portfolio/2026"] :layout "project.portfolio/plan"
+   :title "Project portfolio: Selected project without note" :period "2026 showcase"
+   :expected-business [{:code "MANTRA-INPUT-REQUIRED" :node "projects" :severity :error :row-index 0 :column :approval-note}]}
+
+  (inputs
+    {:budget-limit 120 :hour-limit 140 :reported-cost 120.00
+     :departments [
+      {:id :DELIVERY :title "Fictional delivery team"}
+      {:id :RESEARCH :title "Fictional research team"}
+     ]
+     :projects [
+      {:id :A :title "Fictional tooling upgrade" :department-id :DELIVERY :cost 80 :benefit 140 :hours 70 :selected true :approval-note ""}
+      {:id :B :title "Fictional service refresh" :department-id :DELIVERY :cost 50 :benefit 75 :hours 50 :selected false :approval-note nil}
+      {:id :C :title "Fictional prototype" :department-id :RESEARCH :cost 40 :benefit 68 :hours 60 :selected true :approval-note "Fictional selection C"}
+     ]}))

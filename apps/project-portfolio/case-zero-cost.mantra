@@ -1,0 +1,19 @@
+;; Fictional independent facts from independent/fixtures/zero-cost.json.
+(case project-portfolio-zero-cost
+  {:schema "project.portfolio/supplied-plan" :schema-version "1.0.0"
+   :parameters ["project.portfolio/2026"] :layout "project.portfolio/plan"
+   :title "Project portfolio: Free selected proposals and undefined ratio" :period "2026 showcase"
+   :expected-business [{:code "MANTRA-AGGREGATE-ZERO-DENOMINATOR" :node "project-benefit-cost" :severity :warning}
+     {:code "MANTRA-AGGREGATE-ZERO-DENOMINATOR" :node "department-benefit-cost" :severity :warning}]}
+
+  (inputs
+    {:budget-limit 120 :hour-limit 140 :reported-cost 0.00
+     :departments [
+      {:id :DELIVERY :title "Fictional delivery team"}
+      {:id :RESEARCH :title "Fictional research team"}
+     ]
+     :projects [
+      {:id :A :title "Fictional tooling upgrade" :department-id :DELIVERY :cost 0 :benefit 140 :hours 70 :selected true :approval-note "Fictional selection A"}
+      {:id :B :title "Fictional service refresh" :department-id :DELIVERY :cost 0 :benefit 75 :hours 50 :selected false :approval-note nil}
+      {:id :C :title "Fictional prototype" :department-id :RESEARCH :cost 0 :benefit 68 :hours 60 :selected true :approval-note "Fictional selection C"}
+     ]}))

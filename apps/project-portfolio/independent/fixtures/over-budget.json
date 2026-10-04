@@ -1,0 +1,50 @@
+{
+  "id": "over-budget",
+  "budget": "120",
+  "hour_limit": "140",
+  "currency_scale": 2,
+  "ratio_scale": 6,
+  "departments": [
+    {
+      "id": "DELIVERY",
+      "title": "Fictional delivery team"
+    },
+    {
+      "id": "RESEARCH",
+      "title": "Fictional research team"
+    }
+  ],
+  "projects": [
+    {
+      "id": "A",
+      "title": "Fictional tooling upgrade",
+      "department": "DELIVERY",
+      "cost": "80",
+      "benefit": "140",
+      "hours": "70",
+      "selected": true,
+      "approval_note": "Fictional selection A"
+    },
+    {
+      "id": "B",
+      "title": "Fictional service refresh",
+      "department": "DELIVERY",
+      "cost": "50",
+      "benefit": "75",
+      "hours": "50",
+      "selected": true,
+      "approval_note": "Fictional selection B"
+    },
+    {
+      "id": "C",
+      "title": "Fictional prototype",
+      "department": "RESEARCH",
+      "cost": "40",
+      "benefit": "68",
+      "hours": "60",
+      "selected": true,
+      "approval_note": "Fictional selection C"
+    }
+  ],
+  "reported_cost": "170.00"
+}

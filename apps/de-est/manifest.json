@@ -1,0 +1,1316 @@
+{
+  "format": "mantra.package/1",
+  "id": "mantra.demo.de-est",
+  "version": "1.0.0",
+  "engine": ">=0.5.0-0 <2.0.0",
+  "resources": [
+    {
+      "path": "README-M3.md",
+      "role": "documentation",
+      "byteLength": 5219,
+      "sha256": "629cc0d9c5b3123036c86f2f3d4b61ea192dd2633fe5ec25c949472ff07def31"
+    },
+    {
+      "path": "README.md",
+      "role": "documentation",
+      "byteLength": 2502,
+      "sha256": "ff4d658705dfec7ed2aea6f9603b2defc8fcaf111ae9297d0497bf4668f9efa8"
+    },
+    {
+      "path": "abzuege.mantra",
+      "role": "fragment",
+      "byteLength": 4485,
+      "sha256": "2def92a285140522a47391d3533859eb57e9c86f2fd87bba5829b4141c5dc112"
+    },
+    {
+      "path": "case-mustermann.mantra",
+      "role": "case",
+      "byteLength": 1807,
+      "sha256": "a85c3c67538646b4cba92acea26331172b59fe9b61faa63f9e6173c06e66f927"
+    },
+    {
+      "path": "case-single-tax-free.mantra",
+      "role": "case",
+      "byteLength": 411,
+      "sha256": "29a2a2daa32a6a472e908cf5ae6142377e93ec084c9c39ff61cbe9800ea41cae"
+    },
+    {
+      "path": "data/payroll.csv",
+      "role": "data",
+      "byteLength": 41,
+      "sha256": "c3ff2ef0c9b58dfcee684be5f6fe4454f9e8ccc3d2686822c04f0062f97d46c3"
+    },
+    {
+      "path": "einkuenfte.mantra",
+      "role": "fragment",
+      "byteLength": 4591,
+      "sha256": "0c16888ecd7df77c757099ff2708e2bb1a26280ef892dcde1bec6d3c8cfa6628"
+    },
+    {
+      "path": "import-templates/payroll.json",
+      "role": "import-template",
+      "byteLength": 351,
+      "sha256": "fa3e0b7158a246b3b3ebc73114c0f5b635694306459a541559338c6b82bc007c"
+    },
+    {
+      "path": "independent/_reference.py",
+      "role": "documentation",
+      "byteLength": 19997,
+      "sha256": "b1d287c7292a8970dcb71d1a4cb560d753263df4767831f4f88128614d175ed5"
+    },
+    {
+      "path": "independent/app-values/case-carryback-not-waived-2024-values.json",
+      "role": "documentation",
+      "byteLength": 404,
+      "sha256": "ab16eab8922692813a530fd36ef72e305c4aea6153c5014bdf26075375019fd7"
+    },
+    {
+      "path": "independent/app-values/case-consumer-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1234,
+      "sha256": "c334644f1f232001a28eb897f91fd9629a324fc37f3b31ef6732b52e0bb575dc"
+    },
+    {
+      "path": "independent/app-values/case-consumer-all-positive-income-zero-values.json",
+      "role": "documentation",
+      "byteLength": 730,
+      "sha256": "3d657fdcf42d81269ffab230d82b130a216744cd5ba800e4642001088b76a988"
+    },
+    {
+      "path": "independent/app-values/case-consumer-business-source-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1244,
+      "sha256": "8887c9ea30a30b6b7973a7aa9a52c78f433035a104595cdf82048c83b319d81d"
+    },
+    {
+      "path": "independent/app-values/case-consumer-exhausted-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1226,
+      "sha256": "f91624c8fdc885d3df1e3a30cd7a20268ece1656754baeb03af29388c5590e8f"
+    },
+    {
+      "path": "independent/app-values/case-consumer-mixed-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 795,
+      "sha256": "64bc86f49c24b6cba5c774f455c398ebdadd5978b87625f6acc102bb24d42740"
+    },
+    {
+      "path": "independent/app-values/case-consumer-negative-other-income-values.json",
+      "role": "documentation",
+      "byteLength": 789,
+      "sha256": "3b5499e006edf8776d5dfeb0479d6fb7383a14e0b1000fe5ede6f42f8a4cb3ec"
+    },
+    {
+      "path": "independent/app-values/case-consumer-rate-300-values.json",
+      "role": "documentation",
+      "byteLength": 795,
+      "sha256": "d2ad134b76dc0d43c87ffe4b6e103ed31c3fd6ff41eee9b845bf3b67bad993fb"
+    },
+    {
+      "path": "independent/app-values/case-consumer-rate-400-values.json",
+      "role": "documentation",
+      "byteLength": 794,
+      "sha256": "7083e89cc0a5abd5a4d2a567b8b3ee9ff3f6e08b09443c6b77ddb569b3c59d02"
+    },
+    {
+      "path": "independent/app-values/case-consumer-rate-450-values.json",
+      "role": "documentation",
+      "byteLength": 794,
+      "sha256": "b26af245e08346545bb95e642dfdc110f12fd6310ad28b4dec74e8d627f51394"
+    },
+    {
+      "path": "independent/app-values/case-consumer-revised-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1234,
+      "sha256": "38c493829e30f75734712d8fc4c83ef73fa5f1cb044cbf1c7b4b0667237ccbb4"
+    },
+    {
+      "path": "independent/app-values/case-consumer-zero-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1190,
+      "sha256": "9fb0fceb177c7652e720b7fff2dc5f2c28ab31333594c46b81801bacf7149b06"
+    },
+    {
+      "path": "independent/app-values/case-joint-amount-only-values.json",
+      "role": "documentation",
+      "byteLength": 512,
+      "sha256": "6a710533d637394e5a657eadb4eea1107922d5343285e73c32a7c7a6c0c24640"
+    },
+    {
+      "path": "independent/app-values/case-minimum-tax-base-values.json",
+      "role": "documentation",
+      "byteLength": 1281,
+      "sha256": "55d5f9855269ac91088ba90788f27dc31bfe3af9f936c8f436e6e169bb755766"
+    },
+    {
+      "path": "independent/app-values/case-no-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 1171,
+      "sha256": "f3d38b6226de063ec6a0bf9f28ff9b80bfe6e489304de3dfb9d26d7d05d1be61"
+    },
+    {
+      "path": "independent/app-values/case-source-2024-values.json",
+      "role": "documentation",
+      "byteLength": 404,
+      "sha256": "ab16eab8922692813a530fd36ef72e305c4aea6153c5014bdf26075375019fd7"
+    },
+    {
+      "path": "independent/app-values/case-source-business-failure-2024-values.json",
+      "role": "documentation",
+      "byteLength": 401,
+      "sha256": "b2b43e38b14ed05cfcea8aaad614ef7daab4779d4b99a6a114ee7d11b0e743d5"
+    },
+    {
+      "path": "independent/app-values/case-source-exhaustible-2024-values.json",
+      "role": "documentation",
+      "byteLength": 404,
+      "sha256": "0cee84fa876643306e023aff5bb14f4487299c2b164bcc08cec748f4fbd61a88"
+    },
+    {
+      "path": "independent/app-values/case-source-revised-2024-values.json",
+      "role": "documentation",
+      "byteLength": 404,
+      "sha256": "84d7347d10134dd77ef728003ed348f1cdaa8d366c3764a492019b71fd68476e"
+    },
+    {
+      "path": "independent/app-values/case-source-zero-2024-values.json",
+      "role": "documentation",
+      "byteLength": 371,
+      "sha256": "525b654ddac0c76565d87c3671efd3128a094492e5cd08fc6e44de45e091726e"
+    },
+    {
+      "path": "independent/app-values/case-threshold-1000000-values.json",
+      "role": "documentation",
+      "byteLength": 1223,
+      "sha256": "b8317c3dedfa222effe6476d4be31f8c54cd5c42d718fa6dae729bd3caa4da29"
+    },
+    {
+      "path": "independent/app-values/case-threshold-1000010-values.json",
+      "role": "documentation",
+      "byteLength": 1223,
+      "sha256": "0427d5600128330f340b56dd0cabfaeb497302bd3456816f73f8434a3a65efee"
+    },
+    {
+      "path": "independent/app-values/case-threshold-999999-values.json",
+      "role": "documentation",
+      "byteLength": 1216,
+      "sha256": "2b86278018adecfe6095aac961bb501a5f4f61b551bb44f8056115fc2bb274a3"
+    },
+    {
+      "path": "independent/case-map.json",
+      "role": "documentation",
+      "byteLength": 36707,
+      "sha256": "1c28f0ce00717046a81047bef78de2927ce8ee38284ec5e5047bace9c2adf242"
+    },
+    {
+      "path": "independent/fixtures/loss/carryback-not-waived-2024.json",
+      "role": "documentation",
+      "byteLength": 505,
+      "sha256": "a87f324d8d0c5329c1b0d5d374cec226838a5e25aa016819d939731fdd1e790d"
+    },
+    {
+      "path": "independent/fixtures/loss/consumer-2025.json",
+      "role": "documentation",
+      "byteLength": 500,
+      "sha256": "8a6cdac300f985024ebcfcd40644128edee871147f8737e321a8bdf5dc07a247"
+    },
+    {
+      "path": "independent/fixtures/loss/consumer-business-source-2025.json",
+      "role": "documentation",
+      "byteLength": 533,
+      "sha256": "dc696c67c4529babad942d9d7fd4ea4091bc08cb18f30c7d319a1517ea691fcb"
+    },
+    {
+      "path": "independent/fixtures/loss/consumer-exhausted-2025.json",
+      "role": "documentation",
+      "byteLength": 522,
+      "sha256": "b8451eb29f3884e556d430e01f31ebf2a82ba3618ef506d55d6528c6a35843bc"
+    },
+    {
+      "path": "independent/fixtures/loss/consumer-revised-2025.json",
+      "role": "documentation",
+      "byteLength": 516,
+      "sha256": "c94424c13e31717e6329587d31269771d8257405e9e050d0f5a6162c3b6a1dd8"
+    },
+    {
+      "path": "independent/fixtures/loss/consumer-zero-2025.json",
+      "role": "documentation",
+      "byteLength": 510,
+      "sha256": "8bbb6288d4137762c6b753461623f685dc9bd13528bc95b5967cdff665cc00d9"
+    },
+    {
+      "path": "independent/fixtures/loss/joint-amount-only.json",
+      "role": "documentation",
+      "byteLength": 500,
+      "sha256": "e78638b916b3ba1d1d5cb4fbeeaa667fcc3dbaab6a9e4a6079388c74bd4fd8af"
+    },
+    {
+      "path": "independent/fixtures/loss/minimum-tax-base.json",
+      "role": "documentation",
+      "byteLength": 501,
+      "sha256": "23f9e37d6d763ac8574d1ca16b175a16b547f32cbbe45464dd29eaace7565ffb"
+    },
+    {
+      "path": "independent/fixtures/loss/no-positive-income.json",
+      "role": "documentation",
+      "byteLength": 495,
+      "sha256": "9e4f260d4ac00e8cc81374e173032162c7e65799888d806253d644675c775ba6"
+    },
+    {
+      "path": "independent/fixtures/loss/source-2024.json",
+      "role": "documentation",
+      "byteLength": 490,
+      "sha256": "e17dc937a164897cc2a816d48e25f4d3bcb3c698792cabd2aba2adfda86e9f8d"
+    },
+    {
+      "path": "independent/fixtures/loss/source-business-failure-2024.json",
+      "role": "documentation",
+      "byteLength": 506,
+      "sha256": "b945c86b06159436a8f9e4d9c6d8e9bc54326b16c385bfb00cb2c1d0f7f16a8a"
+    },
+    {
+      "path": "independent/fixtures/loss/source-exhaustible-2024.json",
+      "role": "documentation",
+      "byteLength": 502,
+      "sha256": "14276cd796663a39c76d94265a3883a13afc1ce12f0a892fd292de4c408d5f67"
+    },
+    {
+      "path": "independent/fixtures/loss/source-revised-2024.json",
+      "role": "documentation",
+      "byteLength": 498,
+      "sha256": "b14ae5d7896f6f5c737a85e06e36f49c542d00ba0754c65c66c188a5397e9fb5"
+    },
+    {
+      "path": "independent/fixtures/loss/source-zero-2024.json",
+      "role": "documentation",
+      "byteLength": 488,
+      "sha256": "f0de464cedba34a5983d295fb1076fccfe8e0749e935b735b601bf6b2cb67e1c"
+    },
+    {
+      "path": "independent/fixtures/loss/threshold-1000000.json",
+      "role": "documentation",
+      "byteLength": 502,
+      "sha256": "8c3e09e5a3e94599af4f63436762e63b2d529536596bc83969ee0eaaae2637d5"
+    },
+    {
+      "path": "independent/fixtures/loss/threshold-1000010.json",
+      "role": "documentation",
+      "byteLength": 502,
+      "sha256": "8f1842c2c6a548c39574facfc9e836e77c1e9a8028fb5107d0d4e6724fcc0842"
+    },
+    {
+      "path": "independent/fixtures/loss/threshold-999999.json",
+      "role": "documentation",
+      "byteLength": 500,
+      "sha256": "7e9be6287859fded4a4f0416b06c8971710e3be27f267b83aee78a78d8d7b885"
+    },
+    {
+      "path": "independent/fixtures/trade/all-positive-income-zero.json",
+      "role": "documentation",
+      "byteLength": 828,
+      "sha256": "613ef8acfc0cf8f315ee139bbc5cec493a6e5ded662ce963a8744bbfe7939b46"
+    },
+    {
+      "path": "independent/fixtures/trade/mixed-positive-income.json",
+      "role": "documentation",
+      "byteLength": 899,
+      "sha256": "ba902161cb8e49b0aeacf62aa716c02c7db8d8983e8507b2e94800f548676b5e"
+    },
+    {
+      "path": "independent/fixtures/trade/negative-other-income.json",
+      "role": "documentation",
+      "byteLength": 1113,
+      "sha256": "adb369169ad1fbd108d470453cef86e4ebd838bdbc459148843f5e9a6a56b149"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-300.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "6be65ef1d6c2df7fe4aa18529da410889a8bb6fd9573adf0bb656fa699061b5c"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-400.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "6eca8d57e7c52cbbda2bdc3da5c70c1114ec511d66843d3058bd00f7ad40e896"
+    },
+    {
+      "path": "independent/fixtures/trade/rate-450.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "0b70412133c64f7c0ca985b77e5be77b25d556cfc00163c87ba05d6a268fe3f1"
+    },
+    {
+      "path": "independent/loss-cases.csv",
+      "role": "data",
+      "byteLength": 1204,
+      "sha256": "4f8561e71300d02bd8c300395ea358fbbcacf927a69451438b251b91602b75e3"
+    },
+    {
+      "path": "independent/parameters.json",
+      "role": "documentation",
+      "byteLength": 2053,
+      "sha256": "96115a4c4c82c945bb90dd3299d2165ef60e41c8b675fb6442c478293ad715d5"
+    },
+    {
+      "path": "independent/primary-sources.json",
+      "role": "documentation",
+      "byteLength": 4179,
+      "sha256": "88a74044be4d00d541ca5b23e921843636448fc0c5c5b77ec0969a71d3c25573"
+    },
+    {
+      "path": "independent/references/loss-carryback-not-waived-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 614,
+      "sha256": "b49d7fbbc1478def92bc84ccae7383b16313fcf14eddb27a5a8cadc7576470f6"
+    },
+    {
+      "path": "independent/references/loss-carryback-not-waived-2024-values.json",
+      "role": "documentation",
+      "byteLength": 299,
+      "sha256": "d0280fd21e360229af3c4fff05f4ea65579f1c56c81cfcadfda7ce01b2a7ba96"
+    },
+    {
+      "path": "independent/references/loss-consumer-2025-summary.json",
+      "role": "documentation",
+      "byteLength": 469,
+      "sha256": "052ea8bae0cb9c6a6d463985200d76bef5ebc9cbea92817e5c4352a93504fc6b"
+    },
+    {
+      "path": "independent/references/loss-consumer-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1125,
+      "sha256": "f1f989870210ba8a6907b4ae832942a9d3c58cc686ddd2cf67def1b253d160d9"
+    },
+    {
+      "path": "independent/references/loss-consumer-business-source-2025-summary.json",
+      "role": "documentation",
+      "byteLength": 633,
+      "sha256": "eb7669e129bf5342e7a7a74fb8f7551d0114b57561022d0b405cc4e07ef76486"
+    },
+    {
+      "path": "independent/references/loss-consumer-business-source-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1137,
+      "sha256": "77e1d46e913353fb1ced455644fba56d8e02e10dc0409911b6cd6c16ed5df554"
+    },
+    {
+      "path": "independent/references/loss-consumer-exhausted-2025-summary.json",
+      "role": "documentation",
+      "byteLength": 481,
+      "sha256": "397f82fbb7f600545910c2616a925b14e0fe8776d59a2ad14ff71507e92cd677"
+    },
+    {
+      "path": "independent/references/loss-consumer-exhausted-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1117,
+      "sha256": "e97bc8b2539dd362db5e844c5006fcc2c17a94e3b7a9f351aca30d24114cd9dd"
+    },
+    {
+      "path": "independent/references/loss-consumer-revised-2025-summary.json",
+      "role": "documentation",
+      "byteLength": 477,
+      "sha256": "ad2360ffdd1173a9bd6b90e43d515608fe110d181787a0efadc8bdafcd94527a"
+    },
+    {
+      "path": "independent/references/loss-consumer-revised-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1125,
+      "sha256": "c04b32e23e60e0b7a56b2378e8d80347d135512283adb213b8cd01860666cea4"
+    },
+    {
+      "path": "independent/references/loss-consumer-zero-2025-summary.json",
+      "role": "documentation",
+      "byteLength": 473,
+      "sha256": "c8bdff9eb502410beef0b9acee95e9f333f15e77a64c83a5e5d2afb7df4fc2bd"
+    },
+    {
+      "path": "independent/references/loss-consumer-zero-2025-values.json",
+      "role": "documentation",
+      "byteLength": 1095,
+      "sha256": "8cf454335c443bc022f1caf2180325e18939a1d351fc956e3e36d804feee13d7"
+    },
+    {
+      "path": "independent/references/loss-joint-amount-only-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-joint-amount-only-values.json",
+      "role": "documentation",
+      "byteLength": 323,
+      "sha256": "54224a500397ff010cbdadf49b4cc6a231fd4f99a81525201781fbaa94428b42"
+    },
+    {
+      "path": "independent/references/loss-minimum-tax-base-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-minimum-tax-base-values.json",
+      "role": "documentation",
+      "byteLength": 323,
+      "sha256": "77223888719835216ed88a06e290104d80bff4ed09c71112ab20dbfab7a0a815"
+    },
+    {
+      "path": "independent/references/loss-no-positive-income-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-no-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 296,
+      "sha256": "c6ad62a271452291a835859e1b83b2fc363ad7972c470b211f7c17b60ef608de"
+    },
+    {
+      "path": "independent/references/loss-source-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 461,
+      "sha256": "9c5e5d96393c061d4491c631e2feee1a4f2e0f3da3160bcbee0b02a67425c010"
+    },
+    {
+      "path": "independent/references/loss-source-2024-values.json",
+      "role": "documentation",
+      "byteLength": 299,
+      "sha256": "d0280fd21e360229af3c4fff05f4ea65579f1c56c81cfcadfda7ce01b2a7ba96"
+    },
+    {
+      "path": "independent/references/loss-source-business-failure-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 608,
+      "sha256": "ec0277ecf20deaa2fa3bd01bda526abfa2e8977291b8a282300d6cbaf9200c80"
+    },
+    {
+      "path": "independent/references/loss-source-business-failure-2024-values.json",
+      "role": "documentation",
+      "byteLength": 297,
+      "sha256": "c0c8a4f1cdcf90393eb0fe4fe0c8db21ecf7cedb70f48d5e077c4185b665ba76"
+    },
+    {
+      "path": "independent/references/loss-source-exhaustible-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 461,
+      "sha256": "9c5e5d96393c061d4491c631e2feee1a4f2e0f3da3160bcbee0b02a67425c010"
+    },
+    {
+      "path": "independent/references/loss-source-exhaustible-2024-values.json",
+      "role": "documentation",
+      "byteLength": 299,
+      "sha256": "295bdd221e08aa2fc885c98c0f981c16f35cffe29c73f297d80c7a5b0752a433"
+    },
+    {
+      "path": "independent/references/loss-source-revised-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 461,
+      "sha256": "9c5e5d96393c061d4491c631e2feee1a4f2e0f3da3160bcbee0b02a67425c010"
+    },
+    {
+      "path": "independent/references/loss-source-revised-2024-values.json",
+      "role": "documentation",
+      "byteLength": 299,
+      "sha256": "90d32d5012667a64b6cd6076ea658754bd6fab6a125b8180abca0c2c5ec2461b"
+    },
+    {
+      "path": "independent/references/loss-source-zero-2024-summary.json",
+      "role": "documentation",
+      "byteLength": 460,
+      "sha256": "7b9a55d101d4c1818ee97bd5e013e71216d5791780b9868697ea7bbc67d5a321"
+    },
+    {
+      "path": "independent/references/loss-source-zero-2024-values.json",
+      "role": "documentation",
+      "byteLength": 276,
+      "sha256": "3b95e368b3d72d3316ed560d3b8e4b5de8a10844cd0968287f180906a8135a30"
+    },
+    {
+      "path": "independent/references/loss-threshold-1000000-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-threshold-1000000-values.json",
+      "role": "documentation",
+      "byteLength": 318,
+      "sha256": "846d64b6cbe58ba68cbd1291518021962bca96b6d57f18e6ca587c84b8577d34"
+    },
+    {
+      "path": "independent/references/loss-threshold-1000010-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-threshold-1000010-values.json",
+      "role": "documentation",
+      "byteLength": 318,
+      "sha256": "c14994368d6bc519114ebfe8e4a96caedb1ea2a80c4491c964ef30c5cd11f272"
+    },
+    {
+      "path": "independent/references/loss-threshold-999999-summary.json",
+      "role": "documentation",
+      "byteLength": 464,
+      "sha256": "c2612d630d80c578fdc3d672236390a05b223b356e25fad7ff9536bd71def5d9"
+    },
+    {
+      "path": "independent/references/loss-threshold-999999-values.json",
+      "role": "documentation",
+      "byteLength": 315,
+      "sha256": "8d25a5e9a791ebfc497d4d26c6e2b3091f56b100c94775efead2399f46e705b2"
+    },
+    {
+      "path": "independent/references/trade-all-positive-income-zero-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-all-positive-income-zero-values.json",
+      "role": "documentation",
+      "byteLength": 1346,
+      "sha256": "f7828853729cbc29b2aa39e9be31282f78b66524072e08a965428c14ea9b5952"
+    },
+    {
+      "path": "independent/references/trade-mixed-positive-income-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-mixed-positive-income-values.json",
+      "role": "documentation",
+      "byteLength": 1522,
+      "sha256": "92c33df880a5e9f8424789ad47c6ef04693936b387844b02b224b4bbc4a08c48"
+    },
+    {
+      "path": "independent/references/trade-negative-other-income-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-negative-other-income-values.json",
+      "role": "documentation",
+      "byteLength": 1719,
+      "sha256": "abcc56c842e0e66bf7acdbdf86229982b99f37b9decab9fc9706868af7c344e3"
+    },
+    {
+      "path": "independent/references/trade-rate-300-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-300-values.json",
+      "role": "documentation",
+      "byteLength": 1725,
+      "sha256": "a38f51b6a2e92b10b4939bf75f4658b3e1fcb2991e83c17d6ce718303c39ad7a"
+    },
+    {
+      "path": "independent/references/trade-rate-400-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-400-values.json",
+      "role": "documentation",
+      "byteLength": 1724,
+      "sha256": "8a91b93eb2be69200cd96bb5eb53387fb830e5083406fa8339fcb052505b5e06"
+    },
+    {
+      "path": "independent/references/trade-rate-450-summary.json",
+      "role": "documentation",
+      "byteLength": 649,
+      "sha256": "d1b7614d464b68f5cedd458f4b406197feecaf5e27583eefa4f93b79b41d3533"
+    },
+    {
+      "path": "independent/references/trade-rate-450-values.json",
+      "role": "documentation",
+      "byteLength": 1724,
+      "sha256": "882ce3bc471243c0345a3eff2140a0fa9296bc2cc4a5bfd894d34a4301fcaf92"
+    },
+    {
+      "path": "independent/versions.json",
+      "role": "documentation",
+      "byteLength": 990,
+      "sha256": "b7ed602d96e9216a537c6782591460d1864cd6af565cc3312a1578373497f6f4"
+    },
+    {
+      "path": "layout.mantra",
+      "role": "layout",
+      "byteLength": 1661,
+      "sha256": "b55a545ed5978fa4ac9799312fe8db7b0408eed5d2c5cef423cc2d3cd8d73c36"
+    },
+    {
+      "path": "migration/README.md",
+      "role": "documentation",
+      "byteLength": 3708,
+      "sha256": "1a44e6be5cac1b067da7b69e2969ba4f7029939ded370729db11f92762674728"
+    },
+    {
+      "path": "migration/independent_migration.py",
+      "role": "documentation",
+      "byteLength": 5258,
+      "sha256": "85f744ef95cd10f8e045d86e8dcacc336b6466de8ad61565feeb3b7501d54aae"
+    },
+    {
+      "path": "migration/reference.json",
+      "role": "documentation",
+      "byteLength": 2490,
+      "sha256": "a5c944248c0ec35fcdf6c3e15f1e7fec5b14de6a4d9cbf02ed22851069efc114"
+    },
+    {
+      "path": "migration/reference.manifest.json",
+      "role": "documentation",
+      "byteLength": 1105,
+      "sha256": "2e19d0d6ad07b5c4e4fc2888a87d30404437c9307c90b41ad3477df261d63433"
+    },
+    {
+      "path": "params-2026.mantra",
+      "role": "parameters",
+      "byteLength": 904,
+      "sha256": "b72475b0e675ceb0ce7f60a50623b143e85e9197fbb64081ee719c9f4145cca0"
+    },
+    {
+      "path": "schema.mantra",
+      "role": "schema",
+      "byteLength": 15492,
+      "sha256": "ab9497067a863dc99eed6185cbff2466b3ae3c513200585522a2e26bacdc779c"
+    },
+    {
+      "path": "verify_expected.py",
+      "role": "documentation",
+      "byteLength": 9201,
+      "sha256": "b44b350022c1cb78aeed8c7ee2d05129d7c9f0e104da6eb3d73f9fca8354f908"
+    },
+    {
+      "path": "verify_m3_expected.py",
+      "role": "documentation",
+      "byteLength": 5327,
+      "sha256": "fb69440cba41c7579034057a603b928b623973e411ff443cdfce6c8d7869cc09"
+    },
+    {
+      "path": "versions/2024.1/case-carryback-not-waived-2024.mantra",
+      "role": "case",
+      "byteLength": 607,
+      "sha256": "65fa9f8344bbb31957e84479b580e50f98a9b0508ea8b09dcef28d59d0dc736a"
+    },
+    {
+      "path": "versions/2024.1/case-source-2024.mantra",
+      "role": "case",
+      "byteLength": 483,
+      "sha256": "e0787598f90b97703e0f1047944ae9758587f81e02e58f8b4728181708b475fa"
+    },
+    {
+      "path": "versions/2024.1/case-source-business-failure-2024.mantra",
+      "role": "case",
+      "byteLength": 608,
+      "sha256": "6c52e166d9c0813b6583cfbe5c53da0e6fbe88e41ac07053d0acc683dc6a5488"
+    },
+    {
+      "path": "versions/2024.1/case-source-exhaustible-2024.mantra",
+      "role": "case",
+      "byteLength": 519,
+      "sha256": "4e44c121b2d9eef542fd63f2d2436c88a37021b7564d113e812239bd4a7415a2"
+    },
+    {
+      "path": "versions/2024.1/case-source-revised-2024.mantra",
+      "role": "case",
+      "byteLength": 507,
+      "sha256": "fd88661dfdfb7377c4e778c807252a4d062e7864f2b9dfde1375ab74bb1a24de"
+    },
+    {
+      "path": "versions/2024.1/case-source-zero-2024.mantra",
+      "role": "case",
+      "byteLength": 491,
+      "sha256": "ff7c607dafdeaa1c5c431b546a9fa7ce6aafa654d66d2579a8d88c8b742330e9"
+    },
+    {
+      "path": "versions/2024.1/input-template.mantra",
+      "role": "case",
+      "byteLength": 497,
+      "sha256": "d3fb94fb87854415066b034ffabd7ee241fe62bc6c5b2d105327d37a2e08faed"
+    },
+    {
+      "path": "versions/2024.1/layout.mantra",
+      "role": "layout",
+      "byteLength": 327,
+      "sha256": "c713270bda19ea417e018f54448961ad89bd93395e5734951ae46afb8c7ee2ec"
+    },
+    {
+      "path": "versions/2024.1/params.mantra",
+      "role": "parameters",
+      "byteLength": 221,
+      "sha256": "a130d1fed9503c08da527d39d87680c40a647ee6b18068df7a807a2115552b14"
+    },
+    {
+      "path": "versions/2024.1/schema.mantra",
+      "role": "schema",
+      "byteLength": 2895,
+      "sha256": "7f834164e96d119d7d2cc3510412cc04af25b8546e6b64f813804255783f3d37"
+    },
+    {
+      "path": "versions/2025.3/abzuege.mantra",
+      "role": "fragment",
+      "byteLength": 4485,
+      "sha256": "2def92a285140522a47391d3533859eb57e9c86f2fd87bba5829b4141c5dc112"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-2025.mantra",
+      "role": "case",
+      "byteLength": 833,
+      "sha256": "ddf8ded0720c1e002ed95f7f142330a4071093d3efe0afd3c31ea00366283d0a"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-all-positive-income-zero.mantra",
+      "role": "case",
+      "byteLength": 1061,
+      "sha256": "bc6f53166b0fc39f611eeae26df3d3e42172c38337c54bd1bd4db3b600aa48cb"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-business-source-2025.mantra",
+      "role": "case",
+      "byteLength": 1136,
+      "sha256": "0772e1327caf5aa77a9abfff5df9ca7f8242cecab09afe56bff40f31046172ee"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-exhausted-2025.mantra",
+      "role": "case",
+      "byteLength": 875,
+      "sha256": "588debc7b38552b02a724cec8beb38fb15b847b6a00208016c1f5220b7c63532"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-mixed-positive-income.mantra",
+      "role": "case",
+      "byteLength": 1057,
+      "sha256": "d52637cba89393e2a6805b5bfd625744bde91e2b6fdb75f57c8e6ab0ee526c4d"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-negative-other-income.mantra",
+      "role": "case",
+      "byteLength": 1059,
+      "sha256": "e80a44c687bde12a7376890a39ff213216486c529556baaf40613b1f4405e861"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-rate-300.mantra",
+      "role": "case",
+      "byteLength": 1002,
+      "sha256": "e43c5f12ae891f57598bea11ed7e7df78e2ffcff8c0b0771ac11cf43a876940b"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-rate-400.mantra",
+      "role": "case",
+      "byteLength": 1002,
+      "sha256": "024897ba224ba02a88f114a52c021b8276010bba2c08af501a5a76fe85a78e13"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-rate-450.mantra",
+      "role": "case",
+      "byteLength": 1002,
+      "sha256": "db0dea58646cf22962c3f2383aef511dec36c5b113d6e11e7c23209511f7cb50"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-revised-2025.mantra",
+      "role": "case",
+      "byteLength": 865,
+      "sha256": "027448da20b3551df8eb511b76023d67bf1cccbe903421d5520a127d9757705f"
+    },
+    {
+      "path": "versions/2025.3/case-consumer-zero-2025.mantra",
+      "role": "case",
+      "byteLength": 853,
+      "sha256": "50906ad2e82a6fb1a36f15da6d96c2977392a50954556e982d66b0669d89aa87"
+    },
+    {
+      "path": "versions/2025.3/case-minimum-tax-base.mantra",
+      "role": "case",
+      "byteLength": 640,
+      "sha256": "f516a9aa0f464298264718885215be47e61095f44dedce0e025b9c8531d47f3f"
+    },
+    {
+      "path": "versions/2025.3/case-no-positive-income.mantra",
+      "role": "case",
+      "byteLength": 638,
+      "sha256": "dd50ec912bda3a350bc1cc2ae09dbde7e7b7904f9dd91af8e7a2668586ef2f99"
+    },
+    {
+      "path": "versions/2025.3/case-threshold-1000000.mantra",
+      "role": "case",
+      "byteLength": 643,
+      "sha256": "2b40e29d7512094c9a3202fa51908827c7dc1affa36c7a555ae9eefed2e0e77d"
+    },
+    {
+      "path": "versions/2025.3/case-threshold-1000010.mantra",
+      "role": "case",
+      "byteLength": 643,
+      "sha256": "0025ecb06bdfdbb8b24c3c78d61920644a3bf789c7af51599352eed5934b1208"
+    },
+    {
+      "path": "versions/2025.3/case-threshold-999999.mantra",
+      "role": "case",
+      "byteLength": 639,
+      "sha256": "fd789358f94f8b4b0c14d91ab2444b71c798170c211079a64cd94e21b784bc0c"
+    },
+    {
+      "path": "versions/2025.3/einkuenfte.mantra",
+      "role": "fragment",
+      "byteLength": 4591,
+      "sha256": "0c16888ecd7df77c757099ff2708e2bb1a26280ef892dcde1bec6d3c8cfa6628"
+    },
+    {
+      "path": "versions/2025.3/focused-cases/case-joint-amount-only.mantra",
+      "role": "case",
+      "byteLength": 871,
+      "sha256": "062b06f08ebf0254caf643b87c1d8c976970d49344e301deda56a6f71a310c4f"
+    },
+    {
+      "path": "versions/2025.3/layout.mantra",
+      "role": "layout",
+      "byteLength": 1888,
+      "sha256": "59fa5a0bcb34a760ce1c98ce2fbc85b7096edbc2a4c5a852aacdef637d0b6998"
+    },
+    {
+      "path": "versions/2025.3/params.mantra",
+      "role": "parameters",
+      "byteLength": 702,
+      "sha256": "d5a80bba56447db1446c53364273a9d9e15f56025893120653c6655422c16224"
+    },
+    {
+      "path": "versions/2025.3/schema.mantra",
+      "role": "schema",
+      "byteLength": 19640,
+      "sha256": "db82ae1da3cff65c9730ac1cb7c1923db8b5de8dbd3590fcb638463ae90a66c5"
+    }
+  ],
+  "schemas": [
+    {
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "schema.mantra"
+    },
+    {
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/schema.mantra"
+    },
+    {
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/schema.mantra"
+    }
+  ],
+  "parameters": [
+    {
+      "id": "de.est/params-2026",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "params-2026.mantra"
+    },
+    {
+      "id": "de.est-loss/2024-parameters",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/params.mantra"
+    },
+    {
+      "id": "de.est/params-2025.3",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/params.mantra"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "de.est/steuerberechnung",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "layout.mantra"
+    },
+    {
+      "id": "de.est-loss/2024-working-paper",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/layout.mantra"
+    },
+    {
+      "id": "de.est/steuerberechnung-2025.3",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/layout.mantra"
+    }
+  ],
+  "cases": [
+    {
+      "id": "mustermann-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-mustermann.mantra",
+      "parameters": [],
+      "layout": "de.est/steuerberechnung"
+    },
+    {
+      "id": "single-tax-free",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.2",
+        "versionMode": "legacy-exact"
+      },
+      "path": "case-single-tax-free.mantra",
+      "parameters": [],
+      "layout": "de.est/steuerberechnung"
+    },
+    {
+      "id": "carryback-not-waived-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-carryback-not-waived-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "source-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-source-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "source-business-failure-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-source-business-failure-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "source-exhaustible-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-source-exhaustible-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "source-revised-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-source-revised-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "source-zero-2024",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/case-source-zero-2024.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "loss-template",
+      "schema": {
+        "id": "de.est-loss/2024",
+        "version": "2024.1",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2024.1/input-template.mantra",
+      "parameters": [
+        "de.est-loss/2024-parameters"
+      ],
+      "layout": "de.est-loss/2024-working-paper"
+    },
+    {
+      "id": "consumer-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-2025.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-all-positive-income-zero",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-all-positive-income-zero.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-business-source-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-business-source-2025.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-exhausted-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-exhausted-2025.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-mixed-positive-income",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-mixed-positive-income.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-negative-other-income",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-negative-other-income.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-rate-300",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-rate-300.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-rate-400",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-rate-400.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-rate-450",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-rate-450.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-revised-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-revised-2025.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "consumer-zero-2025",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-consumer-zero-2025.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "minimum-tax-base",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-minimum-tax-base.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "no-positive-income",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-no-positive-income.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "threshold-1000000",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-threshold-1000000.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "threshold-1000010",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-threshold-1000010.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "threshold-999999",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/case-threshold-999999.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    },
+    {
+      "id": "joint-amount-only",
+      "schema": {
+        "id": "de.est/2025",
+        "version": "2025.3",
+        "versionMode": "legacy-exact"
+      },
+      "path": "versions/2025.3/focused-cases/case-joint-amount-only.mantra",
+      "parameters": [
+        "de.est/params-2025.3"
+      ],
+      "layout": "de.est/steuerberechnung-2025.3"
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "mantra.demo.de-gewst",
+      "version": "1.0.0"
+    }
+  ]
+}

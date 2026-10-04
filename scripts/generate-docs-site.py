@@ -23,7 +23,10 @@ NAVIGATION = [
     ("Overview", "index.html"), ("Your first schema", "tutorial.html"),
     ("Embed in Kotlin", "embedding.html"), ("DSL reference", "reference/dsl.html"),
     ("Functions", "reference/functions.html"), ("Diagnostics", "reference/diagnostics.html"),
-    ("Public API", "reference/api.html"), ("Applications", "apps/index.html"),
+    ("Public API", "reference/api.html"), ("Language specification", "reference/specification.html"),
+    ("Compatibility", "reference/compatibility.html"), ("Packages", "packages.html"),
+    ("Independent sources", "independent-sources.html"), ("Neutral domains", "neutral-domains.html"),
+    ("Applications", "apps/index.html"),
 ]
 
 
@@ -84,6 +87,8 @@ def check_links(output):
     output = output.resolve()
     documents = {}
     for path in sorted(output.rglob("*.html")):
+        if not path.is_file():
+            continue
         parser = DocumentLinks()
         parser.feed(path.read_text(encoding="utf-8"))
         documents[path.resolve()] = parser
@@ -104,7 +109,7 @@ def check_links(output):
                 continue
             checked += 1
             if parsed.fragment and target in documents:
-                if unquote(parsed.fragment) not in documents[target].ids:
+                if parsed.fragment not in documents[target].ids and unquote(parsed.fragment) not in documents[target].ids:
                     failures.add(f"{path}: missing anchor {link}")
     if failures:
         raise ValueError("\n".join(sorted(failures)))
@@ -122,6 +127,8 @@ class Site:
         self.rewrites = {
             self.root / "docs/dsl-reference.md": "reference/dsl.html",
             self.root / "docs/diagnostics.md": "reference/diagnostics.html",
+            self.root / "docs/language-specification-v1.md": "reference/specification.html",
+            self.root / "docs/compatibility.md": "reference/compatibility.html",
         }
 
     def read(self, path):
@@ -302,8 +309,13 @@ def functions(site, catalog=None):
 
 def api_index(site):
     locations = ["mantra-core/src/main/kotlin/com/xqiou/mantra/core/api",
-                 "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view"]
-    files = [path for directory in locations for path in sorted((site.root / directory).glob("*.kt"))]
+                 "mantra-core/src/main/kotlin/com/xqiou/mantra/core/view",
+                 "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model",
+                 "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read",
+                 "mantra-packages/src/main/kotlin/com/xqiou/mantra/packages",
+                 "mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/packages",
+                 "mantra-render/src/main/kotlin/com/xqiou/mantra/render/pdf"]
+    files = [path for directory in locations for path in sorted((site.root / directory).rglob("*.kt"))]
     files += [site.root / path for path in (
         "mantra-core/src/main/kotlin/com/xqiou/mantra/core/Mantra.kt",
         "mantra-render/src/main/kotlin/com/xqiou/mantra/render/Render.kt",
@@ -323,9 +335,10 @@ def api_index(site):
                 relative = path.relative_to(site.root).as_posix()
                 content += f"| `{name}` | [{path.name}:{number}](repo:{relative}) |\n"
                 count += 1
-    content += "\n## Planned M4 extensions\n\nCompiled schema handles, batch calculation, distributable scheme packages, "
-    content += "parameter validity selection and compatibility gates remain roadmap work. "
-    content += "No package or batch API is promised by this preparation. Update this section when the public contract lands.\n"
+    content += "\n## Embedded execution and package APIs\n\nCompiled handles, streaming batches, captured packages, "
+    content += "explicit parameter selection and reviewed migration are implemented public APIs. "
+    content += "Full JVM ABI baselines and independently compiled Java/Kotlin consumers guard their library packaging. "
+    content += "See the embedding tutorial for ownership and policy boundaries. Local staging does not imply public Maven availability.\n"
     return content, count
 
 
@@ -354,10 +367,19 @@ def application_page(site, application, require_artifacts):
     directory = site.root / "apps" / name
     site.read(directory / "README.md")
     content = f"# {application['title']}\n\n{application['description']}\n\n"
-    content += "Demonstration only. Fictional inputs and documented simplifications do not constitute production tax or accounting software. "
+    content += "Demonstration only. Fictional inputs and documented simplifications do not establish legal, accounting, engineering, investment or staffing suitability. "
     content += "The schema owns domain rules; the engine stays generic.\n\n"
     content += f"[Application README](repo:apps/{name}/README.md) · "
     content += f"[Independent verification](repo:apps/{name}/{application['verification']})\n\n"
+    content += "## Package and independent sources\n\n"
+    if (directory / "manifest.json").is_file():
+        content += f"[Captured-resource manifest](repo:apps/{name}/manifest.json) · "
+    content += f"[Walkthrough](site:{application.get('tutorial', 'tutorial.html')}) · "
+    content += "[Evidence guidance](site:independent-sources.html) · [Package limits](site:packages.html)\n\n"
+    for source in application.get("source_documents", []):
+        content += f"- [{source['label']}](repo:apps/{name}/{source['path']})\n"
+    content += "\nPrimary sources supply the conceptual context described in the README. "
+    content += "The expected scenario amounts are independently authored fictional calculations.\n\n"
     content += "## Schema and case\n\n"
     content += f"[Open the schema](repo:apps/{name}/{application['schema']}) · "
     content += f"[Open the showcase case](repo:apps/{name}/{application['case']})\n\n"
@@ -407,31 +429,59 @@ def application_page(site, application, require_artifacts):
     return content
 
 
+def publish_dokka(site, required):
+    """Copy actual compiled KDoc output; never synthesize an API reference from signatures."""
+    modules = ("mantra-core", "mantra-render", "mantra-excel", "mantra-workbench", "mantra-server", "mantra-packages")
+    content = "# Compiled Kotlin API documentation\n\nThese pages come from the pinned Dokka build of the current library sources.\n\n"
+    available = 0
+    for module in modules:
+        source = site.root / module / "build/dokka/html"
+        if not (source / "index.html").is_file():
+            if required:
+                raise ValueError(f"Required compiled KDoc is missing: {source}")
+            content += f"- {module}: generate with `./gradlew :{module}:dokkaHtml`.\n"
+            continue
+        target = site.output / "api" / module
+        shutil.copytree(source, target)
+        available += 1
+        content += f"- [{module}](site:api/{module}/index.html)\n"
+    site.page("reference/kdoc.html", "Kotlin API documentation", content, site.source / "index.md")
+    return available
+
+
 def generate_content(root, output, require_artifacts=False, catalog=None):
     site = Site(root, output)
     site.output.mkdir(parents=True, exist_ok=True)
     (site.output / "assets").mkdir(exist_ok=True)
     shutil.copyfile(site.source / "site.css", site.output / "assets/site.css")
     site.read(site.source / "site.css")
-    for name, title in (("index", "Overview"), ("tutorial", "Your first schema"), ("embedding", "Embed in Kotlin")):
+    for name, title in (("index", "Overview"), ("tutorial", "Your first schema"), ("embedding", "Embed in Kotlin"),
+                        ("packages", "Package boundaries"), ("independent-sources", "Independent sources"),
+                        ("neutral-domains", "Two neutral domains")):
         origin = site.source / (name + ".md")
         site.page(name + ".html", title, site.read(origin), origin)
     for name, title, source in (("dsl", "DSL reference", "dsl-reference.md"),
-                                ("diagnostics", "Diagnostics", "diagnostics.md")):
+                                ("diagnostics", "Diagnostics", "diagnostics.md"),
+                                ("specification", "Language specification", "language-specification-v1.md"),
+                                ("compatibility", "Compatibility", "compatibility.md")):
         origin = site.root / "docs" / source
         site.page(f"reference/{name}.html", title, site.read(origin), origin)
     diagnostics = diagnostic_inventory(site)
     function_text, catalog_metadata = functions(site, catalog)
     site.page("reference/functions.html", "Functions", function_text, site.source / "index.md")
     api_text, declarations = api_index(site)
+    api_text += "\n[Compiled Kotlin API documentation](site:reference/kdoc.html)\n"
     site.page("reference/api.html", "Public API", api_text, site.source / "index.md")
+    publish_dokka(site, require_artifacts)
     applications = json.loads(site.read(site.source / "applications.json"))
     actual = {path.name for path in (site.root / "apps").iterdir() if (path / "README.md").is_file()}
     if len(applications) != len(actual) or {item["id"] for item in applications} != actual:
         raise ValueError("Showcase configuration must cover every application README exactly once")
     gallery = "# Application gallery\n\nEach application combines public primitives with domain-owned schemas, "
     gallery += "parameters, layouts, fictional cases and independent verification. "
-    gallery += "Applications are repository demonstrations and are not published as library artifacts.\n\n"
+    gallery += "Applications are repository demonstrations and are not published as library artifacts. "
+    gallery += "Read [independent-source guidance](site:independent-sources.html), "
+    gallery += "[package limits](site:packages.html) and the [neutral-domain walkthroughs](site:neutral-domains.html).\n\n"
     for application in applications:
         name = application["id"]
         gallery += f"- [{application['title']}](site:apps/{name}.html): {application['description']}\n"

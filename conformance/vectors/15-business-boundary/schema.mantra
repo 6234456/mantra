@@ -1,0 +1,4 @@
+(schema conformance/business
+  (reconcile match-value "Boundary" 1.005 1 {:tolerance 0.005})
+  (check caution "Caution" false {:severity :warning})
+  (check required-check "Required check" false))

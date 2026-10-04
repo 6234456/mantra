@@ -1,0 +1,7 @@
+site-id,month-id,generation,demand,reported-closing
+A,P1,30,90,0
+A,P2,100,70,20
+A,P3,20,100,0
+B,P1,80,60,0
+B,P2,40,60,0
+B,P3,10,0,0

@@ -1,0 +1,22 @@
+{
+  "succeeded": true,
+  "validationPassed": true,
+  "values": {
+    "anchored-end@P1": true,
+    "anchored-end@P2": true,
+    "anchored-end@P3": true,
+    "closing@P1": {
+      "n": "1"
+    },
+    "closing@P2": {
+      "n": "2"
+    },
+    "closing@P3": {
+      "n": "3"
+    },
+    "closing@*": {
+      "n": "3"
+    }
+  },
+  "diagnostics": []
+}

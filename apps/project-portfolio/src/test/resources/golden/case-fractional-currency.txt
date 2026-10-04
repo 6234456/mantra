@@ -1,0 +1,221 @@
+Supplied project portfolio
+Fictional selected proposals and capacity limits
+==========================
+Mandant: Project portfolio: Half-cent proposal amounts
+Zeitraum: 2026 showcase
+Berechnungsschema: Supplied project portfolio v1.0.0 [project.portfolio/supplied-plan]
+
+Aufbau der Berechnung
+  Hauptlinie 1: Proposed and selected amounts [1]
+  Hauptlinie 2: Selected department totals [2]
+  Hauptlinie 3: Portfolio limits and crossfoot [3]
+
+[1] Proposed and selected amounts
+    Hauptlinie › 1 Proposed and selected amounts
+Bezeichnung                                      | Fictional tooling upgrade | Fictional service refresh | Fictional prototype |   Gesamt |
+-------------------------------------------------+---------------------------+---------------------------+---------------------+----------+--
+Proposed cost                                    |                     80,01 |                     50,00 |               40,00 |   170,01 |
+Proposed benefit                                 |                    140,01 |                     75,00 |               68,00 |   283,01 |
+Proposed hours                                   |                        70 |                        50 |                  60 |      180 |
+Supplied selection                               |                         ✓ |                         – |                   ✓ |          |
+Selected cost                                    |                     80,01 |                      0,00 |               40,00 |   120,01 |
+Selected benefit                                 |                    140,01 |                      0,00 |               68,00 |   208,01 |
+Selected hours                                   |                        70 |                         0 |                  60 |      130 |
+Selected benefit less cost                       |                     60,00 |                      0,00 |               28,00 |    88,00 |
+Proposal cost, benefit and hours are nonnegative |                         ✓ |                         ✓ |                   ✓ |          | ✓
+Benefit / selected cost                          |                  1,749906 |                 undefined |            1,700000 | 1,733272 |
+
+[2] Selected department totals
+    Hauptlinie › 2 Selected department totals
+Bezeichnung                | Fictional delivery team | Fictional research team |   Gesamt
+---------------------------+-------------------------+-------------------------+---------
+Selected cost              |                   80,01 |                   40,00 |   120,01
+Selected benefit           |                  140,01 |                   68,00 |   208,01
+Selected hours             |                      70 |                      60 |      130
+Selected benefit less cost |                   60,00 |                   28,00 |    88,00
+Benefit / selected cost    |                1,749906 |                1,700000 | 1,733272
+
+[3] Portfolio limits and crossfoot
+    Hauptlinie › 3 Portfolio limits and crossfoot
+Bezeichnung                                           | Hauptspalte |
+------------------------------------------------------+-------------+--
+Selected cost                                         |      120,01 |
+Selected benefit                                      |      208,01 |
+Selected hours                                        |         130 |
+Selected benefit less cost                            |       88,00 |
+Cost limit less selected cost                         |        0,00 |
+Hours available less selected hours                   |          10 |
+Selection fits supplied cost limit                    |           ✓ | ✓
+Selection fits supplied hour limit                    |           ✓ | ✓
+Selected cost agrees with independent fictional total |        0,00 | ✓
+
+Berechnungsnachweis
+-------------------
+1/1 Σ Proposed cost (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 80.01 included; [proposal=B] 50.00 included; [proposal=C] 40.00 included → 170.01 = 170,01
+1/1 Proposed cost [Fictional tooling upgrade]
+    Formel: (decimal/round proposal.cost currency-scale)
+    Rechenweg: (decimal/round proposal.cost currency-scale) = 80.01 = 80,01
+1/1 Proposed cost [Fictional service refresh]
+    Formel: (decimal/round proposal.cost currency-scale)
+    Rechenweg: (decimal/round proposal.cost currency-scale) = 50.00 = 50,00
+1/1 Proposed cost [Fictional prototype]
+    Formel: (decimal/round proposal.cost currency-scale)
+    Rechenweg: (decimal/round proposal.cost currency-scale) = 40.00 = 40,00
+1/2 Σ Proposed benefit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 140.01 included; [proposal=B] 75.00 included; [proposal=C] 68.00 included → 283.01 = 283,01
+1/2 Proposed benefit [Fictional tooling upgrade]
+    Formel: (decimal/round proposal.benefit currency-scale)
+    Rechenweg: (decimal/round proposal.benefit currency-scale) = 140.01 = 140,01
+1/2 Proposed benefit [Fictional service refresh]
+    Formel: (decimal/round proposal.benefit currency-scale)
+    Rechenweg: (decimal/round proposal.benefit currency-scale) = 75.00 = 75,00
+1/2 Proposed benefit [Fictional prototype]
+    Formel: (decimal/round proposal.benefit currency-scale)
+    Rechenweg: (decimal/round proposal.benefit currency-scale) = 68.00 = 68,00
+1/3 Σ Proposed hours (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 70 included; [proposal=B] 50 included; [proposal=C] 60 included → 180 = 180
+1/5 Σ Selected cost (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 80.01 included; [proposal=B] 0 included; [proposal=C] 40.00 included → 120.01 = 120,01
+1/5 Selected cost [Fictional tooling upgrade]
+    Formel: (if proposal.selected proposed-cost 0)
+    Rechenweg: (if proposal.selected proposed-cost 0) = 80.01 → gewählter Zweig: proposed-cost = 80,01
+1/5 Selected cost [Fictional service refresh]
+    Formel: (if proposal.selected proposed-cost 0)
+    Rechenweg: (if proposal.selected proposed-cost 0) = 0 → gewählter Zweig: 0 = 0,00
+1/5 Selected cost [Fictional prototype]
+    Formel: (if proposal.selected proposed-cost 0)
+    Rechenweg: (if proposal.selected proposed-cost 0) = 40.00 → gewählter Zweig: proposed-cost = 40,00
+1/6 Σ Selected benefit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 140.01 included; [proposal=B] 0 included; [proposal=C] 68.00 included → 208.01 = 208,01
+1/6 Selected benefit [Fictional tooling upgrade]
+    Formel: (if proposal.selected proposed-benefit 0)
+    Rechenweg: (if proposal.selected proposed-benefit 0) = 140.01 → gewählter Zweig: proposed-benefit = 140,01
+1/6 Selected benefit [Fictional service refresh]
+    Formel: (if proposal.selected proposed-benefit 0)
+    Rechenweg: (if proposal.selected proposed-benefit 0) = 0 → gewählter Zweig: 0 = 0,00
+1/6 Selected benefit [Fictional prototype]
+    Formel: (if proposal.selected proposed-benefit 0)
+    Rechenweg: (if proposal.selected proposed-benefit 0) = 68.00 → gewählter Zweig: proposed-benefit = 68,00
+1/7 Σ Selected hours (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 70 included; [proposal=B] 0 included; [proposal=C] 60 included → 130 = 130
+1/7 Selected hours [Fictional tooling upgrade]
+    Formel: (if proposal.selected proposed-hours 0)
+    Rechenweg: (if proposal.selected proposed-hours 0) = 70 → gewählter Zweig: proposed-hours = 70
+1/7 Selected hours [Fictional service refresh]
+    Formel: (if proposal.selected proposed-hours 0)
+    Rechenweg: (if proposal.selected proposed-hours 0) = 0 → gewählter Zweig: 0 = 0
+1/7 Selected hours [Fictional prototype]
+    Formel: (if proposal.selected proposed-hours 0)
+    Rechenweg: (if proposal.selected proposed-hours 0) = 60 → gewählter Zweig: proposed-hours = 60
+1/8 Σ Selected benefit less cost (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [proposal=A] 60.00 included; [proposal=B] 0 included; [proposal=C] 28.00 included → 88.00 = 88,00
+1/8 Selected benefit less cost [Fictional tooling upgrade]
+    Formel: (- selected-benefit selected-cost)
+    Rechenweg: (- selected-benefit selected-cost) = 60.00 = 60,00
+1/8 Selected benefit less cost [Fictional service refresh]
+    Formel: (- selected-benefit selected-cost)
+    Rechenweg: (- selected-benefit selected-cost) = 0 = 0,00
+1/8 Selected benefit less cost [Fictional prototype]
+    Formel: (- selected-benefit selected-cost)
+    Rechenweg: (- selected-benefit selected-cost) = 28.00 = 28,00
+1/9 Proposal cost, benefit and hours are nonnegative [Fictional tooling upgrade]
+    Formel: (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0))
+    Rechenweg: (>= proposed-cost 0) = true → (>= proposed-benefit 0) = true → (>= proposed-hours 0) = true → (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0)) = true = ✓
+1/9 Proposal cost, benefit and hours are nonnegative [Fictional service refresh]
+    Formel: (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0))
+    Rechenweg: (>= proposed-cost 0) = true → (>= proposed-benefit 0) = true → (>= proposed-hours 0) = true → (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0)) = true = ✓
+1/9 Proposal cost, benefit and hours are nonnegative [Fictional prototype]
+    Formel: (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0))
+    Rechenweg: (>= proposed-cost 0) = true → (>= proposed-benefit 0) = true → (>= proposed-hours 0) = true → (and (>= proposed-cost 0) (>= proposed-benefit 0) (>= proposed-hours 0)) = true = ✓
+1/10 Σ Benefit / selected cost (Gesamt)
+    Formel: Σ selected-benefit ÷ Σ selected-cost
+    Rechenweg: [proposal=A] 140.01 / 80.01 included; [proposal=B] 0 / 0 included; [proposal=C] 68.00 / 40.00 included → Σ selected-benefit = 208.01; Σ selected-cost = 120.01 → 208.01 ÷ 120.01 (round 6 half-up) = 1.733272 = 1,733272
+1/10 Benefit / selected cost [Fictional tooling upgrade]
+    Formel: (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))
+    Rechenweg: (= selected-cost 0) = false → (decimal/divide selected-benefit selected-cost 6) = 1.749906 → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = 1.749906 → gewählter Zweig: (decimal/divide selected-benefit selected-cost 6) = 1,749906
+1/10 Benefit / selected cost [Fictional service refresh]
+    Formel: (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))
+    Rechenweg: (= selected-cost 0) = true → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = nil → gewählter Zweig: nil = undefined
+1/10 Benefit / selected cost [Fictional prototype]
+    Formel: (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6))
+    Rechenweg: (= selected-cost 0) = false → (decimal/divide selected-benefit selected-cost 6) = 1.700000 → (if (= selected-cost 0) nil (decimal/divide selected-benefit selected-cost 6)) = 1.700000 → gewählter Zweig: (decimal/divide selected-benefit selected-cost 6) = 1,700000
+2/1 Σ Selected cost (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [department=DELIVERY] 80.01 included; [department=RESEARCH] 40.00 included → 120.01 = 120,01
+2/1 Selected cost [Fictional delivery team]
+    Formel: (dim/rollup all.selected-cost relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-cost relation_proposal department.key) = 80.01 = 80,01
+2/1 Selected cost [Fictional research team]
+    Formel: (dim/rollup all.selected-cost relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-cost relation_proposal department.key) = 40.00 = 40,00
+2/2 Σ Selected benefit (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [department=DELIVERY] 140.01 included; [department=RESEARCH] 68.00 included → 208.01 = 208,01
+2/2 Selected benefit [Fictional delivery team]
+    Formel: (dim/rollup all.selected-benefit relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-benefit relation_proposal department.key) = 140.01 = 140,01
+2/2 Selected benefit [Fictional research team]
+    Formel: (dim/rollup all.selected-benefit relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-benefit relation_proposal department.key) = 68.00 = 68,00
+2/3 Σ Selected hours (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [department=DELIVERY] 70 included; [department=RESEARCH] 60 included → 130 = 130
+2/3 Selected hours [Fictional delivery team]
+    Formel: (dim/rollup all.selected-hours relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-hours relation_proposal department.key) = 70 = 70
+2/3 Selected hours [Fictional research team]
+    Formel: (dim/rollup all.selected-hours relation_proposal department.key)
+    Rechenweg: (dim/rollup all.selected-hours relation_proposal department.key) = 60 = 60
+2/4 Σ Selected benefit less cost (Gesamt)
+    Formel: Σ contributions
+    Rechenweg: Σ contributions: [department=DELIVERY] 60.00 included; [department=RESEARCH] 28.00 included → 88.00 = 88,00
+2/4 Selected benefit less cost [Fictional delivery team]
+    Formel: (- department-benefit department-cost)
+    Rechenweg: (- department-benefit department-cost) = 60.00 = 60,00
+2/4 Selected benefit less cost [Fictional research team]
+    Formel: (- department-benefit department-cost)
+    Rechenweg: (- department-benefit department-cost) = 28.00 = 28,00
+2/5 Σ Benefit / selected cost (Gesamt)
+    Formel: Σ department-benefit ÷ Σ department-cost
+    Rechenweg: [department=DELIVERY] 140.01 / 80.01 included; [department=RESEARCH] 68.00 / 40.00 included → Σ department-benefit = 208.01; Σ department-cost = 120.01 → 208.01 ÷ 120.01 (round 6 half-up) = 1.733272 = 1,733272
+2/5 Benefit / selected cost [Fictional delivery team]
+    Formel: (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6))
+    Rechenweg: (= department-cost 0) = false → (decimal/divide department-benefit department-cost 6) = 1.749906 → (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6)) = 1.749906 → gewählter Zweig: (decimal/divide department-benefit department-cost 6) = 1,749906
+2/5 Benefit / selected cost [Fictional research team]
+    Formel: (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6))
+    Rechenweg: (= department-cost 0) = false → (decimal/divide department-benefit department-cost 6) = 1.700000 → (if (= department-cost 0) nil (decimal/divide department-benefit department-cost 6)) = 1.700000 → gewählter Zweig: (decimal/divide department-benefit department-cost 6) = 1,700000
+3/1 Selected cost
+    Formel: (dim/sum all.selected-cost)
+    Rechenweg: (dim/sum all.selected-cost) = 120.01 = 120,01
+3/2 Selected benefit
+    Formel: (dim/sum all.selected-benefit)
+    Rechenweg: (dim/sum all.selected-benefit) = 208.01 = 208,01
+3/3 Selected hours
+    Formel: (dim/sum all.selected-hours)
+    Rechenweg: (dim/sum all.selected-hours) = 130 = 130
+3/4 Selected benefit less cost
+    Formel: (- portfolio-benefit portfolio-cost)
+    Rechenweg: (- portfolio-benefit portfolio-cost) = 88.00 = 88,00
+3/5 Cost limit less selected cost
+    Formel: (- budget-limit portfolio-cost)
+    Rechenweg: (- budget-limit portfolio-cost) = 0.00 = 0,00
+3/6 Hours available less selected hours
+    Formel: (- hour-limit portfolio-hours)
+    Rechenweg: (- hour-limit portfolio-hours) = 10 = 10
+3/7 Selection fits supplied cost limit
+    Formel: (<= (decimal/round portfolio-cost currency-scale) budget-limit)
+    Rechenweg: (decimal/round portfolio-cost currency-scale) = 120.01 → (<= (decimal/round portfolio-cost currency-scale) budget-limit) = true = ✓
+3/8 Selection fits supplied hour limit
+    Formel: (<= portfolio-hours hour-limit)
+    Rechenweg: (<= portfolio-hours hour-limit) = true = ✓
+3/9 Selected cost agrees with independent fictional total
+    Formel: (decimal/round portfolio-cost currency-scale) ≈ reported-cost (± 0)
+    Rechenweg: (decimal/round portfolio-cost currency-scale) = 120.01; reported-cost = 120.01 → 120.01 − 120.01 = 0.00 (± 0) = 0,00

@@ -1,0 +1,6 @@
+(parameters energy.budget/2026-Q1
+  {:for "energy.budget/monthly-plan" :label "Fictional Q1 tariffs"
+   :valid-from "2026-01-01" :valid-until "2026-04-01"}
+  (value purchase-rate 0.28 {:reference "Invented showcase tariff"})
+  (value export-rate 0.10 {:reference "Invented showcase tariff"})
+  (value currency-scale 2))

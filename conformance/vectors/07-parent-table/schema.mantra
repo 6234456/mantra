@@ -1,0 +1,6 @@
+(schema conformance/parent
+  (dimension region {:members [:G1 :G2]})
+  (input records :table {:columns {:id :keyword :zone :keyword :amount :decimal}})
+  (dimension team {:from records :key :id :parent region :parent-key :zone})
+  (line worth "Worth" team.amount {:per team :op :info})
+  (line rolled "Rolled" (dim/rollup worth relation_team region.key) {:per region :op :info}))

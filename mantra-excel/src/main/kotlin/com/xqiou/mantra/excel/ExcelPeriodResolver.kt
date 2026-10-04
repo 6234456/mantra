@@ -25,7 +25,7 @@ internal fun ExcelWorkbookBuilder.previousReference(id: String, dims: List<Strin
     val shifted = coord.toMutableList().also { it[index] = ordered[offset - 1] }
     fun preserveNil(value: X): X = when (value) {
         is X.Scalar -> Ex.iff(Ex.cmp("=", value, Ex.EMPTY), Ex.EMPTY, value)
-        is X.MapX -> X.MapX(value.keys, value.values.map(::preserveNil))
+        is X.MapX -> X.MapX(value.keys, value.values.map(::preserveNil), value.liveKeys)
         is X.Range -> X.MapX(value.keys, value.cells.map(::preserveNil))
         else -> value
     }

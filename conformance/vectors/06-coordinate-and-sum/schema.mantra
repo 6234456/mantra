@@ -1,0 +1,5 @@
+(schema conformance/members
+  (dimension region {:members [:A :B]})
+  (input balance :decimal {:per region})
+  (line member-index "Index" region.index {:per region :op :info})
+  (line combined "Combined" (dim/sum balance) {:op :info}))
