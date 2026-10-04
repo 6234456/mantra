@@ -1,0 +1,4 @@
+;; Alternative precision for member unit costs; weighted cross-totals retain explicit four-place rounding.
+(parameters cost.accounting/unit-precision
+  {:for "cost.accounting/product-cost" :label "Six-place member unit costs"}
+  (value unit-scale 6))

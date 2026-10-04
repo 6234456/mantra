@@ -123,7 +123,10 @@ class ExcelWorkbook internal constructor(
         )
     }
 
-    /** A1 address (`'Sheet'!$C$5`) of a node's cell for a member coordinate. */
+    /**
+     * A1 address (`'Sheet'!$C$5`) of a node's cell for a member coordinate.
+     * `aggregate.<nodeId>` with an empty coordinate addresses the first visible cross-total cell.
+     */
     fun address(nodeId: String, coord: Coord = emptyList()): String? = nodeAddresses[nodeId]?.get(coord)
 
     /** A1 address of a table-input cell: row identified by the member key of a dimension drawn from the table. */

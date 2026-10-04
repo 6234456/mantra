@@ -60,6 +60,19 @@ jobs:
           python3 apps/ifrs-impairment/verify_expected.py --case no-impairment --verify apps/ifrs-impairment/build/out/case-no-impairment-values.json
           python3 apps/cost-accounting/verify_expected.py --verify apps/cost-accounting/build/out/case-demo-values.json
           python3 apps/cost-accounting/verify_expected.py --zero-pools --verify apps/cost-accounting/build/out/case-zero-pools-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --scale 2 --verify apps/ifrs-impairment/build/out/case-demo-cent-precision-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case custom-weight --scale 2 --verify apps/ifrs-impairment/build/out/case-custom-weight-cent-precision-values.json
+          python3 apps/ifrs-impairment/verify_expected.py --case no-impairment --scale 2 --verify apps/ifrs-impairment/build/out/case-no-impairment-cent-precision-values.json
+          python3 apps/cost-accounting/verify_expected.py --unit-scale 6 --verify apps/cost-accounting/build/out/case-demo-unit-precision-values.json
+          python3 apps/cost-accounting/verify_expected.py --zero-pools --unit-scale 6 --verify apps/cost-accounting/build/out/case-zero-pools-unit-precision-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --verify apps/ifrs-income-taxes/build/out/case-demo-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --verify apps/ifrs-income-taxes/build/out/case-demo-precision-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case loss --verify apps/ifrs-income-taxes/build/out/case-loss-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case loss --verify apps/ifrs-income-taxes/build/out/case-loss-precision-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case zero-profit --verify apps/ifrs-income-taxes/build/out/case-zero-profit-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case zero-profit --verify apps/ifrs-income-taxes/build/out/case-zero-profit-precision-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case unreconciled --verify apps/ifrs-income-taxes/build/out/case-unreconciled-values.json
+          python3 apps/ifrs-income-taxes/verify_expected.py --case unreconciled --verify apps/ifrs-income-taxes/build/out/case-unreconciled-precision-values.json
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test

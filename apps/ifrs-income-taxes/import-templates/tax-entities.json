@@ -1,0 +1,9 @@
+{
+  "name": "tax-entities",
+  "format": "csv",
+  "options": {
+    "input": "tax-entities",
+    "delimiter": ";",
+    "decimal": ","
+  }
+}

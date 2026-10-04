@@ -5,6 +5,7 @@ import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Formula
 import com.xqiou.mantra.core.model.FunctionDecl
+import com.xqiou.mantra.core.model.InputCellLocation
 import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Item
 import com.xqiou.mantra.core.model.SourceBinding
@@ -52,6 +53,7 @@ object CaseReader {
         val inputs = linkedMapOf<String, Value>()
         val params = linkedMapOf<String, Value>()
         val inputLocations = linkedMapOf<String, SourceLocation>()
+        val inputCells = linkedMapOf<String, List<InputCellLocation>>()
         val paramLocations = linkedMapOf<String, SourceLocation>()
         val extensions = linkedMapOf<String, MutableList<Item>>()
         val formulaBindings = linkedMapOf<String, Formula>()
@@ -60,7 +62,7 @@ object CaseReader {
         root.values.drop(index).forEach { form ->
             val list = form as? DslForm.Sequence
             when (list?.listHead) {
-                "inputs" -> readValues(document, list, sink, "inputs", inputs, inputLocations)
+                "inputs" -> readValues(document, list, sink, "inputs", inputs, inputLocations, inputCells)
                 "params" -> readValues(document, list, sink, "params", params, paramLocations)
                 "sources" -> list.values.drop(1).forEach { declaration ->
                     val source = declaration as? DslForm.Sequence
@@ -141,7 +143,7 @@ object CaseReader {
         val schemaId = (meta["schema"] as? Value.Text)?.value
         return CaseData(
             id, schemaId, meta, inputs, params, extensions, formulaBindings, functions, source.name,
-            inputLocations, paramLocations, sources = sources,
+            inputLocations, paramLocations, sources = sources, inputCells = inputCells,
         )
     }
 
@@ -152,16 +154,41 @@ object CaseReader {
         what: String,
         target: MutableMap<String, Value>,
         locations: MutableMap<String, SourceLocation>,
+        cells: MutableMap<String, List<InputCellLocation>>? = null,
     ) {
         list.values.drop(1).forEach { mapForm ->
             document.options(mapForm, sink, what).forEach { (key, form) ->
                 document.literal(form, sink, "$what :$key")?.let { value ->
                     locations[key] = document.location(form)
+                    cells?.set(key, cellLocations(document, form))
                     if (target.put(key, value) != null) {
                         sink.error("MANTRA-CASE-DUPLICATE", "Duplicate $what entry :$key", document.location(form))
                     }
                 }
             }
         }
+    }
+
+    private fun cellLocations(document: Document, form: DslForm): List<InputCellLocation> = buildList {
+        fun walk(value: DslForm, coord: List<String>) {
+            add(InputCellLocation(coord, null, null, document.location(value)))
+            val sequence = value as? DslForm.Sequence ?: return
+            when (sequence.kind) {
+                DslFormSequenceKind.MAP -> sequence.values.chunked(2).filter { it.size == 2 }.forEach { (key, item) ->
+                    val member = key.keyword ?: key.string ?: key.number?.toPlainString()
+                    if (member != null) walk(item, coord + member)
+                }
+                DslFormSequenceKind.VECTOR -> sequence.values.forEachIndexed { index, row ->
+                    add(InputCellLocation(coord, index, null, document.location(row)))
+                    val fields = (row as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.MAP }
+                    fields?.values?.chunked(2)?.filter { it.size == 2 }?.forEach { (key, item) ->
+                        val column = key.keyword ?: key.string
+                        if (column != null) add(InputCellLocation(coord, index, column, document.location(item)))
+                    }
+                }
+                else -> Unit
+            }
+        }
+        walk(form, emptyList())
     }
 }

@@ -10,8 +10,16 @@ independently authored fictional facts for Demo Facilities Ltd. `case-demo.mantr
 units of shared facilities across North, Central and South using weighted carrying values
 120/360/780. Largest-remainder allocation produces 20/60/131; the resulting impairment losses
 are 0/30/91 and total 121. `case-custom-weight.mantra` uses squared useful lives and totals 133;
-`case-no-impairment.mantra` covers zero loss. `verify_expected.py` recomputes these amounts using
-Fraction arithmetic, independently of Mantra and its XLSX formulas.
+`case-no-impairment.mantra` covers zero loss. `params-cent-precision.mantra` repeats every case with
+cent allocations: the main case shares 20.09/60.29/130.62 and total impairment 120.91.
+`verify_expected.py --scale 2` recomputes this variant, while the default verifies whole units.
+The script uses Fraction arithmetic independently of Mantra and its XLSX formulas.
+
+The CGU table requires at least one record. Declarative checks require nonnegative CGU carrying
+amounts and positive remaining useful lives. Every CGU's recognised loss is reconciled to its
+allocation with an explicit 0.01 tolerance. App acceptance tests also demonstrate nonblocking
+negative-amount and missing-table findings. These checks supplement the simplified scheme; they
+do not implement the complete recognition and measurement requirements of IAS 36.
 
 The application supplies recoverable amounts and simplifies the loss-allocation rules. It does
 not implement a complete valuation or all IAS 36 requirements. These simplifications are also

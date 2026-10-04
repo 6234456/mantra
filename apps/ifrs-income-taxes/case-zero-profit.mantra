@@ -1,0 +1,12 @@
+;; Independently authored fictional facts. No published IFRS example data is reproduced.
+(case ias12-zero-profit
+  {:schema "ifrs.ias12/rate-reconciliation"
+   :layout "ifrs.ias12/rate-reconciliation-paper"
+   :title "Undefined effective rate at zero profit" :subject "Demonstration Group"
+   :period "2026" :prepared-by "Mantra acceptance demonstration"
+   :reference "Project-authored fictional facts"
+   :expected-business [{:code "MANTRA-AGGREGATE-ZERO-DENOMINATOR" :node "effective-tax-rate"
+                        :severity :warning}]}
+  (inputs
+    {:tax-entities [{:id :North :name "Zero-profit entity" :profit-before-tax 0 :applicable-rate 0.25 :booked-tax 0}]
+     :tax-adjustments [{:id :N1 :entity-id :North :label "No adjustment" :effect 0}]}))

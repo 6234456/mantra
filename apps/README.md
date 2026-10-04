@@ -7,15 +7,15 @@ published as Maven library artifacts.
 
 | Application | Gradle project | Demonstrated capabilities |
 | --- | --- | --- |
-| [German income tax](de-est/README.md) | `:apps:de-est` | Staffel, conditional members, choices, parameter layers, explicit rounding |
-| [IFRS impairment](ifrs-impairment/README.md) | `:apps:ifrs-impairment` | Allocation, member matrices, choices, formula bindings |
-| [Cost accounting](cost-accounting/README.md) | `:apps:cost-accounting` | Table inputs, parent relations, allocation, weighted costs and reconciliation |
+| [German income tax](de-est/README.md) | `:apps:de-est` | Staffel, conditional members, choices, parameters, explicit rounding, checks and conditional requirements |
+| [IFRS impairment](ifrs-impairment/README.md) | `:apps:ifrs-impairment` | Allocation, member matrices, choices, formula bindings, checks and reconciliation |
+| [Cost accounting](cost-accounting/README.md) | `:apps:cost-accounting` | Table inputs, parent relations, allocation, weighted ratio totals, checks and reconciliation |
+| [IFRS income taxes](ifrs-income-taxes/README.md) | `:apps:ifrs-income-taxes` | Tax reconciliation, weighted rates, cell requirements and nonblocking review findings |
 
 From the repository root run `./gradlew check`. Papers and workbooks are generated under each
 application's `build/out/`. Every supplied case and parameter variant gets HTML/Text golden checks
 and scalar-by-scalar XLSX recalculation checks. The generic workbench opens each case without domain
-adapters. See [M0 work packages](../docs/milestones/m0-work-packages.md) for completion evidence and
-remaining work.
+adapters. See the [roadmap](../docs/roadmap.md) for milestone requirements and completion evidence.
 
 To review an intentional rendering change, run `MANTRA_UPDATE_GOLDEN=1 ./gradlew test` and inspect
 the changes under `apps/*/src/test/resources/golden/` and the workbench golden directory. Never use

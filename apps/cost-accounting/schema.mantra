@@ -3,28 +3,28 @@
 (schema cost.accounting/product-cost
   {:title "Product cost by manufacturing order"
    :subtitle "Primary cost elements, secondary allocations, order costs and product weighted averages"
-   :version "0.1"
+   :version "0.2"
    :preset :ifrs-schedule
    :headline total-variance
    :group-titles {:source-data "Source data"}
-   :mainline [cost-sources order-costs product-costs reconciliation]}
+   :mainline [cost-sources order-costs product-costs cost-reconciliation]}
 
   ;; Primary postings include direct order debits and pooled expense accounts. Secondary postings
   ;; represent internal activity allocation and overhead assessment to be assigned by a cost driver.
   (input primary-postings :table
     {:label "Primary cost element postings" :group :source-data
      :columns {:cost-element :text :expense-account :text :mode :keyword
-               :order-id :keyword? :amount :decimal}
+               :order-id {:type :keyword? :required-when (= row.mode :direct)} :amount :decimal}
      :references {:order-id order}})
   (input secondary-postings :table
     {:label "Secondary cost element postings"
      :columns {:cost-element :text :source-cost-center :text :amount :decimal}})
   (input orders :table
-    {:label "Manufacturing orders"
+    {:label "Manufacturing orders" :min-rows 1
      :columns {:id :keyword :name :text :product-id :keyword :quantity :decimal
                :allocation-base :decimal :standard-unit-cost :decimal}})
   (input products :table
-    {:label "Products"
+    {:label "Products" :min-rows 1
      :columns {:id :keyword :name :text}})
   (param allocation-scale 2 {:label "Currency precision for cost allocation"})
   (param unit-scale 4 {:label "Precision of unit-cost comparison"})
@@ -42,12 +42,15 @@
       (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings)))
     (line secondary-pool "Secondary cost elements to allocate"
       (sum (map (fn [posting] posting.amount) secondary-postings)))
-    (total source-cost-total "Total actual costs to assign"))
+    (total source-cost-total "Total actual costs to assign")
+    (check cost-pool-basis "A nonzero pool has a positive allocation basis"
+      (or (and (= primary-pool 0) (= secondary-pool 0)) (> (dim/sum all.allocation-base) 0))))
 
   ;; The same allocation base is applied to both pools. Direct primary costs retain their original
   ;; order attribution; pooled primary and secondary costs are separately visible in the audit trail.
   (section order-costs "Actual and standard cost by manufacturing order" {:per order :display :schedule}
     (line allocation-base "Allocation base" order.allocation-base {:op :info :format :number})
+    (check order-base-nonnegative "Order allocation base is nonnegative" (>= allocation-base 0))
     (line direct-primary "Direct primary cost elements"
       (sum (map (fn [posting]
                   (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0))
@@ -80,21 +83,23 @@
       (dim/rollup all.standard-order-cost relation_order product.key) {:op :info})
     (line actual-weighted-unit "Weighted average actual unit cost"
       (decimal/divide product-actual-cost product-quantity unit-scale)
-      {:op :info :format :number :precision 4 :aggregate false})
+      {:op :info :format :number :precision 4
+       :aggregate {:ratio [product-actual-cost product-quantity] :round [4 :half-up]}})
     (line standard-weighted-unit "Weighted average standard unit cost"
       (decimal/divide product-standard-cost product-quantity unit-scale)
-      {:op :info :format :number :precision 4 :aggregate false})
+      {:op :info :format :number :precision 4
+       :aggregate {:ratio [product-standard-cost product-quantity] :round [4 :half-up]}})
     (line product-variance "Actual less standard cost"
       (- product-actual-cost product-standard-cost) {:op :info :class :variance}))
 
-  (section reconciliation "Cost flow reconciliation" {:display :schedule}
+  (section cost-reconciliation "Cost flow reconciliation" {:display :schedule}
     (line all-order-cost "Actual cost assigned to orders" (dim/sum all.actual-order-cost))
     (line all-product-cost "Actual cost aggregated to products" (dim/sum all.product-actual-cost)
       {:op :info})
-    (line unassigned-cost "Source costs less assigned order costs"
-      (- source-cost-total all-order-cost) {:op :info})
-    (line product-crossfoot "Order costs less product costs"
-      (- all-order-cost all-product-cost) {:op :info})
+    (reconcile unassigned-cost "Source costs less assigned order costs"
+      source-cost-total all-order-cost {:tolerance 0.01})
+    (reconcile product-crossfoot "Order costs less product costs"
+      all-order-cost all-product-cost {:tolerance 0.01})
     (line all-standard-cost "Standard cost for completed output" (dim/sum all.product-standard-cost)
       {:op :info})
     (line total-variance "Actual less standard cost"

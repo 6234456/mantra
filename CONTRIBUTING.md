@@ -34,6 +34,20 @@ Run the checks relevant to a change and the complete verification required by CI
 needs meaningful tests of its behavior, including independent acceptance values and formula coverage;
 small documentation corrections do not need new tests.
 
+After a deliberate contract change, regenerate application papers and workbench fixtures with
+`MANTRA_UPDATE_GOLDEN=1 ./gradlew --no-daemon test`. Regenerate the Compare fixture through the
+CLI so its content revision stays authentic:
+
+```sh
+./gradlew --no-daemon :mantra-cli:installDist
+mantra-cli/build/install/mantra/bin/mantra diff apps/de-est/schema.mantra \
+  --case apps/de-est/case-mustermann.mantra --layout apps/de-est/layout.mantra \
+  --variant-parameters apps/de-est/params-2026.mantra \
+  --out mantra-workbench/src/test/resources/golden/de-est-case-mustermann-552b3ca5/compare-2026.json
+```
+
+Review the changed expected values and run the checks again without `MANTRA_UPDATE_GOLDEN`.
+
 ## Design and boundaries
 
 - Read [architecture](docs/architecture.md), the [engine/application contract](docs/engine-application-boundary.md)

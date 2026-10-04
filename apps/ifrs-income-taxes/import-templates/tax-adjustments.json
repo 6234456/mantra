@@ -1,0 +1,9 @@
+{
+  "name": "tax-adjustments",
+  "format": "csv",
+  "options": {
+    "input": "tax-adjustments",
+    "delimiter": ";",
+    "decimal": ","
+  }
+}

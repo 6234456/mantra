@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Enforce the M0 executed-test floors after Gradle has produced JUnit XML reports."""
+"""Enforce the milestone executed-test floors after Gradle has produced JUnit XML reports."""
 
 from pathlib import Path
 from collections.abc import Mapping
@@ -8,15 +8,16 @@ import xml.etree.ElementTree as ET
 
 
 MINIMUM_TESTS = {
-    'mantra-core': 53,
-    'mantra-render': 18,
-    'mantra-excel': 12,
-    'mantra-workbench': 38,
+    'mantra-core': 82,
+    'mantra-render': 23,
+    'mantra-excel': 21,
+    'mantra-workbench': 48,
     'mantra-server': 19,
     'mantra-cli': 2,
-    'apps/de-est': 12,
-    'apps/ifrs-impairment': 7,
-    'apps/cost-accounting': 11,
+    'apps/de-est': 14,
+    'apps/ifrs-impairment': 9,
+    'apps/cost-accounting': 14,
+    'apps/ifrs-income-taxes': 10,
     'benchmarks': 1,
 }
 
@@ -62,4 +63,4 @@ if __name__ == '__main__':
     if findings:
         print('\n'.join(findings), file=sys.stderr)
         sys.exit(1)
-    print('Test counts passed: every module meets its M0 minimum with no test failures or errors')
+    print('Test counts passed: every module meets its milestone minimum with no test failures or errors')

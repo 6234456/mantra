@@ -3,6 +3,7 @@ package com.xqiou.mantra.core.engine
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.DimensionDecl
 import com.xqiou.mantra.core.model.FieldItem
@@ -13,6 +14,7 @@ import com.xqiou.mantra.core.model.Item
 import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.Op
+import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
@@ -66,7 +68,7 @@ internal class Planner(private val sink: DiagnosticSink) {
     private val vertices = linkedMapOf<String, Vertex>()
     private val inputDecls = linkedMapOf<String, InputDecl>()
     private val fieldDims = hashMapOf<String, List<String>>()
-    private val scopes = hashMapOf<List<String>, DslAnalysisScope>()
+    private val scopes = hashMapOf<Pair<List<String>, String?>, DslAnalysisScope>()
     private val relationRoots: Map<String, String> get() = dimensions.values
         .filter { it.parentDimension != null }
         .associate { "relation_${it.id}" to it.id }
@@ -115,7 +117,9 @@ internal class Planner(private val sink: DiagnosticSink) {
             val layers = buildList {
                 add(ParameterLayer("schema", decl.value, reference = decl.presentation.reference))
                 parameterSets.forEach { set ->
-                    set.values[decl.id]?.let { add(ParameterLayer("parameters", it, set.id, set.references[decl.id])) }
+                    set.values[decl.id]?.let { value ->
+                        add(ParameterLayer("parameters", value, set.id, set.references[decl.id]))
+                    }
                 }
                 add(ParameterLayer("case", case.params[decl.id], declared = decl.id in case.params))
             }
@@ -132,6 +136,11 @@ internal class Planner(private val sink: DiagnosticSink) {
             register(InputVertex(decl, canonical(decl.per ?: emptyList(), decl.location)))
         }
         dimensions.values.forEach { register(DimensionVertex(it)) }
+        vertices.values.filterIsInstance<InputVertex>().toList().forEach { input ->
+            if (input.decl.requiredWhen != null || input.decl.columns.any { it.requiredWhen != null }) {
+                register(InputValidationVertex(input))
+            }
+        }
         if (sink.hasErrors) return null
 
         // 3. Types, definitions and compilation.
@@ -251,6 +260,16 @@ internal class Planner(private val sink: DiagnosticSink) {
                     lastTotal = child.id
                 }
                 is NoteItem -> resolved += ResolvedNote(child)
+                is CheckItem -> {
+                    val checkDims = canonical(child.per ?: dims, child.location)
+                    register(CheckVertex(child, checkDims).also { it.guards += activeGuards })
+                    resolved += ResolvedNode(child, checkDims, 0)
+                }
+                is ReconcileItem -> {
+                    val checkDims = canonical(child.per ?: dims, child.location)
+                    register(ReconcileVertex(child, checkDims).also { it.guards += activeGuards })
+                    resolved += ResolvedNode(child, checkDims, 0)
+                }
             }
         }
         val result = ResolvedSection(section, dims, resolved, if (opaque) lastTotal else null, guardId)
@@ -274,7 +293,7 @@ internal class Planner(private val sink: DiagnosticSink) {
 
     private fun register(vertex: Vertex) {
         val id = vertex.id
-        val isInternal = vertex is ConditionVertex
+        val isInternal = vertex is ConditionVertex || vertex is InputValidationVertex
         if (!isInternal) {
             if (id in MantraKernel.reservedNames || id.startsWith("mantra_") || id in relationRoots) {
                 sink.error("MANTRA-ID-RESERVED", "`$id` is a reserved name; choose another identifier", vertex.location)
@@ -464,7 +483,7 @@ internal class Planner(private val sink: DiagnosticSink) {
         val allId = Names.typeId("mantra", "all")
         types = PlanTypes(dimensionRecord, tableRow, allId, definitions.toList())
         val allFields = vertices.values.filterIsInstance<ValueVertex>().filter {
-            it.dims.isNotEmpty()
+            it.dims.isNotEmpty() && !it.isValidation
         }.mapNotNull { vertex ->
             Names.field(vertex.id)?.let {
                 DslObjectField(it, mapOver(vertex.dims, elementType(vertex)), DslFieldPresence.OPTIONAL)
@@ -506,44 +525,59 @@ internal class Planner(private val sink: DiagnosticSink) {
             DslTypes.nullable(Types.element(vertex.type))
         }
         is TotalVertex, is ChoiceVertex -> DslType.Decimal
+        is CheckVertex -> DslType.Boolean
+        is ReconcileVertex -> DslType.Decimal
     }
 
     private fun mapOver(dims: List<String>, element: DslType): DslType = dims.foldRight(element) { _, inner ->
         DslTypes.map(DslType.Keyword, inner)
     }
 
-    private fun scopeFor(dims: List<String>): DslAnalysisScope = scopes.getOrPut(dims) {
-        val builder = DslAnalysisScopeBuilder.create("mantra.scope.${dims.joinToString(".").ifEmpty { "scalar" }}", "1")
-        types.definitions.forEach(builder::type)
-        vertices.values.filterIsInstance<ValueVertex>().forEach { vertex ->
-            val extra = vertex.dims.filter { it !in dims }
-            val type = mapOver(extra, elementType(vertex))
-            // Plain name unless it would hide a function; the qualified mantra/<id> always works.
-            if (vertex.id !in
-                MantraKernel.callableNames
-            ) {
-                builder.root(DslRootDeclaration(vertex.id, type, DslFieldPresence.OPTIONAL))
+    private fun scopeFor(dims: List<String>, rowTable: String? = null): DslAnalysisScope =
+        scopes.getOrPut(dims to rowTable) {
+            val scopeId = "mantra.scope.${dims.joinToString(".").ifEmpty { "scalar" }}"
+            val builder = DslAnalysisScopeBuilder.create(scopeId, "1")
+            types.definitions.forEach(builder::type)
+            vertices.values.filterIsInstance<ValueVertex>().filter { !it.isValidation }.forEach { vertex ->
+                val extra = vertex.dims.filter { it !in dims }
+                val type = mapOver(extra, elementType(vertex))
+                // Plain name unless it would hide a function; the qualified mantra/<id> always works.
+                if (vertex.id !in
+                    MantraKernel.callableNames && (rowTable == null || vertex.id != "row")
+                ) {
+                    builder.root(DslRootDeclaration(vertex.id, type, DslFieldPresence.OPTIONAL))
+                }
+                builder.root(
+                    DslRootDeclaration(MantraKernel.qualifiedRoot(vertex.id), type, DslFieldPresence.OPTIONAL),
+                )
             }
-            builder.root(DslRootDeclaration(MantraKernel.qualifiedRoot(vertex.id), type, DslFieldPresence.OPTIONAL))
+            dims.filter { rowTable == null || it != "row" }.forEach { dim ->
+                builder.root(
+                    DslRootDeclaration(
+                        dim,
+                        DslTypes.ref(types.dimensionRecord.getValue(dim)),
+                        DslFieldPresence.OPTIONAL,
+                    ),
+                )
+            }
+            relationRoots.keys.forEach { name ->
+                builder.root(
+                    DslRootDeclaration(name, DslTypes.map(DslType.Keyword, DslType.Keyword), DslFieldPresence.OPTIONAL),
+                )
+            }
+            builder.root(DslRootDeclaration("all", DslTypes.ref(types.all), DslFieldPresence.OPTIONAL))
+            rowTable?.let {
+                builder.root(
+                    DslRootDeclaration("row", DslTypes.ref(types.tableRow.getValue(it)), DslFieldPresence.REQUIRED),
+                )
+            }
+            when (val result = builder.build()) {
+                is DslAnalysisScopeBuildResult.Success -> result.scope
+                is DslAnalysisScopeBuildResult.Failure -> error(
+                    "Analysis scope for $dims is invalid: ${result.diagnostics}",
+                )
+            }
         }
-        dims.forEach { dim ->
-            builder.root(
-                DslRootDeclaration(dim, DslTypes.ref(types.dimensionRecord.getValue(dim)), DslFieldPresence.OPTIONAL),
-            )
-        }
-        relationRoots.keys.forEach { name ->
-            builder.root(
-                DslRootDeclaration(name, DslTypes.map(DslType.Keyword, DslType.Keyword), DslFieldPresence.OPTIONAL),
-            )
-        }
-        builder.root(DslRootDeclaration("all", DslTypes.ref(types.all), DslFieldPresence.OPTIONAL))
-        when (val result = builder.build()) {
-            is DslAnalysisScopeBuildResult.Success -> result.scope
-            is DslAnalysisScopeBuildResult.Failure -> error(
-                "Analysis scope for $dims is invalid: ${result.diagnostics}",
-            )
-        }
-    }
 
     /** The same typed analysis scope used to compile a formula at these dimensions. */
     fun authoringScope(dims: List<String>): DslAnalysisScope = scopeFor(dims)
@@ -564,6 +598,16 @@ internal class Planner(private val sink: DiagnosticSink) {
                 is ConditionVertex -> vertex.compiled = compile(vertex.formula, vertex.dims, DslType.Any, vertex.id)
                 is LineVertex -> {
                     val item = vertex.item
+                    if (item.aggregate == com.xqiou.mantra.core.model.AggregateRule.RATIO &&
+                        (item.ratio == null || !item.type.isNumeric)
+                    ) {
+                        sink.error(
+                            "MANTRA-AGGREGATE-TYPE",
+                            "Ratio ${item.id} requires a numeric measure and ratio metadata",
+                            item.location,
+                            item.id,
+                        )
+                    }
                     val context = if (item.spread) vertex.dims.dropLast(1) else vertex.dims
                     val expected = if (item.spread) {
                         DslTypes.map(
@@ -590,6 +634,21 @@ internal class Planner(private val sink: DiagnosticSink) {
                     }
                     vertex.ownCondition =
                         item.condition?.let { compile(it, vertex.dims, DslType.Any, "${item.id}.when") }
+                    item.ratio?.let { ratio ->
+                        listOf(ratio.numerator, ratio.denominator).forEach { id ->
+                            val component = vertices[id] as? ValueVertex
+                            if (component == null || component.isValidation || !component.type.isNumeric ||
+                                component.dims != vertex.dims
+                            ) {
+                                sink.error(
+                                    "MANTRA-AGGREGATE-REFERENCE",
+                                    "Ratio ${vertex.id} needs same-dimension numeric node $id",
+                                    item.location,
+                                    item.id,
+                                )
+                            }
+                        }
+                    }
                 }
                 is ChoiceVertex -> {
                     val item = vertex.item
@@ -612,12 +671,53 @@ internal class Planner(private val sink: DiagnosticSink) {
                 is TotalVertex ->
                     vertex.ownCondition =
                         vertex.item.condition?.let { compile(it, vertex.dims, DslType.Any, "${vertex.id}.when") }
+                is CheckVertex -> {
+                    vertex.compiled = compile(
+                        vertex.item.formula,
+                        vertex.dims,
+                        DslTypes.nullable(DslType.Boolean),
+                        vertex.id,
+                    )
+                    vertex.ownCondition = vertex.item.condition?.let {
+                        compile(it, vertex.dims, DslType.Any, "${vertex.id}.when")
+                    }
+                }
+                is ReconcileVertex -> {
+                    vertex.left = compile(vertex.item.left, vertex.dims, Types.number, "${vertex.id}.left")
+                    vertex.right = compile(vertex.item.right, vertex.dims, Types.number, "${vertex.id}.right")
+                    vertex.ownCondition = vertex.item.condition?.let {
+                        compile(it, vertex.dims, DslType.Any, "${vertex.id}.when")
+                    }
+                }
+                is InputValidationVertex -> {
+                    val input = vertex.input
+                    vertex.required = input.decl.requiredWhen?.let {
+                        compile(it, input.dims, DslTypes.nullable(DslType.Boolean), "${input.id}.required")
+                    }
+                    input.decl.columns.forEach { column ->
+                        column.requiredWhen?.let { formula ->
+                            compile(
+                                formula,
+                                input.dims,
+                                DslTypes.nullable(DslType.Boolean),
+                                "${input.id}.${column.name}.required",
+                                rowTable = input.id,
+                            )?.let { vertex.columns[column.name] = it }
+                        }
+                    }
+                }
                 is ParamVertex, is InputVertex -> Unit
             }
         }
     }
 
-    private fun compile(formula: Formula, dims: List<String>, expected: DslType, logical: String): CompiledFormula? {
+    private fun compile(
+        formula: Formula,
+        dims: List<String>,
+        expected: DslType,
+        logical: String,
+        rowTable: String? = null,
+    ): CompiledFormula? {
         val request = DslCompileRequest(
             source = Qualified.rewrite(formula.source),
             namedDefinitions = definitions,
@@ -625,7 +725,7 @@ internal class Planner(private val sink: DiagnosticSink) {
             logicalLocation = logical.take(200),
             hostPosition = hostPosition(formula.location, formula.source),
         )
-        return when (val result = compiler.compile(request, environment, scopeFor(dims))) {
+        return when (val result = compiler.compile(request, environment, scopeFor(dims, rowTable))) {
             is DslCompileResult.Failure -> {
                 result.diagnostics.forEach { report(it, formula, logical) }
                 null
@@ -664,6 +764,7 @@ internal class Planner(private val sink: DiagnosticSink) {
                     )
                 }
                 val rootNames = roots.mapNotNull { root ->
+                    if (rowTable != null && root == "row") return@mapNotNull null
                     val node = if (root.startsWith("mantra_")) root.removePrefix("mantra_") else root
                     if (vertices[node] is ValueVertex) root to node else null
                 }.toMap()
@@ -678,8 +779,9 @@ internal class Planner(private val sink: DiagnosticSink) {
                     nodeRefs = rootNames.values.toSet(),
                     rootNames = rootNames,
                     allRefs = allRefs,
-                    dimRefs = roots.filter { it in dims }.toSet(),
+                    dimRefs = roots.filter { it in dims && (rowTable == null || it != "row") }.toSet(),
                     relationRefs = roots.mapNotNull { root -> relationRoots[root]?.let { root to it } }.toMap(),
+                    rowTable = rowTable,
                 )
             }
         }
@@ -731,17 +833,30 @@ internal class Planner(private val sink: DiagnosticSink) {
                     addFormula(vertex.compiled)
                     deps += vertex.dims
                 }
+                is InputValidationVertex -> {
+                    deps += vertex.input.id
+                    addFormula(vertex.required)
+                    vertex.columns.values.forEach(::addFormula)
+                }
                 is ValueVertex -> {
                     deps += vertex.dims
                     deps += vertex.guards
                     addFormula(vertex.ownCondition)
                     when (vertex) {
-                        is LineVertex -> addFormula(vertex.compiled)
+                        is LineVertex -> {
+                            addFormula(vertex.compiled)
+                            vertex.item.ratio?.let { deps += listOf(it.numerator, it.denominator) }
+                        }
                         is ChoiceVertex -> vertex.options.forEach {
                             addFormula(it.formula)
                             addFormula(it.condition)
                         }
                         is TotalVertex -> deps += vertex.components.map { it.vertexId }
+                        is CheckVertex -> addFormula(vertex.compiled)
+                        is ReconcileVertex -> {
+                            addFormula(vertex.left)
+                            addFormula(vertex.right)
+                        }
                         is ParamVertex, is InputVertex -> Unit
                     }
                 }

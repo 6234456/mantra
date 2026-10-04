@@ -1,18 +1,35 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/envelope.schema.json",
-  "title": "Mantra workbench response v1",
+  "title": "Mantra workbench response v2",
   "type": "object",
-  "required": ["contract", "revision", "engine", "data"],
+  "required": [
+    "contract",
+    "revision",
+    "engine",
+    "data"
+  ],
   "properties": {
-    "contract": { "const": "mantra.workbench/1" },
-    "revision": { "type": "string", "pattern": "^[0-9a-f]{16}$" },
+    "contract": {
+      "const": "mantra.workbench/2"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+    },
     "engine": {
       "type": "object",
-      "required": ["mantra", "normein"],
+      "required": [
+        "mantra",
+        "normein"
+      ],
       "properties": {
-        "mantra": { "type": "string" },
-        "normein": { "type": "string" }
+        "mantra": {
+          "type": "string"
+        },
+        "normein": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -22,16 +39,32 @@
   "$defs": {
     "address": {
       "type": "object",
-      "required": ["node"],
+      "required": [
+        "node"
+      ],
       "properties": {
-        "node": { "type": "string" },
-        "coord": { "type": "array", "items": { "type": "string" } },
+        "node": {
+          "type": "string"
+        },
+        "coord": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "cell": {
           "type": "object",
-          "required": ["row", "column"],
+          "required": [
+            "row",
+            "column"
+          ],
           "properties": {
-            "row": { "type": "string" },
-            "column": { "type": "string" }
+            "row": {
+              "type": "string"
+            },
+            "column": {
+              "type": "string"
+            }
           },
           "additionalProperties": false
         }
@@ -40,36 +73,396 @@
     },
     "location": {
       "type": "object",
-      "required": ["document", "line", "column"],
+      "required": [
+        "document",
+        "line",
+        "column"
+      ],
       "properties": {
-        "document": { "type": "string" },
-        "line": { "type": "integer", "minimum": 1 },
-        "column": { "type": "integer", "minimum": 1 },
-        "startOffset": { "type": "integer", "minimum": 0 },
-        "endOffset": { "type": "integer", "minimum": 0 }
+        "document": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startOffset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "endOffset": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "additionalProperties": false
     },
     "diagnostic": {
       "type": "object",
-      "required": ["severity", "code", "message", "location", "address", "related"],
+      "required": [
+        "severity",
+        "code",
+        "message",
+        "location",
+        "address",
+        "related",
+        "category",
+        "rowIndex",
+        "column"
+      ],
       "properties": {
-        "severity": { "enum": ["error", "warning", "info"] },
-        "code": { "type": "string" },
-        "message": { "type": "string" },
-        "location": { "oneOf": [{ "$ref": "#/$defs/location" }, { "type": "null" }] },
-        "address": { "oneOf": [{ "$ref": "#/$defs/address" }, { "type": "null" }] },
-        "related": { "type": "array", "items": { "$ref": "#/$defs/location" } }
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "location": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/location"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "address": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/address"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/location"
+          }
+        },
+        "category": {
+          "enum": [
+            "parsing",
+            "structural",
+            "evaluation",
+            "business"
+          ]
+        },
+        "rowIndex": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "column": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "style": {
       "type": "object",
-      "required": ["weight", "tone", "fill"],
+      "required": [
+        "weight",
+        "tone",
+        "fill"
+      ],
       "properties": {
-        "weight": { "enum": ["normal", "bold"] },
-        "tone": { "enum": ["default", "muted", "accent"] },
-        "fill": { "enum": ["none", "subtle", "accent"] }
+        "weight": {
+          "enum": [
+            "normal",
+            "bold"
+          ]
+        },
+        "tone": {
+          "enum": [
+            "default",
+            "muted",
+            "accent"
+          ]
+        },
+        "fill": {
+          "enum": [
+            "none",
+            "subtle",
+            "accent"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "passed",
+        "active",
+        "severity",
+        "reconciliation"
+      ],
+      "properties": {
+        "passed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "reconciliation": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "left",
+                "right",
+                "difference",
+                "tolerance"
+              ],
+              "properties": {
+                "left": {
+                  "$ref": "value.schema.json"
+                },
+                "right": {
+                  "$ref": "value.schema.json"
+                },
+                "difference": {
+                  "$ref": "value.schema.json"
+                },
+                "tolerance": {
+                  "$ref": "value.schema.json"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ratioAggregate": {
+      "type": "object",
+      "required": [
+        "numeratorId",
+        "denominatorId",
+        "dimensions",
+        "fixed",
+        "members",
+        "memberCount",
+        "activeMemberCount",
+        "numeratorTotal",
+        "denominatorTotal",
+        "rounding",
+        "result",
+        "undefinedReason",
+        "truncated",
+        "display"
+      ],
+      "properties": {
+        "numeratorId": {
+          "type": "string"
+        },
+        "denominatorId": {
+          "type": "string"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fixed": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "required": [
+              "coord",
+              "numerator",
+              "denominator",
+              "active"
+            ],
+            "properties": {
+              "coord": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "numerator": {
+                "type": "object",
+                "required": [
+                  "n"
+                ],
+                "properties": {
+                  "n": {
+                    "type": "string",
+                    "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "denominator": {
+                "type": "object",
+                "required": [
+                  "n"
+                ],
+                "properties": {
+                  "n": {
+                    "type": "string",
+                    "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "active": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "memberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeMemberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "numeratorTotal": {
+          "type": "object",
+          "required": [
+            "n"
+          ],
+          "properties": {
+            "n": {
+              "type": "string",
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "denominatorTotal": {
+          "type": "object",
+          "required": [
+            "n"
+          ],
+          "properties": {
+            "n": {
+              "type": "string",
+              "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "rounding": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "scale",
+                "mode"
+              ],
+              "properties": {
+                "scale": {
+                  "type": "integer"
+                },
+                "mode": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "result": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "n"
+              ],
+              "properties": {
+                "n": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)(?:\\.[0-9]+)?$"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "undefinedReason": {
+          "enum": [
+            null,
+            "no-active-members",
+            "zero-denominator",
+            "rounding-required"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "display": {
+          "type": "object",
+          "required": [
+            "numeratorTotal",
+            "denominatorTotal",
+            "result"
+          ],
+          "properties": {
+            "numeratorTotal": {
+              "type": "string"
+            },
+            "denominatorTotal": {
+              "type": "string"
+            },
+            "result": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     }

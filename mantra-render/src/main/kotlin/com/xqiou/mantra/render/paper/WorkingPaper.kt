@@ -85,6 +85,10 @@ enum class RowFlag {
 
     /** A non-zero input was reduced to zero by a rule, so the row remains visible. */
     EXPLAINS_ZERO,
+
+    /** A business decision, independent of formula evaluation success. */
+    VALIDATION_PASSED,
+    VALIDATION_FAILED,
 }
 
 class PaperRow(
@@ -117,4 +121,10 @@ class AuditEntry(
     val working: String,
     val result: String,
     val reference: String?,
+    val nodeId: String? = null,
+    val coord: com.xqiou.mantra.core.view.Coord = emptyList(),
+    /** The same detached source evidence returned by Explain for this calculated value. */
+    val explanation: com.xqiou.mantra.core.view.ExplainTrace? = null,
+    /** Authoritative host aggregation evidence; never represented as invented kernel steps. */
+    val aggregate: com.xqiou.mantra.core.view.RatioAggregateTrace? = null,
 )

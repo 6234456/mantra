@@ -1,6 +1,25 @@
 # Changelog
 
-## Unreleased — M0
+## Unreleased — v0.2 / M1
+
+- Add nonblocking `check` and `reconcile` items, conditional required inputs/columns and minimum
+  table row counts. Business findings retain severity, category and precise table-cell locations;
+  `succeeded` reports technical success and `validationPassed` reports business error findings.
+- Add weighted ratio aggregation from aligned numerator/denominator sums with explicit rounding,
+  active-coordinate filtering and undefined zero-denominator results. Undefined rate contributions
+  propagate through running totals.
+- Capture bounded kernel audit traces through `Mantra.calculateForAudit` and `AuditOptions`.
+  Text, HTML, XLSX and Explain share steps and branch decisions, with visible truncation.
+  XLSX keeps the original protected audit snapshot and automatically marks it outdated after input,
+  effective-parameter or supplied-fact changes. Main values and business decisions remain formulas.
+- Upgrade the strict workbench wire contract to `mantra.workbench/2`; clients must update together.
+  Add category filters and table-cell diagnostics while permitting saves with business failures.
+  Kotlin APIs and host DSL advance to 0.2; `mantra.calc@1` and the pinned Normein kernel are unchanged.
+- Update the three existing applications to the new primitives and add `apps/ifrs-income-taxes`
+  with fictional IAS 12 cases, independent Decimal verification and generic workbench support.
+  Rename the cost schedule section `reconciliation` to `cost-reconciliation`.
+
+## v0.1 / M0 foundation (not published as library artifacts)
 
 - Split demonstrations into `apps/de-est`, `apps/ifrs-impairment` and `apps/cost-accounting`, each
   with its own Gradle project, English README, cases, import sample/template and format checks.

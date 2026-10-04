@@ -4,4 +4,5 @@
    :title "Single assessment below the basic allowance"}
   (inputs {:veranlagungsart :einzel :kinder 0
            :bruttoarbeitslohn {:A 12096}
+           :lohnsteuer {:A 0}
            :vermietungsobjekte []}))

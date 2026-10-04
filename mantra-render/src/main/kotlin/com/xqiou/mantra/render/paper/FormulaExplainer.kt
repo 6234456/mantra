@@ -14,7 +14,10 @@ import com.xqiou.normein.dsl.form.DslFormSequenceKind
  * Turns a formula into a human-readable working ("Rechenweg"): arithmetic becomes infix, calls
  * become `name(a; b)`, and every referenced line is replaced by the value it had in this
  * evaluation, e.g. `(max wk pausch)` → `max(800; 1.230)`.
+ * This legacy formatting helper does not provide evidence of executed subexpressions or branches.
+ * Working-paper and workbook audits consume captured kernel traces instead.
  */
+@Deprecated("Request Mantra.calculateForAudit and render its captured source trace with Render.paper")
 class FormulaExplainer(private val numbers: NumberFormatter) {
     private val infix = mapOf(
         "+" to " + ", "-" to " − ", "*" to " × ", "/" to " ÷ ",

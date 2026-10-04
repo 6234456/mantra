@@ -66,7 +66,7 @@ class StructureTest {
         Files.createDirectories(Path.of("apps/de-est/build/out"))
         Files.writeString(Path.of("apps/de-est/build/out/est-2025-structure.json"), json)
         assertTrue("\"mainline\"" in json && "\"breadcrumb\"" in json)
-        assertTrue("\"schemaVersion\":\"2025.1\"" in json, json.take(2000))
+        assertTrue("\"schemaVersion\":\"2025.2\"" in json, json.take(2000))
         assertTrue(!json.contains("resultValue"), "Structure must not include calculation values")
         val run = WorkbenchDocuments.run(view, Render.loadLayout(dir.resolve("layout.mantra")))
         val values = run["values"] as Map<*, *>

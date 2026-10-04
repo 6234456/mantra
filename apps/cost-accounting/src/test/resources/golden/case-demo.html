@@ -110,7 +110,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <dl class="wp-meta">
 <div><dt>Entity</dt><dd>Demo manufacturing company</dd></div>
 <div><dt>Period</dt><dd>2026-01</dd></div>
-<div><dt>Calculation schema</dt><dd>Product cost by manufacturing order v0.1 [cost.accounting/product-cost]</dd></div>
+<div><dt>Calculation schema</dt><dd>Product cost by manufacturing order v0.2 [cost.accounting/product-cost]</dd></div>
 <div><dt>Prepared by</dt><dd>Mantra acceptance example</dd></div>
 <div><dt>WP ref.</dt><dd>CO-DEMO/01</dd></div>
 </dl>
@@ -175,6 +175,11 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
 <td class="center c-status" data-column="status" style="background:transparent">Σ</td>
 </tr>
+<tr class="value info" id="t1-r5" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">A nonzero pool has a positive allocation basis</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">✓</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
 </tbody></table></div>
 </section>
 <section class="block" id="table-2">
@@ -206,7 +211,15 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">60</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value" id="t2-r2" data-section="order-costs" data-depth="1" data-height="0" data-row-index="2">
+<tr class="value info" id="t2-r2" data-section="order-costs" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Order allocation base is nonnegative</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">✓</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">✓</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
+<tr class="value" id="t2-r3" data-section="order-costs" data-depth="1" data-height="0" data-row-index="3">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Direct primary cost elements</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,000.00</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">3,000.00</td>
@@ -214,7 +227,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">12,400.00</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value" id="t2-r3" data-section="order-costs" data-depth="1" data-height="0" data-row-index="3">
+<tr class="value" id="t2-r4" data-section="order-costs" data-depth="1" data-height="0" data-row-index="4">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Allocated primary expense accounts</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">150.00</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">450.00</td>
@@ -222,7 +235,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">900.00</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value" id="t2-r4" data-section="order-costs" data-depth="1" data-height="0" data-row-index="4">
+<tr class="value" id="t2-r5" data-section="order-costs" data-depth="1" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Allocated secondary cost elements</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">300.00</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">900.00</td>
@@ -230,7 +243,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">1,800.00</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="total grand" id="t2-r5" data-section="order-costs" data-depth="1" data-height="0" data-row-index="5">
+<tr class="total grand" id="t2-r6" data-section="order-costs" data-depth="1" data-height="0" data-row-index="6">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual order cost</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,450.00</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">4,350.00</td>
@@ -238,7 +251,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">15,100.00</td>
 <td class="center c-status" data-column="status" style="background:transparent">Σ</td>
 </tr>
-<tr class="value info" id="t2-r6" data-section="order-costs" data-depth="1" data-height="0" data-row-index="6">
+<tr class="value info" id="t2-r7" data-section="order-costs" data-depth="1" data-height="0" data-row-index="7">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Completed quantity</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">100</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">50</td>
@@ -246,7 +259,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">230</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t2-r7" data-section="order-costs" data-depth="1" data-height="0" data-row-index="7">
+<tr class="value info" id="t2-r8" data-section="order-costs" data-depth="1" data-height="0" data-row-index="8">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost per completed unit</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">54.5000</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">87.0000</td>
@@ -254,7 +267,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t2-r8" data-section="order-costs" data-depth="1" data-height="0" data-row-index="8">
+<tr class="value info" id="t2-r9" data-section="order-costs" data-depth="1" data-height="0" data-row-index="9">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost per unit</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">58.0000</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">64.0000</td>
@@ -262,7 +275,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t2-r9" data-section="order-costs" data-depth="1" data-height="0" data-row-index="9">
+<tr class="value info" id="t2-r10" data-section="order-costs" data-depth="1" data-height="0" data-row-index="10">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost for completed quantity</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,800.00</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">3,200.00</td>
@@ -270,7 +283,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">13,960.00</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t2-r10" data-section="order-costs" data-depth="1" data-height="0" data-row-index="10">
+<tr class="value info" id="t2-r11" data-section="order-costs" data-depth="1" data-height="0" data-row-index="11">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual less standard cost</span></td>
 <td class="right num c-member" data-column="membersorder-O100" style="background:transparent">(350.00)</td>
 <td class="right num c-member" data-column="membersorder-O101" style="background:transparent">1,150.00</td>
@@ -331,14 +344,14 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Weighted average actual unit cost</span></td>
 <td class="right num c-member" data-column="membersproduct-A" style="background:transparent">65.3333</td>
 <td class="right num c-member" data-column="membersproduct-B" style="background:transparent">66.2500</td>
-<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">65.6522</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
 <tr class="value info" id="t3-r6" data-section="product-costs" data-depth="1" data-height="0" data-row-index="6">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Weighted average standard unit cost</span></td>
 <td class="right num c-member" data-column="membersproduct-A" style="background:transparent">60.0000</td>
 <td class="right num c-member" data-column="membersproduct-B" style="background:transparent">62.0000</td>
-<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">60.6957</td>
 <td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
 <tr class="value info u-variance" id="t3-r7" data-section="product-costs" data-depth="1" data-height="0" data-row-index="7">
@@ -357,306 +370,350 @@ code.formula { font-size: 11px; color: var(--muted); }
 <colgroup>
 <col class="c-label">
 <col class="c-main" style="width:7.4399999999999995em">
+<col class="c-status" style="width:1.8599999999999999em">
 </colgroup>
 <thead><tr>
 <th class="left c-label"></th>
 <th class="right num c-main">CU</th>
+<th class="center c-status"></th>
 </tr></thead>
 <tbody>
-<tr class="value" id="t4-r1" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="1">
+<tr class="value" id="t4-r1" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="1">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost assigned to orders</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t4-r2" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="2">
+<tr class="value info" id="t4-r2" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="2">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost aggregated to products</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t4-r3" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="3">
+<tr class="value info" id="t4-r3" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="3">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Source costs less assigned order costs</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">–</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
 </tr>
-<tr class="value info" id="t4-r4" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="4">
+<tr class="value info" id="t4-r4" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="4">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Order costs less product costs</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">–</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
 </tr>
-<tr class="value info" id="t4-r5" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="5">
+<tr class="value info" id="t4-r5" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="5">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost for completed output</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">13,960.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
-<tr class="value info" id="t4-r6" data-section="reconciliation" data-depth="1" data-height="0" data-row-index="6">
+<tr class="value info" id="t4-r6" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="6">
 <td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Unfavourable variance</span></td>
 <td class="right num c-main" data-column="main" style="background:transparent">1,140.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
 </tr>
 </tbody></table></div>
 </section>
 <section class="block audit" id="audit">
 <h2><span class="ref">§</span>Audit trail</h2>
-<p class="intro">Evidence for every calculated line: schema formula, substituted values and result.</p>
+<p class="intro">Evidence for every calculated line: schema formula, executed trace steps and result.</p>
 <div class="table-wrap"><table class="audit-table">
 <thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
 <tbody>
 <tr id="audit-t1-r1">
 <td class="left cite"><a href="#t1-r1">1/1</a></td>
 <td class="left">Primary costs posted directly to orders</td>
-<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings))</code><div class="working">sum(map(fn([posting]; if(posting.mode = :direct; posting.amount; 0)); [{:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O101; :amount 600}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O200; :amount 3,600}; {:cost-element &quot;510100&quot;; :expe…</div></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (= posting.mode :direct) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 800 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings)) = 12400 → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0</div></td>
 <td class="right num">12,400.00</td>
 </tr>
 <tr id="audit-t1-r2">
 <td class="left cite"><a href="#t1-r2">1/2</a></td>
 <td class="left">Primary expense accounts to allocate</td>
-<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings))</code><div class="working">sum(map(fn([posting]; if(posting.mode = :pool; posting.amount; 0)); [{:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O101; :amount 600}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O200; :amount 3,600}; {:cost-element &quot;510100&quot;; :expens…</div></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (= posting.mode :pool) posting.amount 0)) = [value unavailable] → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 600 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 300 → (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings)) = 900 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount</div></td>
 <td class="right num">900.00</td>
 </tr>
 <tr id="audit-t1-r3">
 <td class="left cite"><a href="#t1-r3">1/3</a></td>
 <td class="left">Secondary cost elements to allocate</td>
-<td class="left"><code class="formula">(sum (map (fn [posting] posting.amount) secondary-postings))</code><div class="working">sum(map(fn([posting]; posting.amount); [{:cost-element &quot;940100&quot;; :source-cost-center &quot;MACHINE&quot;; :amount 1,200}; {:cost-element &quot;950100&quot;; :source-cost-center &quot;OVERHEAD&quot;; :amount 600}]))</div></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] posting.amount) secondary-postings))</code><div class="working">(fn [posting] posting.amount) = [value unavailable] → (map (fn [posting] posting.amount) secondary-postings) = [value unavailable] → (sum (map (fn [posting] posting.amount) secondary-postings)) = 1800</div></td>
 <td class="right num">1,800.00</td>
 </tr>
 <tr id="audit-t1-r4">
 <td class="left cite"><a href="#t1-r4">1/4</a></td>
 <td class="left">Total actual costs to assign</td>
-<td class="left"><code class="formula">direct-primary-total + primary-pool + secondary-pool</code><div class="working">12,400 + 900 + 1,800</div></td>
+<td class="left"><code class="formula">direct-primary-total + primary-pool + secondary-pool</code><div class="working">12400 + 900 + 1800</div></td>
 <td class="right num">15,100.00</td>
+</tr>
+<tr id="audit-t1-r5">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">A nonzero pool has a positive allocation basis</td>
+<td class="left"><code class="formula">(or (and (= primary-pool 0) (= secondary-pool 0)) (&gt; (dim/sum all.allocation-base) 0))</code><div class="working">(= primary-pool 0) = false → (and (= primary-pool 0) (= secondary-pool 0)) = false → (dim/sum all.allocation-base) = 60 → (&gt; (dim/sum all.allocation-base) 0) = true → (or (and (= primary-pool 0) (= secondary-pool 0)) (&gt; (dim/sum all.allocation-base) 0)) = true</div></td>
+<td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-r2-O100">
 <td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Direct primary cost elements <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O100); posting.amount; 0)); [{:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O101; :amount 600}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O200; :amount 3,600};…</div></td>
-<td class="right num">5,000.00</td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-r2-O101">
 <td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Direct primary cost elements <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O101); posting.amount; 0)); [{:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O101; :amount 600}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O200; :amount 3,600};…</div></td>
-<td class="right num">3,000.00</td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-r2-O200">
 <td class="left cite"><a href="#t2-r2">2/2</a></td>
-<td class="left">Direct primary cost elements <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">sum(map(fn([posting]; if(and(posting.mode = :direct; posting.order-id = :O200); posting.amount; 0)); [{:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O100; :amount 4,000}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O100; :amount 1,000}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O101; :amount 2,400}; {:cost-element &quot;510100&quot;; :expense-account &quot;510100&quot;; :mode :direct; :order-id :O101; :amount 600}; {:cost-element &quot;500100&quot;; :expense-account &quot;500100&quot;; :mode :direct; :order-id :O200; :amount 3,600};…</div></td>
-<td class="right num">4,400.00</td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
 </tr>
 <tr id="audit-t2-r3-O100">
 <td class="left cite"><a href="#t2-r3">2/3</a></td>
-<td class="left">Allocated primary expense accounts <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(900; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">150.00</td>
+<td class="left">Direct primary cost elements <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 5000 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">5,000.00</td>
 </tr>
 <tr id="audit-t2-r3-O101">
 <td class="left cite"><a href="#t2-r3">2/3</a></td>
-<td class="left">Allocated primary expense accounts <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(900; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">450.00</td>
+<td class="left">Direct primary cost elements <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 3000 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">3,000.00</td>
 </tr>
 <tr id="audit-t2-r3-O200">
 <td class="left cite"><a href="#t2-r3">2/3</a></td>
-<td class="left">Allocated primary expense accounts <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(900; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">300.00</td>
+<td class="left">Direct primary cost elements <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 800 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 4400 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">4,400.00</td>
 </tr>
 <tr id="audit-t2-r4-O100">
 <td class="left cite"><a href="#t2-r4">2/4</a></td>
-<td class="left">Allocated secondary cost elements <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(1,800; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">300.00</td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">150.00</td>
 </tr>
 <tr id="audit-t2-r4-O101">
 <td class="left cite"><a href="#t2-r4">2/4</a></td>
-<td class="left">Allocated secondary cost elements <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(1,800; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">900.00</td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">450.00</td>
 </tr>
 <tr id="audit-t2-r4-O200">
 <td class="left cite"><a href="#t2-r4">2/4</a></td>
-<td class="left">Allocated secondary cost elements <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">alloc/pro-rata(1,800; {:O100 10; :O101 30; :O200 20}; 2)</div></td>
-<td class="right num">600.00</td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">300.00</td>
 </tr>
 <tr id="audit-t2-r5-O100">
 <td class="left cite"><a href="#t2-r5">2/5</a></td>
-<td class="left">Actual order cost <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">5,000 + 150 + 300</div></td>
-<td class="right num">5,450.00</td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">300.00</td>
 </tr>
 <tr id="audit-t2-r5-O101">
 <td class="left cite"><a href="#t2-r5">2/5</a></td>
-<td class="left">Actual order cost <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">3,000 + 450 + 900</div></td>
-<td class="right num">4,350.00</td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">900.00</td>
 </tr>
 <tr id="audit-t2-r5-O200">
 <td class="left cite"><a href="#t2-r5">2/5</a></td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">600.00</td>
+</tr>
+<tr id="audit-t2-r6-O100">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
+<td class="left">Actual order cost <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">5000 + 150.00 + 300.00</div></td>
+<td class="right num">5,450.00</td>
+</tr>
+<tr id="audit-t2-r6-O101">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
+<td class="left">Actual order cost <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">3000 + 450.00 + 900.00</div></td>
+<td class="right num">4,350.00</td>
+</tr>
+<tr id="audit-t2-r6-O200">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
 <td class="left">Actual order cost <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">4,400 + 300 + 600</div></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">4400 + 300.00 + 600.00</div></td>
 <td class="right num">5,300.00</td>
 </tr>
-<tr id="audit-t2-r7-O100">
-<td class="left cite"><a href="#t2-r7">2/7</a></td>
+<tr id="audit-t2-r8-O100">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
 <td class="left">Actual cost per completed unit <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">decimal/divide(5,450; 100; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 54.5000</div></td>
 <td class="right num">54.5000</td>
 </tr>
-<tr id="audit-t2-r7-O101">
-<td class="left cite"><a href="#t2-r7">2/7</a></td>
+<tr id="audit-t2-r8-O101">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
 <td class="left">Actual cost per completed unit <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">decimal/divide(4,350; 50; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 87.0000</div></td>
 <td class="right num">87.0000</td>
 </tr>
-<tr id="audit-t2-r7-O200">
-<td class="left cite"><a href="#t2-r7">2/7</a></td>
+<tr id="audit-t2-r8-O200">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
 <td class="left">Actual cost per completed unit <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">decimal/divide(5,300; 80; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 66.2500</div></td>
 <td class="right num">66.2500</td>
-</tr>
-<tr id="audit-t2-r9-O100">
-<td class="left cite"><a href="#t2-r9">2/9</a></td>
-<td class="left">Standard cost for completed quantity <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">100 × 58</div></td>
-<td class="right num">5,800.00</td>
-</tr>
-<tr id="audit-t2-r9-O101">
-<td class="left cite"><a href="#t2-r9">2/9</a></td>
-<td class="left">Standard cost for completed quantity <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">50 × 64</div></td>
-<td class="right num">3,200.00</td>
-</tr>
-<tr id="audit-t2-r9-O200">
-<td class="left cite"><a href="#t2-r9">2/9</a></td>
-<td class="left">Standard cost for completed quantity <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">80 × 62</div></td>
-<td class="right num">4,960.00</td>
 </tr>
 <tr id="audit-t2-r10-O100">
 <td class="left cite"><a href="#t2-r10">2/10</a></td>
-<td class="left">Actual less standard cost <span class="member">Order O100 · Product A</span></td>
-<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">5,450 − 5,800</div></td>
-<td class="right num">(350.00)</td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 5800</div></td>
+<td class="right num">5,800.00</td>
 </tr>
 <tr id="audit-t2-r10-O101">
 <td class="left cite"><a href="#t2-r10">2/10</a></td>
-<td class="left">Actual less standard cost <span class="member">Order O101 · Product A</span></td>
-<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">4,350 − 3,200</div></td>
-<td class="right num">1,150.00</td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 3200</div></td>
+<td class="right num">3,200.00</td>
 </tr>
 <tr id="audit-t2-r10-O200">
 <td class="left cite"><a href="#t2-r10">2/10</a></td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 4960</div></td>
+<td class="right num">4,960.00</td>
+</tr>
+<tr id="audit-t2-r11-O100">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
+<td class="left">Actual less standard cost <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = -350.00</div></td>
+<td class="right num">(350.00)</td>
+</tr>
+<tr id="audit-t2-r11-O101">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
+<td class="left">Actual less standard cost <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = 1150.00</div></td>
+<td class="right num">1,150.00</td>
+</tr>
+<tr id="audit-t2-r11-O200">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
 <td class="left">Actual less standard cost <span class="member">Order O200 · Product B</span></td>
-<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">5,300 − 4,960</div></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = 340.00</div></td>
 <td class="right num">340.00</td>
 </tr>
 <tr id="audit-t3-r1-A">
 <td class="left cite"><a href="#t3-r1">3/1</a></td>
 <td class="left">Completed quantity <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">dim/rollup({:O100 100; :O101 50; :O200 80}; {:O100 :A; :O101 :A; :O200 :B}; :A)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">(dim/rollup all.produced-quantity relation_order product.key) = 150</div></td>
 <td class="right num">150</td>
 </tr>
 <tr id="audit-t3-r1-B">
 <td class="left cite"><a href="#t3-r1">3/1</a></td>
 <td class="left">Completed quantity <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">dim/rollup({:O100 100; :O101 50; :O200 80}; {:O100 :A; :O101 :A; :O200 :B}; :B)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">(dim/rollup all.produced-quantity relation_order product.key) = 80</div></td>
 <td class="right num">80</td>
 </tr>
 <tr id="audit-t3-r2-A">
 <td class="left cite"><a href="#t3-r2">3/2</a></td>
 <td class="left">Actual cost of product orders <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">dim/rollup({:O100 5,450; :O101 4,350; :O200 5,300}; {:O100 :A; :O101 :A; :O200 :B}; :A)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.actual-order-cost relation_order product.key) = 9800.00</div></td>
 <td class="right num">9,800.00</td>
 </tr>
 <tr id="audit-t3-r2-B">
 <td class="left cite"><a href="#t3-r2">3/2</a></td>
 <td class="left">Actual cost of product orders <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">dim/rollup({:O100 5,450; :O101 4,350; :O200 5,300}; {:O100 :A; :O101 :A; :O200 :B}; :B)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.actual-order-cost relation_order product.key) = 5300.00</div></td>
 <td class="right num">5,300.00</td>
 </tr>
 <tr id="audit-t3-r4-A">
 <td class="left cite"><a href="#t3-r4">3/4</a></td>
 <td class="left">Standard cost of product orders <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">dim/rollup({:O100 5,800; :O101 3,200; :O200 4,960}; {:O100 :A; :O101 :A; :O200 :B}; :A)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.standard-order-cost relation_order product.key) = 9000</div></td>
 <td class="right num">9,000.00</td>
 </tr>
 <tr id="audit-t3-r4-B">
 <td class="left cite"><a href="#t3-r4">3/4</a></td>
 <td class="left">Standard cost of product orders <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">dim/rollup({:O100 5,800; :O101 3,200; :O200 4,960}; {:O100 :A; :O101 :A; :O200 :B}; :B)</div></td>
+<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.standard-order-cost relation_order product.key) = 4960</div></td>
 <td class="right num">4,960.00</td>
+</tr>
+<tr id="audit-t3-r5-aggregate">
+<td class="left cite"><a href="#t3-r5">3/5 Σ</a></td>
+<td class="left">Weighted average actual unit cost (Total)</td>
+<td class="left"><code class="formula">Σ product-actual-cost ÷ Σ product-quantity</code><div class="working">[product=A] 9800.00 / 150 included; [product=B] 5300.00 / 80 included → Σ product-actual-cost = 15100.00; Σ product-quantity = 230 → 15100.00 ÷ 230 (round 4 half-up) = 65.6522</div></td>
+<td class="right num">65.6522</td>
 </tr>
 <tr id="audit-t3-r5-A">
 <td class="left cite"><a href="#t3-r5">3/5</a></td>
 <td class="left">Weighted average actual unit cost <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">decimal/divide(9,800; 150; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-actual-cost product-quantity unit-scale) = 65.3333</div></td>
 <td class="right num">65.3333</td>
 </tr>
 <tr id="audit-t3-r5-B">
 <td class="left cite"><a href="#t3-r5">3/5</a></td>
 <td class="left">Weighted average actual unit cost <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">decimal/divide(5,300; 80; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-actual-cost product-quantity unit-scale) = 66.2500</div></td>
 <td class="right num">66.2500</td>
+</tr>
+<tr id="audit-t3-r6-aggregate">
+<td class="left cite"><a href="#t3-r6">3/6 Σ</a></td>
+<td class="left">Weighted average standard unit cost (Total)</td>
+<td class="left"><code class="formula">Σ product-standard-cost ÷ Σ product-quantity</code><div class="working">[product=A] 9000 / 150 included; [product=B] 4960 / 80 included → Σ product-standard-cost = 13960; Σ product-quantity = 230 → 13960 ÷ 230 (round 4 half-up) = 60.6957</div></td>
+<td class="right num">60.6957</td>
 </tr>
 <tr id="audit-t3-r6-A">
 <td class="left cite"><a href="#t3-r6">3/6</a></td>
 <td class="left">Weighted average standard unit cost <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">decimal/divide(9,000; 150; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-standard-cost product-quantity unit-scale) = 60.0000</div></td>
 <td class="right num">60.0000</td>
 </tr>
 <tr id="audit-t3-r6-B">
 <td class="left cite"><a href="#t3-r6">3/6</a></td>
 <td class="left">Weighted average standard unit cost <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">decimal/divide(4,960; 80; 4)</div></td>
+<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-standard-cost product-quantity unit-scale) = 62.0000</div></td>
 <td class="right num">62.0000</td>
 </tr>
 <tr id="audit-t3-r7-A">
 <td class="left cite"><a href="#t3-r7">3/7</a></td>
 <td class="left">Actual less standard cost <span class="member">Product A</span></td>
-<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">9,800 − 9,000</div></td>
+<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">(- product-actual-cost product-standard-cost) = 800.00</div></td>
 <td class="right num">800.00</td>
 </tr>
 <tr id="audit-t3-r7-B">
 <td class="left cite"><a href="#t3-r7">3/7</a></td>
 <td class="left">Actual less standard cost <span class="member">Product B</span></td>
-<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">5,300 − 4,960</div></td>
+<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">(- product-actual-cost product-standard-cost) = 340.00</div></td>
 <td class="right num">340.00</td>
 </tr>
 <tr id="audit-t4-r1">
 <td class="left cite"><a href="#t4-r1">4/1</a></td>
 <td class="left">Actual cost assigned to orders</td>
-<td class="left"><code class="formula">(dim/sum all.actual-order-cost)</code><div class="working">dim/sum({:O100 5,450; :O101 4,350; :O200 5,300})</div></td>
+<td class="left"><code class="formula">(dim/sum all.actual-order-cost)</code><div class="working">(dim/sum all.actual-order-cost) = 15100.00</div></td>
 <td class="right num">15,100.00</td>
 </tr>
 <tr id="audit-t4-r2">
 <td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Actual cost aggregated to products</td>
-<td class="left"><code class="formula">(dim/sum all.product-actual-cost)</code><div class="working">dim/sum({:A 9,800; :B 5,300})</div></td>
+<td class="left"><code class="formula">(dim/sum all.product-actual-cost)</code><div class="working">(dim/sum all.product-actual-cost) = 15100.00</div></td>
 <td class="right num">15,100.00</td>
 </tr>
 <tr id="audit-t4-r3">
 <td class="left cite"><a href="#t4-r3">4/3</a></td>
 <td class="left">Source costs less assigned order costs</td>
-<td class="left"><code class="formula">(- source-cost-total all-order-cost)</code><div class="working">15,100 − 15,100</div></td>
+<td class="left"><code class="formula">source-cost-total ≈ all-order-cost (± 0.01)</code><div class="working">source-cost-total = 15100; all-order-cost = 15100.00 → 15100 − 15100.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t4-r4">
 <td class="left cite"><a href="#t4-r4">4/4</a></td>
 <td class="left">Order costs less product costs</td>
-<td class="left"><code class="formula">(- all-order-cost all-product-cost)</code><div class="working">15,100 − 15,100</div></td>
+<td class="left"><code class="formula">all-order-cost ≈ all-product-cost (± 0.01)</code><div class="working">all-order-cost = 15100.00; all-product-cost = 15100.00 → 15100.00 − 15100.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">–</td>
 </tr>
 <tr id="audit-t4-r5">
 <td class="left cite"><a href="#t4-r5">4/5</a></td>
 <td class="left">Standard cost for completed output</td>
-<td class="left"><code class="formula">(dim/sum all.product-standard-cost)</code><div class="working">dim/sum({:A 9,000; :B 4,960})</div></td>
+<td class="left"><code class="formula">(dim/sum all.product-standard-cost)</code><div class="working">(dim/sum all.product-standard-cost) = 13960</div></td>
 <td class="right num">13,960.00</td>
 </tr>
 <tr id="audit-t4-r6">
 <td class="left cite"><a href="#t4-r6">4/6</a></td>
 <td class="left">Actual less standard cost</td>
-<td class="left"><code class="formula">(- all-product-cost all-standard-cost)</code><div class="working">15,100 − 13,960</div></td>
+<td class="left"><code class="formula">(- all-product-cost all-standard-cost)</code><div class="working">(- all-product-cost all-standard-cost) = 1140.00</div></td>
 <td class="right num">1,140.00</td>
 </tr>
 </tbody></table></div>
 </section>
 <footer class="wp-footer">
-<div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span></div>
+<div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
 <div class="engine">Mantra calculation engine · Normein DSL</div>
 </footer>
 </main>

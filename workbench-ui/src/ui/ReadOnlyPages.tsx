@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { WorkbenchData } from '../data'
 import type { Compare, Diagnostic, Diagnostics, Envelope, Structure, Value, Workspace } from '../types'
-import { addressToPath, casePath } from '../address'
+import { casePath } from '../address'
+import { diagnosticPath } from '../diagnostics'
 import { language, t } from '../i18n'
 
 const lang = language()
@@ -359,6 +360,15 @@ function locationText(location: NonNullable<Diagnostic['location']>) {
   return `${location.document}:${location.line}:${location.column}`
 }
 
+function categoryText(category: Diagnostic['category']) {
+  return {
+    business: lang === 'de' ? 'Fachliche Prüfung' : 'Business check',
+    parsing: lang === 'de' ? 'Syntax' : 'Syntax',
+    structural: lang === 'de' ? 'Eingabevertrag' : 'Input contract',
+    evaluation: lang === 'de' ? 'Berechnung' : 'Calculation',
+  }[category]
+}
+
 export function DiagnosticsPage({
   caseId,
   structure,
@@ -372,26 +382,21 @@ export function DiagnosticsPage({
 }) {
   const document = useDocument<Diagnostics>((signal) => data.diagnostics(caseId, signal), [data, caseId])
   const [severity, setSeverity] = useState('all')
+  const [category, setCategory] = useState('all')
   const [selected, setSelected] = useState(0)
   useEffect(() => {
     setSeverity('all')
+    setCategory('all')
     setSelected(0)
   }, [caseId])
   const findings = document.data?.diagnostics ?? []
   const filtered = findings
     .map((finding, index) => ({ finding, index }))
     .filter((item) => severity === 'all' || item.finding.severity === severity)
+    .filter((item) => category === 'all' || item.finding.category === category)
   const active =
     findings[selected] && filtered.some((item) => item.index === selected) ? findings[selected] : filtered[0]?.finding
-  const jump =
-    active?.address &&
-    structure.panels.find(
-      (panel) => panel.nodes.includes(active.address!.node) || panel.result === active.address!.node,
-    )
-  const jumpPath =
-    jump && active?.address
-      ? `${casePath(caseId)}/panels/${encodeURIComponent(jump.id)}?cell=${encodeURIComponent(addressToPath(active.address))}`
-      : null
+  const jumpPath = active ? diagnosticPath(caseId, structure, active) : undefined
   return (
     <>
       <div className="page-heading">
@@ -411,6 +416,20 @@ export function DiagnosticsPage({
                 <h2>{lang === 'de' ? 'Prüfliste' : 'Findings'}</h2>
               </div>
               <label>
+                {lang === 'de' ? 'Kategorie' : 'Category'}{' '}
+                <select
+                  aria-label={lang === 'de' ? 'Kategorie' : 'Category'}
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value)}
+                >
+                  <option value="all">{lang === 'de' ? 'Alle' : 'All'}</option>
+                  <option value="business">{lang === 'de' ? 'Fachliche Prüfung' : 'Business checks'}</option>
+                  <option value="parsing">{lang === 'de' ? 'Syntax' : 'Syntax'}</option>
+                  <option value="structural">{lang === 'de' ? 'Eingabevertrag' : 'Input contract'}</option>
+                  <option value="evaluation">{lang === 'de' ? 'Berechnung' : 'Calculation'}</option>
+                </select>
+              </label>
+              <label>
                 {lang === 'de' ? 'Schweregrad' : 'Severity'}{' '}
                 <select
                   aria-label={lang === 'de' ? 'Schweregrad' : 'Severity'}
@@ -428,8 +447,8 @@ export function DiagnosticsPage({
               <p className="muted">
                 {findings.length
                   ? lang === 'de'
-                    ? 'Keine Befunde für diesen Schweregrad.'
-                    : 'No findings at this severity.'
+                    ? 'Keine Befunde für diese Filter.'
+                    : 'No findings for these filters.'
                   : lang === 'de'
                     ? 'Keine Befunde.'
                     : 'No findings.'}
@@ -447,6 +466,7 @@ export function DiagnosticsPage({
                   <span className={`severity-mark ${finding.severity}`}>{finding.severity}</span>
                   <span>
                     <strong>{finding.code}</strong>
+                    <em>{categoryText(finding.category)}</em>
                     <small>{finding.message}</small>
                     {finding.location && <em>{locationText(finding.location)}</em>}
                   </span>
@@ -460,6 +480,19 @@ export function DiagnosticsPage({
                 <span className={`severity-mark ${active.severity}`}>{active.severity}</span>
                 <h2>{active.code}</h2>
                 <p>{active.message}</p>
+                {active.category === 'business' && (
+                  <p className="muted">
+                    {lang === 'de'
+                      ? 'Fachliche Befunde verhindern weder die Berechnung noch das Speichern von Eingaben.'
+                      : 'Business findings do not prevent calculation or saving inputs.'}
+                  </p>
+                )}
+                {active.rowIndex != null && (
+                  <p className="finding-cell">
+                    {lang === 'de' ? 'Zeile' : 'Row'} {active.rowIndex + 1}
+                    {active.column ? ` · ${active.column}` : ''}
+                  </p>
+                )}
                 {active.location && (
                   <div className="finding-location">
                     <span className="eyebrow">{lang === 'de' ? 'Dokumentposition' : 'Document location'}</span>

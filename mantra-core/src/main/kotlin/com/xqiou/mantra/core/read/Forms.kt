@@ -1,5 +1,6 @@
 package com.xqiou.mantra.core.read
 
+import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.DiagnosticSink
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.Formula
@@ -48,6 +49,7 @@ class Document(val source: SourceText, val root: DslForm) {
                             diagnostic.span?.let {
                                 SourceLocation(source.name, it.line, it.column, it.startOffset, it.endOffset)
                             },
+                            category = DiagnosticCategory.PARSING,
                         )
                     }
                     null
@@ -90,7 +92,12 @@ val DslForm.listHead: String?
  */
 fun Document.literal(form: DslForm, sink: DiagnosticSink, what: String, symbolsAsText: Boolean = false): Value? {
     (form.literalKind as? DslFormLiteral.Failure)?.let { failure ->
-        sink.error("MANTRA-READ-LITERAL", "${failure.diagnostic.code}: ${failure.diagnostic.message}", location(form))
+        sink.error(
+            "MANTRA-READ-LITERAL",
+            "${failure.diagnostic.code}: ${failure.diagnostic.message}",
+            location(form),
+            category = DiagnosticCategory.PARSING,
+        )
         return null
     }
     form.number?.let { return Value.Num(it) }

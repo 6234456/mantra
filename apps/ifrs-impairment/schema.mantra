@@ -8,14 +8,14 @@
 (schema ifrs.ias36/corporate-assets
   {:title "IAS 36 – Impairment test with corporate assets"
    :subtitle "Allocation of corporate assets to CGUs, impairment test per CGU and for the smallest group of CGUs"
-   :version "0.1"
+   :version "0.2"
    :preset :ifrs-schedule
    :basis "IAS 36.100–108"
    :mainline [step-1 step-2 step-3 step-4 summary]}
 
   ;; ── Inputs ───────────────────────────────────────────────────────────────────────────────────
   (input cgus :table
-    {:label "Cash-generating units"
+    {:label "Cash-generating units" :min-rows 1
      :columns {:id :keyword :name :text :carrying-amount :decimal :goodwill :decimal?
                :remaining-life :decimal :value-in-use :decimal :fvlcd :decimal?}})
   (input allocable-corporate :decimal
@@ -33,8 +33,10 @@
   (section step-1 "Step 1 – Shared-facility allocation"
     {:per cgu :display :schedule :reference "IAS 36.102(a)"}
     (line carrying-amount "Carrying amount of the CGU" cgu.carrying-amount)
+    (check cgu-carrying-nonnegative "CGU carrying amount is nonnegative" (>= carrying-amount 0))
     (line remaining-life "Remaining useful life (years)" cgu.remaining-life
       {:op :info :format :integer :aggregate false})
+    (check cgu-life-positive "Remaining useful life is positive" (> remaining-life 0))
     (formula-slot weighting "Weighting based on useful life"
       (if weight-by-life (decimal/divide remaining-life (dim/min all.remaining-life) 4) 1)
       {:op :info :format :number :aggregate false :uses [remaining-life carrying-amount weight-by-life]})
@@ -71,7 +73,9 @@
     (line loss-to-own-assets "To the other assets of the CGU"
       (- impairment-loss loss-to-goodwill loss-to-corporate)
       {:reference "IAS 36.104(b)"})
-    (total loss-allocated "Impairment loss allocated"))
+    (total loss-allocated "Impairment loss allocated")
+    (reconcile cgu-loss-crossfoot "Impairment loss agrees to its allocation"
+      impairment-loss loss-allocated {:tolerance 0.01}))
 
   ;; ── Step 4: smallest group of CGUs including other shared assets (IAS 36.102(b)) ────────────
   (section step-4 "Step 4 – Combined recovery check"

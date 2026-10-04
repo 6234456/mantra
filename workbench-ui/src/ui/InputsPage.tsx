@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { WorkbenchData } from '../data'
 import type { Address, Diagnostic, EditOperation, EditResult, InputField, Run, Structure, Value } from '../types'
 import { casePath } from '../address'
+import { diagnosticsForInput } from '../diagnostics'
 import { language, t } from '../i18n'
 import './InputsPage.css'
 
@@ -44,14 +45,6 @@ function valueText(value: Value | undefined): string {
   }
   return ''
 }
-function addressDiagnostics(diagnostics: Diagnostic[], address: Address) {
-  return diagnostics.filter(
-    (item) =>
-      item.address?.node === address.node &&
-      JSON.stringify(item.address?.coord ?? []) === JSON.stringify(address.coord ?? []) &&
-      JSON.stringify(item.address?.cell ?? null) === JSON.stringify(address.cell ?? null),
-  )
-}
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error)
 }
@@ -66,6 +59,7 @@ export function InputsPage({
   effect,
   onSaved,
   navigate,
+  selectedAddress,
 }: {
   caseId: string
   groupId?: string
@@ -76,6 +70,7 @@ export function InputsPage({
   effect?: EditResult['difference']
   onSaved: (difference: EditResult['difference']) => void
   navigate: (path: string) => void
+  selectedAddress?: Address
 }) {
   const sections = useMemo(() => groups(structure), [structure])
   const active = sections.find((item) => item.id === groupId) ?? sections[0]
@@ -96,6 +91,13 @@ export function InputsPage({
         <h1>{t('inputs', lang)}</h1>
         <p>{structure.title}</p>
       </div>
+      {!run.validationPassed && (
+        <p className="input-validation-note" role="status">
+          {lang === 'de'
+            ? 'Fachliche Prüfungen sind offen. Eingaben können weiter gespeichert werden.'
+            : 'Business checks need attention. Inputs can still be saved.'}
+        </p>
+      )}
       <div className="input-layout">
         <nav className="sheet input-groups" aria-label={lang === 'de' ? 'Eingabegruppen' : 'Input groups'}>
           <span className="eyebrow">{lang === 'de' ? 'Bereiche' : 'Groups'}</span>
@@ -125,7 +127,7 @@ export function InputsPage({
             </div>
             {active.fields.map((item) =>
               item.type === 'table' ? (
-                <TableField key={item.id} field={item} run={run} save={save} />
+                <TableField key={item.id} field={item} run={run} save={save} selectedAddress={selectedAddress} />
               ) : (
                 <div key={item.id} className="input-field">
                   <div className="input-field-heading">
@@ -146,6 +148,11 @@ export function InputsPage({
                         run={run}
                         revision={revision}
                         save={save}
+                        selected={
+                          selectedAddress?.node === item.id &&
+                          !selectedAddress.cell &&
+                          JSON.stringify(selectedAddress.coord ?? []) === JSON.stringify(coord)
+                        }
                       />
                     ))}
                   </div>
@@ -216,6 +223,7 @@ function InputControl({
   run,
   revision,
   save,
+  selected = false,
 }: {
   field: Field
   address: Address
@@ -223,6 +231,7 @@ function InputControl({
   run: Run
   revision: string
   save: (operation: EditOperation) => Promise<void>
+  selected?: boolean
 }) {
   const coordinateKey = address.coord?.join('/') ?? ''
   const item = run.values[field.id]?.[coordinateKey]
@@ -230,11 +239,19 @@ function InputControl({
   const [draft, setDraft] = useState(inputText)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const control = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (selected) control.current?.querySelector<HTMLInputElement | HTMLSelectElement>('input,select')?.focus()
+  }, [selected])
   useEffect(() => {
     setDraft(inputText)
     setError('')
   }, [revision, field.id, coordinateKey, inputText])
-  const diagnostics = addressDiagnostics(run.diagnostics, address)
+  const diagnostics = diagnosticsForInput(run.diagnostics, address)
+  const invalid = !!error || diagnostics.some((finding) => finding.severity === 'error')
+  const needsExplicitValue = diagnostics.some(
+    (finding) => finding.category === 'business' && finding.code === 'MANTRA-INPUT-REQUIRED',
+  )
   const title = label || field.label || field.id
   async function submit(next: string) {
     setBusy(true)
@@ -249,7 +266,7 @@ function InputControl({
   }
   const options = Object.entries(field.options ?? {})
   return (
-    <div className="input-control">
+    <div ref={control} className={`input-control${selected ? ' is-selected' : ''}`}>
       <label htmlFor={`input-${field.id}-${address.coord?.join('-') ?? 'single'}`}>
         {label || (lang === 'de' ? 'Wert' : 'Value')}
       </label>
@@ -260,6 +277,7 @@ function InputControl({
             type="checkbox"
             checked={draft === 'true'}
             disabled={busy}
+            aria-invalid={invalid}
             onChange={(event) => {
               const next = String(event.target.checked)
               setDraft(next)
@@ -271,6 +289,7 @@ function InputControl({
             id={`input-${field.id}-${address.coord?.join('-') ?? 'single'}`}
             value={draft}
             disabled={busy}
+            aria-invalid={invalid}
             onChange={(event) => {
               setDraft(event.target.value)
               void submit(event.target.value)
@@ -290,15 +309,19 @@ function InputControl({
             inputMode={field.type === 'decimal' || field.type === 'integer' ? 'decimal' : 'text'}
             value={draft}
             disabled={busy}
-            aria-invalid={!!error}
+            aria-invalid={invalid}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') void submit(draft)
             }}
           />
         )}
-        {field.type !== 'boolean' && !options.length && (
-          <button type="button" disabled={busy || draft === valueText(item?.value)} onClick={() => void submit(draft)}>
+        {((field.type !== 'boolean' && !options.length) || needsExplicitValue) && (
+          <button
+            type="button"
+            disabled={busy || (draft === valueText(item?.value) && !needsExplicitValue)}
+            onClick={() => void submit(field.type === 'boolean' ? String(draft === 'true') : draft)}
+          >
             {busy ? '…' : lang === 'de' ? 'Speichern' : 'Save'}
           </button>
         )}
@@ -310,7 +333,7 @@ function InputControl({
         </p>
       )}
       {diagnostics.map((diagnostic, index) => (
-        <p className="input-diagnostic" key={index}>
+        <p className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`} key={index}>
           {diagnostic.message}
         </p>
       ))}
@@ -321,26 +344,31 @@ function InputControl({
 
 function tableRows(value: Value | undefined): Array<Record<string, Value>> {
   if (!Array.isArray(value)) return []
-  return value
-    .filter((row) => !!row && typeof row === 'object' && !Array.isArray(row) && 'map' in row)
-    .map((row) =>
-      Object.fromEntries((row as { map: Array<[Value, Value]> }).map.map(([key, item]) => [valueText(key), item])),
-    )
+  return value.map((row) =>
+    row && typeof row === 'object' && !Array.isArray(row) && 'map' in row
+      ? Object.fromEntries(row.map.map(([key, item]) => [valueText(key), item]))
+      : {},
+  )
 }
 function TableField({
   field,
   run,
   save,
+  selectedAddress,
 }: {
   field: Field
   run: Run
   save: (operation: EditOperation) => Promise<void>
+  selectedAddress?: Address
 }) {
   const rows = tableRows(run.values[field.id]?.['']?.value)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [newRow, setNewRow] = useState<Record<string, string>>({})
   const columns = field.columns ?? []
+  const tableDiagnostics = diagnosticsForInput(run.diagnostics, { node: field.id })
+  const indexedSelection =
+    selectedAddress?.cell?.row !== undefined && rows.some((_, index) => String(index) === selectedAddress.cell?.row)
   async function mutate(operation: EditOperation) {
     setBusy(true)
     setError('')
@@ -397,6 +425,16 @@ function TableField({
                       column={column.name}
                       value={row[column.name]}
                       save={save}
+                      diagnostics={diagnosticsForInput(
+                        run.diagnostics,
+                        { node: field.id, cell: { row: rowKey(row, index), column: column.name } },
+                        index,
+                      )}
+                      selected={
+                        selectedAddress?.node === field.id &&
+                        selectedAddress.cell?.column === column.name &&
+                        selectedAddress.cell?.row === (indexedSelection ? String(index) : rowKey(row, index))
+                      }
                     />
                   </td>
                 ))}
@@ -431,6 +469,11 @@ function TableField({
           </tbody>
         </table>
       </div>
+      {tableDiagnostics.map((diagnostic, index) => (
+        <p key={index} className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`}>
+          {diagnostic.message}
+        </p>
+      ))}
       <div className="input-add-row">
         <span>{lang === 'de' ? 'Neue Zeile' : 'New row'}</span>
         {columns.map((column) => (
@@ -461,16 +504,24 @@ function TableCell({
   column,
   value,
   save,
+  diagnostics = [],
+  selected = false,
 }: {
   table: string
   row: string
   column: string
   value?: Value
   save: (operation: EditOperation) => Promise<void>
+  diagnostics?: Diagnostic[]
+  selected?: boolean
 }) {
   const [draft, setDraft] = useState(valueText(value))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const control = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (selected) control.current?.querySelector<HTMLInputElement>('input')?.focus()
+  }, [selected])
   useEffect(() => {
     setDraft(valueText(value))
     setError('')
@@ -488,11 +539,12 @@ function TableCell({
     }
   }
   return (
-    <div className="table-cell-edit">
+    <div ref={control} className={`table-cell-edit${selected ? ' is-selected' : ''}`}>
       <input
         aria-label={`${column} · ${row}`}
         value={draft}
         disabled={busy}
+        aria-invalid={!!error || diagnostics.some((finding) => finding.severity === 'error')}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === 'Enter') void submit()
@@ -511,6 +563,11 @@ function TableCell({
           {error}
         </small>
       )}
+      {diagnostics.map((diagnostic, index) => (
+        <small className={`input-diagnostic ${diagnostic.category} ${diagnostic.severity}`} key={index}>
+          {diagnostic.message}
+        </small>
+      ))}
     </div>
   )
 }

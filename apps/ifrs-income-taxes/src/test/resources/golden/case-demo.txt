@@ -1,0 +1,103 @@
+IAS 12 single-period tax reconciliation
+Project-authored fictional data – demonstration only
+=======================================
+Entity: Demonstration Group
+Period: 2026
+Calculation schema: IAS 12 – Tax-expense reconciliation v0.2 [ifrs.ias12/rate-reconciliation]
+Prepared by: Mantra acceptance demonstration
+WP ref.: Project-authored fictional facts
+Combined booked tax expense or benefit: 79,800
+
+Structure of the calculation
+  Mainline 1: Tax-expense reconciliation by entity [1]  79,800
+  Mainline 2: Supplied tax effects [2]
+  Mainline 3: Group totals [3]
+
+[1] 1 · Entity tax expense and effective rates
+    Mainline › 1 Tax-expense reconciliation by entity
+Description                               | North entity | South entity |     Total |
+------------------------------------------+--------------+--------------+-----------+--
+Accounting profit before tax              |      240,000 |       80,000 |   320,000 |
+Supplied applicable tax rate              |      25.00 % |      20.00 % |           |
+Applicable rate is between zero and one   |            ✓ |            ✓ |           | ✓
+Tax at the supplied applicable rate       |       60,000 |       16,000 |    76,000 |
+Total supplied tax effects                |        5,400 |      (1,600) |     3,800 |
+                                         -+--------------+--------------+-----------+-
+Tax explained by expected tax and effects |       65,400 |       14,400 |    79,800 | Σ
+                                         =+==============+==============+===========+=
+Booked tax expense or benefit             |       65,400 |       14,400 |    79,800 |
+Explained less booked tax                 |            – |            – |           | ✓
+Effective tax rate                        |    27.2500 % |    18.0000 % | 24.9375 % |
+
+[2] 2 · Supplied tax effects
+    Mainline › 2 Supplied tax effects
+Description | Non-deductible expenditure | Exempt revenue | Earlier-period correction | Non-deductible expenditure | Exempt revenue | Earlier-period correction | Total
+------------+----------------------------+----------------+---------------------------+----------------------------+----------------+---------------------------+------
+Tax effect  |                      6,500 |        (2,400) |                     1,300 |                        800 |        (1,600) |                     (800) | 3,800
+
+[3] 3 · Group reconciliation
+    Mainline › 3 Group totals
+                                       |        CU |
+---------------------------------------+-----------+--
+Combined accounting profit             |   320,000 |
+Combined explained tax                 |    79,800 |
+Combined booked tax expense or benefit |    79,800 |
+Combined explained less booked tax     |         – | ✓
+Combined effective tax rate            | 24.9375 % |
+
+Audit trail
+-----------
+1/3 Applicable rate is between zero and one [North entity]
+    Formula: (and (>= applicable-tax-rate 0) (<= applicable-tax-rate 1))
+    Working: (>= applicable-tax-rate 0) = true → (<= applicable-tax-rate 1) = true → (and (>= applicable-tax-rate 0) (<= applicable-tax-rate 1)) = true = ✓
+1/3 Applicable rate is between zero and one [South entity]
+    Formula: (and (>= applicable-tax-rate 0) (<= applicable-tax-rate 1))
+    Working: (>= applicable-tax-rate 0) = true → (<= applicable-tax-rate 1) = true → (and (>= applicable-tax-rate 0) (<= applicable-tax-rate 1)) = true = ✓
+1/4 Tax at the supplied applicable rate [North entity]
+    Formula: (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale)
+    Working: (* accounting-profit applicable-tax-rate) = 60000.00 → (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale) = 60000.00 = 60,000
+1/4 Tax at the supplied applicable rate [South entity]
+    Formula: (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale)
+    Working: (* accounting-profit applicable-tax-rate) = 16000.00 → (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale) = 16000.00 = 16,000
+1/5 Total supplied tax effects [North entity]
+    Formula: (dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key)
+    Working: (dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key) = 5400 = 5,400
+1/5 Total supplied tax effects [South entity]
+    Formula: (dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key)
+    Working: (dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key) = -1600 = (1,600)
+1/6 Tax explained by expected tax and effects [North entity]
+    Formula: expected-tax + tax-effect-total
+    Working: 60000.00 + 5400 = 65,400
+1/6 Tax explained by expected tax and effects [South entity]
+    Formula: expected-tax + tax-effect-total
+    Working: 16000.00 + -1600 = 14,400
+1/8 Explained less booked tax [North entity]
+    Formula: explained-tax ≈ actual-tax (± 0.01)
+    Working: explained-tax = 65400.00; actual-tax = 65400 → 65400.00 − 65400 = 0.00 (± 0.01) = –
+1/8 Explained less booked tax [South entity]
+    Formula: explained-tax ≈ actual-tax (± 0.01)
+    Working: explained-tax = 14400.00; actual-tax = 14400 → 14400.00 − 14400 = 0.00 (± 0.01) = –
+1/9 Σ Effective tax rate (Total)
+    Formula: Σ actual-tax ÷ Σ accounting-profit
+    Working: [tax-entity=North] 65400 / 240000 included; [tax-entity=South] 14400 / 80000 included → Σ actual-tax = 79800; Σ accounting-profit = 320000 → 79800 ÷ 320000 (round 6 half-up) = 0.249375 = 24.9375 %
+1/9 Effective tax rate [North entity]
+    Formula: (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6))
+    Working: (= accounting-profit 0) = false → (decimal/divide actual-tax accounting-profit 6) = 0.272500 → (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6)) = 0.272500 → selected branch: (decimal/divide actual-tax accounting-profit 6) = 27.2500 %
+1/9 Effective tax rate [South entity]
+    Formula: (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6))
+    Working: (= accounting-profit 0) = false → (decimal/divide actual-tax accounting-profit 6) = 0.180000 → (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6)) = 0.180000 → selected branch: (decimal/divide actual-tax accounting-profit 6) = 18.0000 %
+3/1 Combined accounting profit
+    Formula: (dim/sum all.accounting-profit)
+    Working: (dim/sum all.accounting-profit) = 320000 = 320,000
+3/2 Combined explained tax
+    Formula: (dim/sum all.explained-tax)
+    Working: (dim/sum all.explained-tax) = 79800.00 = 79,800
+3/3 Combined booked tax expense or benefit
+    Formula: (dim/sum all.actual-tax)
+    Working: (dim/sum all.actual-tax) = 79800 = 79,800
+3/4 Combined explained less booked tax
+    Formula: group-explained-tax ≈ group-tax (± 0.01)
+    Working: group-explained-tax = 79800.00; group-tax = 79800 → 79800.00 − 79800 = 0.00 (± 0.01) = –
+3/5 Combined effective tax rate
+    Formula: (if (= group-profit 0) nil (decimal/divide group-tax group-profit 6))
+    Working: (= group-profit 0) = false → (decimal/divide group-tax group-profit 6) = 0.249375 → (if (= group-profit 0) nil (decimal/divide group-tax group-profit 6)) = 0.249375 → selected branch: (decimal/divide group-tax group-profit 6) = 24.9375 %

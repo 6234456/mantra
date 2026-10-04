@@ -2,6 +2,7 @@ package com.xqiou.mantra.core.engine
 
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceOption
 import com.xqiou.mantra.core.model.DimensionDecl
@@ -12,6 +13,7 @@ import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.NodeItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
+import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
@@ -41,6 +43,8 @@ internal class CompiledFormula(
     val dimRefs: Set<String>,
     /** Generated source-member → parent-member maps referenced by the formula. */
     val relationRefs: Map<String, String>,
+    /** A typed table record supplied as the local `row` root, only for column validation. */
+    val rowTable: String? = null,
 )
 
 internal sealed class Vertex(val id: String, val location: SourceLocation) {
@@ -92,6 +96,28 @@ internal class InputVertex(val decl: InputDecl, override val dims: List<String>)
     override val type: ValueType = decl.type
     override val label: String = decl.label ?: decl.id
 }
+
+/** Input requirements run separately, so a condition may safely reference derived values. */
+internal class InputValidationVertex(val input: InputVertex) : Vertex("${input.id}?validation", input.location) {
+    var required: CompiledFormula? = null
+    val columns: MutableMap<String, CompiledFormula> = linkedMapOf()
+}
+
+internal class CheckVertex(val item: CheckItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
+    override val type: ValueType = ValueType.BOOLEAN
+    override val label: String = item.label
+    var compiled: CompiledFormula? = null
+}
+
+internal class ReconcileVertex(val item: ReconcileItem, override val dims: List<String>) :
+    ValueVertex(item.id, item.location) {
+    override val type: ValueType = ValueType.DECIMAL
+    override val label: String = item.label
+    var left: CompiledFormula? = null
+    var right: CompiledFormula? = null
+}
+
+internal val ValueVertex.isValidation: Boolean get() = this is CheckVertex || this is ReconcileVertex
 
 internal class LineVertex(val item: LineItem, override val dims: List<String>) : ValueVertex(item.id, item.location) {
     override val type: ValueType = item.type

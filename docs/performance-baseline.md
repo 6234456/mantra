@@ -65,9 +65,17 @@ or batch benchmark: those belong to M4, where compiled plans can be reused acros
 | --- | --- |
 | plan | `Mantra.inspect(schema, case)`: compilation, dependency order and detached public view; parsing is excluded |
 | calculate | `Mantra.calculate(schema, case)`: planning, evaluation and detached result/view; parsing is excluded |
+| calculate-audit (M1) | `Mantra.calculateForAudit(schema, case)`: the same calculation plus bounded source-level trace capture for all coordinates |
 | explain | `Mantra.calculateForExplain(...)`: planning and full calculation, plus bounded source-level trace for the final member line |
 | paper | `Render.paper(result, layout)`: paper construction and full audit appendix from an existing result; HTML/Text encoding and disk I/O are excluded |
 | xlsx | `ExcelExport.workbook(...)` plus `bytes()`: complete paper, formulas, POI recalculation, XLSX encoding and workbook close; calculation and disk I/O are excluded |
+
+Starting in M1, paper and XLSX use an existing audit result. Their construction includes the captured
+source-level evidence and XLSX snapshot-status formulas. M0 exporters used an ordinary calculation
+result, so an export-time difference includes this additional output. The ordinary `calculate`,
+`plan` and single-target `explain` contracts remain comparable. Audit capture uses the default
+`AuditOptions`: at most 2,000 formulas, 100,000 events, 16,384 projected steps and 1,000,000
+characters. Large scenarios show explicit truncation; this does not change calculated values.
 
 There is no public reusable compiled-plan API in M0, so `calculate` includes planning and `explain`
 does not measure only the cost of tracing one expression. `plan` also includes making the immutable

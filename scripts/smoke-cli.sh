@@ -31,6 +31,10 @@ layout='apps/de-est/layout.mantra'
 "$cli" fixtures "$case_file" --workspace apps --out "$task_dir/fixtures" > "$task_dir/fixtures.txt"
 "$cli" diff "$schema" --case "$case_file" --variant-parameters apps/de-est/params-2026.mantra --out "$task_dir/compare.json"
 "$cli" explain "$schema" --case "$case_file" --address tarifliche-est --layout "$layout" --out "$task_dir/explain.json"
+"$cli" explain apps/ifrs-income-taxes/schema.mantra --case apps/ifrs-income-taxes/case-demo.mantra \
+  --address aggregate.effective-tax-rate --out "$task_dir/aggregate.json"
+"$cli" run apps/ifrs-income-taxes/schema.mantra --case apps/ifrs-income-taxes/case-unreconciled.mantra \
+  --out "$task_dir/business-failure.txt"
 "$cli" serve apps --port 0 > "$task_dir/server.log" 2>&1 &
 server_pid=$!
 for _ in {1..100}; do
@@ -41,6 +45,8 @@ done
 server_url="$(sed -n 's/.* at \(http:\/\/127.0.0.1:[0-9]*\)\/.*/\1/p' "$task_dir/server.log")"
 [ -n "$server_url" ]
 curl --fail --silent "$server_url/api/v1/workspace" > "$task_dir/workspace.json"
+curl --fail --silent "$server_url/api/v1/cases/ifrs-income-taxes%2Fcase-unreconciled%2Emantra/run" \
+  > "$task_dir/business-run.json"
 python3 - "$task_dir" <<'PY'
 import json
 from pathlib import Path
@@ -52,5 +58,14 @@ assert json.loads((base / 'fixtures/index.json').read_text())['cases']
 assert json.loads((base / 'compare.json').read_text())['data']['mainline']
 assert json.loads((base / 'explain.json').read_text())['data']['steps']
 assert json.loads((base / 'workspace.json').read_text())['data']['cases']
+aggregate = json.loads((base / 'aggregate.json').read_text())
+assert aggregate['contract'] == 'mantra.workbench/2'
+assert aggregate['data']['aggregate']['result']['n'] == '0.249375'
+assert aggregate['data']['aggregate']['activeMemberCount'] == 2
+assert aggregate['data']['steps'] == []
+business = json.loads((base / 'business-run.json').read_text())['data']
+assert business['succeeded'] and not business['validationPassed']
+assert len([item for item in business['diagnostics'] if item['category'] == 'business']) == 3
+assert 'MANTRA-RECONCILE-FAILED' in (base / 'business-failure.txt').read_text()
 PY
 echo 'PASS CLI: run, check, catalog, fixtures, diff, explain, serve'

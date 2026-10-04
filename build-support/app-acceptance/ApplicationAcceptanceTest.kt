@@ -1,5 +1,6 @@
 package com.xqiou.mantra.acceptance
 
+import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.data.Json
@@ -45,8 +46,9 @@ class ApplicationAcceptanceTest {
             }
             val variants: List<List<ParameterSet>> = listOf(emptyList<ParameterSet>()) + parameters.map { listOf(it) }
             variants.forEach { sets ->
-                val result = Mantra.calculate(schema, bound, sets)
+                val result = Mantra.calculateForAudit(schema, bound, sets)
                 assertTrue(result.succeeded, "${path.fileName}: ${result.diagnostics}")
+                assertBusinessFindings(bound, result.diagnostics)
                 val name = path.fileName.toString().removeSuffix(".mantra") +
                     sets.joinToString("") { "-" + it.id.substringAfterLast('/') }
                 val amounts = result.nodes.values.flatMap { node ->
@@ -55,6 +57,10 @@ class ApplicationAcceptanceTest {
                             (node.id + if (coord.isEmpty()) "" else "@" + coord.joinToString("/")) to
                                 it.value.toPlainString()
                         }
+                    } + if (node.dims.isNotEmpty() && node.line?.ratio != null) {
+                        node.crossTotal()?.let { listOf("${node.id}@*" to it.toPlainString()) }.orEmpty()
+                    } else {
+                        emptyList()
                     }
                 }.toMap()
                 Files.writeString(out.resolve("$name-values.json"), WorkbenchJson.write(amounts))
@@ -121,11 +127,50 @@ class ApplicationAcceptanceTest {
                                 compare(export.address(node.id, coord), value, "${node.id}$coord")
                             }
                         }
+                        if (node.dims.isNotEmpty() && node.line?.ratio != null) {
+                            compare(
+                                export.address("aggregate.${node.id}"),
+                                node.crossTotal()?.let { Value.Num(it) } ?: Value.Nil,
+                                "aggregate.${node.id}",
+                            )
+                        }
                     }
                     assertTrue(compared > 0, "$name must compare workbook values")
                 }
             }
         }
+    }
+
+    private fun assertBusinessFindings(case: CaseData, diagnostics: List<com.xqiou.mantra.core.Diagnostic>) {
+        fun token(value: Value?): String = when (value) {
+            is Value.Text -> value.value
+            is Value.Kw -> value.name
+            is Value.Num -> value.value.toPlainString()
+            else -> ""
+        }
+        val expected = (case.meta["expected-business"] as? Value.Vec)?.items.orEmpty().map { item ->
+            require(item is Value.MapV) { "expected-business must contain maps" }
+            fun field(key: String) = item.entries[Value.Kw(key)]
+            listOf(
+                token(field("code")),
+                token(field("node")),
+                (field("coord") as? Value.Vec)?.items.orEmpty().joinToString("/") { token(it) },
+                token(field("severity")).ifEmpty { "error" },
+                token(field("row-index")),
+                token(field("column")),
+            ).joinToString("|")
+        }.sorted()
+        val actual = diagnostics.filter { it.category == DiagnosticCategory.BUSINESS }.map {
+            listOf(
+                it.code,
+                it.nodeId.orEmpty(),
+                it.coord.joinToString("/"),
+                it.severity.name.lowercase(),
+                it.rowIndex?.toString().orEmpty(),
+                it.column.orEmpty(),
+            ).joinToString("|")
+        }.sorted()
+        assertEquals(expected, actual, "${case.id}: unexpected business findings")
     }
 
     @Test

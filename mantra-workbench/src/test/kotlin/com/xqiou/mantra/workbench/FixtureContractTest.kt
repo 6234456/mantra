@@ -26,6 +26,9 @@ class FixtureContractTest {
         "de-est" to "case-mustermann.mantra",
         "ifrs-impairment" to "case-demo.mantra",
         "cost-accounting" to "case-demo.mantra",
+        "ifrs-income-taxes" to "case-demo.mantra",
+        "ifrs-income-taxes" to "case-unreconciled.mantra",
+        "ifrs-income-taxes" to "case-zero-profit.mantra",
     )
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
@@ -107,7 +110,7 @@ class FixtureContractTest {
     }
 
     @Test
-    fun `three acceptance cases generate stable browser fixtures satisfying their schemas`() {
+    fun `all four applications generate stable browser fixtures satisfying their schemas`() {
         val temp = Files.createTempDirectory("mantra-wp3-fixtures-")
         try {
             val cases = examples.map { (directory, case) -> Path.of("apps", directory, case) }
@@ -128,7 +131,16 @@ class FixtureContractTest {
                         ExplainAddress("weighted-amount", listOf("B")),
                         ExplainAddress("weighted-amount", listOf("C")),
                     ),
-                    "cost-accounting/case-demo.mantra" to listOf(ExplainAddress("direct-primary-total")),
+                    "cost-accounting/case-demo.mantra" to
+                        listOf(
+                            ExplainAddress("direct-primary-total"),
+                            ExplainAddress("aggregate.actual-weighted-unit"),
+                        ),
+                    "ifrs-income-taxes/case-demo.mantra" to
+                        listOf(
+                            ExplainAddress("effective-tax-rate", listOf("North")),
+                            ExplainAddress("aggregate.effective-tax-rate"),
+                        ),
                 ),
             )
             assertEquals(examples.map { (directory, case) -> "$directory/$case" }, entries.map { it.id })
@@ -168,7 +180,7 @@ class FixtureContractTest {
                     assertTrue(errors.isEmpty(), "${entry.id}/$key: $errors")
                 }
                 @Suppress("UNCHECKED_CAST")
-                val explains = entry.files["explains"] as Map<String, String>
+                val explains = entry.files["explains"] as? Map<String, String> ?: emptyMap()
                 explains.values.forEach { path ->
                     val relative = path.removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))

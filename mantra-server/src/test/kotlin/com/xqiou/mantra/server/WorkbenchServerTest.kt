@@ -231,7 +231,7 @@ class WorkbenchServerTest {
             val parameters = request(server.localPort, "/api/v1/cases/$case/parameters")
             for (response in listOf(structure, run, paper, diagnostics, parameters)) {
                 assertEquals(200, response.status, response.body)
-                assertContains(response.body, "\"contract\":\"mantra.workbench/1\"")
+                assertContains(response.body, "\"contract\":\"mantra.workbench/2\"")
                 assertContains(response.body, "\"revision\":")
             }
             listOf("structure", "run", "paper", "diagnostics", "parameters")

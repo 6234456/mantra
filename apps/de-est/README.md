@@ -29,3 +29,11 @@ Acceptance tests produce HTML, Text, XLSX and numeric verification JSON under `b
 2026 parameter variants. `data/payroll.csv` and `import-templates/payroll.json` show a generic wide
 CSV import into per-person input fields; apply the template in the workbench after selecting that
 file. Explicit inputs in an existing case take precedence over imported values.
+
+M1 business validation checks conflicting single-parent/joint-assessment flags and requires a
+child when the single-parent flag is enabled. This application's data-completeness rule requests
+explicit wage withholding when positive wages are supplied; a legal zero amount must be entered
+as zero. These are scheme rules, rather than a claim to complete legal validation. The final
+payment reconciliation compares assessed taxes with supplied withholding and advance payments
+using an explicit 0.01 tolerance. Findings remain visible while calculations and saving continue.
+The average income-tax rate is shown with explicit six-place calculation rounding.

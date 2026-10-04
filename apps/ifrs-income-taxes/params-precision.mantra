@@ -1,0 +1,4 @@
+;; Alternative explicit monetary precision; all supplied fixture profits have exact cent tax amounts.
+(parameters ifrs.ias12/precision
+  {:for "ifrs.ias12/rate-reconciliation" :label "Four-place expected-tax precision"}
+  (value expected-tax-scale 4))

@@ -32,7 +32,8 @@ internal fun ExcelWorkbookBuilder.neutral(vertex: ViewNode): X.Scalar = when {
 
 internal fun ExcelWorkbookBuilder.aggregateRef(nodeId: String): X.Scalar? {
     val vertex = view.nodes[nodeId] ?: return null
-    if (view.nodes[nodeId]?.crossTotal() == null) return null
+    if (vertex.line?.ratio != null) return ratioAggregate(vertex)
+    if (view.nodes[nodeId]?.crossTotal() == null && !usesRatio(vertex)) return null
     return when (val x = reference(nodeId, emptyList(), emptyList())) {
         is X.Scalar -> x
         is X.Range -> if (vertex.type.isNumeric) Ex.fn("SUM", Ex.atom(x.text)) else null
@@ -119,11 +120,16 @@ internal fun ExcelWorkbookBuilder.sumMap(values: X.MapX): X.Scalar = Ex.fn(
 
 internal fun ExcelWorkbookBuilder.totalFormula(vertex: ViewNode, coord: Coord): X.Scalar {
     val terms = vertex.components.map { component ->
-        val value = when (val x = reference(component.vertexId, vertex.dims, coord)) {
-            is X.Scalar -> x
-            is X.Range -> Ex.fn("SUM", Ex.atom(x.text))
-            is X.MapX -> sumMap(x)
-            else -> throw Untranslatable("component ${component.vertexId}")
+        val componentNode = view.nodes.getValue(component.vertexId)
+        val value = if (componentNode.line?.ratio != null && componentNode.dims.any { it !in vertex.dims }) {
+            ratioAggregate(componentNode, vertex.dims, coord)
+        } else {
+            when (val x = reference(component.vertexId, vertex.dims, coord)) {
+                is X.Scalar -> x
+                is X.Range -> Ex.fn("SUM", Ex.atom(x.text))
+                is X.MapX -> sumMap(x)
+                else -> throw Untranslatable("component ${component.vertexId}")
+            }
         }
         component.sign to value
     }
@@ -142,7 +148,13 @@ internal fun ExcelWorkbookBuilder.totalFormula(vertex: ViewNode, coord: Coord): 
             if (sign < 0) Ex.sub(acc, value) else Ex.add(acc, value)
         }
     }
-    return guarded(vertex, coord, core)
+    val complete = if (vertex.components.any { usesRatio(view.node(it.vertexId)) }) {
+        val defined = terms.map { Ex.fn("ISNUMBER", it.second, kind = XKind.BOOL) }
+        Ex.iff(if (defined.size == 1) defined.single() else Ex.fn("AND", defined, XKind.BOOL), core, Ex.EMPTY)
+    } else {
+        core
+    }
+    return guarded(vertex, coord, complete)
 }
 
 internal fun ExcelWorkbookBuilder.optionFormula(vertex: ViewNode, optionKey: String, coord: Coord): X.Scalar {
@@ -312,6 +324,9 @@ internal fun ExcelWorkbookBuilder.writeValuesAndFormulas() {
                                 paperCellStyles[slot] ?: StyleSpec(),
                             ).copy(fill = Fill.PARAM),
                         )
+                }
+                vertex.check != null || vertex.reconcile != null -> setFormula(slot, id) {
+                    businessValue(vertex, coord)
                 }
                 vertex.line != null -> setFormula(slot, id) { lineFormula(vertex, coord) }
                 vertex.total != null -> setFormula(slot, id) { totalFormula(vertex, coord) }

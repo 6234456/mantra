@@ -51,6 +51,9 @@ internal class ExcelWorkbookBuilder(
     }
 
     internal val nodeSlots = linkedMapOf<String, LinkedHashMap<Coord, Slot>>()
+
+    /** First visible cell containing a node's aggregate over all member dimensions. */
+    internal val aggregateSlots = linkedMapOf<String, Slot>()
     internal val optionSlots = linkedMapOf<Pair<String, String>, LinkedHashMap<Coord, Slot>>()
     internal val guardSlots = linkedMapOf<String, LinkedHashMap<Coord, Slot>>()
     internal val activeSlots = linkedMapOf<Pair<String, String>, Slot>()
@@ -58,6 +61,8 @@ internal class ExcelWorkbookBuilder(
     internal val tableSlots = hashMapOf<Triple<String, Int, String>, Slot>()
     internal val presentation = mutableListOf<Pair<Slot, () -> X.Scalar?>>()
     internal val statusFormulas = mutableListOf<Pair<Slot, () -> X.Scalar?>>()
+    internal val providedSlots = mutableListOf<Slot>()
+    internal val inputStatusSlots = mutableListOf<Pair<Slot, String>>()
     internal val slotNames = hashMapOf<Slot, String>()
     internal val rangeNames = hashMapOf<String, String>()
     internal val usedNames = hashSetOf<String>()
@@ -80,7 +85,9 @@ internal class ExcelWorkbookBuilder(
             layoutHelpers()
             defineNames()
             writeValuesAndFormulas()
+            writeBusinessChecks()
             writeOverview(overview, paper)
+            writeAudit(paper)
             val errors = if (options.evaluate) evaluate() else emptyList()
             wb.setForceFormulaRecalculation(true)
             val report = ExcelReport(
@@ -92,6 +99,10 @@ internal class ExcelWorkbookBuilder(
                 evaluationErrors = errors,
             )
             val addresses = nodeSlots.mapValues { (_, slots) -> slots.mapValues { (_, slot) -> slot.address } }
+                .toMutableMap()
+            aggregateSlots.forEach { (id, slot) ->
+                addresses["aggregate.$id"] = mapOf(emptyList<String>() to slot.address)
+            }
             return ExcelWorkbook(
                 wb,
                 report,
@@ -400,6 +411,8 @@ internal class ExcelWorkbookBuilder(
                 it.options.joinToString("; ") { option -> option.formula.source } +
                 ")"
         }
+        vertex.check?.let { return it.formula.source }
+        vertex.reconcile?.let { return "${it.left.source} − ${it.right.source}" }
         return ""
     }
 

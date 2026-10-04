@@ -77,7 +77,7 @@ data class ParamDecl(
     val location: SourceLocation,
 )
 
-data class ColumnDecl(val name: String, val type: ValueType, val optional: Boolean)
+data class ColumnDecl(val name: String, val type: ValueType, val optional: Boolean, val requiredWhen: Formula? = null)
 
 data class InputDecl(
     val id: String,
@@ -93,6 +93,8 @@ data class InputDecl(
     val location: SourceLocation,
     /** Table column -> target dimension. Non-null row values must name an active member. */
     val references: Map<String, String> = emptyMap(),
+    val requiredWhen: Formula? = null,
+    val minRows: Int? = null,
 )
 
 data class MemberDecl(val key: String, val label: String, val condition: Formula?)
@@ -117,7 +119,10 @@ data class FunctionDecl(val name: String, val source: String, val location: Sour
 enum class ChoiceRule { MIN, MAX }
 
 /** Whether values across dimension members have a meaningful cross total. */
-enum class AggregateRule { SUM, NONE }
+enum class AggregateRule { SUM, NONE, RATIO }
+
+/** A ratio is cross-footed by summing its numeric components before dividing. */
+data class RatioAggregation(val numerator: String, val denominator: String, val rounding: Rounding? = null)
 
 data class ChoiceOption(
     val key: String,
@@ -161,6 +166,7 @@ data class LineItem(
     val allowedRefs: Set<String>? = null,
     /** A unit rate is usually NONE; its cross total must be expressed by a separate formula. */
     val aggregate: AggregateRule = AggregateRule.SUM,
+    val ratio: RatioAggregation? = null,
 ) : NodeItem
 
 /** An input shown at its place in the computation (`field` form). */
@@ -255,6 +261,8 @@ data class CaseData(
     val sources: List<SourceBinding> = emptyList(),
     /** Provenance for values supplied by sources, keyed by input id and coordinate path. */
     val inputOrigins: Map<String, Map<String, String>> = emptyMap(),
+    /** Exact scalar, row and column positions available in the case source. */
+    val inputCells: Map<String, List<InputCellLocation>> = emptyMap(),
 ) {
     fun text(key: String): String? = (meta[key] as? Value.Text)?.value
 
@@ -263,3 +271,10 @@ data class CaseData(
             CaseData(id, null, emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyMap(), emptyList(), "<none>")
     }
 }
+
+data class InputCellLocation(
+    val coord: List<String>,
+    val rowIndex: Int?,
+    val column: String?,
+    val location: SourceLocation,
+)

@@ -1,4 +1,4 @@
-# Mantra DSL reference (v0.1)
+# Mantra DSL reference (v0.2)
 
 Mantra documents use the Normein reader syntax: Clojure-style lists, vectors, maps, keywords, strings,
 numbers and `;` comments. Formulas are Normein expressions; see the pinned kernel's
@@ -37,9 +37,19 @@ production tax or accounting software, and are not published as library artifact
 | `(dimension id {opts})` | Static `:members [{:key :A :label "…" :when <expression>} …]`, or table-backed `:from <input> :key :column :title :column`; `:total-label` names the total column |
 | `(defn name [^Type arg …] body)` | Named Normein helper function. Arithmetic arguments need annotations such as `^Decimal`, `^Integer` or `^Boolean` |
 
-Input options include `:label`, `:per dim|[dims]`, `:default`, `:optional true`, `:min`, `:max`,
+Input options include `:label`, `:per dim|[dims]`, `:default`, `:optional true`, `:required true`,
+`:required-when <boolean-expression>`, `:min-rows n` (tables only), `:min`, `:max`,
 `:options {:kw "Label"}|[:kw …]`, `:help`, `:unit` and `:columns {:column :type …}`.
 A table column type ending in `?` is nullable, for example `:decimal?`.
+
+Column options can also be maps: `:columns {:mode :keyword :order-id {:type :keyword?
+:required-when (= row.mode :direct)}}`. The condition sees the converted record as `row`.
+Conditional requirements are evaluated after their calculation dependencies, separately from input
+binding. An explicit zero or false is a supplied fact; nil, blank text, defaults and implicit values
+do not satisfy a requirement. A nil condition does not trigger a requirement. `:min-rows` counts
+records, including records with blank optional cells. Required, range and row-count failures are
+business findings and permit calculation and saving. Type and foreign-key errors remain technical
+failures. Table findings carry a zero-based `rowIndex`, column name and source-cell location.
 
 Table-backed dimensions can declare `:parent <dimension> :parent-key :column`. The engine checks
 that each child references an existing active parent member. A table input can declare foreign keys
@@ -57,8 +67,29 @@ For example, a cost table may use `:references {:order-id order}`, while the cas
 | `(formula-slot id "Label" <default-formula> {opts})` | Application-controlled formula extension point. The schema fixes type, dimensions, rounding and position; `:uses [root …]` limits accessible roots. A case replaces the formula with `bind` |
 | `(total id "Label" {opts})` | Running-total checkpoint: previous total plus signed contributions since it |
 | `(choice id "Label" {:rule :min\|:max} (option :key "Label" <formula> {:when …})+)` | Evaluate available options and select the minimum or maximum |
+| `(check id "Label" <boolean-formula> {opts})` | Report a failed business condition; nil also fails |
+| `(reconcile id "Label" <left-formula> <right-formula> {:tolerance 0.01})` | Retain both numeric sides and their difference; pass when `abs(left-right) <= tolerance` |
 | `(slot id "Label" {opts})` | Application-controlled insertion point, populated by a case's `extend` |
 | `(note "Text")` | Explanatory paper row |
+
+Checks and reconciliations contribute zero to totals and cannot be referenced as ordinary
+calculation roots. They support inherited dimensions/section conditions and their own `:when`;
+inactive decisions have nil value, no business finding and blank status. Tolerance is a nonnegative
+literal and its boundary is inclusive. A failed check retains its boolean result; reconciliation
+retains both sides, difference and tolerance in the public validation view.
+
+Ratio aggregation does not sum member rates. It sums numerator and denominator values at exactly
+the rate's active coordinates, including dimension/section/own conditions. Components must be
+numeric nodes with the same dimensions. Explicit aggregate rounding is separate from the member
+formula's rounding; omitting it requires finite exact division. A zero denominator gives nil and
+`MANTRA-AGGREGATE-ZERO-DENOMINATOR` as a business warning. No active members gives nil without that
+warning. A nil rate contribution also makes enclosing totals nil.
+
+Each weighted aggregate retains engine-owned evidence: aligned coordinates and active mask, exact
+numerator/denominator totals, explicit rounding, result and undefined reason. Member detail is
+limited to 64 entries; truncation is visible while totals cover every active member. Explain the
+aggregate through `aggregate.<node>`; `all.<node>` remains the member-value map. Aggregate evidence
+is separate from kernel expression steps and does not approximate the unrounded rational value.
 
 Common options:
 
@@ -66,11 +97,13 @@ Common options:
 | --- | --- | --- |
 | `:op :plus\|:minus\|:info` | line, field, choice, section | Contribution to the surrounding Staffel; default `:plus` |
 | `:per dim`, `:per [d1 d2]`, `:per []` | Items | Dimensions; an explicit declaration replaces inherited dimensions |
-| `:when <expression>` | line, total, choice, section, option | Applicability. False gives numeric zero or nonnumeric nil and marks the item inactive |
+| `:when <expression>` | line, total, choice, section, option, check, reconcile | Applicability. False marks the item inactive; decisions have nil value and blank status |
 | `:round n`, `:round [n :floor]` | line, choice | Result rounding. Modes: `:half-up`, `:half-even`, `:half-down`, `:floor`, `:ceiling`, `:down`, `:up` |
 | `:type` | line | Result type; default `:decimal` |
 | `:spread true` | line | Evaluate once without the last dimension; distribute the returned member map |
-| `:aggregate true\|false`, `:aggregate :sum\|:none` | line | Permit or suppress cross-member totals. Ratios such as unit costs use `false`; compute a cross-member ratio in a separate formula |
+| `:aggregate true\|false`, `:aggregate :sum\|:none` | line | Permit or suppress cross-member sums |
+| `:aggregate {:ratio [numerator denominator] :round [8 :half-up]}` | numeric line | Cross-member rate from the sums of its aligned components, filtered by the rate's active coordinates |
+| `:severity :error\|:warning` | check, reconcile | Business finding severity; default `:error` |
 | `:display :inline\|:schedule\|:hidden` | section | Default presentation: inline, separate schedule or hidden |
 | `:layout :tiered\|:matrix` | section | Default table style |
 | `:reference`, `:note`, `:source` | Items | Source/reference metadata; core names are English |
@@ -264,6 +297,32 @@ meanings; Text ignores visual styling. Styles cannot alter values, rounding, agg
 | `MANTRA-VALUE-LIMIT` | Kernel value-construction limit exceeded |
 | `MANTRA-LAYOUT-*` | Invalid layout |
 
-Business checks and reconciliation primitives are planned for M1. Continuous periods, previous-period
-references and linked cases are planned for later milestones; they are not v0.1 DSL forms.
+Business diagnostics have category `business` and never make `succeeded` false. The separate
+`validationPassed` flag is false for error-level business findings. The other categories are
+`parsing`, `structural` and `evaluation`; callers choose whether a finding should block their own
+workflow. See the complete [diagnostic directory](diagnostics.md).
+
+Continuous periods, previous-period references and linked cases are planned for later milestones;
+they are not v0.2 DSL forms.
 See the [roadmap](roadmap.md) for accepted decisions and completion criteria.
+
+## 5. Audit capture and workbook editing
+
+`Mantra.calculateForAudit(schema, case, parameterSets, options)` captures source-indexed kernel
+steps and branch decisions for every requested formula within `AuditOptions` budgets. Ordinary
+`Mantra.calculate` does not request expression audits; a paper produced from it explicitly reports
+missing audit capture. `calculateForExplain` collects one selected formula's bounded trace.
+Paper/Text/HTML/XLSX consume that same evidence. Hidden or omitted kernel values remain nullable;
+rendered kernel text is retained, and budget truncation is visible with `MANTRA-AUDIT-TRUNCATED`.
+
+The CLI and workbench use audit capture for papers and exports. A workbook's audit page stores the
+original snapshot. Formula comparisons automatically show `current` or `outdated` after changes to
+input cells, effective parameters or the editable `Provided` fact flags. Restore all original values
+to return to `current`, or re-export to capture a new audit. Page protection prevents accidental
+edits; it is not a security boundary. Values, checks, reconciliations and weighted rates remain
+live Excel formulas. A fixed exported table retains its records when cells are cleared; add/remove
+records in the workbench and regenerate the workbook.
+
+`mantra check` compiles and inspects structure; it does not run business validations. `run`/export
+report business findings while retaining technical success. The workbench wire version is
+`mantra.workbench/2`; upgrade strict v1 clients together with the server.

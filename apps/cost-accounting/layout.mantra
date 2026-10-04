@@ -26,4 +26,4 @@
     (members product)
     :cross-total
     :status)
-  (table reconciliation {:title "4 · Reconciliation" :style :tiered}))
+  (table cost-reconciliation {:title "4 · Reconciliation" :style :tiered}))

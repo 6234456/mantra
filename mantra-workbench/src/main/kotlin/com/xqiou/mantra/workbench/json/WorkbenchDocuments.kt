@@ -10,6 +10,7 @@ import com.xqiou.mantra.core.view.ExplainTrace
 import com.xqiou.mantra.core.view.NodeKind
 import com.xqiou.mantra.core.view.NodeTrace
 import com.xqiou.mantra.core.view.TraceRef
+import com.xqiou.mantra.core.view.ValidationResult
 import com.xqiou.mantra.core.view.ValueChange
 import com.xqiou.mantra.core.view.ViewItem
 import com.xqiou.mantra.core.view.ViewNode
@@ -75,12 +76,20 @@ object WorkbenchDocuments {
         val parts = (trace as? NodeTrace.Sum)?.parts.orEmpty().mapNotNull { part ->
             val target = view.nodes[part.id] ?: return@mapNotNull null
             linkedMapOf<String, Any?>(
-                "address" to address(part.id, aligned(target)),
+                "address" to if (part.aggregate != null) {
+                    address(
+                        "aggregate.${part.id}",
+                        target.dims.mapNotNull { dim -> part.aggregate!!.fixed[dim]?.let { "$dim=$it" } },
+                    )
+                } else {
+                    address(part.id, aligned(target))
+                },
                 "label" to target.label,
                 "sign" to part.sign,
-                "value" to WorkbenchJson.value(Value.Num(part.value)),
-                "display" to display(Value.Num(part.value), target),
+                "value" to part.value?.let { WorkbenchJson.value(Value.Num(it)) },
+                "display" to (part.value?.let { display(Value.Num(it), target) } ?: "—"),
                 "crossFooted" to part.crossFooted,
+                "aggregate" to part.aggregate?.let { ratioDocument(it, layout, target.presentation) },
             )
         }
         val choice = trace as? NodeTrace.Choice
@@ -108,7 +117,7 @@ object WorkbenchDocuments {
             is NodeTrace.Choice -> trace.rounding
             else -> null
         }
-        val formula = node.line?.formula
+        val formula = node.line?.formula ?: node.check?.formula ?: node.reconcile?.left
         val value = cellValue ?: node.value(coord)
         val requestedAddress = address(nodeId, coord).toMutableMap().apply {
             if (cell != null) put("cell", linkedMapOf("row" to cell.first, "column" to cell.second))
@@ -136,8 +145,9 @@ object WorkbenchDocuments {
             "steps" to full?.steps.orEmpty().map { step ->
                 linkedMapOf(
                     "text" to step.text,
-                    "value" to WorkbenchJson.value(step.value),
-                    "display" to display(step.value),
+                    "value" to step.value?.let(WorkbenchJson::value),
+                    "display" to (step.value?.let { display(it) } ?: step.rendered ?: "value unavailable"),
+                    "rendered" to step.rendered,
                     "location" to location(step.location),
                 )
             },
@@ -150,6 +160,7 @@ object WorkbenchDocuments {
             },
             "references" to references, "parts" to parts, "options" to options,
             "reference" to node.presentation.reference, "truncated" to (full?.truncated ?: false),
+            "aggregate" to null,
         )
     }
 
@@ -208,8 +219,17 @@ object WorkbenchDocuments {
             "steps" to emptyList<Any>(), "branches" to emptyList<Any>(),
             "references" to references, "parts" to emptyList<Any>(), "options" to emptyList<Any>(),
             "reference" to node.presentation.reference, "truncated" to (members.size > 63),
+            "aggregate" to null,
         )
     }
+
+    /** Explain a weighted aggregate from its captured active-mask evidence. */
+    fun aggregate(
+        view: CalculationView,
+        layout: LayoutSpec,
+        nodeId: String,
+        fixed: Map<String, String> = emptyMap(),
+    ): Map<String, Any?> = aggregateExplanation(view, layout, nodeId, fixed)
 
     /** Parameter defaults, every supplied set value, case override, and the effective layer. */
     fun parameters(view: CalculationView): Map<String, Any?> = linkedMapOf(
@@ -360,6 +380,11 @@ object WorkbenchDocuments {
         val formatter = NumberFormatter(layout.number)
         return linkedMapOf(
             "succeeded" to view.succeeded,
+            "validationPassed" to view.validationPassed,
+            "aggregates" to
+                view.nodes.mapNotNull { (id, node) ->
+                    node.aggregateTrace?.let { id to ratioDocument(it, layout, node.presentation) }
+                }.toMap(),
             "members" to view.members.mapValues { (_, members) ->
                 members.map { member -> linkedMapOf("key" to member.key, "label" to member.label) }
             },
@@ -375,6 +400,7 @@ object WorkbenchDocuments {
                                 layout.texts.notApplicable
                             },
                         "active" to node.isActive(coord),
+                        "validation" to node.validations[coord]?.let { validation(it, node.isActive(coord)) },
                     ).apply {
                         when (val trace = node.trace(coord)) {
                             is NodeTrace.Input -> put("origin", trace.label())
@@ -418,6 +444,9 @@ object WorkbenchDocuments {
                     "working" to entry.working,
                     "result" to entry.result,
                     "reference" to entry.reference,
+                    "address" to entry.nodeId?.let { address(it, entry.coord) },
+                    "explanation" to entry.explanation?.let(::auditExplanation),
+                    "aggregate" to entry.aggregate?.let { ratioDocument(it) },
                 )
             },
             "legend" to paper.legend.map { (mark, meaning) -> listOf(mark, meaning) },
@@ -426,15 +455,53 @@ object WorkbenchDocuments {
         )
     }
 
+    private fun validation(result: ValidationResult, active: Boolean): Map<String, Any?> = linkedMapOf(
+        "passed" to result.passed,
+        "active" to active,
+        "severity" to result.severity.name.lowercase(),
+        "reconciliation" to result.reconciliation?.let {
+            linkedMapOf(
+                "left" to WorkbenchJson.value(Value.Num(it.left)),
+                "right" to WorkbenchJson.value(Value.Num(it.right)),
+                "difference" to WorkbenchJson.value(Value.Num(it.difference)),
+                "tolerance" to WorkbenchJson.value(Value.Num(it.tolerance)),
+            )
+        },
+    )
+
+    private fun auditExplanation(trace: ExplainTrace): Map<String, Any?> = linkedMapOf(
+        "steps" to trace.steps.map {
+            linkedMapOf(
+                "text" to it.text,
+                "value" to it.value?.let(WorkbenchJson::value),
+                "rendered" to it.rendered,
+                "location" to location(it.location),
+            )
+        },
+        "branches" to trace.branches.map {
+            linkedMapOf("text" to it.text, "selected" to it.selected, "location" to location(it.location))
+        },
+        "truncated" to trace.truncated,
+    )
+
     fun diagnostics(diagnostics: List<Diagnostic>): Map<String, Any?> =
         linkedMapOf("diagnostics" to diagnostics.map(::diagnostic))
 
     fun diagnostic(diagnostic: Diagnostic): Map<String, Any?> = linkedMapOf(
         "severity" to diagnostic.severity.name.lowercase(),
+        "category" to diagnostic.category.name.lowercase(),
+        "rowIndex" to diagnostic.rowIndex,
+        "column" to diagnostic.column,
         "code" to diagnostic.code,
         "message" to diagnostic.message,
         "location" to diagnostic.location?.let(::location),
-        "address" to diagnostic.nodeId?.let { address(it, diagnostic.coord) },
+        "address" to diagnostic.nodeId?.let { node ->
+            address(node, diagnostic.coord).toMutableMap().apply {
+                if (diagnostic.rowIndex != null && diagnostic.column != null) {
+                    put("cell", mapOf("row" to diagnostic.rowIndex.toString(), "column" to diagnostic.column))
+                }
+            }
+        },
         "related" to emptyList<Any>(),
     )
 
@@ -465,9 +532,15 @@ object WorkbenchDocuments {
         return linkedMapOf(
             "id" to id, "label" to node.label, "type" to decl.type.keyword, "dims" to node.dims,
             "optional" to decl.optional, "default" to decl.default?.let(WorkbenchJson::value),
+            "requiredWhen" to decl.requiredWhen?.source, "minRows" to decl.minRows,
             "options" to decl.options,
             "columns" to decl.columns.map { col ->
-                linkedMapOf("name" to col.name, "type" to col.type.keyword, "optional" to col.optional)
+                linkedMapOf(
+                    "name" to col.name,
+                    "type" to col.type.keyword,
+                    "optional" to col.optional,
+                    "requiredWhen" to col.requiredWhen?.source,
+                )
             },
             "keyColumn" to view.dimensions.values.firstOrNull { it.fromTable == id }?.keyColumn,
             "references" to decl.references,
@@ -505,19 +578,46 @@ object WorkbenchDocuments {
             },
         "group" to node.groupKey,
         "attributes" to node.presentation.attributes.mapValues { (_, value) -> WorkbenchJson.value(value) },
-        "formula" to node.line?.formula?.let { linkedMapOf("text" to it.source, "location" to location(it.location)) },
+        "formula" to
+            (node.line?.formula ?: node.check?.formula ?: node.reconcile?.left)?.let {
+                linkedMapOf(
+                    "text" to it.source,
+                    "location" to location(it.location),
+                )
+            },
         "location" to location(node.location),
         "userDefined" to node.userDefined,
         "slot" to node.slotId,
         "input" to node.input?.let { fieldMetadata(it) },
+        "aggregate" to node.line?.ratio?.let { ratio ->
+            linkedMapOf(
+                "ratio" to listOf(ratio.numerator, ratio.denominator),
+                "round" to ratio.rounding?.let { listOf(it.scale, it.mode.name.lowercase()) },
+            )
+        },
+        "reconciliation" to node.reconcile?.let {
+            linkedMapOf(
+                "left" to it.left.source,
+                "right" to it.right.source,
+                "tolerance" to it.tolerance.toPlainString(),
+                "severity" to it.severity.name.lowercase(),
+            )
+        },
     )
 
     private fun fieldMetadata(input: com.xqiou.mantra.core.model.InputDecl): Map<String, Any?> = linkedMapOf(
         "optional" to input.optional,
         "default" to input.default?.let(WorkbenchJson::value),
+        "requiredWhen" to input.requiredWhen?.source,
+        "minRows" to input.minRows,
         "options" to input.options,
         "columns" to input.columns.map { col ->
-            linkedMapOf("name" to col.name, "type" to col.type.keyword, "optional" to col.optional)
+            linkedMapOf(
+                "name" to col.name,
+                "type" to col.type.keyword,
+                "optional" to col.optional,
+                "requiredWhen" to col.requiredWhen?.source,
+            )
         },
         "references" to input.references,
     )
@@ -578,7 +678,12 @@ object WorkbenchDocuments {
                     val coord = (column.content as? ColumnContent.Member)?.let { listOf(it.key) }
                     val numeric = column.content.numeric
                     val hasExactCoord = node != null && (node.dims.isEmpty() || (coord != null && node.dims.size == 1))
-                    val cellAddress = if (numeric && hasExactCoord && node != null) address(node.id, coord) else null
+                    val cellAddress = when {
+                        numeric && node?.line?.ratio != null && coord == null && node.dims.isNotEmpty() ->
+                            address("aggregate.${node.id}")
+                        numeric && hasExactCoord && node != null -> address(node.id, coord)
+                        else -> null
+                    }
                     linkedMapOf(
                         "text" to cell,
                         "address" to cellAddress,

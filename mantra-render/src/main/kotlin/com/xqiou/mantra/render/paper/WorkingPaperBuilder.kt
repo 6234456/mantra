@@ -1,5 +1,6 @@
 package com.xqiou.mantra.render.paper
 
+import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceRule
 import com.xqiou.mantra.core.model.Op
@@ -46,7 +47,7 @@ class WorkingPaperBuilder(
     private val includeAll: Boolean = false,
 ) {
     private val numbers = NumberFormatter(layout.number)
-    private val explainer = FormulaExplainer(numbers)
+    private val explainer = TraceExplainer(layout.texts.language)
     private val texts = layout.texts
     private val audit = mutableListOf<AuditEntry>()
     private var documentRowNumber = 0
@@ -150,6 +151,11 @@ class WorkingPaperBuilder(
                 "✓" to texts.selected,
                 "▲" to texts.userDefined,
                 "–" to texts.notApplicable,
+                "✗" to if (texts.language == "de") {
+                    "Geschäftliche Prüfung fehlgeschlagen"
+                } else {
+                    "Business validation failed"
+                },
             ),
             findings = result.diagnostics,
             texts = texts,
@@ -415,6 +421,8 @@ class WorkingPaperBuilder(
                 if (RowFlag.SELECTED in row.flags) append("✓")
                 if (RowFlag.USER_DEFINED in row.flags) append("▲")
                 if (RowFlag.INACTIVE in row.flags) append("–")
+                if (RowFlag.VALIDATION_PASSED in row.flags) append("✓")
+                if (RowFlag.VALIDATION_FAILED in row.flags) append("✗")
             }
             ColumnContent.Formula -> row.formula
             ColumnContent.Explain -> row.explain
@@ -577,7 +585,8 @@ class WorkingPaperBuilder(
             val nodeResult = result.nodes[node.id] ?: return
             if (isHidden(node.id, item.presentation)) return
             if (!includeAll && !nodeResult.anyActive && !layout.showInactive) return
-            if (!includeAll && layout.hideZero && item !is TotalItem && isZero(nodeResult) &&
+            if (!includeAll && layout.hideZero && item !is TotalItem &&
+                nodeResult.check == null && nodeResult.reconcile == null && isZero(nodeResult) &&
                 !explainsZero(nodeResult)
             ) {
                 return
@@ -604,6 +613,11 @@ class WorkingPaperBuilder(
                 if (node.op == 0 && !isTotal) add(RowFlag.INFO)
                 if (node.id == lastRootTotal) add(RowFlag.GRAND)
                 if (isZero(nodeResult) && explainsZero(nodeResult)) add(RowFlag.EXPLAINS_ZERO)
+                if (nodeResult.validations.values.any { it.passed == false }) {
+                    add(RowFlag.VALIDATION_FAILED)
+                } else if (nodeResult.validations.values.any { it.passed == true }) {
+                    add(RowFlag.VALIDATION_PASSED)
+                }
             }
             val number = nextNumber()
             val anchor = "t${context.ref}-r$number"
@@ -620,8 +634,10 @@ class WorkingPaperBuilder(
             )
             val scalarText = when {
                 !nodeResult.anyActive -> texts.notApplicable
+                nodeResult.check != null -> validationStatus(nodeResult)
                 nodeResult.dims.isEmpty() -> format(nodeResult, scalarValue)
                 nodeResult.type.isNumeric && nodeResult.crossTotal() != null -> format(nodeResult, scalarValue)
+                nodeResult.line?.aggregate == AggregateRule.RATIO || nodeResult.total != null -> "undefined"
                 else -> ""
             }
             val carried = nodeResult.line?.formula?.form?.let { form ->
@@ -660,7 +676,14 @@ class WorkingPaperBuilder(
                             placement = Placement.PRE,
                             scalar = format(nodeResult, nodeResult.value(coord)),
                             presentation = item.presentation,
-                            flags = setOf(RowFlag.INFO),
+                            flags = buildSet {
+                                add(RowFlag.INFO)
+                                when (nodeResult.validations[coord]?.passed) {
+                                    true -> add(RowFlag.VALIDATION_PASSED)
+                                    false -> add(RowFlag.VALIDATION_FAILED)
+                                    null -> Unit
+                                }
+                            },
                         ),
                         parentRowIndex = parentRowIndex,
                     )
@@ -764,7 +787,19 @@ class WorkingPaperBuilder(
     }
 
     private fun format(node: ViewNode, value: Value): String =
-        numbers.value(value, presentationOf(node.id)?.format, presentationOf(node.id)?.precision)
+        if (value == Value.Nil && node.type.isNumeric && (node.line != null || node.total != null)) {
+            "undefined"
+        } else if ((node.check != null || node.reconcile != null) && value is Value.Bool) {
+            if (value.value) "✓" else "✗"
+        } else {
+            numbers.value(value, presentationOf(node.id)?.format, presentationOf(node.id)?.precision)
+        }
+
+    private fun validationStatus(node: ViewNode): String = when {
+        node.validations.values.any { it.passed == false } -> "✗"
+        node.validations.values.any { it.passed == true } -> "✓"
+        else -> texts.notApplicable
+    }
 
     private fun presentationOf(id: String): Presentation? = result.nodes[id]?.presentation
 
@@ -788,7 +823,9 @@ class WorkingPaperBuilder(
     private fun sectionZero(section: ViewSection): Boolean = section.children.all { child ->
         when (child) {
             is ViewSection -> sectionZero(child)
-            is ViewTreeNode -> result.nodes[child.id]?.let(::isZero) ?: true
+            is ViewTreeNode -> result.nodes[child.id]?.let { node ->
+                node.check == null && node.reconcile == null && isZero(node)
+            } ?: true
             is ViewNote -> true
         }
     }
@@ -807,6 +844,10 @@ class WorkingPaperBuilder(
 
     private fun formulaText(node: ViewNode): String {
         node.line?.let { return compact(it.formula.source) }
+        node.check?.let { return compact(it.formula.source) }
+        node.reconcile?.let {
+            return "${compact(it.left.source)} ≈ ${compact(it.right.source)} (± ${it.tolerance.toPlainString()})"
+        }
         node.choice?.let { choice ->
             return (if (choice.rule == ChoiceRule.MIN) "min" else "max") + "(" +
                 choice.options.joinToString("; ") { compact(it.formula.source) } +
@@ -835,21 +876,9 @@ class WorkingPaperBuilder(
 
     private fun explainText(node: ViewNode, coord: Coord): String {
         val trace = node.trace(coord) ?: return ""
-        val records = node.dims.mapIndexed { index, dim ->
-            dim to (result.members[dim]?.firstOrNull { it.key == coord.getOrNull(index) }?.record.orEmpty())
-        }.toMap()
         return when (trace) {
             is NodeTrace.Computed -> {
-                val vertex = node.line ?: return ""
-                val values = trace.references.associate { ref -> ref.id to ref.value }
-                val working = explainer.explain(vertex.formula.form, values, records)
-                val final = node.value(coord)
-                val rounded = trace.rounding?.takeIf {
-                    trace.raw is Value.Num && final is Value.Num &&
-                        (trace.raw as Value.Num).value.compareTo(final.value) != 0
-                }
-                    ?.let { " → ${numbers.explain(trace.raw)} ${roundingText(it)}" }.orEmpty()
-                "$working$rounded"
+                explainer.explain(trace.explanation) + roundedText(trace.raw, node.value(coord), trace.rounding)
             }
             is NodeTrace.Sum -> trace.parts.mapIndexed { index, part ->
                 val sign = if (part.sign < 0) {
@@ -859,29 +888,79 @@ class WorkingPaperBuilder(
                 } else {
                     "+ "
                 }
-                sign + numbers.plain(part.value)
+                val aggregate = part.aggregate
+                sign + if (aggregate != null) {
+                    "(${RatioExplainer.explain(aggregate)})" +
+                        if (aggregate.undefinedReason == "no-active-members") " → 0 contribution" else ""
+                } else {
+                    part.value?.toPlainString() ?: "undefined"
+                }
             }.joinToString(" ")
             is NodeTrace.Choice -> {
                 val vertex = node.choice ?: return ""
                 val rule = if (vertex.rule == ChoiceRule.MIN) "min" else "max"
                 rule + "(" + trace.options.joinToString("; ") { option ->
-                    option.label + " " + if (option.available) numbers.explain(option.value) else texts.notApplicable
+                    val condition = option.conditionExplanation?.let { "[${explainer.explain(it)}] " }.orEmpty()
+                    option.label + " " + condition + if (option.available) {
+                        explainer.explain(option.explanation)
+                    } else {
+                        texts.notApplicable
+                    }
                 } + ")" +
                     (
                         trace.selected?.let { selected ->
                             " → " + vertex.options.first { it.key == selected }.label
                         } ?: ""
-                        )
+                        ) + roundedText(trace.raw, node.value(coord), trace.rounding)
+            }
+            is NodeTrace.Failed -> explainer.explain(trace.explanation) + " [${trace.message}]"
+            is NodeTrace.Validation -> {
+                val evidence = trace.reconciliation
+                val working = explainer.explain(trace.explanation)
+                if (evidence == null) {
+                    working
+                } else {
+                    "$working; ${explainer.explain(trace.rightExplanation)} → " +
+                        "${evidence.left.toPlainString()} − ${evidence.right.toPlainString()} = " +
+                        "${evidence.difference.toPlainString()} (± ${evidence.tolerance.toPlainString()})"
+                }
             }
             else -> ""
         }
     }
 
+    private fun roundedText(raw: Value, final: Value, rounding: com.xqiou.mantra.core.model.Rounding?): String =
+        rounding?.takeIf { raw is Value.Num && final is Value.Num && raw.value.compareTo(final.value) != 0 }
+            ?.let {
+                " → round(${(raw as Value.Num).value.toPlainString()}; ${roundingText(it)}) = " +
+                    (final as Value.Num).value.toPlainString()
+            }
+            .orEmpty()
+
     private fun roundingText(rounding: com.xqiou.mantra.core.model.Rounding): String =
         "(${rounding.scale} ${rounding.mode.name.lowercase().replace('_', '-')})"
 
     private fun recordAudit(node: ViewNode, citation: String, anchor: String) {
-        if (node.line == null && node.choice == null && node.total == null) return
+        val aggregate = node.aggregateTrace
+        if (aggregate != null) {
+            audit += AuditEntry(
+                anchor = "$anchor-aggregate",
+                citation = "$citation Σ",
+                label = node.label + " (${texts.total})",
+                member = null,
+                formula = RatioExplainer.formula(aggregate),
+                working = RatioExplainer.explain(aggregate),
+                result = aggregate.result?.let { format(node, Value.Num(it)) } ?: "undefined",
+                reference = presentationOf(node.id)?.reference,
+                nodeId = "aggregate.${node.id}",
+                aggregate = aggregate,
+            )
+        }
+        if (node.line == null && node.choice == null && node.total == null &&
+            node.check == null && node.reconcile == null
+        ) {
+            return
+        }
         if (node.line?.formula?.form?.let {
                 it is com.xqiou.normein.dsl.form.DslForm.Atom ||
                     it is com.xqiou.normein.dsl.form.DslForm.Postfix
@@ -890,7 +969,12 @@ class WorkingPaperBuilder(
         ) {
             return
         }
-        if (node.total != null && node.components.size < 2) return
+        if (node.total != null && node.components.size < 2 && node.traces.values.none { trace ->
+                trace is NodeTrace.Sum && trace.parts.any { it.aggregate != null }
+            }
+        ) {
+            return
+        }
         node.values.keys.forEach { coord ->
             if (!node.isActive(coord)) return@forEach
             val working = explainText(node, coord)
@@ -904,6 +988,26 @@ class WorkingPaperBuilder(
                 working = working,
                 result = format(node, node.value(coord)),
                 reference = presentationOf(node.id)?.reference,
+                nodeId = node.id,
+                coord = coord,
+                explanation = when (val trace = node.trace(coord)) {
+                    is NodeTrace.Computed -> trace.explanation
+                    is NodeTrace.Choice -> trace.options.firstOrNull { it.key == trace.selected }?.explanation
+                    is NodeTrace.Failed -> trace.explanation
+                    is NodeTrace.Validation -> {
+                        val right = trace.rightExplanation
+                        if (right == null) {
+                            trace.explanation
+                        } else {
+                            com.xqiou.mantra.core.view.ExplainTrace(
+                                trace.explanation?.steps.orEmpty() + right.steps,
+                                trace.explanation?.branches.orEmpty() + right.branches,
+                                trace.explanation?.truncated == true || right.truncated,
+                            )
+                        }
+                    }
+                    else -> null
+                },
             )
         }
     }

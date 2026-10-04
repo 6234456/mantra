@@ -1,0 +1,3 @@
+id;name;profit-before-tax;applicable-rate;booked-tax
+North;North entity;240000;0,25;65400
+South;South entity;80000;0,20;14400

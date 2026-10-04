@@ -1,0 +1,58 @@
+;; Project-authored single-period tax-expense reconciliation; conceptual references IAS 12.81(c), 84–86.
+;; Simplification: profits, applicable rates, booked tax and individual tax effects are supplied facts.
+;; No tax-law computation, deferred-tax recognition, recoverability analysis or full disclosures.
+(schema ifrs.ias12/rate-reconciliation
+  {:title "IAS 12 – Tax-expense reconciliation"
+   :subtitle "Fictional entity tax effects and weighted effective rates for one period"
+   :version "0.2" :preset :ifrs-schedule :basis "IAS 12.81(c), 84–86"
+   :headline group-tax :mainline [entity-tax tax-effect-detail group-tax-summary]}
+
+  (input tax-entities :table
+    {:label "Entity tax facts" :min-rows 1
+     :columns {:id :keyword :name :text :profit-before-tax :decimal
+               :applicable-rate :decimal :booked-tax :decimal}})
+  (input tax-adjustments :table
+    {:label "Supplied tax effects" :min-rows 1
+     :columns {:id :keyword :entity-id :keyword :label :text :effect :decimal
+               :reason {:type :text? :required-when (not (= row.effect 0))}}
+     :references {:entity-id tax-entity}})
+  (param expected-tax-scale 2 {:label "Explicit expected-tax rounding scale"})
+  (dimension tax-entity
+    {:label "Tax entity" :from tax-entities :key :id :title :name :total-label "Group"})
+  (dimension tax-adjustment
+    {:label "Tax effect" :from tax-adjustments :key :id :title :label
+     :parent tax-entity :parent-key :entity-id :total-label "Total supplied effects"})
+
+  (section tax-effect-detail "Supplied tax effects" {:per tax-adjustment :display :schedule}
+    (line tax-effect "Tax effect" tax-adjustment.effect {:op :info}))
+
+  (section entity-tax "Tax-expense reconciliation by entity" {:per tax-entity :display :schedule}
+    (line accounting-profit "Accounting profit before tax" tax-entity.profit-before-tax {:op :info})
+    (line applicable-tax-rate "Supplied applicable tax rate" tax-entity.applicable-rate
+      {:op :info :format :percent :precision 2 :aggregate false})
+    (check applicable-rate-valid "Applicable rate is between zero and one"
+      (and (>= applicable-tax-rate 0) (<= applicable-tax-rate 1)))
+    (line expected-tax "Tax at the supplied applicable rate"
+      (decimal/round (* accounting-profit applicable-tax-rate) expected-tax-scale))
+    (line tax-effect-total "Total supplied tax effects"
+      (dim/rollup all.tax-effect relation_tax-adjustment tax-entity.key))
+    (total explained-tax "Tax explained by expected tax and effects")
+    (line actual-tax "Booked tax expense or benefit" tax-entity.booked-tax {:op :info})
+    (reconcile tax-reconciliation "Explained less booked tax"
+      explained-tax actual-tax {:tolerance 0.01})
+    ;; A zero-profit rate is undefined; a supplied tax benefit in the loss case is not a recognition assessment.
+    (line effective-tax-rate "Effective tax rate"
+      (if (= accounting-profit 0) nil (decimal/divide actual-tax accounting-profit 6))
+      {:op :info :format :percent :precision 4
+       :aggregate {:ratio [actual-tax accounting-profit] :round [6 :half-up]}}))
+
+  (section group-tax-summary "Group totals" {:display :schedule}
+    (line group-profit "Combined accounting profit" (dim/sum all.accounting-profit) {:op :info})
+    (line group-explained-tax "Combined explained tax" (dim/sum all.explained-tax) {:op :info})
+    (line group-tax "Combined booked tax expense or benefit" (dim/sum all.actual-tax) {:op :info})
+    (reconcile group-tax-reconciliation "Combined explained less booked tax"
+      group-explained-tax group-tax {:tolerance 0.01})
+    ;; This informational scalar has an explicit Num/Nil result; :any preserves an undefined zero-profit rate.
+    (line group-effective-rate "Combined effective tax rate"
+      (if (= group-profit 0) nil (decimal/divide group-tax group-profit 6))
+      {:type :any :op :info :format :percent :precision 4 :aggregate false})))

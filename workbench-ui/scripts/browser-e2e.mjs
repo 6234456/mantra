@@ -36,6 +36,24 @@ const scenarios = [
     cell: '12,400.00',
     address: 'direct-primary-total',
   },
+  {
+    id: 'ifrs-income-taxes/case-demo.mantra',
+    heading: 'IAS 12 – Tax-expense reconciliation',
+    result: '79,800',
+    panel: 'entity-tax',
+    cell: '65,400',
+    address: 'actual-tax@North',
+    rowLabel: 'Booked tax expense or benefit',
+  },
+  {
+    id: 'ifrs-income-taxes/case-demo.mantra',
+    heading: 'IAS 12 – Tax-expense reconciliation',
+    result: '79,800',
+    panel: 'entity-tax',
+    cell: '24.9375 %',
+    address: 'aggregate%2Eeffective-tax-rate',
+    aggregate: true,
+  },
 ]
 
 async function freePort() {
@@ -78,8 +96,9 @@ function stop(child) {
 }
 
 async function stopped(child) {
-  if (!child || child.startError || child.exitCode !== null || child.signalCode !== null) return
-  await Promise.race([new Promise((done) => child.once('exit', done)), delay(3000)])
+  if (!child || child.startError) return
+  if (child.exitCode === null && child.signalCode === null)
+    await Promise.race([new Promise((done) => child.once('exit', done)), delay(3000)])
   if (child.exitCode === null && child.signalCode === null) {
     try {
       process.kill(-child.pid, 'SIGKILL')
@@ -93,6 +112,25 @@ async function stopped(child) {
     await Promise.race([new Promise((done) => child.once('exit', done)), delay(3000)])
   }
   assert.ok(child.exitCode !== null || child.signalCode !== null, `Task-owned process ${child.pid} did not stop`)
+  const groupAlive = () => {
+    try {
+      process.kill(-child.pid, 0)
+      return true
+    } catch (error) {
+      if (error.code === 'ESRCH') return false
+      throw error
+    }
+  }
+  async function settleGroup() {
+    const deadline = Date.now() + 3000
+    while (groupAlive() && Date.now() < deadline) await delay(100)
+  }
+  await settleGroup()
+  if (groupAlive()) {
+    process.kill(-child.pid, 'SIGKILL')
+    await settleGroup()
+  }
+  assert.equal(groupAlive(), false, `Task-owned process group ${child.pid} did not stop`)
 }
 
 async function connect(url) {
@@ -218,7 +256,7 @@ try {
       `${scenario.id} panel`,
     )
     const clicked = await evaluate(
-      `(() => { const cell = [...document.querySelectorAll('.paper-table .cell-button')].find(item => item.textContent === ${JSON.stringify(scenario.cell)}); cell?.click(); return !!cell })()`,
+      `(() => { const cell = [...document.querySelectorAll('.paper-table .cell-button')].find(item => item.textContent === ${JSON.stringify(scenario.cell)} && (!${JSON.stringify(scenario.rowLabel ?? '')} || item.closest('tr')?.textContent.includes(${JSON.stringify(scenario.rowLabel ?? '')}))); cell?.click(); return !!cell })()`,
     )
     assert.equal(clicked, true, `${scenario.id} selectable Paper cell`)
     await until(
@@ -226,6 +264,10 @@ try {
       `${scenario.id} selected cell`,
     )
     assert.equal(await evaluate("new URLSearchParams(location.search).get('cell')"), scenario.address)
+    if (scenario.aggregate) {
+      await until(async () => await evaluate("!!document.querySelector('.ratio-evidence')"), 'Ratio evidence')
+      assert.ok(await evaluate("document.querySelector('.ratio-evidence')?.textContent.includes('24.9375 %')"))
+    }
     const exportUrl = `${base}/export`
     assert.equal(
       await evaluate(

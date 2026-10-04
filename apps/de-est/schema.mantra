@@ -6,7 +6,7 @@
 (schema de.est/2025
   {:title "Einkommensteuer 2025"
    :subtitle "Ermittlung des zu versteuernden Einkommens und der festzusetzenden Einkommensteuer (§ 2 EStG, R 2 EStR)"
-   :version "2025.1"
+   :version "2025.2"
    :period "Veranlagungszeitraum 2025"
    :preset :de-staffel-4
    :headline abrechnungsergebnis
@@ -101,7 +101,11 @@
       [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]]))
 
   (section merkmale "Veranlagungsmerkmale" {:display :hidden}
-    (line zusammen "Zusammenveranlagung (Splittingverfahren)" (= veranlagungsart :zusammen) {:type :boolean :op :info}))
+    (line zusammen "Zusammenveranlagung (Splittingverfahren)" (= veranlagungsart :zusammen) {:type :boolean :op :info})
+    (check veranlagung-konsistent "Alleinerziehend und Zusammenveranlagung nicht gleichzeitig"
+      (not (and alleinerziehend zusammen)))
+    (check kinder-ae "Alleinerziehend erfordert mindestens ein Kind"
+      (or (not alleinerziehend) (pos? kinder))))
 
   ;; ── Nebenrechnungen ──────────────────────────────────────────────────────────────────────────
   (include "einkuenfte.mantra")
@@ -159,7 +163,11 @@
     (line kindergeld-hinzurechnung "Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen)"
       (if kfb-guenstiger kindergeld-anspruch 0)
       {:reference "§ 31 Satz 4, § 2 Abs. 6 Satz 3 EStG"})
-    (total festzusetzende-est "Festzusetzende Einkommensteuer" {:reference "§ 2 Abs. 6 EStG"}))
+    (total festzusetzende-est "Festzusetzende Einkommensteuer" {:reference "§ 2 Abs. 6 EStG"})
+    (line durchschnittlicher-steuersatz "Durchschnittlicher Einkommensteuersatz"
+      (if (= zu-versteuerndes-einkommen 0) nil
+        (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6))
+      {:op :info :format :percent :precision 2 :aggregate false}))
 
   (section zuschlagsteuern "Solidaritätszuschlag und Kirchensteuer"
     {:display :schedule :reference "SolZG 1995; § 51a EStG"}
@@ -190,9 +198,16 @@
     (line abr-soli "Solidaritätszuschlag" solidaritaetszuschlag)
     (line abr-kist "Kirchensteuer" kirchensteuer)
     (total festgesetzte-steuern "Festgesetzte Steuern")
-    (field lohnsteuer "Einbehaltene Lohnsteuer" {:per person :op :minus :kz "140/141"})
+    ;; Scheme completeness rule: positive wages request explicit withholding; legal zero is supplied as zero.
+    (field lohnsteuer "Einbehaltene Lohnsteuer"
+      {:per person :op :minus :kz "140/141" :required-when (pos? bruttoarbeitslohn)})
     (field soli-lohnsteuer "Einbehaltener Solidaritätszuschlag" {:per person :op :minus :kz "150/151"})
     (field kist-lohnsteuer "Einbehaltene Kirchensteuer" {:per person :op :minus :kz "142/143"})
     (field vorauszahlungen "Geleistete Vorauszahlungen" {:op :minus})
     (total abrechnungsergebnis "Nachzahlung (+) / Erstattung (−)"
-      {:sign-labels {:positive "Nachzahlung" :negative "Erstattung" :zero "Ausgeglichen"}})))
+      {:sign-labels {:positive "Nachzahlung" :negative "Erstattung" :zero "Ausgeglichen"}})
+    (reconcile zahlungsabgleich "Abrechnung stimmt mit Steuern und Zahlungen überein"
+      abrechnungsergebnis
+      (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer)
+         (dim/sum kist-lohnsteuer) vorauszahlungen)
+      {:tolerance 0.01})))

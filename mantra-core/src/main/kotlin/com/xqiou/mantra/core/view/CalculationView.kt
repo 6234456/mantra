@@ -1,14 +1,17 @@
 package com.xqiou.mantra.core.view
 
 import com.xqiou.mantra.core.Diagnostic
+import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.api.CalculationResult
+import com.xqiou.mantra.core.engine.CheckVertex
 import com.xqiou.mantra.core.engine.ChoiceVertex
 import com.xqiou.mantra.core.engine.ConditionVertex
 import com.xqiou.mantra.core.engine.InputVertex
 import com.xqiou.mantra.core.engine.LineVertex
 import com.xqiou.mantra.core.engine.NodeResult
 import com.xqiou.mantra.core.engine.ParamVertex
+import com.xqiou.mantra.core.engine.ReconcileVertex
 import com.xqiou.mantra.core.engine.ResolvedItem
 import com.xqiou.mantra.core.engine.ResolvedNode
 import com.xqiou.mantra.core.engine.ResolvedNote
@@ -17,6 +20,7 @@ import com.xqiou.mantra.core.engine.TotalVertex
 import com.xqiou.mantra.core.engine.ValueVertex
 import com.xqiou.mantra.core.model.AggregateRule
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.DimensionDecl
 import com.xqiou.mantra.core.model.Formula
@@ -28,6 +32,7 @@ import com.xqiou.mantra.core.model.NodeItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
 import com.xqiou.mantra.core.model.Presentation
+import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.SchemaMeta
 import com.xqiou.mantra.core.model.SectionItem
 import com.xqiou.mantra.core.model.TotalItem
@@ -37,9 +42,10 @@ import com.xqiou.mantra.core.model.decimalOrZero
 import com.xqiou.mantra.core.structure.SchemaMap
 import com.xqiou.mantra.core.structure.SchemaMaps
 import java.math.BigDecimal
+import java.util.IdentityHashMap
 
 /** Stable, presentation-facing classification. No planner vertex types cross this boundary. */
-enum class NodeKind { INPUT, PARAM, LINE, TOTAL, CHOICE, FORMULA_SLOT, EXTENSION }
+enum class NodeKind { INPUT, PARAM, LINE, TOTAL, CHOICE, FORMULA_SLOT, EXTENSION, CHECK, RECONCILE }
 
 /** One section, calculation row or note in the resolved presentation tree. */
 sealed interface ViewItem
@@ -92,6 +98,12 @@ class ViewNode(
     val values: Map<Coord, Value>,
     val active: Map<Coord, Boolean>,
     val traces: Map<Coord, NodeTrace>,
+    val check: CheckItem? = null,
+    val reconcile: ReconcileItem? = null,
+    val validations: Map<Coord, ValidationResult> = emptyMap(),
+    val aggregateValue: BigDecimal? = null,
+    /** Engine-owned weighted aggregation evidence; renderers never recompute its totals. */
+    val aggregateTrace: RatioAggregateTrace? = null,
 ) {
     fun value(coord: Coord = emptyList()): Value = values[coord] ?: Value.Nil
     fun isActive(coord: Coord = emptyList()): Boolean = active[coord] == true
@@ -100,6 +112,9 @@ class ViewNode(
 
     /** Null for a declared nonadditive measure. */
     fun crossTotal(): BigDecimal? {
+        if (check != null || reconcile != null) return null
+        if (line?.aggregate == AggregateRule.RATIO) return aggregateValue
+        if (total != null && values.any { (coord, value) -> value == Value.Nil && isActive(coord) }) return null
         if (line?.aggregate == AggregateRule.NONE && dims.isNotEmpty()) return null
         return values.values.fold(BigDecimal.ZERO) { sum, value -> sum + value.decimalOrZero() }
     }
@@ -122,11 +137,33 @@ class CalculationView private constructor(
     /** Total number of directed dependencies in the compiled calculation graph. */
     val dependencyCount: Int,
 ) {
-    val succeeded: Boolean get() = diagnostics.none { it.severity == com.xqiou.mantra.core.Severity.ERROR }
+    val succeeded: Boolean get() = diagnostics.none {
+        it.severity == com.xqiou.mantra.core.Severity.ERROR && it.category != DiagnosticCategory.BUSINESS
+    }
+    val validationPassed: Boolean get() = diagnostics.none {
+        it.severity == com.xqiou.mantra.core.Severity.ERROR && it.category == DiagnosticCategory.BUSINESS
+    }
     fun node(id: String): ViewNode = nodes[id] ?: throw NoSuchElementException("No calculated node `$id`")
     fun value(id: String, vararg coord: String): Value = node(id).value(coord.toList())
     fun decimal(id: String, vararg coord: String): BigDecimal = value(id, *coord).decimalOrZero()
     fun dimensionOrder(dims: Collection<String>): List<String> = dimensions.keys.filter { it in dims }
+
+    /** True for an explicitly supplied case/source fact, including false and zero; nil/blank are absent. */
+    fun inputProvided(id: String, coord: Coord = emptyList(), rowIndex: Int? = null, column: String? = null): Boolean {
+        require(node(id).input != null) { "Node $id is not an input" }
+        var current = case.inputs[id]
+        coord.forEach { key ->
+            val entries = (current as? Value.MapV)?.entries
+            current = entries?.get(Value.Kw(key)) ?: entries?.get(Value.Text(key))
+        }
+        if (rowIndex != null) current = (current as? Value.Vec)?.items?.getOrNull(rowIndex)
+        if (column != null) {
+            val entries = (current as? Value.MapV)?.entries
+            current = entries?.get(Value.Kw(column)) ?: entries?.get(Value.Text(column))
+        }
+        return current != null && current != Value.Nil &&
+            (current !is Value.Text || !(current as Value.Text).value.isBlank())
+    }
 
     /** Coordinates where all inherited section guards must be evaluated together. */
     fun alignGuards(node: ViewNode, coord: Coord, memberKeys: (String) -> List<String>): GuardAlignment {
@@ -153,6 +190,11 @@ class CalculationView private constructor(
 
         internal fun fromResult(result: CalculationResult): CalculationView {
             val plan = result.plan
+            val traceSnapshots = IdentityHashMap<ExplainTrace, ExplainTrace>()
+            fun traceSnapshot(trace: ExplainTrace): ExplainTrace = traceSnapshots.getOrPut(trace) { trace.snapshot() }
+            val aggregateSnapshots = IdentityHashMap<RatioAggregateTrace, RatioAggregateTrace>()
+            fun aggregateSnapshot(trace: RatioAggregateTrace): RatioAggregateTrace =
+                aggregateSnapshots.getOrPut(trace) { trace.snapshot() }
             val formulaSlotDefaults = linkedMapOf<String, Formula>()
             fun collectFormulaSlots(item: com.xqiou.mantra.core.model.Item) {
                 when (item) {
@@ -197,7 +239,9 @@ class CalculationView private constructor(
                 val total = vertex as? TotalVertex
                 val input = vertex as? InputVertex
                 val param = vertex as? ParamVertex
-                val item = line?.item ?: choice?.item ?: total?.item
+                val check = vertex as? CheckVertex
+                val reconcile = vertex as? ReconcileVertex
+                val item = line?.item ?: choice?.item ?: total?.item ?: check?.item ?: reconcile?.item
                 val kind = when {
                     input != null -> NodeKind.INPUT
                     param != null -> NodeKind.PARAM
@@ -207,6 +251,8 @@ class CalculationView private constructor(
                     line != null -> NodeKind.LINE
                     total != null -> NodeKind.TOTAL
                     choice != null -> NodeKind.CHOICE
+                    check != null -> NodeKind.CHECK
+                    reconcile != null -> NodeKind.RECONCILE
                     else -> error("Unknown value vertex ${vertex.id}")
                 }
                 val presentation = item?.presentation ?: input?.decl?.presentation ?: param!!.decl.presentation
@@ -231,7 +277,14 @@ class CalculationView private constructor(
                     guards = frozenList(vertex.guards), ownCondition = vertex.ownCondition?.formula,
                     values = calculated.values.snapshotCoords { it.snapshot() },
                     active = calculated.active.snapshotCoords { it },
-                    traces = calculated.traces.snapshotCoords { it.snapshot() },
+                    traces = calculated.traces.snapshotCoords { it.snapshot(::traceSnapshot, ::aggregateSnapshot) },
+                    check = check?.item?.snapshot() as? CheckItem,
+                    reconcile = reconcile?.item?.snapshot() as? ReconcileItem,
+                    validations = calculated.traces.mapNotNull { (coord, trace) ->
+                        (trace as? NodeTrace.Validation)?.let { coord to it.result }
+                    }.toMap().snapshotCoords { it },
+                    aggregateValue = calculated.aggregateValue,
+                    aggregateTrace = calculated.aggregateTrace?.let(::aggregateSnapshot),
                 )
             }
             return CalculationView(

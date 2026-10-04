@@ -1,0 +1,16 @@
+;; Independently authored fictional facts. No published IFRS example data is reproduced.
+(case ias12-demo
+  {:schema "ifrs.ias12/rate-reconciliation"
+   :layout "ifrs.ias12/rate-reconciliation-paper"
+   :title "Two fictional entities" :subject "Demonstration Group"
+   :period "2026" :prepared-by "Mantra acceptance demonstration"
+   :reference "Project-authored fictional facts"}
+  (inputs
+    {:tax-entities [{:id :North :name "North entity" :profit-before-tax 240000 :applicable-rate 0.25 :booked-tax 65400}
+                     {:id :South :name "South entity" :profit-before-tax 80000 :applicable-rate 0.20 :booked-tax 14400}]
+     :tax-adjustments [{:id :N1 :entity-id :North :label "Non-deductible expenditure" :effect 6500 :reason "Permanent difference"}
+                        {:id :N2 :entity-id :North :label "Exempt revenue" :effect -2400 :reason "Permanent difference"}
+                        {:id :N3 :entity-id :North :label "Earlier-period correction" :effect 1300 :reason "Supplied correction"}
+                        {:id :S1 :entity-id :South :label "Non-deductible expenditure" :effect 800 :reason "Permanent difference"}
+                        {:id :S2 :entity-id :South :label "Exempt revenue" :effect -1600 :reason "Permanent difference"}
+                        {:id :S3 :entity-id :South :label "Earlier-period correction" :effect -800 :reason "Supplied correction"}]}))

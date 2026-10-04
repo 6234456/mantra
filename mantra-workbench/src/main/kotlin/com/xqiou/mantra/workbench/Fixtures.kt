@@ -34,7 +34,7 @@ object Fixtures {
         val root = workspaceRoot?.toRealPath() ?: directory.parent
         require(absoluteCase.startsWith(root)) { "Case must be inside workspace root: $root" }
         val bound = BoundSources.load(case, schema, absoluteCase, root)
-        val result = Mantra.calculate(schema, bound.case)
+        val result = Mantra.calculateForAudit(schema, bound.case)
         val view = CalculationView.of(result)
         val layoutBinding = case.meta["layout"]
         require(layoutBinding == null || layoutBinding is Value.Text) { "Case :layout must be text: $absoluteCase" }
@@ -82,7 +82,7 @@ object Fixtures {
             val file = "$name.json"
             Files.writeString(
                 target.resolve(file),
-                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n",
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
             )
             files[name] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
@@ -90,15 +90,23 @@ object Fixtures {
             val explains = linkedMapOf<String, String>()
             explainAddresses.distinct().forEach { address ->
                 val memberMap = address.node.startsWith("all.")
-                val nodeId = if (memberMap) address.node.removePrefix("all.") else address.node
-                val explained = if (memberMap) {
+                val aggregate = address.node.startsWith("aggregate.")
+                val projected = memberMap || aggregate
+                val nodeId = if (memberMap) {
+                    address.node.removePrefix(
+                        "all.",
+                    )
+                } else {
+                    address.node.removePrefix("aggregate.")
+                }
+                val explained = if (projected) {
                     result
                 } else {
                     Mantra.calculateForExplain(schema, bound.case, emptyList(), nodeId, address.coord)
                 }
                 val explainedView = CalculationView.of(explained)
                 val node = explainedView.nodes[nodeId]
-                val fixed = if (memberMap) {
+                val fixed = if (projected) {
                     address.coord.associate { part ->
                         val split = part.split('=', limit = 2)
                         require(split.size == 2 && split.none(String::isBlank)) {
@@ -111,8 +119,9 @@ object Fixtures {
                 }
                 require(
                     node != null && (
-                        if (memberMap) {
+                        if (projected) {
                             node.dims.isNotEmpty() && fixed.size < node.dims.size &&
+                                (!aggregate || node.line?.ratio != null) &&
                                 address.coord == node.dims.mapNotNull { dim -> fixed[dim]?.let { "$dim=$it" } } &&
                                 fixed.all { (dim, member) ->
                                     explainedView.members[dim].orEmpty().any { it.key == member }
@@ -128,7 +137,9 @@ object Fixtures {
                 val key = addressPath(address)
                 val file = "explain-" + MessageDigest.getInstance("SHA-256")
                     .digest(key.toByteArray(Charsets.UTF_8)).take(8).joinToString("") { "%02x".format(it) } + ".json"
-                val data = if (memberMap) {
+                val data = if (aggregate) {
+                    WorkbenchDocuments.aggregate(explainedView, layout, nodeId, fixed)
+                } else if (memberMap) {
                     WorkbenchDocuments.memberMap(explainedView, layout, nodeId, fixed)
                 } else {
                     WorkbenchDocuments.explain(
@@ -141,7 +152,7 @@ object Fixtures {
                 }
                 Files.writeString(
                     target.resolve(file),
-                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n",
+                    WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
                 )
                 explains[key] = "${publicPrefix.trimEnd('/')}/$slug/$file"
             }
@@ -151,7 +162,7 @@ object Fixtures {
             val file = "export-preview-$index.json"
             Files.writeString(
                 target.resolve(file),
-                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, data)) + "\n",
+                WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, data)) + "\n",
             )
             files["export-preview:$name"] = "${publicPrefix.trimEnd('/')}/$slug/$file"
         }
@@ -190,7 +201,8 @@ object Fixtures {
         "files" to entry.files,
     )
 
-    private fun addressPath(address: ExplainAddress): String {
+    /** Canonical components match workbench-ui addressToPath, including reserved punctuation. */
+    internal fun addressPath(address: ExplainAddress): String {
         fun part(value: String): String = URLEncoder.encode(value, Charsets.UTF_8).replace("+", "%20")
             .replace(".", "%2E").replace("*", "%2A")
         val members = if (address.coord.isEmpty()) "" else "@" + address.coord.joinToString("/") { part(it) }

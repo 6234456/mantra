@@ -86,6 +86,18 @@ The application supplies recoverable amounts and implements only a simplified su
 referenced accounting concepts. It is a demonstration, not an IFRS compliance product, and is
 not endorsed by the IFRS Foundation.
 
+### IAS 12 income-tax demonstration
+
+`apps/ifrs-income-taxes` uses independently authored fictional entity facts, rate adjustments,
+formulas and expected values. Its independent Decimal script verifies every
+numeric output and the weighted effective tax rate. Concept references were checked on 2026-10-04
+against the Foundation's [IAS 12 overview](https://www.ifrs.org/issued-standards/list-of-standards/ias-12-income-taxes/)
+and [2022 issued standard](https://www.ifrs.org/content/dam/ifrs/publications/pdf-standards/english/2022/issued/part-a/ias-12-income-taxes.pdf?bypass=on).
+Paragraph identifiers, including 81(c) and 84–86, identify concepts; the application reproduces no
+standard text, official example facts, PDF, logo or publication. The same Foundation rights and
+future reproduction review described above apply. The application deliberately simplifies
+single-period tax-expense reconciliation and is neither an IFRS compliance product nor Foundation-endorsed.
+
 ### German income-tax demonstration
 
 `apps/de-est` refers to German statutes and official tariff formulas. It uses project-authored

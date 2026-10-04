@@ -9,6 +9,10 @@ import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
 import { SourcesPage } from './SourcesPage'
+import { ExplainDetails } from './ExplainDetails'
+import { RatioAggregateEvidence } from './RatioAggregateEvidence'
+import { ValidationEvidence } from './ValidationEvidence'
+import type { Validation } from './ValidationEvidence'
 const ExtensionsPage = lazy(() => import('./AuthoringPages').then((module) => ({ default: module.ExtensionsPage })))
 const FormulaSlotCard = lazy(() => import('./AuthoringPages').then((module) => ({ default: module.FormulaSlotCard })))
 
@@ -56,7 +60,12 @@ function route(): Route {
     }
   if (parts[2] === 'overview') return { caseId, page: 'overview' }
   if (parts[2] === 'inputs')
-    return { caseId, page: 'inputs', groupId: parts[3] ? decodeURIComponent(parts[3]) : undefined }
+    return {
+      caseId,
+      page: 'inputs',
+      groupId: parts[3] ? decodeURIComponent(parts[3]) : undefined,
+      address: addressFromPath(new URLSearchParams(location.search).get('cell') ?? '') ?? undefined,
+    }
   if (parts[2] === 'parameters')
     return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
   if (parts[2] === 'sources') return { caseId, page: 'sources' }
@@ -288,6 +297,7 @@ export function App() {
             <InputsPage
               caseId={caseId!}
               groupId={current.groupId}
+              selectedAddress={current.address}
               structure={structure.data!.data}
               run={run.data!.data}
               revision={run.data!.revision}
@@ -370,7 +380,10 @@ function AppBar({
   navigate: (path: string) => void
   caseId: string
 }) {
-  const errors = run?.diagnostics.filter((item) => item.severity === 'error').length ?? 0
+  const errors =
+    run?.diagnostics.filter((item) => item.severity === 'error' && item.category !== 'business').length ?? 0
+  const businessErrors =
+    run?.diagnostics.filter((item) => item.severity === 'error' && item.category === 'business').length ?? 0
   return (
     <header className="app-bar">
       <Link href={`${casePath(caseId)}/overview`} navigate={navigate} className="brand-link">
@@ -402,7 +415,15 @@ function AppBar({
         </select>
       </label>
       <span className="bar-status" title={revision}>
-        {run ? `${t('statusReady', lang)} · ${errors} ${t('statusError', lang)}` : '…'}
+        {run
+          ? `${run.succeeded ? t('statusReady', lang) : lang === 'de' ? 'Berechnungsfehler' : 'Calculation error'} · ${errors} ${t('statusError', lang)}`
+          : '…'}
+        {businessErrors > 0 && (
+          <small>
+            {' '}
+            · {businessErrors} {lang === 'de' ? 'fachliche Befunde' : 'business findings'}
+          </small>
+        )}
       </span>
       <span className="bar-result">
         {paper?.headline?.value ?? (run && structure ? nodeValue(run, headlineNode(structure)) : '')}
@@ -642,6 +663,9 @@ function Overview({
         <section className="sheet info-card">
           <span className="eyebrow">{t('diagnostics', lang)}</span>
           <h2>{t('statusReady', lang)}</h2>
+          {!run.validationPassed && (
+            <p>{lang === 'de' ? 'Fachliche Prüfungen offen' : 'Business checks need attention'}</p>
+          )}
           <p>
             {run.diagnostics.filter((item) => item.severity === 'error').length} {t('statusError', lang)}
           </p>
@@ -823,6 +847,7 @@ function PanelPage({
           selected={focused}
           explain={explanation.data?.data}
           audit={audit}
+          validation={focused ? run.values[focused.node]?.[focused.coord?.join('/') ?? '']?.validation : undefined}
           error={explanation.error}
           caseId={caseId}
           navigate={navigate}
@@ -941,6 +966,7 @@ function Inspector({
   selected,
   explain,
   audit,
+  validation,
   error,
   caseId,
   navigate,
@@ -948,6 +974,7 @@ function Inspector({
   selected?: Address
   explain?: Explain
   audit?: Paper['audit'][number]
+  validation?: Validation | null
   error?: Error
   caseId: string
   navigate: (path: string) => void
@@ -963,12 +990,9 @@ function Inspector({
           <strong className="inspector-value">{explain?.result.display ?? audit?.result}</strong>
           {explain?.formula?.text || audit?.formula ? <pre>{explain?.formula?.text ?? audit?.formula}</pre> : null}
           {audit?.working && !explain && <p>{audit.working}</p>}
-          {explain?.steps.map((step, i) => (
-            <div className="calculation-step" key={i}>
-              <code>{step.text}</code>
-              <b>{step.display}</b>
-            </div>
-          ))}
+          {validation && <ValidationEvidence validation={validation} />}
+          {explain && <ExplainDetails explain={explain} />}
+          {!explain && audit?.aggregate && <RatioAggregateEvidence aggregate={audit.aggregate} />}
           {explain?.references.map((ref, i) => (
             <div className="reference-item" key={i}>
               <span>{ref.label}</span>
@@ -1073,7 +1097,7 @@ function ProvenancePage({
       <div className="page-heading">
         <span className="eyebrow">{t('provenance', lang)}</span>
         <h1>{root.data?.data.label ?? structure.nodes?.[address.node]?.label ?? address.node}</h1>
-        <p>{nodeValue(run, address.node, address.coord?.join('/') ?? '')}</p>
+        <p>{root.data?.data.result.display ?? nodeValue(run, address.node, address.coord?.join('/') ?? '')}</p>
       </div>
       <div className="provenance-layout">
         <section className="sheet">
@@ -1082,12 +1106,10 @@ function ProvenancePage({
         </section>
         <aside className="sheet">
           <h2>{t('intermediate', lang)}</h2>
-          {root.data?.data.steps.map((step, i) => (
-            <div className="calculation-step" key={i}>
-              <code>{step.text}</code>
-              <b>{step.display}</b>
-            </div>
-          ))}
+          {run.values[address.node]?.[address.coord?.join('/') ?? '']?.validation && (
+            <ValidationEvidence validation={run.values[address.node][address.coord?.join('/') ?? ''].validation!} />
+          )}
+          {root.data && <ExplainDetails explain={root.data.data} />}
           {root.error && <p>{root.error.message}</p>}
         </aside>
       </div>

@@ -1,0 +1,38 @@
+.validation-evidence {
+  margin: 16px 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.validation-evidence h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.validation-evidence p {
+  margin: 6px 0;
+  font-size: 12px;
+}
+.validation-outcome {
+  font-weight: 600;
+}
+.validation-outcome.failed {
+  color: var(--error);
+}
+.validation-evidence dl {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.validation-evidence dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.validation-evidence dt {
+  color: var(--ink-2);
+}
+.validation-evidence dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

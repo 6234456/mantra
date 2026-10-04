@@ -1,8 +1,10 @@
 package com.xqiou.mantra.core.read
 
 import com.xqiou.mantra.core.DiagnosticSink
+import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.SourceLocation
 import com.xqiou.mantra.core.model.AggregateRule
+import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.ChoiceOption
 import com.xqiou.mantra.core.model.ChoiceRule
@@ -15,10 +17,13 @@ import com.xqiou.mantra.core.model.InputDecl
 import com.xqiou.mantra.core.model.Item
 import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.MemberDecl
+import com.xqiou.mantra.core.model.NodeItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.Op
 import com.xqiou.mantra.core.model.ParamDecl
 import com.xqiou.mantra.core.model.Presentation
+import com.xqiou.mantra.core.model.RatioAggregation
+import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.Rounding
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SchemaMeta
@@ -29,6 +34,7 @@ import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.normein.dsl.form.DslForm
 import com.xqiou.normein.dsl.form.DslFormSequenceKind
+import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
@@ -194,6 +200,8 @@ internal class ItemReader(
             "field" -> field(list)
             "total" -> total(list)
             "choice" -> choice(list)
+            "check" -> validation(list, reconciliation = false)
+            "reconcile" -> validation(list, reconciliation = true)
             "note" -> note(list)
             else -> {
                 sink.error(
@@ -347,20 +355,85 @@ internal class ItemReader(
             formulaSlot = formulaSlot,
             allowedRefs = allowedRefs,
             aggregate = aggregate(opts["aggregate"], "line $id"),
+            ratio = ratio(opts["aggregate"], "line $id"),
         )
     }
 
     private fun aggregate(form: DslForm?, what: String): AggregateRule = when {
         form == null || form.symbol == "true" || form.keyword == "sum" -> AggregateRule.SUM
         form.symbol == "false" || form.keyword == "none" -> AggregateRule.NONE
+        form.isSequence(DslFormSequenceKind.MAP) -> AggregateRule.RATIO
         else -> {
             sink.error(
                 "MANTRA-AGGREGATE",
-                ":aggregate of $what must be true, false, :sum, or :none",
+                ":aggregate of $what must be true, false, :sum, :none, or {:ratio [numerator denominator]}",
                 document.location(form),
             )
             AggregateRule.SUM
         }
+    }
+
+    private fun ratio(form: DslForm?, what: String): RatioAggregation? {
+        if (form == null || !form.isSequence(DslFormSequenceKind.MAP)) return null
+        val opts = document.options(form, sink, "$what :aggregate")
+        val refs = (opts["ratio"] as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }?.values
+        if (refs == null || refs.size != 2 || refs.any { it.symbol == null || !isIdentifier(it.symbol!!) } ||
+            opts.keys.any { it !in setOf("ratio", "round") }
+        ) {
+            sink.error(
+                "MANTRA-AGGREGATE",
+                ":aggregate of $what requires {:ratio [numerator-node denominator-node] :round ...?}",
+                document.location(form),
+            )
+            return null
+        }
+        return RatioAggregation(refs[0].symbol!!, refs[1].symbol!!, rounding(opts["round"], "$what :aggregate"))
+    }
+
+    private fun validation(list: DslForm.Sequence, reconciliation: Boolean): NodeItem? {
+        val kind = if (reconciliation) "reconcile" else "check"
+        val (id, label) = header(list, kind) ?: return null
+        val optionIndex = if (reconciliation) 5 else 4
+        val left = list.values.getOrNull(3)
+        val right = if (reconciliation) list.values.getOrNull(4) else null
+        if (left == null || reconciliation && right == null || list.values.size > optionIndex + 1) {
+            sink.error("MANTRA-CHECK-ARITY", "($kind $id ...) has invalid arguments", document.location(list))
+            return null
+        }
+        val opts = document.options(list.values.getOrNull(optionIndex), sink, "$kind $id")
+        val requestedSeverity = opts["severity"]
+        val severity = when {
+            requestedSeverity == null || requestedSeverity.keyword == "error" -> Severity.ERROR
+            requestedSeverity.keyword == "warning" -> Severity.WARNING
+            else -> {
+                sink.error("MANTRA-CHECK-SEVERITY", ":severity must be :error or :warning", document.location(list))
+                Severity.ERROR
+            }
+        }
+        if ("op" in opts && opts["op"]?.keyword != "info") {
+            sink.error("MANTRA-CHECK-OP", "$kind $id never contributes to totals", document.location(list))
+        }
+        val per = per(opts["per"], "$kind $id")
+        val condition = opts["when"]?.let(document::formula)
+        val presentation = presentation(opts, "$kind $id")
+        if (!reconciliation) {
+            return CheckItem(
+                id, label, document.formula(left), severity, per, condition, presentation,
+                document.location(list), userDefined,
+            )
+        }
+        val tolerance = opts["tolerance"]?.number ?: BigDecimal.ZERO
+        if (opts["tolerance"] != null && opts["tolerance"]?.number == null || tolerance.signum() < 0) {
+            sink.error(
+                "MANTRA-RECONCILE-TOLERANCE",
+                ":tolerance must be a nonnegative numeric literal",
+                document.location(list),
+            )
+        }
+        return ReconcileItem(
+            id, label, document.formula(left), document.formula(right!!), tolerance, severity,
+            per, condition, presentation, document.location(list), userDefined,
+        )
     }
 
     private fun field(list: DslForm.Sequence): FieldItem? {
@@ -493,6 +566,19 @@ internal class ItemReader(
         if (type == ValueType.TABLE && columns.isEmpty()) {
             sink.error("MANTRA-INPUT-COLUMNS", "Table input $id requires :columns {:name :type ...}", location)
         }
+        val minRows = opts["min-rows"]?.let { form ->
+            val value = runCatching { form.number?.intValueExact() }.getOrNull()
+            if (value == null || value < 0 || type != ValueType.TABLE) {
+                sink.error(
+                    "MANTRA-INPUT-MIN-ROWS",
+                    ":min-rows requires a nonnegative integer on a table input",
+                    document.location(form),
+                )
+                null
+            } else {
+                value
+            }
+        }
         val options = linkedMapOf<String, String>()
         opts["options"]?.let { form ->
             when (val literal = document.literal(form, sink, "input $id :options")) {
@@ -520,12 +606,20 @@ internal class ItemReader(
             presentation = presentation(opts, "input $id"),
             location = location,
             references = references,
+            requiredWhen = opts["required-when"]?.let(document::formula),
+            minRows = minRows,
         )
     }
 
     private fun columns(form: DslForm, id: String): List<ColumnDecl> {
         val map = document.options(form, sink, "input $id :columns")
-        return map.mapNotNull { (name, typeForm) ->
+        return map.mapNotNull { (name, specification) ->
+            val opts = if (specification.isSequence(DslFormSequenceKind.MAP)) {
+                document.options(specification, sink, "input $id column :$name")
+            } else {
+                emptyMap()
+            }
+            val typeForm = opts["type"] ?: specification
             val raw = typeForm.keyword
             val optional = raw?.endsWith("?") == true
             val type = raw?.removeSuffix("?")?.let(ValueType::of)
@@ -537,7 +631,7 @@ internal class ItemReader(
                 )
                 null
             } else {
-                ColumnDecl(name, type, optional)
+                ColumnDecl(name, type, optional, opts["required-when"]?.let(document::formula))
             }
         }
     }
@@ -639,6 +733,7 @@ internal class ItemReader(
         val STRUCTURAL_KEYS = setOf(
             "per", "when", "op", "round", "type", "spread", "display", "layout", "title", "rule",
             "default", "optional", "options", "columns", "references", "label", "uses", "aggregate",
+            "required-when", "min-rows", "severity", "tolerance",
         )
         val PRESENTATION_KEYS =
             setOf("reference", "note", "source", "format", "precision", "hidden", "emphasis", "class")

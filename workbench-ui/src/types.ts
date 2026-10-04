@@ -3,6 +3,7 @@ import type {
   Envelope as WireEnvelope,
   EnvelopeAddress,
   EnvelopeDiagnostic,
+  EnvelopeRatioAggregate,
   ExportPreview as WireExportPreview,
   Paper as WirePaper,
   Run as WireRun,
@@ -48,7 +49,9 @@ export interface InputField {
   type?: string
   dims?: string[]
   options?: Record<string, string>
-  columns?: Array<{ name: string; type: string; optional?: boolean }>
+  columns?: Array<{ name: string; type: string; optional?: boolean; requiredWhen?: string | null }>
+  requiredWhen?: string | null
+  minRows?: number | null
   keyColumn?: string | null
   help?: string | null
   unit?: string | null
@@ -152,6 +155,8 @@ export interface AuditEntry {
   working: string
   result: string
   reference?: string | null
+  address?: Address | null
+  aggregate?: RatioAggregate | null
 }
 export type Paper = Pick<WirePaper['data'], 'title' | 'header' | 'overview' | 'auxiliary' | 'legend'> & {
   subtitle?: string | null
@@ -184,13 +189,23 @@ export interface Explain {
   result: { value: Value; display: string }
   status: string
   steps: { text: string; display: string }[]
-  branches: unknown[]
+  branches: Array<{ text: string; selected: boolean }>
   references: ExplainReference[]
-  parts: unknown[]
+  parts: Array<{
+    address: Address
+    label: string
+    sign: number
+    value: Value
+    display: string
+    crossFooted: boolean
+    aggregate?: RatioAggregate | null
+  }>
   options: ExplainOption[]
   reference?: string
   truncated?: boolean
+  aggregate?: RatioAggregate | null
 }
+export type RatioAggregate = EnvelopeRatioAggregate
 export type CaseSummary = Pick<WireWorkspace['data']['cases'][number], 'id' | 'title'> & {
   period?: string | null
   schema?: string | null

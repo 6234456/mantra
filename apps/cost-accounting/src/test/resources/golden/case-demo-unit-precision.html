@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manufacturing cost collection and product unit cost</title>
+<style>
+:root {
+  --page: #eceef1; --paper: #ffffff; --ink: #1f2328; --muted: #6b7280; --faint: #9aa1ab;
+  --rule: #d8dce2; --rule-strong: #2b3036; --heading: #f4f6f8; --accent: #1f5fbf;
+  --selected: #1a7f37; --user: #8a5300; --error: #b42318; --warning: #9a6700; --shadow: 0 1px 3px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+    --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+    --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0f1115; --paper: #171a20; --ink: #e6e8eb; --muted: #9aa3ad; --faint: #6b7380;
+  --rule: #2c323b; --rule-strong: #c9ced6; --heading: #1f242c; --accent: #7cb0ff;
+  --selected: #4ac26b; --user: #e3a64a; --error: #ff6b5e; --warning: #e5b53f; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 13px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.paper { max-width: 1120px; margin: 24px auto; background: var(--paper); padding: 32px 40px 24px; box-shadow: var(--shadow); border-radius: 4px; }
+.wp-header { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--rule-strong); padding-bottom: 14px; margin-bottom: 18px; }
+h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.subtitle { margin: 0; color: var(--muted); }
+.wp-meta { display: grid; grid-template-columns: repeat(2, minmax(160px, auto)); gap: 2px 18px; margin: 0; font-size: 12px; }
+.wp-meta div { display: flex; gap: 8px; }
+.wp-meta dt { color: var(--muted); min-width: 140px; }
+.wp-meta dd { margin: 0; font-weight: 500; }
+.toc ol { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; }
+.toc a { color: var(--accent); text-decoration: none; }
+.ref { display: inline-block; min-width: 1.6em; padding: 0 5px; margin-right: 8px; border: 1px solid var(--rule-strong); border-radius: 3px; font-size: 11px; font-weight: 600; text-align: center; }
+.block { margin: 22px 0 8px; }
+.structure { margin: 4px 0 18px; }
+.mainline { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; counter-reset: step; }
+.mainline .step { display: flex; flex-direction: column; gap: 6px; }
+.mainline .card { display: grid; gap: 1px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; background: var(--heading); }
+.mainline .step > .card { border-color: var(--rule-strong); border-top-width: 3px; }
+.mainline a.card:hover { border-color: var(--accent); }
+.mainline .step-no { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.mainline .title { font-weight: 600; font-size: 12.5px; }
+.mainline .value { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.mainline .branches { list-style: none; margin: 0; padding: 0 0 0 10px; display: grid; gap: 4px; border-left: 2px solid var(--rule); }
+.mainline .branches .card { background: transparent; padding: 5px 8px; }
+.mainline .branches .title { font-weight: 500; }
+.mainline .entry { font-size: 11px; color: var(--muted); }
+.structure .aux { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.crumb { font-size: 11.5px; color: var(--muted); margin: 0 0 3px; }
+.crumb a { color: var(--accent); text-decoration: none; }
+h2 { font-size: 15px; margin: 0 0 8px; display: flex; align-items: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; border-bottom: 1px solid var(--rule-strong); padding: 4px 6px; }
+td { padding: 3px 6px; vertical-align: top; border: 0; }
+.left { text-align: left; } .right { text-align: right; } .center { text-align: center; }
+td.num { white-space: nowrap; }
+.label { display: inline-block; padding-left: calc(var(--depth, 0) * 1.25em); }
+td.c-rownumber, td.c-operator, td.c-status { color: var(--muted); white-space: nowrap; }
+td.c-rownumber a { color: var(--muted); text-decoration: none; }
+td.c-rownumber a:hover { color: var(--accent); text-decoration: underline; }
+td.c-reference, td.c-note, td.c-source, td.c-attribute { color: var(--muted); font-size: 11.5px; }
+td.c-formula, td.c-explain { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); }
+tr.heading td { font-weight: 600; padding-top: 9px; background: linear-gradient(var(--heading), var(--heading)) bottom / 100% 0 no-repeat; }
+tr.heading td.c-label { border-bottom: 1px solid var(--rule); }
+tr.subtotal td.num, tr.result td.num, tr.total td.num { border-top: 1px solid var(--rule-strong); }
+tr.subtotal td.num:empty, tr.result td.num:empty, tr.total td.num:empty { border-top-color: transparent; }
+tr.result td, tr.total td { font-weight: 600; }
+tr.total td { padding-top: 5px; }
+tr.grand td.num:not(:empty) { border-bottom: 3px double var(--rule-strong); }
+tr.grand td { font-weight: 700; }
+tr.info td.c-label { color: var(--muted); }
+tr.inactive td { color: var(--faint); }
+tr.user td.c-label { font-style: italic; color: var(--user); }
+tr.option td { font-size: 12px; color: var(--muted); }
+tr.option.selected td { color: var(--selected); }
+tr.member td { font-size: 12px; color: var(--muted); }
+tr.note td { font-size: 11.5px; color: var(--muted); font-style: italic; }
+td.c-label a.xref { color: var(--accent); text-decoration: none; margin-left: 4px; }
+th.num { white-space: nowrap; }
+td.c-label { min-width: 15em; }
+tr:target td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.audit .intro { color: var(--muted); margin: 0 0 8px; }
+.audit-table td { border-bottom: 1px solid var(--rule); padding: 5px 6px; }
+.audit-table .cite a { color: var(--accent); text-decoration: none; white-space: nowrap; }
+.audit-table .member { color: var(--muted); font-size: 11.5px; }
+.audit-table .norm { color: var(--muted); font-size: 11px; }
+code.formula { font-size: 11px; color: var(--muted); }
+.working { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; margin-top: 2px; }
+.wp-footer { margin-top: 26px; border-top: 1px solid var(--rule); padding-top: 10px; font-size: 11.5px; color: var(--muted); display: grid; gap: 8px; }
+.legend span { margin-right: 4px; }
+.findings ul { margin: 4px 0 0; padding-left: 18px; }
+.findings .error { color: var(--error); } .findings .warning { color: var(--warning); }
+.findings .loc { color: var(--muted); }
+.engine { color: var(--faint); }
+@media (max-width: 720px) { .paper { margin: 0; padding: 16px; border-radius: 0; } .wp-meta { grid-template-columns: 1fr; } }
+@media print { body { background: #fff; } .paper { box-shadow: none; margin: 0; max-width: none; padding: 0; } .toc { display: none; } .block { break-inside: auto; } tr { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main class="paper theme-classic">
+<header class="wp-header">
+<div class="wp-title"><h1>Manufacturing cost collection and product unit cost</h1>
+<p class="subtitle">Primary and secondary cost elements · actual versus standard</p>
+</div>
+<dl class="wp-meta">
+<div><dt>Entity</dt><dd>Demo manufacturing company</dd></div>
+<div><dt>Period</dt><dd>2026-01</dd></div>
+<div><dt>Calculation schema</dt><dd>Product cost by manufacturing order v0.2 [cost.accounting/product-cost]</dd></div>
+<div><dt>Prepared by</dt><dd>Mantra acceptance example</dd></div>
+<div><dt>WP ref.</dt><dd>CO-DEMO/01</dd></div>
+</dl>
+</header>
+<p class="headline"><strong>Unfavourable variance</strong> 1,140.00</p>
+<section class="structure" id="structure">
+<h2><span class="ref">⌂</span>Structure of the calculation</h2>
+<ol class="mainline" aria-label="Mainline">
+<li class="step">
+<a class="card" href="#table-1"><span class="step-no">Mainline 1</span><span class="title">Cost element collection</span><span class="value">15,100.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-2"><span class="step-no">Mainline 2</span><span class="title">Actual and standard cost by manufacturing order</span><span class="value">15,100.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-3"><span class="step-no">Mainline 3</span><span class="title">Quantity-weighted product costs</span><span class="value">15,100.00</span></a>
+</li>
+<li class="step">
+<a class="card" href="#table-4"><span class="step-no">Mainline 4</span><span class="title">Cost flow reconciliation</span><span class="value"></span></a>
+</li>
+</ol>
+</section>
+<nav class="toc"><ol>
+<li><a href="#table-1"><span class="ref">1</span> 1 · Cost element collection</a></li>
+<li><a href="#table-2"><span class="ref">2</span> 2 · Manufacturing orders</a></li>
+<li><a href="#table-3"><span class="ref">3</span> 3 · Weighted product costs</a></li>
+<li><a href="#table-4"><span class="ref">4</span> 4 · Reconciliation</a></li>
+<li><a href="#audit"><span class="ref">§</span> Audit trail</a></li>
+</ol></nav>
+<section class="block" id="table-1">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 1 Cost element collection</p>
+<h2><span class="ref">1</span>1 · Cost element collection</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-label">
+<col class="c-main" style="width:7.4399999999999995em">
+<col class="c-status" style="width:1.8599999999999999em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-main">CU</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t1-r1" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Primary costs posted directly to orders</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">12,400.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value" id="t1-r2" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Primary expense accounts to allocate</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">900.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value" id="t1-r3" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Secondary cost elements to allocate</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">1,800.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="total grand" id="t1-r4" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Total actual costs to assign</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent">Σ</td>
+</tr>
+<tr class="value info" id="t1-r5" data-section="cost-sources" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">A nonzero pool has a positive allocation basis</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">✓</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-2">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 2 Actual and standard cost by manufacturing order</p>
+<h2><span class="ref">2</span>2 · Manufacturing orders</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Order cost</th>
+<th class="right num c-member">Order O100 · Product A</th>
+<th class="right num c-member">Order O101 · Product A</th>
+<th class="right num c-member">Order O200 · Product B</th>
+<th class="right num c-crosstotal">Total</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t2-r1" data-section="order-costs" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Allocation base</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">10</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">30</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">20</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">60</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t2-r2" data-section="order-costs" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Order allocation base is nonnegative</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">✓</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">✓</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">✓</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
+<tr class="value" id="t2-r3" data-section="order-costs" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Direct primary cost elements</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,000.00</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">3,000.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">4,400.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">12,400.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value" id="t2-r4" data-section="order-costs" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Allocated primary expense accounts</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">150.00</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">450.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">300.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">900.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value" id="t2-r5" data-section="order-costs" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Allocated secondary cost elements</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">300.00</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">900.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">600.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">1,800.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="total grand" id="t2-r6" data-section="order-costs" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual order cost</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,450.00</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">4,350.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">5,300.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent">Σ</td>
+</tr>
+<tr class="value info" id="t2-r7" data-section="order-costs" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Completed quantity</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">100</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">50</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">80</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">230</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t2-r8" data-section="order-costs" data-depth="1" data-height="0" data-row-index="8">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost per completed unit</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">54.5000</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">87.0000</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">66.2500</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t2-r9" data-section="order-costs" data-depth="1" data-height="0" data-row-index="9">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost per unit</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">58.0000</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">64.0000</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">62.0000</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent"></td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t2-r10" data-section="order-costs" data-depth="1" data-height="0" data-row-index="10">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost for completed quantity</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">5,800.00</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">3,200.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">4,960.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">13,960.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t2-r11" data-section="order-costs" data-depth="1" data-height="0" data-row-index="11">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual less standard cost</span></td>
+<td class="right num c-member" data-column="membersorder-O100" style="background:transparent">(350.00)</td>
+<td class="right num c-member" data-column="membersorder-O101" style="background:transparent">1,150.00</td>
+<td class="right num c-member" data-column="membersorder-O200" style="background:transparent">340.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">1,140.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-3">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 3 Quantity-weighted product costs</p>
+<h2><span class="ref">3</span>3 · Weighted product costs</h2>
+<div class="table-wrap"><table class="calc matrix">
+<colgroup>
+<col class="c-label">
+<col class="c-member">
+<col class="c-member">
+<col class="c-crosstotal">
+<col class="c-status">
+</colgroup>
+<thead><tr>
+<th class="left c-label">Product cost</th>
+<th class="right num c-member">Product A</th>
+<th class="right num c-member">Product B</th>
+<th class="right num c-crosstotal">Total</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value info" id="t3-r1" data-section="product-costs" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Completed quantity</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">150</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">80</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">230</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value" id="t3-r2" data-section="product-costs" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost of product orders</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">9,800.00</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">5,300.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="total grand" id="t3-r3" data-section="product-costs" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Total actual product cost</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">9,800.00</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">5,300.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent">Σ</td>
+</tr>
+<tr class="value info" id="t3-r4" data-section="product-costs" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost of product orders</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">9,000.00</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">4,960.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">13,960.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t3-r5" data-section="product-costs" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Weighted average actual unit cost</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">65.3333</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">66.2500</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">65.6522</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t3-r6" data-section="product-costs" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Weighted average standard unit cost</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="background:transparent">60.0000</td>
+<td class="right num c-member" data-column="membersproduct-B" style="background:transparent">62.0000</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="background:transparent">60.6957</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info u-variance" id="t3-r7" data-section="product-costs" data-depth="1" data-height="0" data-row-index="7">
+<td class="left c-label" data-column="label" style="font-weight:700;color:var(--accent);background:var(--heading)"><span class="label" style="--depth:0">Actual less standard cost</span></td>
+<td class="right num c-member" data-column="membersproduct-A" style="font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--paper))">800.00</td>
+<td class="right num c-member" data-column="membersproduct-B" style="font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--paper))">340.00</td>
+<td class="right num c-crosstotal" data-column="cross-total" style="font-weight:700;color:var(--accent);background:var(--heading)">1,140.00</td>
+<td class="center c-status" data-column="status" style="font-weight:700;color:var(--accent);background:var(--heading)"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block" id="table-4">
+<p class="crumb"><a href="#structure">⌂</a> Mainline › 4 Cost flow reconciliation</p>
+<h2><span class="ref">4</span>4 · Reconciliation</h2>
+<div class="table-wrap"><table class="calc tiered">
+<colgroup>
+<col class="c-label">
+<col class="c-main" style="width:7.4399999999999995em">
+<col class="c-status" style="width:1.8599999999999999em">
+</colgroup>
+<thead><tr>
+<th class="left c-label"></th>
+<th class="right num c-main">CU</th>
+<th class="center c-status"></th>
+</tr></thead>
+<tbody>
+<tr class="value" id="t4-r1" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="1">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost assigned to orders</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t4-r2" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="2">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Actual cost aggregated to products</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">15,100.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t4-r3" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Source costs less assigned order costs</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">–</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
+<tr class="value info" id="t4-r4" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="4">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Order costs less product costs</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">–</td>
+<td class="center c-status" data-column="status" style="background:transparent">✓</td>
+</tr>
+<tr class="value info" id="t4-r5" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="5">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Standard cost for completed output</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">13,960.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+<tr class="value info" id="t4-r6" data-section="cost-reconciliation" data-depth="1" data-height="0" data-row-index="6">
+<td class="left c-label" data-column="label" style="background:transparent"><span class="label" style="--depth:0">Unfavourable variance</span></td>
+<td class="right num c-main" data-column="main" style="background:transparent">1,140.00</td>
+<td class="center c-status" data-column="status" style="background:transparent"></td>
+</tr>
+</tbody></table></div>
+</section>
+<section class="block audit" id="audit">
+<h2><span class="ref">§</span>Audit trail</h2>
+<p class="intro">Evidence for every calculated line: schema formula, executed trace steps and result.</p>
+<div class="table-wrap"><table class="audit-table">
+<thead><tr><th class="left">Line</th><th class="left">Description</th><th class="left">Formula / Working</th><th class="right">Result</th></tr></thead>
+<tbody>
+<tr id="audit-t1-r1">
+<td class="left cite"><a href="#t1-r1">1/1</a></td>
+<td class="left">Primary costs posted directly to orders</td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (= posting.mode :direct) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 800 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings)) = 12400 → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">12,400.00</td>
+</tr>
+<tr id="audit-t1-r2">
+<td class="left cite"><a href="#t1-r2">1/2</a></td>
+<td class="left">Primary expense accounts to allocate</td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (= posting.mode :pool) posting.amount 0)) = [value unavailable] → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 600 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 300 → (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings)) = 900 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount</div></td>
+<td class="right num">900.00</td>
+</tr>
+<tr id="audit-t1-r3">
+<td class="left cite"><a href="#t1-r3">1/3</a></td>
+<td class="left">Secondary cost elements to allocate</td>
+<td class="left"><code class="formula">(sum (map (fn [posting] posting.amount) secondary-postings))</code><div class="working">(fn [posting] posting.amount) = [value unavailable] → (map (fn [posting] posting.amount) secondary-postings) = [value unavailable] → (sum (map (fn [posting] posting.amount) secondary-postings)) = 1800</div></td>
+<td class="right num">1,800.00</td>
+</tr>
+<tr id="audit-t1-r4">
+<td class="left cite"><a href="#t1-r4">1/4</a></td>
+<td class="left">Total actual costs to assign</td>
+<td class="left"><code class="formula">direct-primary-total + primary-pool + secondary-pool</code><div class="working">12400 + 900 + 1800</div></td>
+<td class="right num">15,100.00</td>
+</tr>
+<tr id="audit-t1-r5">
+<td class="left cite"><a href="#t1-r5">1/5</a></td>
+<td class="left">A nonzero pool has a positive allocation basis</td>
+<td class="left"><code class="formula">(or (and (= primary-pool 0) (= secondary-pool 0)) (&gt; (dim/sum all.allocation-base) 0))</code><div class="working">(= primary-pool 0) = false → (and (= primary-pool 0) (= secondary-pool 0)) = false → (dim/sum all.allocation-base) = 60 → (&gt; (dim/sum all.allocation-base) 0) = true → (or (and (= primary-pool 0) (= secondary-pool 0)) (&gt; (dim/sum all.allocation-base) 0)) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r2-O100">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r2-O101">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r2-O200">
+<td class="left cite"><a href="#t2-r2">2/2</a></td>
+<td class="left">Order allocation base is nonnegative <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(&gt;= allocation-base 0)</code><div class="working">(&gt;= allocation-base 0) = true</div></td>
+<td class="right num">✓</td>
+</tr>
+<tr id="audit-t2-r3-O100">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Direct primary cost elements <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 5000 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">5,000.00</td>
+</tr>
+<tr id="audit-t2-r3-O101">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Direct primary cost elements <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 3000 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">3,000.00</td>
+</tr>
+<tr id="audit-t2-r3-O200">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Direct primary cost elements <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))</code><div class="working">(fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 800 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 4400 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0</div></td>
+<td class="right num">4,400.00</td>
+</tr>
+<tr id="audit-t2-r4-O100">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">150.00</td>
+</tr>
+<tr id="audit-t2-r4-O101">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">450.00</td>
+</tr>
+<tr id="audit-t2-r4-O200">
+<td class="left cite"><a href="#t2-r4">2/4</a></td>
+<td class="left">Allocated primary expense accounts <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata primary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00}</div></td>
+<td class="right num">300.00</td>
+</tr>
+<tr id="audit-t2-r5-O100">
+<td class="left cite"><a href="#t2-r5">2/5</a></td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">300.00</td>
+</tr>
+<tr id="audit-t2-r5-O101">
+<td class="left cite"><a href="#t2-r5">2/5</a></td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">900.00</td>
+</tr>
+<tr id="audit-t2-r5-O200">
+<td class="left cite"><a href="#t2-r5">2/5</a></td>
+<td class="left">Allocated secondary cost elements <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale)</code><div class="working">(alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00}</div></td>
+<td class="right num">600.00</td>
+</tr>
+<tr id="audit-t2-r6-O100">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
+<td class="left">Actual order cost <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">5000 + 150.00 + 300.00</div></td>
+<td class="right num">5,450.00</td>
+</tr>
+<tr id="audit-t2-r6-O101">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
+<td class="left">Actual order cost <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">3000 + 450.00 + 900.00</div></td>
+<td class="right num">4,350.00</td>
+</tr>
+<tr id="audit-t2-r6-O200">
+<td class="left cite"><a href="#t2-r6">2/6</a></td>
+<td class="left">Actual order cost <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">direct-primary + primary-allocated + secondary-allocated</code><div class="working">4400 + 300.00 + 600.00</div></td>
+<td class="right num">5,300.00</td>
+</tr>
+<tr id="audit-t2-r8-O100">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
+<td class="left">Actual cost per completed unit <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 54.500000</div></td>
+<td class="right num">54.5000</td>
+</tr>
+<tr id="audit-t2-r8-O101">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
+<td class="left">Actual cost per completed unit <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 87.000000</div></td>
+<td class="right num">87.0000</td>
+</tr>
+<tr id="audit-t2-r8-O200">
+<td class="left cite"><a href="#t2-r8">2/8</a></td>
+<td class="left">Actual cost per completed unit <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(decimal/divide actual-order-cost produced-quantity unit-scale)</code><div class="working">(decimal/divide actual-order-cost produced-quantity unit-scale) = 66.250000</div></td>
+<td class="right num">66.2500</td>
+</tr>
+<tr id="audit-t2-r10-O100">
+<td class="left cite"><a href="#t2-r10">2/10</a></td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 5800</div></td>
+<td class="right num">5,800.00</td>
+</tr>
+<tr id="audit-t2-r10-O101">
+<td class="left cite"><a href="#t2-r10">2/10</a></td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 3200</div></td>
+<td class="right num">3,200.00</td>
+</tr>
+<tr id="audit-t2-r10-O200">
+<td class="left cite"><a href="#t2-r10">2/10</a></td>
+<td class="left">Standard cost for completed quantity <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(* produced-quantity standard-order-unit-cost)</code><div class="working">(* produced-quantity standard-order-unit-cost) = 4960</div></td>
+<td class="right num">4,960.00</td>
+</tr>
+<tr id="audit-t2-r11-O100">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
+<td class="left">Actual less standard cost <span class="member">Order O100 · Product A</span></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = -350.00</div></td>
+<td class="right num">(350.00)</td>
+</tr>
+<tr id="audit-t2-r11-O101">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
+<td class="left">Actual less standard cost <span class="member">Order O101 · Product A</span></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = 1150.00</div></td>
+<td class="right num">1,150.00</td>
+</tr>
+<tr id="audit-t2-r11-O200">
+<td class="left cite"><a href="#t2-r11">2/11</a></td>
+<td class="left">Actual less standard cost <span class="member">Order O200 · Product B</span></td>
+<td class="left"><code class="formula">(- actual-order-cost standard-order-cost)</code><div class="working">(- actual-order-cost standard-order-cost) = 340.00</div></td>
+<td class="right num">340.00</td>
+</tr>
+<tr id="audit-t3-r1-A">
+<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<td class="left">Completed quantity <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">(dim/rollup all.produced-quantity relation_order product.key) = 150</div></td>
+<td class="right num">150</td>
+</tr>
+<tr id="audit-t3-r1-B">
+<td class="left cite"><a href="#t3-r1">3/1</a></td>
+<td class="left">Completed quantity <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(dim/rollup all.produced-quantity relation_order product.key)</code><div class="working">(dim/rollup all.produced-quantity relation_order product.key) = 80</div></td>
+<td class="right num">80</td>
+</tr>
+<tr id="audit-t3-r2-A">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Actual cost of product orders <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.actual-order-cost relation_order product.key) = 9800.00</div></td>
+<td class="right num">9,800.00</td>
+</tr>
+<tr id="audit-t3-r2-B">
+<td class="left cite"><a href="#t3-r2">3/2</a></td>
+<td class="left">Actual cost of product orders <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(dim/rollup all.actual-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.actual-order-cost relation_order product.key) = 5300.00</div></td>
+<td class="right num">5,300.00</td>
+</tr>
+<tr id="audit-t3-r4-A">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Standard cost of product orders <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.standard-order-cost relation_order product.key) = 9000</div></td>
+<td class="right num">9,000.00</td>
+</tr>
+<tr id="audit-t3-r4-B">
+<td class="left cite"><a href="#t3-r4">3/4</a></td>
+<td class="left">Standard cost of product orders <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(dim/rollup all.standard-order-cost relation_order product.key)</code><div class="working">(dim/rollup all.standard-order-cost relation_order product.key) = 4960</div></td>
+<td class="right num">4,960.00</td>
+</tr>
+<tr id="audit-t3-r5-aggregate">
+<td class="left cite"><a href="#t3-r5">3/5 Σ</a></td>
+<td class="left">Weighted average actual unit cost (Total)</td>
+<td class="left"><code class="formula">Σ product-actual-cost ÷ Σ product-quantity</code><div class="working">[product=A] 9800.00 / 150 included; [product=B] 5300.00 / 80 included → Σ product-actual-cost = 15100.00; Σ product-quantity = 230 → 15100.00 ÷ 230 (round 4 half-up) = 65.6522</div></td>
+<td class="right num">65.6522</td>
+</tr>
+<tr id="audit-t3-r5-A">
+<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<td class="left">Weighted average actual unit cost <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-actual-cost product-quantity unit-scale) = 65.333333</div></td>
+<td class="right num">65.3333</td>
+</tr>
+<tr id="audit-t3-r5-B">
+<td class="left cite"><a href="#t3-r5">3/5</a></td>
+<td class="left">Weighted average actual unit cost <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(decimal/divide product-actual-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-actual-cost product-quantity unit-scale) = 66.250000</div></td>
+<td class="right num">66.2500</td>
+</tr>
+<tr id="audit-t3-r6-aggregate">
+<td class="left cite"><a href="#t3-r6">3/6 Σ</a></td>
+<td class="left">Weighted average standard unit cost (Total)</td>
+<td class="left"><code class="formula">Σ product-standard-cost ÷ Σ product-quantity</code><div class="working">[product=A] 9000 / 150 included; [product=B] 4960 / 80 included → Σ product-standard-cost = 13960; Σ product-quantity = 230 → 13960 ÷ 230 (round 4 half-up) = 60.6957</div></td>
+<td class="right num">60.6957</td>
+</tr>
+<tr id="audit-t3-r6-A">
+<td class="left cite"><a href="#t3-r6">3/6</a></td>
+<td class="left">Weighted average standard unit cost <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-standard-cost product-quantity unit-scale) = 60.000000</div></td>
+<td class="right num">60.0000</td>
+</tr>
+<tr id="audit-t3-r6-B">
+<td class="left cite"><a href="#t3-r6">3/6</a></td>
+<td class="left">Weighted average standard unit cost <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(decimal/divide product-standard-cost product-quantity unit-scale)</code><div class="working">(decimal/divide product-standard-cost product-quantity unit-scale) = 62.000000</div></td>
+<td class="right num">62.0000</td>
+</tr>
+<tr id="audit-t3-r7-A">
+<td class="left cite"><a href="#t3-r7">3/7</a></td>
+<td class="left">Actual less standard cost <span class="member">Product A</span></td>
+<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">(- product-actual-cost product-standard-cost) = 800.00</div></td>
+<td class="right num">800.00</td>
+</tr>
+<tr id="audit-t3-r7-B">
+<td class="left cite"><a href="#t3-r7">3/7</a></td>
+<td class="left">Actual less standard cost <span class="member">Product B</span></td>
+<td class="left"><code class="formula">(- product-actual-cost product-standard-cost)</code><div class="working">(- product-actual-cost product-standard-cost) = 340.00</div></td>
+<td class="right num">340.00</td>
+</tr>
+<tr id="audit-t4-r1">
+<td class="left cite"><a href="#t4-r1">4/1</a></td>
+<td class="left">Actual cost assigned to orders</td>
+<td class="left"><code class="formula">(dim/sum all.actual-order-cost)</code><div class="working">(dim/sum all.actual-order-cost) = 15100.00</div></td>
+<td class="right num">15,100.00</td>
+</tr>
+<tr id="audit-t4-r2">
+<td class="left cite"><a href="#t4-r2">4/2</a></td>
+<td class="left">Actual cost aggregated to products</td>
+<td class="left"><code class="formula">(dim/sum all.product-actual-cost)</code><div class="working">(dim/sum all.product-actual-cost) = 15100.00</div></td>
+<td class="right num">15,100.00</td>
+</tr>
+<tr id="audit-t4-r3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Source costs less assigned order costs</td>
+<td class="left"><code class="formula">source-cost-total ≈ all-order-cost (± 0.01)</code><div class="working">source-cost-total = 15100; all-order-cost = 15100.00 → 15100 − 15100.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r4">
+<td class="left cite"><a href="#t4-r4">4/4</a></td>
+<td class="left">Order costs less product costs</td>
+<td class="left"><code class="formula">all-order-cost ≈ all-product-cost (± 0.01)</code><div class="working">all-order-cost = 15100.00; all-product-cost = 15100.00 → 15100.00 − 15100.00 = 0.00 (± 0.01)</div></td>
+<td class="right num">–</td>
+</tr>
+<tr id="audit-t4-r5">
+<td class="left cite"><a href="#t4-r5">4/5</a></td>
+<td class="left">Standard cost for completed output</td>
+<td class="left"><code class="formula">(dim/sum all.product-standard-cost)</code><div class="working">(dim/sum all.product-standard-cost) = 13960</div></td>
+<td class="right num">13,960.00</td>
+</tr>
+<tr id="audit-t4-r6">
+<td class="left cite"><a href="#t4-r6">4/6</a></td>
+<td class="left">Actual less standard cost</td>
+<td class="left"><code class="formula">(- all-product-cost all-standard-cost)</code><div class="working">(- all-product-cost all-standard-cost) = 1140.00</div></td>
+<td class="right num">1,140.00</td>
+</tr>
+</tbody></table></div>
+</section>
+<footer class="wp-footer">
+<div class="legend"><strong>Tick marks:</strong> <span><b>Σ</b> footed / cross-footed</span> · <span><b>✓</b> selected alternative</span> · <span><b>▲</b> user-defined line</span> · <span><b>–</b> n/a</span> · <span><b>✗</b> Business validation failed</span></div>
+<div class="engine">Mantra calculation engine · Normein DSL</div>
+</footer>
+</main>
+</body>
+</html>

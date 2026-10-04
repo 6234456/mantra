@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| Status | Adopted baseline; remaining integer policy, documentation and paper-audit migration tracked in the roadmap |
-| Date | 2026-09-26; implementation status synchronized 2026-10-03 |
+| Status | Adopted baseline; remaining integer policy and kernel documentation tracked in the roadmap |
+| Date | 2026-09-26; implementation status synchronized 2026-10-04 |
 | Consumer | Mantra calculation-schema engine (`mantra-core`, `mantra-render`, `mantra-excel`) |
 | Kernel baseline | `normein-dsl` 0.3.0 at `0a3ae1de844c92635fbbc03406a13cb0e8920c03`: language semantics 25, stdlib 33, reader 3, parser 7, type system 7, canonicalization 3 |
 | Previous baseline | `be7648b57c019a8d0efe6ae8b2a8a5695078c475`: language semantics 14, stdlib 21, parser 3, type system 3, canonicalization 2 |
@@ -15,10 +15,10 @@
 Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定发布的提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。
 
 - **新内核已实现**：A 的多形式读取、B 的宿主绝对位置、C 的结构错误字段路径、D 的静态结果类型、F 的源码索引和非标量 trace、I 的公开字面量分类。Mantra 已使用 B 与 I，并通过锁定内核的完整测试。
-- **Mantra 已实现**：Explain 逐步渲染、案例编辑回写、公式编辑、数据接入与导入导出工作包。纸面与 XLSX 审计附录仍使用根值代入，统一 trace 的迁移归入 M1。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
+- **Mantra 已实现**：Explain 逐步渲染、案例编辑回写、公式编辑、数据接入与导入导出工作包。M1 的纸面、HTML 与 XLSX 审计附录改用同一有界内核 trace；未请求或被截断的证据会明确标记。C 的整数值策略仍为显式 `IntegerValue`，Mantra 保留相应转换。
 - **应由领域层实现**：E（OPTIONAL 根缺省时不按 nil 处理；Mantra 显式传 nil 本就是正确契约，内核只需补文档）、G（有界迭代可以用 `reduce` + `range`，或写一个通过 `invokeCallable` 调用回调的领域库函数，都受内核预算约束）、H（`DslAuthoringService` 已经接受宿主提供的分析作用域）、J（`mantra/` 限定名继续由 Mantra 做等长改写），以及资源上限带来的领域层义务。
 
-WP1 已合入，并同时修复了三个 Mantra 侧缺陷：数据字面量委托内核分类（I）；超出内核值上限时返回诊断；限定名只改写符号，不改写字符串或关键字（J）。工作台与 CLI 的 Explain 已消费 F 项逐步 trace；纸面及 XLSX 的审计附录迁移列入 M1。内核侧剩余工作为 C 项整数策略与 E 项文档，见[路线图](../roadmap.md)。
+WP1 已合入，并同时修复了三个 Mantra 侧缺陷：数据字面量委托内核分类（I）；超出内核值上限时返回诊断；限定名只改写符号，不改写字符串或关键字（J）。M1 以 `calculateForAudit` 在一次计算中收集 F 项逐步 trace，工作台、CLI、纸面和 XLSX 同源。XLSX 保留生成时原始输入、有效参数和 trace 快照，输入变化后自动标记过期。内核侧剩余工作为 C 项整数策略与 E 项文档，见[路线图](../roadmap.md)。
 
 ## Context
 
@@ -270,8 +270,11 @@ Observed at the pin (contract B):
   - 1,000 children per node.
   - Truncation must be visible (`TRUNCATED`). Mantra requests `FULL` only for audit output.
 - **Mantra migration:**
-  - The formula explainer switches from root-value substitution to the index behind `--audit`.
-  - Rendered Rechenweg text in HTML, text and Excel audit output changes, so golden outputs are updated. JSON audit output gains fields (additive).
+  - Implemented in M1: `calculateForAudit` opts into one evaluation with the same source-index projection as Explain. Ordinary `calculate` remains trace-free; papers clearly mark evidence that was not requested.
+  - The public run budget bounds 2,000 traced formulas, 100,000 kernel events, 16,384 projected steps and branches, and 1,000,000 source/summary characters. Each formula retains at most 64 steps and 32 branches. Lower caller-selected budgets are allowed. Exhaustion emits `MANTRA-AUDIT-TRUNCATED` and marks every incomplete coordinate instead of silently dropping it.
+  - Host-owned weighted aggregates expose separate immutable evidence: the active member mask, numerator and denominator totals, exact rational value, rounding rule and result or undefined reason. At most 64 member details are retained per aggregation scope; totals always include every active member, and larger scopes carry a truncation marker and diagnostic. These are never presented as kernel steps.
+  - Rendered Rechenweg text in HTML, text and Excel audit output changes, so golden outputs are updated. JSON audit output gains addresses and detached explanation fields; its contract version is advanced alongside the nullable source-step value and diagnostic category changes.
+  - The XLSX audit is a generation-time snapshot with original input and effective parameter copies. Recalculating editable cells updates `current` / `outdated` status while leaving the original trace unchanged. The protected snapshot sheet prevents accidental edits; it is not an authenticity or security boundary.
   - Schemas are unaffected.
 
 ### G. Bounded iteration

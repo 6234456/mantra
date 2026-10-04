@@ -244,7 +244,7 @@ data class Texts(
             reference = "Rechtsgrundlage",
             row = "Zeile", status = "", formula = "Formel", explain = "Rechenweg", audit = "Berechnungsnachweis",
             auditIntro = "Nachweis jeder berechneten Zeile: " +
-                "Formel des Berechnungsschemas, eingesetzte Werte und Ergebnis.",
+                "Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.",
             result = "Ergebnis", notApplicable = "entfällt", selected = "gewählte Alternative (Günstigerprüfung)",
             userDefined = "benutzerdefinierte Zeile", footed = "Summe geprüft (Fußung)", legend = "Prüfzeichen",
             diagnostics = "Hinweise",
@@ -264,7 +264,7 @@ data class Texts(
             language = "en",
             pre = "Detail", main = "Amount", total = "Total", label = "Description", reference = "Reference",
             row = "Line", status = "", formula = "Formula", explain = "Working", audit = "Audit trail",
-            auditIntro = "Evidence for every calculated line: schema formula, substituted values and result.",
+            auditIntro = "Evidence for every calculated line: schema formula, executed trace steps and result.",
             result = "Result",
             notApplicable = "n/a",
             selected = "selected alternative",

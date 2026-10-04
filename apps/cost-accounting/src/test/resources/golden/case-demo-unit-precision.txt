@@ -1,0 +1,220 @@
+Manufacturing cost collection and product unit cost
+Primary and secondary cost elements · actual versus standard
+===================================================
+Entity: Demo manufacturing company
+Period: 2026-01
+Calculation schema: Product cost by manufacturing order v0.2 [cost.accounting/product-cost]
+Prepared by: Mantra acceptance example
+WP ref.: CO-DEMO/01
+Unfavourable variance: 1,140.00
+
+Structure of the calculation
+  Mainline 1: Cost element collection [1]  15,100.00
+  Mainline 2: Actual and standard cost by manufacturing order [2]  15,100.00
+  Mainline 3: Quantity-weighted product costs [3]  15,100.00
+  Mainline 4: Cost flow reconciliation [4]
+
+[1] 1 · Cost element collection
+    Mainline › 1 Cost element collection
+                                               |        CU |
+-----------------------------------------------+-----------+--
+Primary costs posted directly to orders        | 12,400.00 |
+Primary expense accounts to allocate           |    900.00 |
+Secondary cost elements to allocate            |  1,800.00 |
+                                              -+-----------+-
+Total actual costs to assign                   | 15,100.00 | Σ
+                                              =+===========+=
+A nonzero pool has a positive allocation basis |         ✓ | ✓
+
+[2] 2 · Manufacturing orders
+    Mainline › 2 Actual and standard cost by manufacturing order
+Order cost                           | Order O100 · Product A | Order O101 · Product A | Order O200 · Product B |     Total |
+-------------------------------------+------------------------+------------------------+------------------------+-----------+--
+Allocation base                      |                     10 |                     30 |                     20 |        60 |
+Order allocation base is nonnegative |                      ✓ |                      ✓ |                      ✓ |           | ✓
+Direct primary cost elements         |               5,000.00 |               3,000.00 |               4,400.00 | 12,400.00 |
+Allocated primary expense accounts   |                 150.00 |                 450.00 |                 300.00 |    900.00 |
+Allocated secondary cost elements    |                 300.00 |                 900.00 |                 600.00 |  1,800.00 |
+                                    -+------------------------+------------------------+------------------------+-----------+-
+Actual order cost                    |               5,450.00 |               4,350.00 |               5,300.00 | 15,100.00 | Σ
+                                    =+========================+========================+========================+===========+=
+Completed quantity                   |                    100 |                     50 |                     80 |       230 |
+Actual cost per completed unit       |                54.5000 |                87.0000 |                66.2500 |           |
+Standard cost per unit               |                58.0000 |                64.0000 |                62.0000 |           |
+Standard cost for completed quantity |               5,800.00 |               3,200.00 |               4,960.00 | 13,960.00 |
+Actual less standard cost            |               (350.00) |               1,150.00 |                 340.00 |  1,140.00 |
+
+[3] 3 · Weighted product costs
+    Mainline › 3 Quantity-weighted product costs
+Product cost                        | Product A | Product B |     Total |
+------------------------------------+-----------+-----------+-----------+--
+Completed quantity                  |       150 |        80 |       230 |
+Actual cost of product orders       |  9,800.00 |  5,300.00 | 15,100.00 |
+                                   -+-----------+-----------+-----------+-
+Total actual product cost           |  9,800.00 |  5,300.00 | 15,100.00 | Σ
+                                   =+===========+===========+===========+=
+Standard cost of product orders     |  9,000.00 |  4,960.00 | 13,960.00 |
+Weighted average actual unit cost   |   65.3333 |   66.2500 |   65.6522 |
+Weighted average standard unit cost |   60.0000 |   62.0000 |   60.6957 |
+Actual less standard cost           |    800.00 |    340.00 |  1,140.00 |
+
+[4] 4 · Reconciliation
+    Mainline › 4 Cost flow reconciliation
+                                       |        CU |
+---------------------------------------+-----------+--
+Actual cost assigned to orders         | 15,100.00 |
+Actual cost aggregated to products     | 15,100.00 |
+Source costs less assigned order costs |         – | ✓
+Order costs less product costs         |         – | ✓
+Standard cost for completed output     | 13,960.00 |
+Unfavourable variance                  |  1,140.00 |
+
+Audit trail
+-----------
+1/1 Primary costs posted directly to orders
+    Formula: (sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings))
+    Working: (fn [posting] (if (= posting.mode :direct) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (if (= posting.mode :direct) posting.amount 0) = 800 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (= posting.mode :direct) = false → (if (= posting.mode :direct) posting.amount 0) = 0 → (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :direct) posting.amount 0)) primary-postings)) = 12400 → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 = 12,400.00
+1/2 Primary expense accounts to allocate
+    Formula: (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings))
+    Working: (fn [posting] (if (= posting.mode :pool) posting.amount 0)) = [value unavailable] → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = false → (if (= posting.mode :pool) posting.amount 0) = 0 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 600 → (= posting.mode :pool) = true → (if (= posting.mode :pool) posting.amount 0) = 300 → (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (= posting.mode :pool) posting.amount 0)) primary-postings)) = 900 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount = 900.00
+1/3 Secondary cost elements to allocate
+    Formula: (sum (map (fn [posting] posting.amount) secondary-postings))
+    Working: (fn [posting] posting.amount) = [value unavailable] → (map (fn [posting] posting.amount) secondary-postings) = [value unavailable] → (sum (map (fn [posting] posting.amount) secondary-postings)) = 1800 = 1,800.00
+1/4 Total actual costs to assign
+    Formula: direct-primary-total + primary-pool + secondary-pool
+    Working: 12400 + 900 + 1800 = 15,100.00
+1/5 A nonzero pool has a positive allocation basis
+    Formula: (or (and (= primary-pool 0) (= secondary-pool 0)) (> (dim/sum all.allocation-base) 0))
+    Working: (= primary-pool 0) = false → (and (= primary-pool 0) (= secondary-pool 0)) = false → (dim/sum all.allocation-base) = 60 → (> (dim/sum all.allocation-base) 0) = true → (or (and (= primary-pool 0) (= secondary-pool 0)) (> (dim/sum all.allocation-base) 0)) = true = ✓
+2/2 Order allocation base is nonnegative [Order O100 · Product A]
+    Formula: (>= allocation-base 0)
+    Working: (>= allocation-base 0) = true = ✓
+2/2 Order allocation base is nonnegative [Order O101 · Product A]
+    Formula: (>= allocation-base 0)
+    Working: (>= allocation-base 0) = true = ✓
+2/2 Order allocation base is nonnegative [Order O200 · Product B]
+    Formula: (>= allocation-base 0)
+    Working: (>= allocation-base 0) = true = ✓
+2/3 Direct primary cost elements [Order O100 · Product A]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 4000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 1000 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 5000 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 5,000.00
+2/3 Direct primary cost elements [Order O101 · Product A]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 2400 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 3000 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 = 3,000.00
+2/3 Direct primary cost elements [Order O200 · Product B]
+    Formula: (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings))
+    Working: (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) = [value unavailable] → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 3600 → (= posting.mode :direct) = true → (= posting.order-id order.key) = true → (and (= posting.mode :direct) (= posting.order-id order.key)) = true → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 800 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (= posting.mode :direct) = false → (and (= posting.mode :direct) (= posting.order-id order.key)) = false → (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0) = 0 → (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings) = [value unavailable] → (sum (map (fn [posting] (if (and (= posting.mode :direct) (= posting.order-id order.key)) posting.amount 0)) primary-postings)) = 4400 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: 0 → selected branch: posting.amount → selected branch: posting.amount → selected branch: 0 → selected branch: 0 = 4,400.00
+2/4 Allocated primary expense accounts [Order O100 · Product A]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00} = 150.00
+2/4 Allocated primary expense accounts [Order O101 · Product A]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00} = 450.00
+2/4 Allocated primary expense accounts [Order O200 · Product B]
+    Formula: (alloc/pro-rata primary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata primary-pool all.allocation-base allocation-scale) = {:O100 150.00, :O101 450.00, :O200 300.00} = 300.00
+2/5 Allocated secondary cost elements [Order O100 · Product A]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00} = 300.00
+2/5 Allocated secondary cost elements [Order O101 · Product A]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00} = 900.00
+2/5 Allocated secondary cost elements [Order O200 · Product B]
+    Formula: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale)
+    Working: (alloc/pro-rata secondary-pool all.allocation-base allocation-scale) = {:O100 300.00, :O101 900.00, :O200 600.00} = 600.00
+2/6 Actual order cost [Order O100 · Product A]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 5000 + 150.00 + 300.00 = 5,450.00
+2/6 Actual order cost [Order O101 · Product A]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 3000 + 450.00 + 900.00 = 4,350.00
+2/6 Actual order cost [Order O200 · Product B]
+    Formula: direct-primary + primary-allocated + secondary-allocated
+    Working: 4400 + 300.00 + 600.00 = 5,300.00
+2/8 Actual cost per completed unit [Order O100 · Product A]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: (decimal/divide actual-order-cost produced-quantity unit-scale) = 54.500000 = 54.5000
+2/8 Actual cost per completed unit [Order O101 · Product A]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: (decimal/divide actual-order-cost produced-quantity unit-scale) = 87.000000 = 87.0000
+2/8 Actual cost per completed unit [Order O200 · Product B]
+    Formula: (decimal/divide actual-order-cost produced-quantity unit-scale)
+    Working: (decimal/divide actual-order-cost produced-quantity unit-scale) = 66.250000 = 66.2500
+2/10 Standard cost for completed quantity [Order O100 · Product A]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: (* produced-quantity standard-order-unit-cost) = 5800 = 5,800.00
+2/10 Standard cost for completed quantity [Order O101 · Product A]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: (* produced-quantity standard-order-unit-cost) = 3200 = 3,200.00
+2/10 Standard cost for completed quantity [Order O200 · Product B]
+    Formula: (* produced-quantity standard-order-unit-cost)
+    Working: (* produced-quantity standard-order-unit-cost) = 4960 = 4,960.00
+2/11 Actual less standard cost [Order O100 · Product A]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: (- actual-order-cost standard-order-cost) = -350.00 = (350.00)
+2/11 Actual less standard cost [Order O101 · Product A]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: (- actual-order-cost standard-order-cost) = 1150.00 = 1,150.00
+2/11 Actual less standard cost [Order O200 · Product B]
+    Formula: (- actual-order-cost standard-order-cost)
+    Working: (- actual-order-cost standard-order-cost) = 340.00 = 340.00
+3/1 Completed quantity [Product A]
+    Formula: (dim/rollup all.produced-quantity relation_order product.key)
+    Working: (dim/rollup all.produced-quantity relation_order product.key) = 150 = 150
+3/1 Completed quantity [Product B]
+    Formula: (dim/rollup all.produced-quantity relation_order product.key)
+    Working: (dim/rollup all.produced-quantity relation_order product.key) = 80 = 80
+3/2 Actual cost of product orders [Product A]
+    Formula: (dim/rollup all.actual-order-cost relation_order product.key)
+    Working: (dim/rollup all.actual-order-cost relation_order product.key) = 9800.00 = 9,800.00
+3/2 Actual cost of product orders [Product B]
+    Formula: (dim/rollup all.actual-order-cost relation_order product.key)
+    Working: (dim/rollup all.actual-order-cost relation_order product.key) = 5300.00 = 5,300.00
+3/4 Standard cost of product orders [Product A]
+    Formula: (dim/rollup all.standard-order-cost relation_order product.key)
+    Working: (dim/rollup all.standard-order-cost relation_order product.key) = 9000 = 9,000.00
+3/4 Standard cost of product orders [Product B]
+    Formula: (dim/rollup all.standard-order-cost relation_order product.key)
+    Working: (dim/rollup all.standard-order-cost relation_order product.key) = 4960 = 4,960.00
+3/5 Σ Weighted average actual unit cost (Total)
+    Formula: Σ product-actual-cost ÷ Σ product-quantity
+    Working: [product=A] 9800.00 / 150 included; [product=B] 5300.00 / 80 included → Σ product-actual-cost = 15100.00; Σ product-quantity = 230 → 15100.00 ÷ 230 (round 4 half-up) = 65.6522 = 65.6522
+3/5 Weighted average actual unit cost [Product A]
+    Formula: (decimal/divide product-actual-cost product-quantity unit-scale)
+    Working: (decimal/divide product-actual-cost product-quantity unit-scale) = 65.333333 = 65.3333
+3/5 Weighted average actual unit cost [Product B]
+    Formula: (decimal/divide product-actual-cost product-quantity unit-scale)
+    Working: (decimal/divide product-actual-cost product-quantity unit-scale) = 66.250000 = 66.2500
+3/6 Σ Weighted average standard unit cost (Total)
+    Formula: Σ product-standard-cost ÷ Σ product-quantity
+    Working: [product=A] 9000 / 150 included; [product=B] 4960 / 80 included → Σ product-standard-cost = 13960; Σ product-quantity = 230 → 13960 ÷ 230 (round 4 half-up) = 60.6957 = 60.6957
+3/6 Weighted average standard unit cost [Product A]
+    Formula: (decimal/divide product-standard-cost product-quantity unit-scale)
+    Working: (decimal/divide product-standard-cost product-quantity unit-scale) = 60.000000 = 60.0000
+3/6 Weighted average standard unit cost [Product B]
+    Formula: (decimal/divide product-standard-cost product-quantity unit-scale)
+    Working: (decimal/divide product-standard-cost product-quantity unit-scale) = 62.000000 = 62.0000
+3/7 Actual less standard cost [Product A]
+    Formula: (- product-actual-cost product-standard-cost)
+    Working: (- product-actual-cost product-standard-cost) = 800.00 = 800.00
+3/7 Actual less standard cost [Product B]
+    Formula: (- product-actual-cost product-standard-cost)
+    Working: (- product-actual-cost product-standard-cost) = 340.00 = 340.00
+4/1 Actual cost assigned to orders
+    Formula: (dim/sum all.actual-order-cost)
+    Working: (dim/sum all.actual-order-cost) = 15100.00 = 15,100.00
+4/2 Actual cost aggregated to products
+    Formula: (dim/sum all.product-actual-cost)
+    Working: (dim/sum all.product-actual-cost) = 15100.00 = 15,100.00
+4/3 Source costs less assigned order costs
+    Formula: source-cost-total ≈ all-order-cost (± 0.01)
+    Working: source-cost-total = 15100; all-order-cost = 15100.00 → 15100 − 15100.00 = 0.00 (± 0.01) = –
+4/4 Order costs less product costs
+    Formula: all-order-cost ≈ all-product-cost (± 0.01)
+    Working: all-order-cost = 15100.00; all-product-cost = 15100.00 → 15100.00 − 15100.00 = 0.00 (± 0.01) = –
+4/5 Standard cost for completed output
+    Formula: (dim/sum all.product-standard-cost)
+    Working: (dim/sum all.product-standard-cost) = 13960 = 13,960.00
+4/6 Actual less standard cost
+    Formula: (- all-product-cost all-standard-cost)
+    Working: (- all-product-cost all-standard-cost) = 1140.00 = 1,140.00

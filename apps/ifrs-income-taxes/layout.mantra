@@ -1,0 +1,17 @@
+;; Presentation only: entities and effects are ordinary member matrices with status columns.
+(layout ifrs.ias12/rate-reconciliation-paper
+  {:preset :ifrs-schedule :title "IAS 12 single-period tax reconciliation"
+   :subtitle "Project-authored fictional data – demonstration only"
+   :header [:subject :period :schema :prepared-by :reference]}
+  (columns :matrix
+    :label
+    (members tax-entity)
+    :cross-total
+    :status)
+  (table entity-tax {:title "1 · Entity tax expense and effective rates" :style :matrix})
+  (table tax-effect-detail {:title "2 · Supplied tax effects" :style :matrix}
+    :label
+    (members tax-adjustment)
+    :cross-total
+    :status)
+  (table group-tax-summary {:title "3 · Group reconciliation" :style :tiered}))

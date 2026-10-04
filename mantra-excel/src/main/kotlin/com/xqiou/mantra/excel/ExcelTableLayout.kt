@@ -3,6 +3,7 @@ package com.xqiou.mantra.excel
 import com.xqiou.mantra.core.model.Presentation
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.view.Coord
+import com.xqiou.mantra.core.view.ViewNode
 import com.xqiou.mantra.core.view.displayLabel
 import com.xqiou.mantra.core.view.signLabels
 import com.xqiou.mantra.excel.ExcelWorkbookBuilder.Companion.FIRST_ROW
@@ -100,6 +101,13 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
         } ==
             true
     }.takeIf { it >= 0 }
+    fun registerAggregate(vertex: ViewNode, slot: Slot) {
+        if (vertex.dims.isNotEmpty() && vertex.type.isNumeric &&
+            (vertex.line?.ratio != null || vertex.crossTotal() != null)
+        ) {
+            aggregateSlots.putIfAbsent(vertex.id, slot)
+        }
+    }
 
     // Title, breadcrumb and header.
     text(sheet, 0, 0, table.title, StyleKey(bold = true, size = 13))
@@ -217,6 +225,7 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                     val slot = Slot(sheet, r, c)
                     valueStyles[slot] = presentationKey
                     presentation += slot to { aggregateRef(vertex.id) }
+                    registerAggregate(vertex, slot)
                 }
                 vertex.dims.singleOrNull()?.let { dim ->
                     members[dim].orEmpty().forEach { m ->
@@ -278,6 +287,7 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                         Slot(sheet, r, c).also {
                             valueStyles[it] = style
                             presentation += it to { aggregateRef(vertex.id) }
+                            registerAggregate(vertex, it)
                         }
                     }
                 } else {
@@ -299,11 +309,14 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                                     }
                                 }
                             }
-                            val aggregate = vertex.type.isNumeric && view.nodes[vertex.id]?.crossTotal() != null
+                            val aggregate =
+                                vertex.type.isNumeric &&
+                                    (vertex.line?.ratio != null || view.nodes[vertex.id]?.crossTotal() != null)
                             valueSlotFor(row.lead)?.takeIf { aggregate }?.let { c ->
                                 Slot(sheet, r, c).also {
                                     valueStyles[it] = style
                                     presentation += it to { aggregateRef(vertex.id) }
+                                    registerAggregate(vertex, it)
                                 }
                             }
                         }
@@ -323,6 +336,12 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                     text(sheet, r, formulaColumn, dslFormula(vertex), StyleKey(muted = true, italic = true))
                 }
             }
+        }
+        if (vertex != null && (vertex.check != null || vertex.reconcile != null)) {
+            statusCol?.let { statusFormulas += Slot(sheet, r, it) to { businessStatus(vertex) } }
+        }
+        if (vertex?.input != null) {
+            statusCol?.let { inputStatusSlots += Slot(sheet, r, it) to vertex.id }
         }
         if (row.kind != RowKind.OPTION && row.kind != RowKind.REFERENCE) {
             val signedNode = row.nodeId?.let(view.nodes::get)?.takeIf { it.signLabels != null }

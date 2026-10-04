@@ -2,13 +2,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
-import { casePath } from '../address'
-import type { Envelope, Explain, Paper, Run, Structure, Diagnostic } from '../types'
+import { addressToPath, casePath } from '../address'
+import type { Envelope, Explain, Paper, Run, Structure, Diagnostic, RatioAggregate } from '../types'
 
 const caseId = 'sample/case.mantra'
 const base = '/cases/sample%2Fcase.mantra'
 const wrap = <T,>(data: T): Envelope<T> => ({
-  contract: 'mantra.workbench/1',
+  contract: 'mantra.workbench/2',
   revision: '1234567890abcdef',
   engine: { mantra: 'test', normein: 'test' },
   data,
@@ -58,6 +58,7 @@ const structure: Structure = {
 }
 const run: Run = {
   succeeded: true,
+  validationPassed: true,
   diagnostics: [],
   members: {
     member: [
@@ -245,6 +246,7 @@ describe('fixture-backed workbench shell', () => {
         references: i < 6 ? [{ address: { node: `n${i + 1}` }, label: `Node ${i + 1}`, display: String(i + 1) }] : [],
         parts: [],
         options: [],
+        aggregate: null,
       }
       explanations[`/fixtures/sample/n${i}.json`] = wrap(explain)
     }
@@ -348,6 +350,9 @@ describe('fixture-backed workbench shell', () => {
     const findings: Diagnostic[] = [
       {
         severity: 'error',
+        category: 'structural',
+        rowIndex: null,
+        column: null,
         code: 'MANTRA-INPUT-TYPE',
         message: 'Wrong type',
         location: null,
@@ -356,6 +361,9 @@ describe('fixture-backed workbench shell', () => {
       },
       {
         severity: 'warning',
+        category: 'evaluation',
+        rowIndex: null,
+        column: null,
         code: 'DSL-EXAMPLE',
         message: 'Check source',
         location: { document: 'case.mantra', line: 7, column: 4, startOffset: 42, endOffset: 47 },
@@ -375,5 +383,230 @@ describe('fixture-backed workbench shell', () => {
     fireEvent.click(screen.getByRole('link', { name: /Zum betroffenen Wert/ }))
     expect(location.pathname).toBe(`${casePath(caseId)}/panels/detail`)
     expect(new URLSearchParams(location.search).get('cell')).toBe('value@B')
+  })
+
+  it('filters business findings separately and opens their table cell in the input editor', async () => {
+    const finding: Diagnostic = {
+      category: 'business',
+      severity: 'error',
+      code: 'MANTRA-INPUT-REQUIRED',
+      message: 'Provide an amount',
+      location: null,
+      address: { node: 'items', cell: { row: '0', column: 'amount' } },
+      related: [],
+      rowIndex: 0,
+      column: 'amount',
+    }
+    const findings: Diagnostic[] = [
+      finding,
+      {
+        ...finding,
+        category: 'evaluation',
+        code: 'DSL-TYPE',
+        message: 'A technical error',
+        rowIndex: null,
+        column: null,
+      },
+      { ...finding, severity: 'warning', code: 'MANTRA-RATIO-ZERO', message: 'Zero denominator' },
+    ]
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
+    manifest.cases[0].files.diagnostics = '/fixtures/sample/diagnostics.json'
+    fixture['/fixtures/sample/diagnostics.json'] = wrap({ diagnostics: findings })
+    fixture['/fixtures/sample/structure.json'] = wrap({
+      ...structure,
+      generalInputs: [
+        {
+          id: 'items',
+          label: 'Items',
+          type: 'table',
+          keyColumn: 'code',
+          columns: [
+            { name: 'code', type: 'keyword' },
+            { name: 'amount', type: 'decimal' },
+          ],
+        },
+      ],
+    })
+    fixture['/fixtures/sample/run.json'] = wrap({
+      ...run,
+      validationPassed: false,
+      diagnostics: [finding],
+      values: {
+        ...run.values,
+        items: {
+          '': {
+            active: true,
+            display: '',
+            value: [
+              {
+                map: [
+                  [{ kw: 'code' }, { kw: 'invoice-A' }],
+                  [{ kw: 'amount' }, null],
+                ],
+              },
+            ],
+          },
+        },
+      },
+    })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/diagnostics`)
+    render(<App />)
+    await screen.findByRole('heading', { name: 'MANTRA-INPUT-REQUIRED' })
+    fireEvent.change(screen.getByLabelText('Kategorie'), { target: { value: 'business' } })
+    expect(screen.queryByText('A technical error')).toBeNull()
+    fireEvent.change(screen.getByLabelText('Schweregrad'), { target: { value: 'error' } })
+    expect(screen.queryByText('Zero denominator')).toBeNull()
+    expect(screen.getByText('Zeile 1 · amount')).toBeTruthy()
+    expect(screen.getByText(/verhindern weder die Berechnung noch das Speichern/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('link', { name: /Zum betroffenen Wert/ }))
+    expect(location.pathname).toBe(`${casePath(caseId)}/inputs/general`)
+    expect(new URLSearchParams(location.search).get('cell')).toBe('items#0.amount')
+    const input = await screen.findByLabelText('amount · invoice-A')
+    expect(document.activeElement).toBe(input)
+    expect(input.closest('td')?.textContent).toContain('Provide an amount')
+  })
+
+  it('opens a weighted aggregate from the paper and preserves its engine evidence in provenance', async () => {
+    const aggregate: RatioAggregate = {
+      numeratorId: 'tax',
+      denominatorId: 'profit',
+      dimensions: ['member'],
+      fixed: {},
+      members: [
+        { coord: ['A'], numerator: { n: '65.4' }, denominator: { n: '240' }, active: true },
+        { coord: ['B'], numerator: { n: '14.4' }, denominator: { n: '80' }, active: true },
+      ],
+      memberCount: 2,
+      activeMemberCount: 2,
+      numeratorTotal: { n: '79.8' },
+      denominatorTotal: { n: '320' },
+      rounding: { scale: 6, mode: 'half-up' },
+      result: { n: '0.249375' },
+      undefinedReason: null,
+      truncated: false,
+      display: { numeratorTotal: '79,80', denominatorTotal: '320,00', result: '24,9375 %' },
+    }
+    const address = { node: 'aggregate.value' }
+    const explanation: Explain = {
+      address,
+      label: 'Weighted total',
+      kind: 'aggregate',
+      status: 'active',
+      result: { value: { n: '0.249375' }, display: '24,9375 %' },
+      aggregate,
+      steps: [],
+      branches: [],
+      references: [],
+      parts: [],
+      options: [],
+    }
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
+    manifest.cases[0].files.explains = { [addressToPath(address)]: '/fixtures/sample/aggregate.json' }
+    fixture['/fixtures/sample/aggregate.json'] = wrap(explanation)
+    fixture['/fixtures/sample/paper.json'] = wrap({
+      ...paper,
+      audit: [
+        ...paper.audit,
+        {
+          anchor: 't1-r1-sum',
+          citation: '1',
+          label: 'Weighted total',
+          formula: '',
+          working: '',
+          result: '24,9375 %',
+          address,
+          aggregate,
+        },
+      ],
+      tables: [
+        {
+          ...paper.tables[0],
+          rows: [
+            {
+              kind: 'VALUE',
+              depth: 0,
+              anchor: 't1-r1',
+              cells: [{ text: 'Rate' }, { text: '24,9375 %', address }, { text: '' }],
+            },
+          ],
+        },
+      ],
+    })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/panels/detail`)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'A: 24,9375 %' }))
+    expect(await screen.findByRole('heading', { name: 'Weighted total' })).toBeTruthy()
+    expect(screen.getByText('79,80')).toBeTruthy()
+    expect(screen.queryByText('Formula A')).toBeNull()
+    expect(document.querySelectorAll('.inspector .calculation-step')).toHaveLength(0)
+    fireEvent.click(screen.getByRole('link', { name: /Herkunft/ }))
+    expect(await screen.findByRole('region', { name: 'Gewichtete Quote' })).toBeTruthy()
+    expect(screen.getByText('Rundung: 6 · half-up')).toBeTruthy()
+    expect(document.querySelectorAll('.provenance-layout .calculation-step')).toHaveLength(0)
+  })
+
+  it('shows the addressed reconciliation verdict and amounts from Run in the inspector and provenance', async () => {
+    const address = { node: 'reconciliation', coord: ['B'] }
+    const validation = {
+      active: true,
+      passed: false,
+      severity: 'error',
+      reconciliation: {
+        left: { n: '100.02' },
+        right: { n: '100.00' },
+        difference: { n: '0.02' },
+        tolerance: { n: '0.01' },
+      },
+    }
+    const explanation: Explain = {
+      address,
+      label: 'Reconciliation',
+      kind: 'reconcile',
+      status: 'active',
+      result: { value: { n: '0.02' }, display: '0.02' },
+      aggregate: null,
+      steps: [],
+      branches: [],
+      references: [],
+      parts: [],
+      options: [],
+    }
+    const fixture = docs()
+    const manifest = fixture['/fixtures/index.json'] as { cases: Array<{ files: Record<string, unknown> }> }
+    manifest.cases[0].files.explains = { [addressToPath(address)]: '/fixtures/sample/reconciliation.json' }
+    fixture['/fixtures/sample/reconciliation.json'] = wrap(explanation)
+    fixture['/fixtures/sample/run.json'] = wrap({
+      ...run,
+      validationPassed: false,
+      values: {
+        ...run.values,
+        reconciliation: { B: { active: true, value: { n: '0.02' }, display: '0.02', validation } },
+      },
+    })
+    fixture['/fixtures/sample/paper.json'] = wrap({
+      ...paper,
+      tables: [
+        {
+          ...paper.tables[0],
+          rows: [
+            { kind: 'VALUE', depth: 0, cells: [{ text: 'Reconciliation' }, { text: '' }, { text: '0.02', address }] },
+          ],
+        },
+      ],
+    })
+    serve(fixture)
+    history.replaceState(null, '', `${base}/panels/detail`)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'B: 0.02' }))
+    expect(await screen.findByText('Nicht bestanden')).toBeTruthy()
+    expect(screen.getByText('100.02')).toBeTruthy()
+    expect(screen.getByText('0.01')).toBeTruthy()
+    fireEvent.click(screen.getByRole('link', { name: /Herkunft/ }))
+    expect(await screen.findByText('Nicht bestanden')).toBeTruthy()
+    expect(screen.getByText('100.00')).toBeTruthy()
   })
 })

@@ -1,51 +1,337 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/explain.schema.json",
-  "allOf": [{ "$ref": "envelope.schema.json" }],
-  "properties": { "data": { "$ref": "#/$defs/explanation" } },
+  "allOf": [
+    {
+      "$ref": "envelope.schema.json"
+    }
+  ],
+  "properties": {
+    "data": {
+      "$ref": "#/$defs/explanation"
+    }
+  },
   "$defs": {
     "explanation": {
       "type": "object",
-      "required": ["address", "label", "kind", "formula", "result", "status", "reason", "steps", "branches", "references", "parts", "options", "reference", "truncated"],
+      "required": [
+        "address",
+        "label",
+        "kind",
+        "formula",
+        "result",
+        "status",
+        "reason",
+        "steps",
+        "branches",
+        "references",
+        "parts",
+        "options",
+        "reference",
+        "truncated",
+        "aggregate"
+      ],
       "properties": {
-        "address": { "$ref": "envelope.schema.json#/$defs/address" },
-        "label": { "type": "string" },
-        "kind": { "type": "string" },
-        "formula": { "oneOf": [
-          { "type": "null" },
-          { "type": "object", "required": ["text", "location"], "properties": {
-            "text": { "type": "string" }, "location": { "$ref": "envelope.schema.json#/$defs/location" }
-          }, "additionalProperties": false }
-        ] },
-        "result": { "type": "object", "required": ["value", "display", "rounding"], "properties": {
-          "value": { "$ref": "value.schema.json" }, "display": { "type": "string" },
-          "rounding": { "oneOf": [{ "type": "null" }, { "type": "object", "required": ["scale", "mode"],
-            "properties": { "scale": { "type": "integer" }, "mode": { "type": "string" } }, "additionalProperties": false }] }
-        }, "additionalProperties": false },
-        "status": { "enum": ["active", "inactive", "failed"] },
-        "reason": { "type": ["string", "null"] },
-        "steps": { "type": "array", "items": { "type": "object", "required": ["text", "value", "display", "location"],
-          "properties": { "text": { "type": "string" }, "value": { "$ref": "value.schema.json" },
-            "display": { "type": "string" }, "location": { "$ref": "envelope.schema.json#/$defs/location" } }, "additionalProperties": false } },
-        "branches": { "type": "array", "items": { "type": "object", "required": ["text", "selected", "location"],
-          "properties": { "text": { "type": "string" }, "selected": { "type": "boolean" },
-            "location": { "$ref": "envelope.schema.json#/$defs/location" } }, "additionalProperties": false } },
-        "references": { "type": "array", "items": { "type": "object", "required": ["address", "label", "value", "display", "kind", "origin"],
-          "properties": { "address": { "$ref": "envelope.schema.json#/$defs/address" }, "label": { "type": "string" },
-            "value": { "$ref": "value.schema.json" }, "display": { "type": "string" }, "kind": { "type": "string" },
-            "origin": { "type": ["string", "null"] }, "explanation": { "$ref": "#/$defs/explanation" } }, "additionalProperties": false } },
-        "parts": { "type": "array", "items": { "type": "object", "required": ["address", "label", "sign", "value", "display", "crossFooted"],
-          "properties": { "address": { "$ref": "envelope.schema.json#/$defs/address" }, "label": { "type": "string" },
-            "sign": { "enum": [-1, 0, 1] }, "value": { "$ref": "value.schema.json" },
-            "display": { "type": "string" }, "crossFooted": { "type": "boolean" } }, "additionalProperties": false } },
-        "options": { "type": "array", "items": { "type": "object", "required": ["key", "label", "value", "display", "available", "selected", "difference", "differenceDisplay"],
-          "properties": { "key": { "type": "string" }, "label": { "type": "string" },
-            "value": { "$ref": "value.schema.json" }, "display": { "type": "string" },
-            "available": { "type": "boolean" }, "selected": { "type": "boolean" },
-            "difference": { "$ref": "value.schema.json" },
-            "differenceDisplay": { "type": ["string", "null"] } }, "additionalProperties": false } },
-        "reference": { "type": ["string", "null"] }, "truncated": { "type": "boolean" }
-      }, "additionalProperties": false
+        "address": {
+          "$ref": "envelope.schema.json#/$defs/address"
+        },
+        "label": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "formula": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "text",
+                "location"
+              ],
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "location": {
+                  "$ref": "envelope.schema.json#/$defs/location"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "result": {
+          "type": "object",
+          "required": [
+            "value",
+            "display",
+            "rounding"
+          ],
+          "properties": {
+            "value": {
+              "$ref": "value.schema.json"
+            },
+            "display": {
+              "type": "string"
+            },
+            "rounding": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "scale",
+                    "mode"
+                  ],
+                  "properties": {
+                    "scale": {
+                      "type": "integer"
+                    },
+                    "mode": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "status": {
+          "enum": [
+            "active",
+            "inactive",
+            "failed"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "text",
+              "value",
+              "display",
+              "location",
+              "rendered"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "display": {
+                "type": "string"
+              },
+              "location": {
+                "$ref": "envelope.schema.json#/$defs/location"
+              },
+              "rendered": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "text",
+              "selected",
+              "location"
+            ],
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "location": {
+                "$ref": "envelope.schema.json#/$defs/location"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "address",
+              "label",
+              "value",
+              "display",
+              "kind",
+              "origin"
+            ],
+            "properties": {
+              "address": {
+                "$ref": "envelope.schema.json#/$defs/address"
+              },
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "display": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "origin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "explanation": {
+                "$ref": "#/$defs/explanation"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "address",
+              "label",
+              "sign",
+              "value",
+              "display",
+              "crossFooted",
+              "aggregate"
+            ],
+            "properties": {
+              "address": {
+                "$ref": "envelope.schema.json#/$defs/address"
+              },
+              "label": {
+                "type": "string"
+              },
+              "sign": {
+                "enum": [
+                  -1,
+                  0,
+                  1
+                ]
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "display": {
+                "type": "string"
+              },
+              "crossFooted": {
+                "type": "boolean"
+              },
+              "aggregate": {
+                "oneOf": [
+                  {
+                    "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "label",
+              "value",
+              "display",
+              "available",
+              "selected",
+              "difference",
+              "differenceDisplay"
+            ],
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "value.schema.json"
+              },
+              "display": {
+                "type": "string"
+              },
+              "available": {
+                "type": "boolean"
+              },
+              "selected": {
+                "type": "boolean"
+              },
+              "difference": {
+                "$ref": "value.schema.json"
+              },
+              "differenceDisplay": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "aggregate": {
+          "oneOf": [
+            {
+              "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

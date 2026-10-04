@@ -1,5 +1,6 @@
 package com.xqiou.mantra.workbench
 
+import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.model.ValueType
 import com.xqiou.mantra.workbench.WorkspaceCatalog.Companion.writeLocks
@@ -86,6 +87,7 @@ internal fun WorkspaceCatalog.parseEditText(
                 ?: throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table column $column")
         }
     }
+    if (!parameter && column != null && text.isBlank()) return Value.Nil
     return try {
         when (type) {
             ValueType.DECIMAL, ValueType.INTEGER -> {
@@ -212,9 +214,15 @@ internal fun WorkspaceCatalog.checkRevision(expected: String, actual: String) {
 internal fun WorkspaceCatalog.checkEditDiagnostics(candidate: Resolved) {
     val rejected = candidate.view.diagnostics.filter { finding ->
         val code = finding.code
-        code.startsWith("MANTRA-READ-") || code.startsWith("MANTRA-CASE-") ||
-            code.startsWith("MANTRA-INPUT-") || code.startsWith("MANTRA-FORMULA") || code.startsWith("MANTRA-CYCLE") ||
-            code.startsWith("MANTRA-DIMENSION-")
+        val technicalRejection = listOf(
+            "MANTRA-READ-",
+            "MANTRA-CASE-",
+            "MANTRA-INPUT-",
+            "MANTRA-FORMULA",
+            "MANTRA-CYCLE",
+            "MANTRA-DIMENSION-",
+        ).any(code::startsWith)
+        finding.category != DiagnosticCategory.BUSINESS && technicalRejection
     }
     if (rejected.isNotEmpty()) throw WorkspaceException(WorkspaceProblem.INVALID, "Edit was rejected", rejected)
 }

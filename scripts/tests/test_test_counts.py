@@ -1,4 +1,4 @@
-"""Check missing, skipped and failing report regressions in the M0 test-count gate."""
+"""Check missing, skipped and failing report regressions in the milestone test-count gate."""
 
 import importlib.util
 from pathlib import Path

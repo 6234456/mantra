@@ -1,69 +1,243 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/paper.schema.json",
-  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "allOf": [
+    {
+      "$ref": "envelope.schema.json"
+    }
+  ],
   "properties": {
     "data": {
       "type": "object",
-      "required": ["title", "subtitle", "headline", "inputGroups", "header", "overview", "auxiliary", "tables", "audit", "legend", "diagnostics", "theme"],
+      "required": [
+        "title",
+        "subtitle",
+        "headline",
+        "inputGroups",
+        "header",
+        "overview",
+        "auxiliary",
+        "tables",
+        "audit",
+        "legend",
+        "diagnostics",
+        "theme"
+      ],
       "properties": {
-        "title": { "type": "string" },
-        "subtitle": { "type": ["string", "null"] },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "headline": {
           "oneOf": [
-            { "type": "null" },
-            { "type": "object", "required": ["node", "label", "value"],
-              "properties": { "node": { "type": "string" }, "label": { "type": "string" }, "value": { "type": "string" } },
-              "additionalProperties": false }
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "node",
+                "label",
+                "value"
+              ],
+              "properties": {
+                "node": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
           ]
         },
         "inputGroups": {
-          "type": "array", "items": { "type": "object", "required": ["key", "title", "inputs"],
-            "properties": { "key": { "type": "string" }, "title": { "type": "string" },
-              "inputs": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false }
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key",
+              "title",
+              "inputs"
+            ],
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "inputs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
         },
-        "header": { "type": "array", "items": { "$ref": "#/$defs/textPair" } },
-        "overview": { "type": "array", "items": { "type": "object" } },
-        "auxiliary": { "type": "array", "items": { "type": "object" } },
+        "header": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textPair"
+          }
+        },
+        "overview": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "auxiliary": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
         "tables": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["id", "ref", "title", "breadcrumb", "style", "columns", "rows"],
+            "required": [
+              "id",
+              "ref",
+              "title",
+              "breadcrumb",
+              "style",
+              "columns",
+              "rows"
+            ],
             "properties": {
-              "id": { "type": "string" },
-              "ref": { "type": "string" },
-              "title": { "type": "string" },
-              "breadcrumb": { "type": ["string", "null"] },
-              "style": { "enum": ["tiered", "matrix"] },
-              "columns": { "type": "array", "items": { "type": "object" } },
+              "id": {
+                "type": "string"
+              },
+              "ref": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "breadcrumb": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "style": {
+                "enum": [
+                  "tiered",
+                  "matrix"
+                ]
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              },
               "rows": {
                 "type": "array",
                 "items": {
                   "type": "object",
-                  "required": ["kind", "depth", "node", "flags", "anchor", "lead", "optionKey", "section", "classes", "cells"],
+                  "required": [
+                    "kind",
+                    "depth",
+                    "node",
+                    "flags",
+                    "anchor",
+                    "lead",
+                    "optionKey",
+                    "section",
+                    "classes",
+                    "cells"
+                  ],
                   "properties": {
-                    "kind": { "type": "string" },
-                    "depth": { "type": "integer", "minimum": 0 },
-                    "node": { "type": ["string", "null"] },
-                    "flags": { "type": "array", "items": { "type": "string" } },
-                    "anchor": { "type": ["string", "null"] },
-                    "lead": { "type": "boolean" },
-                    "optionKey": { "type": ["string", "null"] },
-                    "section": { "type": ["string", "null"] },
-                    "classes": { "type": "array", "items": { "type": "string" } },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "node": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "anchor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "lead": {
+                      "type": "boolean"
+                    },
+                    "optionKey": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "section": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "classes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
                     "cells": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["text", "address", "editable", "style"],
+                        "required": [
+                          "text",
+                          "address",
+                          "editable",
+                          "style"
+                        ],
                         "properties": {
-                          "text": { "type": "string" },
-                          "address": {
-                            "oneOf": [{ "$ref": "envelope.schema.json#/$defs/address" }, { "type": "null" }]
+                          "text": {
+                            "type": "string"
                           },
-                          "editable": { "type": "boolean" },
-                          "style": { "$ref": "envelope.schema.json#/$defs/style" }
+                          "address": {
+                            "oneOf": [
+                              {
+                                "$ref": "envelope.schema.json#/$defs/address"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "editable": {
+                            "type": "boolean"
+                          },
+                          "style": {
+                            "$ref": "envelope.schema.json#/$defs/style"
+                          }
                         },
                         "additionalProperties": false
                       }
@@ -74,10 +248,167 @@
             }
           }
         },
-        "audit": { "type": "array", "items": { "type": "object" } },
-        "legend": { "type": "array", "items": { "$ref": "#/$defs/textPair" } },
-        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } },
-        "theme": { "type": "string" }
+        "audit": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "anchor",
+              "citation",
+              "label",
+              "member",
+              "formula",
+              "working",
+              "result",
+              "reference",
+              "address",
+              "explanation",
+              "aggregate"
+            ],
+            "properties": {
+              "anchor": {
+                "type": "string"
+              },
+              "citation": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "member": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "formula": {
+                "type": "string"
+              },
+              "working": {
+                "type": "string"
+              },
+              "result": {
+                "type": "string"
+              },
+              "reference": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "address": {
+                "oneOf": [
+                  {
+                    "$ref": "envelope.schema.json#/$defs/address"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "explanation": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": [
+                      "steps",
+                      "branches",
+                      "truncated"
+                    ],
+                    "properties": {
+                      "steps": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "text",
+                            "value",
+                            "rendered",
+                            "location"
+                          ],
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "$ref": "value.schema.json"
+                            },
+                            "rendered": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "location": {
+                              "$ref": "envelope.schema.json#/$defs/location"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "branches": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "text",
+                            "selected",
+                            "location"
+                          ],
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            },
+                            "selected": {
+                              "type": "boolean"
+                            },
+                            "location": {
+                              "$ref": "envelope.schema.json#/$defs/location"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "truncated": {
+                        "type": "boolean"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "aggregate": {
+                "oneOf": [
+                  {
+                    "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "legend": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textPair"
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        },
+        "theme": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     }
@@ -85,7 +416,14 @@
   "$defs": {
     "textPair": {
       "type": "array",
-      "prefixItems": [{ "type": "string" }, { "type": "string" }],
+      "prefixItems": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        }
+      ],
       "items": false,
       "minItems": 2,
       "maxItems": 2

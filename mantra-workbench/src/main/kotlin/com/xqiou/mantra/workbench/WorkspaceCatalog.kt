@@ -51,7 +51,7 @@ data class ExplainAddress(
 /** Rebuilds read-only documents from workspace files for every request. No calculation state lives in the server. */
 class WorkspaceCatalog(
     directory: Path,
-    private val mantraVersion: String = "0.1.0-SNAPSHOT",
+    private val mantraVersion: String = "0.2.0-SNAPSHOT",
     normeinVersion: String? = null,
     private val exportBudget: ExportBudget = ExportBudget(),
 ) {
@@ -313,21 +313,26 @@ class WorkspaceCatalog(
         fun project(target: ExplainAddress, level: Int): Map<String, Any?> {
             if (--remaining < 0) throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Explain exceeds 64 nodes")
             val memberMap = target.node.startsWith("all.")
-            if (memberMap && target.cell != null) {
-                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map address cannot have a cell")
+            val aggregate = target.node.startsWith("aggregate.")
+            val projected = memberMap || aggregate
+            if (projected && target.cell != null) {
+                throw WorkspaceException(WorkspaceProblem.REQUEST, "Member-map or aggregate address cannot have a cell")
             }
-            val nodeId = if (memberMap) target.node.removePrefix("all.") else target.node
-            val resolved = resolve(caseId, snapshot, explain = target.takeUnless { memberMap })
+            val nodeId = if (memberMap) target.node.removePrefix("all.") else target.node.removePrefix("aggregate.")
+            val resolved = resolve(caseId, snapshot, explain = target.takeUnless { projected })
             revision = resolved.revision
             val node = resolved.view.nodes[nodeId]
                 ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain node was not found")
-            if (!memberMap && (node.dims.size != target.coord.size || target.coord !in node.values)) {
+            if (!projected && (node.dims.size != target.coord.size || target.coord !in node.values)) {
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain coordinate was not found")
             }
             if (memberMap && node.dims.isEmpty()) {
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain member map was not found")
             }
-            val fixed = if (memberMap) {
+            if (aggregate && node.line?.ratio == null) {
+                throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain ratio aggregate was not found")
+            }
+            val fixed = if (projected) {
                 val bindings = linkedMapOf<String, String>()
                 target.coord.forEach { part ->
                     val split = part.split('=', limit = 2)
@@ -356,7 +361,13 @@ class WorkspaceCatalog(
                     key == Value.Kw(column) || key == Value.Text(column)
                 }?.value ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain cell was not found")
             }
-            val data = if (memberMap) {
+            val data = if (aggregate) {
+                try {
+                    WorkbenchDocuments.aggregate(resolved.view, resolved.layout, nodeId, fixed).toMutableMap()
+                } catch (_: IllegalArgumentException) {
+                    throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Explain aggregate evidence was not found")
+                }
+            } else if (memberMap) {
                 WorkbenchDocuments.memberMap(resolved.view, resolved.layout, nodeId, fixed).toMutableMap()
             } else {
                 WorkbenchDocuments.explain(

@@ -110,7 +110,7 @@ code.formula { font-size: 11px; color: var(--muted); }
 <dl class="wp-meta">
 <div><dt>Mandant</dt><dd>Single assessment below the basic allowance</dd></div>
 <div><dt>Zeitraum</dt><dd>Veranlagungszeitraum 2025</dd></div>
-<div><dt>Berechnungsschema</dt><dd>Einkommensteuer 2025 v2025.1 [de.est/2025]</dd></div>
+<div><dt>Berechnungsschema</dt><dd>Einkommensteuer 2025 v2025.2 [de.est/2025]</dd></div>
 </dl>
 </header>
 <p class="headline"><strong>Ausgeglichen</strong> 0,00</p>
@@ -249,6 +249,14 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="center c-status" data-column="status">Σ</td>
 <td class="left c-reference" data-column="reference">§ 2 Abs. 6 EStG</td>
 </tr>
+<tr class="value info" id="t2-r3" data-section="est" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t2-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Durchschnittlicher Einkommensteuersatz</span></td>
+<td class="right num c-main" data-column="main">0,00 %</td>
+<td class="center c-status" data-column="status"></td>
+<td class="left c-reference" data-column="reference"></td>
+</tr>
 </tbody></table></div>
 </section>
 <section class="block" id="table-3">
@@ -326,6 +334,14 @@ code.formula { font-size: 11px; color: var(--muted); }
 <td class="right num c-member" data-column="membersperson-A"></td>
 <td class="right num c-crosstotal" data-column="cross-total">0,00</td>
 <td class="center c-status" data-column="status">Σ</td>
+</tr>
+<tr class="value info" id="t4-r3" data-section="abrechnung" data-depth="1" data-height="0" data-row-index="3">
+<td class="left c-rownumber" data-column="row-number"><a href="#audit-t4-r3" title="Berechnungsnachweis">3</a></td>
+<td class="center c-operator" data-column="operator"></td>
+<td class="left c-label" data-column="label"><span class="label" style="--depth:0">Abrechnung stimmt mit Steuern und Zahlungen überein</span></td>
+<td class="right num c-member" data-column="membersperson-A"></td>
+<td class="right num c-crosstotal" data-column="cross-total">0,00</td>
+<td class="center c-status" data-column="status">✓</td>
 </tr>
 </tbody></table></div>
 </section>
@@ -536,80 +552,92 @@ code.formula { font-size: 11px; color: var(--muted); }
 </section>
 <section class="block audit" id="audit">
 <h2><span class="ref">§</span>Berechnungsnachweis</h2>
-<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, eingesetzte Werte und Ergebnis.</p>
+<p class="intro">Nachweis jeder berechneten Zeile: Formel des Berechnungsschemas, ausgeführte Trace-Schritte und Ergebnis.</p>
 <div class="table-wrap"><table class="audit-table">
 <thead><tr><th class="left">Zeile</th><th class="left">Bezeichnung</th><th class="left">Formel / Rechenweg</th><th class="right">Ergebnis</th></tr></thead>
 <tbody>
 <tr id="audit-t1-r2">
 <td class="left cite"><a href="#t1-r2">1/2</a></td>
 <td class="left">Gesamtbetrag der Einkünfte<div class="norm">§ 2 Abs. 3 EStG</div></td>
-<td class="left"><code class="formula">summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug</code><div class="working">10.866 − 0 − 0 − 0</div></td>
+<td class="left"><code class="formula">summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug</code><div class="working">10866.00 − 0 − 0 − 0</div></td>
 <td class="right num">10.866,00</td>
 </tr>
 <tr id="audit-t1-r4">
 <td class="left cite"><a href="#t1-r4">1/4</a></td>
 <td class="left">Einkommen<div class="norm">§ 2 Abs. 4 EStG</div></td>
-<td class="left"><code class="formula">gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug</code><div class="working">10.866 − 0 − 36 − 0</div></td>
+<td class="left"><code class="formula">gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug</code><div class="working">10866.00 − 0 − 36 − 0</div></td>
 <td class="right num">10.830,00</td>
 </tr>
 <tr id="audit-t1-r5">
 <td class="left cite"><a href="#t1-r5">1/5</a></td>
 <td class="left">Zu versteuerndes Einkommen<div class="norm">§ 2 Abs. 5 EStG</div></td>
-<td class="left"><code class="formula">einkommen − freibetraege-kinder</code><div class="working">10.830 − 0</div></td>
+<td class="left"><code class="formula">einkommen − freibetraege-kinder</code><div class="working">10830.00 − 0</div></td>
 <td class="right num">10.830,00</td>
 </tr>
 <tr id="audit-t2-r1">
 <td class="left cite"><a href="#t2-r1">2/1</a></td>
 <td class="left">Tarifliche Einkommensteuer<div class="norm">§ 32a Abs. 1, 5 EStG</div></td>
-<td class="left"><code class="formula">(est-tarif zu-versteuerndes-einkommen zusammen)</code><div class="working">est-tarif(10.830; false)</div></td>
+<td class="left"><code class="formula">(est-tarif zu-versteuerndes-einkommen zusammen)</code><div class="working">(defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (decimal/floor zve 0) = 10830 → (&lt;= x tarif-gfb) = true → (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → (est-tarif zu-versteuerndes-einkommen zusammen) = 0 → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve)</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t2-r2">
 <td class="left cite"><a href="#t2-r2">2/2</a></td>
 <td class="left">Festzusetzende Einkommensteuer<div class="norm">§ 2 Abs. 6 EStG</div></td>
-<td class="left"><code class="formula">tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung</code><div class="working">0 − 0 − 0 + 0</div></td>
+<td class="left"><code class="formula">tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung</code><div class="working">0 − 0 − 0.0 + 0</div></td>
 <td class="right num">0,00</td>
+</tr>
+<tr id="audit-t2-r3">
+<td class="left cite"><a href="#t2-r3">2/3</a></td>
+<td class="left">Durchschnittlicher Einkommensteuersatz</td>
+<td class="left"><code class="formula">(if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6))</code><div class="working">(= zu-versteuerndes-einkommen 0) = false → (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 0.000000 → (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)) = 0.000000 → gewählter Zweig: (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)</div></td>
+<td class="right num">0,00 %</td>
 </tr>
 <tr id="audit-t3-r1">
 <td class="left cite"><a href="#t3-r1">3/1</a></td>
 <td class="left">Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)<div class="norm">§ 3 Abs. 2 SolZG 1995, § 51a Abs. 2 EStG</div></td>
-<td class="left"><code class="formula">(max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))</code><div class="working">max(0; est-tarif(10.830 − if(nil; 0; 0); false) − 0 − 0)</div></td>
+<td class="left"><code class="formula">(max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))</code><div class="working">(defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (if kfb-guenstiger 0 kfb-summe) = 0 → (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) = 10830.00 → (decimal/floor zve 0) = 10830 → (&lt;= x tarif-gfb) = true → (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 0 → (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 0 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (&lt;= x tarif-gfb) 0 (&lt;= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (&lt;= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (&lt;= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 0 → (est-grundtarif zve) = 0 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 0 → (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) = 0 → (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a) = 0.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 0.0 → gewählter Zweig: kfb-summe → gewählter Zweig: 0 → gewählter Zweig: (est-grundtarif zve)</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t3-r2">
 <td class="left cite"><a href="#t3-r2">3/2</a></td>
 <td class="left">Zuschlagsteuern</td>
-<td class="left"><code class="formula">solidaritaetszuschlag + kirchensteuer</code><div class="working">0 + 0</div></td>
+<td class="left"><code class="formula">solidaritaetszuschlag + kirchensteuer</code><div class="working">0.00 + 0.00</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t4-r1">
 <td class="left cite"><a href="#t4-r1">4/1</a></td>
 <td class="left">Festgesetzte Steuern</td>
-<td class="left"><code class="formula">abr-est + abr-soli + abr-kist</code><div class="working">0 + 0 + 0</div></td>
+<td class="left"><code class="formula">abr-est + abr-soli + abr-kist</code><div class="working">0.0 + 0.00 + 0.00</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t4-r2">
 <td class="left cite"><a href="#t4-r2">4/2</a></td>
 <td class="left">Nachzahlung (+) / Erstattung (−)</td>
-<td class="left"><code class="formula">festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen</code><div class="working">0 − 0 − 0 − 0 − 0</div></td>
+<td class="left"><code class="formula">festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen</code><div class="working">0.00 − 0 − 0 − 0 − 0</div></td>
+<td class="right num">0,00</td>
+</tr>
+<tr id="audit-t4-r3">
+<td class="left cite"><a href="#t4-r3">4/3</a></td>
+<td class="left">Abrechnung stimmt mit Steuern und Zahlungen überein</td>
+<td class="left"><code class="formula">abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)</code><div class="working">abrechnungsergebnis = 0.00; (dim/sum lohnsteuer) = 0 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 0 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 0.00 → 0.00 − 0.00 = 0.00 (± 0.01)</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t5-r2-A">
 <td class="left cite"><a href="#t5-r2">5/2</a></td>
 <td class="left">Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag <span class="member">Person A</span><div class="norm">§ 9a Satz 1 Nr. 1 Buchst. a, Satz 2 EStG</div></td>
-<td class="left"><code class="formula">(if (&gt; wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))</code><div class="working">if(0 &gt; 1.230; 0; min(1.230; 12.096))</div></td>
+<td class="left"><code class="formula">(if (&gt; wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))</code><div class="working">(&gt; wk-nachgewiesen an-pauschbetrag) = false → (min an-pauschbetrag bruttoarbeitslohn) = 1230 → (if (&gt; wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 1230 → gewählter Zweig: (min an-pauschbetrag bruttoarbeitslohn)</div></td>
 <td class="right num">1.230,00</td>
 </tr>
 <tr id="audit-t5-r3-A">
 <td class="left cite"><a href="#t5-r3">5/3</a></td>
 <td class="left">Einkünfte aus nichtselbständiger Arbeit <span class="member">Person A</span></td>
-<td class="left"><code class="formula">bruttoarbeitslohn − werbungskosten</code><div class="working">12.096 − 1.230</div></td>
+<td class="left"><code class="formula">bruttoarbeitslohn − werbungskosten</code><div class="working">12096 − 1230</div></td>
 <td class="right num">10.866,00</td>
 </tr>
 <tr id="audit-t5-r4">
 <td class="left cite"><a href="#t5-r4">5/4</a></td>
 <td class="left">Summe der Einkünfte<div class="norm">§ 2 Abs. 2 EStG</div></td>
-<td class="left"><code class="formula">einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige</code><div class="working">0 + 0 + 0 + 10.866 + 0 + 0 + 0</div></td>
+<td class="left"><code class="formula">einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige</code><div class="working">0 + 0 + 0 + 10866 + 0 + 0 + 0.00</div></td>
 <td class="right num">10.866,00</td>
 </tr>
 <tr id="audit-t6-r2-A">
@@ -621,13 +649,13 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t6-r3">
 <td class="left cite"><a href="#t6-r3">6/3</a></td>
 <td class="left">Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Einkünfte)<div class="norm">§ 10b Abs. 1 Satz 1 Nr. 1 EStG</div></td>
-<td class="left"><code class="formula">(min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))</code><div class="working">min(0; 0,2 × 10.866)</div></td>
+<td class="left"><code class="formula">(min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))</code><div class="working">(* spenden-hoechstsatz gesamtbetrag-der-einkuenfte) = 2173.200 → (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte)) = 0</div></td>
 <td class="right num">0,00</td>
 </tr>
 <tr id="audit-t6-r4">
 <td class="left cite"><a href="#t6-r4">6/4</a></td>
 <td class="left">Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)<div class="norm">§ 10c EStG</div></td>
-<td class="left"><code class="formula">(max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))</code><div class="working">max(0; if(false; 2 × 36; 36) − (0 + 0))</div></td>
+<td class="left"><code class="formula">(max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))</code><div class="working">(if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) = 36 → (+ kirchensteuer-gezahlt spenden-abziehbar) = 0 → (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)) = 36 → (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar))) = 36 → gewählter Zweig: sonderausgaben-pauschbetrag</div></td>
 <td class="right num">36,00</td>
 </tr>
 <tr id="audit-t6-r5">
@@ -639,13 +667,13 @@ code.formula { font-size: 11px; color: var(--muted); }
 <tr id="audit-t9-r1">
 <td class="left cite"><a href="#t9-r1">9/1</a></td>
 <td class="left">Durch Steuerabzug abgegolten</td>
-<td class="left"><code class="formula">abgeltungsteuer + abgeltung-soli</code><div class="working">0 + 0</div></td>
+<td class="left"><code class="formula">abgeltungsteuer + abgeltung-soli</code><div class="working">0.00 + 0.00</div></td>
 <td class="right num">0,00</td>
 </tr>
 </tbody></table></div>
 </section>
 <footer class="wp-footer">
-<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span></div>
+<div class="legend"><strong>Prüfzeichen:</strong> <span><b>Σ</b> Summe geprüft (Fußung)</span> · <span><b>✓</b> gewählte Alternative (Günstigerprüfung)</span> · <span><b>▲</b> benutzerdefinierte Zeile</span> · <span><b>–</b> entfällt</span> · <span><b>✗</b> Geschäftliche Prüfung fehlgeschlagen</span></div>
 <div class="engine">Mantra calculation engine · Normein DSL</div>
 </footer>
 </main>

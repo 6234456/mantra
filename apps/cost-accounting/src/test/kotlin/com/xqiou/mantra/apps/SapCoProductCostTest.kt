@@ -59,7 +59,14 @@ class SapCoProductCostTest {
         amount("0", "unassigned-cost")
         amount("0", "product-crossfoot")
         amount("1140", "total-variance")
-        assertEquals(null, result.node("actual-weighted-unit").crossTotal())
+        assertEquals(
+            0,
+            BigDecimal("65.6522").compareTo(checkNotNull(result.node("actual-weighted-unit").crossTotal())),
+        )
+        assertEquals(
+            0,
+            BigDecimal("60.6957").compareTo(checkNotNull(result.node("standard-weighted-unit").crossTotal())),
+        )
         assertEquals(null, result.node("actual-order-unit-cost").crossTotal())
         assertEquals(0, BigDecimal("15100").compareTo(result.node("product-actual-cost").crossTotal()))
     }

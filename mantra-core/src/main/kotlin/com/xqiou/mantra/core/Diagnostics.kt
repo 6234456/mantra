@@ -13,6 +13,9 @@ data class SourceLocation(
 
 enum class Severity { ERROR, WARNING, INFO }
 
+/** Technical failures and business findings have different effects on calculation success. */
+enum class DiagnosticCategory { PARSING, STRUCTURAL, EVALUATION, BUSINESS }
+
 /** A stable, user-facing finding. Codes follow the `MANTRA-<AREA>-<DETAIL>` convention. */
 data class Diagnostic(
     val severity: Severity,
@@ -21,6 +24,10 @@ data class Diagnostic(
     val location: SourceLocation? = null,
     val nodeId: String? = null,
     val coord: List<String> = emptyList(),
+    val category: DiagnosticCategory = DiagnosticCategory.STRUCTURAL,
+    /** Zero-based row index for a table input finding. */
+    val rowIndex: Int? = null,
+    val column: String? = null,
 ) {
     override fun toString(): String = buildString {
         append(severity.name.lowercase())
@@ -48,8 +55,11 @@ class DiagnosticSink {
         location: SourceLocation? = null,
         nodeId: String? = null,
         coord: List<String> = emptyList(),
+        category: DiagnosticCategory = DiagnosticCategory.STRUCTURAL,
+        rowIndex: Int? = null,
+        column: String? = null,
     ) {
-        items += Diagnostic(Severity.ERROR, code, message, location, nodeId, coord)
+        items += Diagnostic(Severity.ERROR, code, message, location, nodeId, coord, category, rowIndex, column)
     }
 
     fun warning(
@@ -58,8 +68,11 @@ class DiagnosticSink {
         location: SourceLocation? = null,
         nodeId: String? = null,
         coord: List<String> = emptyList(),
+        category: DiagnosticCategory = DiagnosticCategory.STRUCTURAL,
+        rowIndex: Int? = null,
+        column: String? = null,
     ) {
-        items += Diagnostic(Severity.WARNING, code, message, location, nodeId, coord)
+        items += Diagnostic(Severity.WARNING, code, message, location, nodeId, coord, category, rowIndex, column)
     }
 
     fun addAll(diagnostics: Collection<Diagnostic>) {

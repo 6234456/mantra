@@ -121,6 +121,8 @@ object StructureJson {
             "type" to decl.type.keyword,
             "dims" to input.dims,
             "optional" to decl.optional,
+            "requiredWhen" to decl.requiredWhen?.source,
+            "minRows" to decl.minRows,
             "default" to decl.default?.let(::plain),
             "options" to decl.options.takeIf { it.isNotEmpty() },
             "columns" to
@@ -129,6 +131,7 @@ object StructureJson {
                         "name" to it.name,
                         "type" to it.type.keyword,
                         "optional" to it.optional,
+                        "requiredWhen" to it.requiredWhen?.source,
                     )
                 },
             "references" to decl.references.takeIf { it.isNotEmpty() },

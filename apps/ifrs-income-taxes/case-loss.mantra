@@ -1,0 +1,10 @@
+;; Independently authored fictional facts. No published IFRS example data is reproduced.
+(case ias12-loss
+  {:schema "ifrs.ias12/rate-reconciliation"
+   :layout "ifrs.ias12/rate-reconciliation-paper"
+   :title "Supplied tax benefit for a loss" :subject "Demonstration Group"
+   :period "2026" :prepared-by "Mantra acceptance demonstration"
+   :reference "Project-authored fictional facts"}
+  (inputs
+    {:tax-entities [{:id :North :name "Loss entity" :profit-before-tax -100000 :applicable-rate 0.25 :booked-tax -23000}]
+     :tax-adjustments [{:id :N1 :entity-id :North :label "Non-deductible expenditure" :effect 2000 :reason "Permanent difference"}]}))

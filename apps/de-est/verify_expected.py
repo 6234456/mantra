@@ -8,7 +8,7 @@ Run: python3 apps/de-est/verify_expected.py
 """
 import argparse
 import json
-from decimal import Decimal as D, ROUND_FLOOR
+from decimal import Decimal as D, ROUND_FLOOR, ROUND_HALF_UP
 from pathlib import Path
 
 
@@ -117,6 +117,8 @@ def compute(p):
         ("zu-versteuerndes-einkommen", zve), ("tarifliche-est", tarif), ("ermaessigung-35a", erm_35a),
         ("festzusetzende-est", festzusetzen), ("solidaritaetszuschlag", soli), ("kirchensteuer", kist),
         ("abrechnungsergebnis", ergebnis), ("abgeltungsteuer", abgeltung), ("abgeltung-soli", abgeltung_soli),
+        ("durchschnittlicher-steuersatz", (festzusetzen / zve).quantize(D(".000001"), rounding=ROUND_HALF_UP)),
+        ("zahlungsabgleich", D(0)),
     ]
     return rows
 
@@ -124,7 +126,7 @@ def compute(p):
 def verify_compare(path):
     """Check the engine's Compare golden against this independent statutory recomputation."""
     golden = json.loads(path.read_text())
-    assert golden["contract"] == "mantra.workbench/1"
+    assert golden["contract"] == "mantra.workbench/2"
     observed = golden["data"]
     year = {y: dict(compute(PARAMS[y])) for y in (2025, 2026)}
     for y in year:
@@ -169,7 +171,7 @@ if __name__ == "__main__":
         actual = json.loads(args.verify_tax_free.read_text())
         # Gross wages less the standard employee deduction remain below either basic allowance.
         assert D(12096) - D(1230) < D(PARAMS[args.year]["gfb"])
-        for key in ("tarifliche-est", "festzusetzende-est", "solidaritaetszuschlag", "kirchensteuer", "abrechnungsergebnis"):
+        for key in ("tarifliche-est", "festzusetzende-est", "solidaritaetszuschlag", "kirchensteuer", "abrechnungsergebnis", "durchschnittlicher-steuersatz", "zahlungsabgleich"):
             assert D(actual[key]) == 0, key
         print("verified single-assessment zero tax against the basic allowance")
         raise SystemExit(0)
@@ -178,7 +180,7 @@ if __name__ == "__main__":
         selected = {"einkommen", "est-ohne-kfb", "est-mit-kfb", "zu-versteuerndes-einkommen",
                     "tarifliche-est", "ermaessigung-35a", "festzusetzende-est",
                     "solidaritaetszuschlag", "kirchensteuer", "abrechnungsergebnis",
-                    "abgeltungsteuer", "abgeltung-soli"}
+                    "abgeltungsteuer", "abgeltung-soli", "durchschnittlicher-steuersatz", "zahlungsabgleich"}
         values = dict(compute(PARAMS[args.year]))
         for key in selected:
             assert D(actual[key]) == values[key], f"{key}: {actual[key]} != {values[key]}"

@@ -31,5 +31,5 @@ export function addressFromPath(path: string): Address | null {
   }
 }
 
-export const addressKey = (address: Address) => JSON.stringify(address)
+export const addressKey = (address: Address) => addressToPath(address)
 export const casePath = (caseId: string) => `/cases/${encodePart(caseId)}`

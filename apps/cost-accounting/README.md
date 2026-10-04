@@ -5,12 +5,24 @@ not constitute accounting advice. Its flow is inspired by SAP CO-style cost coll
 neutral schema ID `cost.accounting/product-cost`; it has no SAP integration or endorsement.
 
 `schema.mantra` collects direct primary costs, allocates primary/secondary pools to orders and
-rolls those orders up to products. Unit costs divide total cost by completed quantity and are
-not summed across members. `layout.mantra` supplies order/product matrices and reconciliation.
+rolls those orders up to products. Unit costs divide total cost by completed quantity. Cross-member
+totals use the ratio of total cost to total quantity: the main actual/standard totals are
+65.6522/60.6957, rather than the sum of product rates. The fictional products use a comparable unit.
+`layout.mantra` supplies order/product matrices and reconciliation.
 `case-demo.mantra` is the main scenario; `case-zero-pools.mantra` exercises zero allocations and a
-favourable variance. All data are fictional.
+favourable variance. All data are fictional. `params-unit-precision.mantra` increases member unit-cost
+precision from four to six places; weighted cross-totals retain their explicit four-place rounding.
 
-Independent Python Decimal arithmetic in `verify_expected.py` checks these amounts:
+Declarative checks require nonnegative order allocation bases and a positive total basis for a
+nonzero cost pool. The orders and products tables require at least one row, and a direct posting
+requires an explicitly supplied order ID. Source-to-order and order-to-product checks retain both
+amounts, the difference and an explicit 0.01 tolerance. Business findings do not stop calculation;
+invalid foreign keys and unusable allocation formulas still report execution errors. The schema
+section formerly called `reconciliation` is now `cost-reconciliation`.
+
+Independent Python Decimal arithmetic in `verify_expected.py` checks these amounts and the
+weighted actual/standard cross-totals. Generated `*-values.json` records ratio aggregates with
+an `@*` suffix, independently checked from total costs and quantities:
 
 | Main scenario | Amount |
 | --- | ---: |

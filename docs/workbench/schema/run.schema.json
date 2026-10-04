@@ -1,23 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://mantra.local/workbench/schema/run.schema.json",
-  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "allOf": [
+    {
+      "$ref": "envelope.schema.json"
+    }
+  ],
   "properties": {
     "data": {
       "type": "object",
-      "required": ["succeeded", "members", "values", "diagnostics"],
+      "required": [
+        "succeeded",
+        "members",
+        "values",
+        "diagnostics",
+        "validationPassed"
+      ],
       "properties": {
-        "succeeded": { "type": "boolean" },
+        "succeeded": {
+          "type": "boolean"
+        },
         "members": {
           "type": "object",
           "additionalProperties": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["key", "label"],
+              "required": [
+                "key",
+                "label"
+              ],
               "properties": {
-                "key": { "type": "string" },
-                "label": { "type": "string" }
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -28,19 +47,57 @@
             "type": "object",
             "additionalProperties": {
               "type": "object",
-              "required": ["value", "display", "active"],
+              "required": [
+                "value",
+                "display",
+                "active"
+              ],
               "properties": {
-                "value": { "$ref": "value.schema.json" },
-                "display": { "type": "string" },
-                "active": { "type": "boolean" },
-                "origin": { "type": "string" },
-                "source": { "type": "string" }
+                "value": {
+                  "$ref": "value.schema.json"
+                },
+                "display": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "origin": {
+                  "type": "string"
+                },
+                "source": {
+                  "type": "string"
+                },
+                "validation": {
+                  "oneOf": [
+                    {
+                      "$ref": "envelope.schema.json#/$defs/validation"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
               },
               "additionalProperties": false
             }
           }
         },
-        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } }
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "envelope.schema.json#/$defs/diagnostic"
+          }
+        },
+        "validationPassed": {
+          "type": "boolean"
+        },
+        "aggregates": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "envelope.schema.json#/$defs/ratioAggregate"
+          }
+        }
       },
       "additionalProperties": false
     }

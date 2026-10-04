@@ -1,0 +1,4 @@
+;; Compare the same fictional facts at cent allocation precision instead of whole units.
+(parameters ifrs.ias36/cent-precision
+  {:for "ifrs.ias36/corporate-assets" :label "Cent allocation precision"}
+  (value rounding 2))

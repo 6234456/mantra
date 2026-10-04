@@ -90,7 +90,7 @@ async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
 }
 
 function contract<T>(raw: Envelope<T>): Envelope<T> {
-  if (raw.contract !== 'mantra.workbench/1') throw new Error('Unsupported workbench contract')
+  if (raw.contract !== 'mantra.workbench/2') throw new Error('Unsupported workbench contract')
   return raw
 }
 
@@ -243,7 +243,7 @@ export class LiveData implements WorkbenchData {
 export class FixtureData implements WorkbenchData {
   importTemplates(): Promise<Envelope<{ templates: ImportTemplate[] }>> {
     return Promise.resolve({
-      contract: 'mantra.workbench/1',
+      contract: 'mantra.workbench/2',
       revision: '',
       engine: { mantra: '', normein: '' },
       data: { templates: [] },
@@ -254,7 +254,7 @@ export class FixtureData implements WorkbenchData {
   }
   sources(_id: string): Promise<Envelope<Sources>> {
     return Promise.resolve({
-      contract: 'mantra.workbench/1',
+      contract: 'mantra.workbench/2',
       revision: '',
       engine: { mantra: '', normein: '' },
       data: { sources: [] },

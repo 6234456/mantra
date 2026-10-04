@@ -49,6 +49,8 @@ fun main(arguments: Array<String>) {
         Files.writeString(folder.resolve("case.mantra"), fixture.caseText)
         val result = Mantra.calculate(fixture.schema, fixture.case)
         fixture.verify(result)
+        val audited = Mantra.calculateForAudit(fixture.schema, fixture.case)
+        fixture.verify(audited)
         val explained = Mantra.calculateForExplain(
             fixture.schema,
             fixture.case,
@@ -58,10 +60,10 @@ fun main(arguments: Array<String>) {
         )
         fixture.verify(explained)
         checkNotNull(explained.explainTrace) { "Explain trace was not collected" }
-        val paper = Render.paper(result, fixture.layout)
+        val paper = Render.paper(audited, fixture.layout)
         Files.writeString(folder.resolve("paper.txt"), TextRenderer.render(paper, includeAudit = true))
         Files.writeString(folder.resolve("paper.html"), HtmlRenderer.render(paper))
-        ExcelExport.workbook(result, fixture.layout, exportOptions()).use { workbook ->
+        ExcelExport.workbook(audited, fixture.layout, exportOptions()).use { workbook ->
             fixture.verify(workbook)
             workbook.write(folder.resolve("paper.xlsx"))
             Files.writeString(
@@ -84,6 +86,7 @@ fun main(arguments: Array<String>) {
         val operations = linkedMapOf<String, () -> Any>(
             "plan" to { Mantra.inspect(fixture.schema, fixture.case) },
             "calculate" to { Mantra.calculate(fixture.schema, fixture.case) },
+            "calculate-audit" to { Mantra.calculateForAudit(fixture.schema, fixture.case) },
             "explain" to
                 {
                     Mantra.calculateForExplain(
@@ -94,9 +97,9 @@ fun main(arguments: Array<String>) {
                         fixture.explainCoord,
                     )
                 },
-            "paper" to { Render.paper(result, fixture.layout) },
+            "paper" to { Render.paper(audited, fixture.layout) },
             "xlsx" to
-                { ExcelExport.workbook(result, fixture.layout, exportOptions()).use { it.bytes(64 * 1_024 * 1_024) } },
+                { ExcelExport.workbook(audited, fixture.layout, exportOptions()).use { it.bytes(64 * 1_024 * 1_024) } },
         )
         operations.forEach { (name, operation) ->
             repeat(settings.warmup) { retained = operation() }

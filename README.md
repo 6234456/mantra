@@ -68,9 +68,9 @@ cd ..
 mantra-cli/build/install/mantra/bin/mantra serve apps --port 8090 --ui workbench-ui/dist
 ```
 
-Open `http://127.0.0.1:8090/` in a browser. Workbench v1 implements structure, working-paper and diagnostic views, Explain, Compare, parameter layers, case editing with preview and undo/redo, formula authoring, data-source import, export previews and SSE updates. Edits are written to the case documents so that results remain reproducible outside the workbench. The service listens only on loopback and confines file access to the workspace; it is a local reference tool.
+Open `http://127.0.0.1:8090/` in a browser. The reference workbench implements structure, working-paper and diagnostic views, Explain, Compare, parameter layers, case editing with preview and undo/redo, formula authoring, data-source import, export previews and SSE updates. Edits are written to the case documents so that results remain reproducible outside the workbench. The service listens only on loopback and confines file access to the workspace; it is a local reference tool.
 
-Explain already uses the kernel's individual expression steps. The paper and XLSX audit appendices still use substituted root values; unifying them with Explain is planned for M1.
+Explain, paper and XLSX audit appendices share the kernel's source-level expression evidence. Weighted ratio totals retain their exact component sums and active-member evidence separately.
 
 ## CLI
 
@@ -106,6 +106,14 @@ remain enforced.
 
 Schemas define input contracts and calculations. Cases provide inputs, parameter overrides and allowed extensions. Layouts arrange and format the same values without changing them. See the [DSL reference](docs/dsl-reference.md) for the host forms and `mantra.calc@1` functions.
 
+For a paper with source-level audit steps, calculate through `Mantra.calculateForAudit`; `AuditOptions`
+bounds capture and reports truncation. Ordinary `Mantra.calculate` remains available when no audit
+is needed. Business failures preserve results: inspect `validationPassed` and diagnostics separately
+from technical `succeeded`. The CLI and workbench capture audits for papers and exports by default.
+XLSX main values and checks recalculate after edits; its original audit snapshot automatically shows
+`outdated` until the original inputs, parameters and supplied-fact flags are restored. Re-export to
+capture a new audit. `ExcelWorkbook.auditSnapshotStatusAddress()` exposes the snapshot-status cell.
+
 ## Repository structure
 
 | Path | Responsibility |
@@ -120,6 +128,7 @@ Schemas define input contracts and calculations. Cases provide inputs, parameter
 | `apps/de-est` | German income-tax demonstration; Gradle project `:apps:de-est` |
 | `apps/ifrs-impairment` | IAS 36 impairment and allocation demonstration; `:apps:ifrs-impairment` |
 | `apps/cost-accounting` | Manufacturing-order and product costs in a SAP CO style; `:apps:cost-accounting` |
+| `apps/ifrs-income-taxes` | Single-period IAS 12 tax-expense and rate reconciliation; `:apps:ifrs-income-taxes` |
 
 Applications depend only on public library APIs and are not published as library artifacts. Future domains are added directly under `apps/`.
 
@@ -128,6 +137,7 @@ Applications depend only on public library APIs and are not published as library
 - [Income tax](apps/de-est/README.md): statute-based tariff formulas and an independent recomputation script; fictional case data.
 - [Impairment](apps/ifrs-impairment/README.md): independently authored fictional unit/shared-asset data, with custom weighting and a zero-loss boundary case; Fraction arithmetic verifies the allocation and loss totals.
 - [Cost accounting](apps/cost-accounting/README.md): fictional cost data with an independent source/order/product reconciliation.
+- [Income taxes](apps/ifrs-income-taxes/README.md): fictional tax-expense and rate adjustments, independently recomputed with Decimal arithmetic.
 
 IFRS source material retains its owners' rights. See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses, source attribution and the completed demonstration source review.
 

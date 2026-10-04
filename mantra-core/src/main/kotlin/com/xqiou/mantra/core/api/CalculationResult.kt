@@ -1,6 +1,7 @@
 package com.xqiou.mantra.core.api
 
 import com.xqiou.mantra.core.Diagnostic
+import com.xqiou.mantra.core.DiagnosticCategory
 import com.xqiou.mantra.core.Severity
 import com.xqiou.mantra.core.engine.CalculationPlan
 import com.xqiou.mantra.core.engine.NodeResult
@@ -43,7 +44,14 @@ class CalculationResult internal constructor(
     val tree: ViewSection get() = view.tree
     val members: Map<String, List<Member>> get() = view.members
     val nodes: Map<String, ViewNode> get() = view.nodes
-    val succeeded: Boolean get() = diagnostics.none { it.severity == Severity.ERROR }
+    val succeeded: Boolean get() = diagnostics.none {
+        it.severity == Severity.ERROR && it.category != DiagnosticCategory.BUSINESS
+    }
+
+    /** False only for error-level business findings; warnings and technical failures are separate. */
+    val validationPassed: Boolean get() = diagnostics.none {
+        it.severity == Severity.ERROR && it.category == DiagnosticCategory.BUSINESS
+    }
 
     /** Returns one node; an unknown id throws [NoSuchElementException]. */
     fun node(id: String): ViewNode = view.node(id)

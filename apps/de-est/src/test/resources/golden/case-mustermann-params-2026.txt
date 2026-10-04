@@ -3,7 +3,7 @@ Arbeitspapier: Ermittlung nach § 2 EStG / R 2 EStR mit Nebenrechnungen
 =======================================
 Mandant: Eheleute Mustermann (fiktiv)
 Zeitraum: VZ 2025
-Berechnungsschema: Einkommensteuer 2025 v2025.1 [de.est/2025]
+Berechnungsschema: Einkommensteuer 2025 v2025.2 [de.est/2025]
 Erstellt: Mantra (Abnahmebeispiel)
 Datum: 2026-03-15
 Index: ESt-2025/01
@@ -45,6 +45,7 @@ Zeile |     | Bezeichnung                                                      |
      -+-   -+-                                                                -+-----------------+- -+-
 4     | =   | Festzusetzende Einkommensteuer                                   |       17.764,00 | Σ | § 2 Abs. 6 EStG
      =+=   =+=                                                                =+=================+= =+=
+5     |     | Durchschnittlicher Einkommensteuersatz                           |         21,39 % |   |
 
 [3] Solidaritätszuschlag und Kirchensteuer
     Hauptlinie › 3 Solidaritätszuschlag und Kirchensteuer
@@ -59,18 +60,19 @@ Zeile |   | Bezeichnung                                                      | H
 
 [4] Abrechnung
     Hauptlinie › 4 Abrechnung
-Zeile |     | Bezeichnung                                  |  Person A | Person B |    Gesamt |
-------+-----+----------------------------------------------+-----------+----------+-----------+--
-1     | +   | Festzusetzende Einkommensteuer (→ Tabelle 2) |           |          | 17.764,00 |
-2     | +   | Kirchensteuer (→ Tabelle 3)                  |           |          |  1.319,04 |
-     -+-   -+-                                            -+-----------+----------+-----------+-
-3     | =   | Festgesetzte Steuern                         |           |          | 19.083,04 | Σ
-4     | ./. | Einbehaltene Lohnsteuer                      | 11.020,00 | 3.180,00 | 14.200,00 |
-5     | ./. | Einbehaltene Kirchensteuer                   |    991,80 |   286,20 |  1.278,00 |
-6     | ./. | Geleistete Vorauszahlungen                   |           |          |  2.400,00 |
-     -+-   -+-                                            -+-----------+----------+-----------+-
-7     | =   | Nachzahlung                                  |           |          |  1.205,04 | Σ
-     =+=   =+=                                            =+===========+==========+===========+=
+Zeile |     | Bezeichnung                                         |  Person A | Person B |    Gesamt |
+------+-----+-----------------------------------------------------+-----------+----------+-----------+--
+1     | +   | Festzusetzende Einkommensteuer (→ Tabelle 2)        |           |          | 17.764,00 |
+2     | +   | Kirchensteuer (→ Tabelle 3)                         |           |          |  1.319,04 |
+     -+-   -+-                                                   -+-----------+----------+-----------+-
+3     | =   | Festgesetzte Steuern                                |           |          | 19.083,04 | Σ
+4     | ./. | Einbehaltene Lohnsteuer                             | 11.020,00 | 3.180,00 | 14.200,00 |
+5     | ./. | Einbehaltene Kirchensteuer                          |    991,80 |   286,20 |  1.278,00 |
+6     | ./. | Geleistete Vorauszahlungen                          |           |          |  2.400,00 |
+     -+-   -+-                                                   -+-----------+----------+-----------+-
+7     | =   | Nachzahlung                                         |           |          |  1.205,04 | Σ
+     =+=   =+=                                                   =+===========+==========+===========+=
+8     |     | Abrechnung stimmt mit Steuern und Zahlungen überein |           |          |      0,00 | ✓
 
 [5] Nebenrechnung: Einkünfte aus den Einkunftsarten
     Hauptlinie › 1 Ermittlung des zu versteuernden Einkommens › „Summe der Einkünfte“ › Einkünfte aus den einzelnen Einkunftsarten
@@ -174,154 +176,160 @@ Berechnungsnachweis
 -------------------
 1/2 Gesamtbetrag der Einkünfte
     Formel: summe-einkuenfte − altersentlastungsbetrag − entlastungsbetrag-alleinerziehende − freibetrag-luf-abzug
-    Rechenweg: 112.380 − 0 − 0 − 0 = 112.380,00
+    Rechenweg: 112380.00 − 0 − 0 − 0 = 112.380,00
 1/4 Einkommen
     Formel: gesamtbetrag-der-einkuenfte − verlustabzug − sonderausgaben-abzug − agb-abzug
-    Rechenweg: 112.380 − 0 − 19.562,1 − 0 = 92.817,90
+    Rechenweg: 112380.00 − 0 − 19562.10 − 0 = 92.817,90
 1/5 Freibeträge für Kinder (soweit günstiger als Kindergeld)
     Formel: (if kfb-guenstiger kfb-summe 0)
-    Rechenweg: if(true; 9.756; 0) = 9.756,00
+    Rechenweg: (if kfb-guenstiger kfb-summe 0) = 9756 → gewählter Zweig: kfb-summe = 9.756,00
 1/6 Zu versteuerndes Einkommen
     Formel: einkommen − freibetraege-kinder
-    Rechenweg: 92.817,9 − 9.756 = 83.061,90
+    Rechenweg: 92817.90 − 9756 = 83.061,90
 2/1 Tarifliche Einkommensteuer
     Formel: (est-tarif zu-versteuerndes-einkommen zusammen)
-    Rechenweg: est-tarif(83.061,9; true) = 15.396,00
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (/ zve 2) = 41530.95 → (decimal/floor zve 0) = 41530 → (<= x tarif-gfb) = false → (<= x tarif-g2) = false → (<= x tarif-g3) = true → (- x tarif-g2) = 23731 → (/ (- x tarif-g2) 10000) = 2.3731 → (* tarif-a3 z) = 410.783610 → (+ (* tarif-a3 z) 2397) = 2807.783610 → (* (+ (* tarif-a3 z) 2397) z) = 6663.1512848910 → (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3) = 7698.0212848910 → (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 7698 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 7698 → (est-grundtarif (/ zve 2)) = 7698 → (* 2 (est-grundtarif (/ zve 2))) = 15396 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 15396 → (est-tarif zu-versteuerndes-einkommen zusammen) = 15396 → (est-tarif zu-versteuerndes-einkommen zusammen) = 15396 → gewählter Zweig: (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) → gewählter Zweig: (* 2 (est-grundtarif (/ zve 2))) = 15.396,00
 2/2 Steuerermäßigung für haushaltsnahe Dienstleistungen und Handwerkerleistungen
     Formel: (min (max 0 (- tarifliche-est ermaessigung-35)) (+ (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) (min (* 0.2 handwerkerleistungen) 1200)))
-    Rechenweg: min(max(0; 15.396 − 0); min(0,2 × 1.200; 4.000) + min(0,2 × 2.500; 1.200)) = 740,00
+    Rechenweg: (- tarifliche-est ermaessigung-35) = 15396 → (max 0 (- tarifliche-est ermaessigung-35)) = 15396 → (* 0.2 haushaltsnahe-dienstleistungen) = 240.0 → (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) = 240.0 → (* 0.2 handwerkerleistungen) = 500.0 → (min (* 0.2 handwerkerleistungen) 1200) = 500.0 → (+ (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) (min (* 0.2 handwerkerleistungen) 1200)) = 740.0 → (min (max 0 (- tarifliche-est ermaessigung-35)) (+ (min (* 0.2 haushaltsnahe-dienstleistungen) 4000) (min (* 0.2 handwerkerleistungen) 1200))) = 740.0 = 740,00
 2/3 Anspruch auf Kindergeld (Freibeträge für Kinder abgezogen)
     Formel: (if kfb-guenstiger kindergeld-anspruch 0)
-    Rechenweg: if(true; 3.108; 0) = 3.108,00
+    Rechenweg: (if kfb-guenstiger kindergeld-anspruch 0) = 3108 → gewählter Zweig: kindergeld-anspruch = 3.108,00
 2/4 Festzusetzende Einkommensteuer
     Formel: tarifliche-est − ermaessigung-35 − ermaessigung-35a + kindergeld-hinzurechnung
-    Rechenweg: 15.396 − 0 − 740 + 3.108 = 17.764,00
+    Rechenweg: 15396 − 0 − 740.0 + 3108 = 17.764,00
+2/5 Durchschnittlicher Einkommensteuersatz
+    Formel: (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6))
+    Rechenweg: (= zu-versteuerndes-einkommen 0) = false → (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 0.213865 → (if (= zu-versteuerndes-einkommen 0) nil (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6)) = 0.213865 → gewählter Zweig: (decimal/divide festzusetzende-est zu-versteuerndes-einkommen 6) = 21,39 %
 3/1 Bemessungsgrundlage (Einkommensteuer unter Abzug der Freibeträge für Kinder)
     Formel: (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a))
-    Rechenweg: max(0; est-tarif(83.061,9 − if(true; 0; 9.756); true) − 0 − 740) = 14.656,00
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (if kfb-guenstiger 0 kfb-summe) = 0 → (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) = 83061.90 → (/ zve 2) = 41530.95 → (decimal/floor zve 0) = 41530 → (<= x tarif-gfb) = false → (<= x tarif-g2) = false → (<= x tarif-g3) = true → (- x tarif-g2) = 23731 → (/ (- x tarif-g2) 10000) = 2.3731 → (* tarif-a3 z) = 410.783610 → (+ (* tarif-a3 z) 2397) = 2807.783610 → (* (+ (* tarif-a3 z) 2397) z) = 6663.1512848910 → (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3) = 7698.0212848910 → (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 7698 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 7698 → (est-grundtarif (/ zve 2)) = 7698 → (* 2 (est-grundtarif (/ zve 2))) = 15396 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 15396 → (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) = 15396 → (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a) = 14656.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 14656.0 → (max 0 (- (est-tarif (- zu-versteuerndes-einkommen (if kfb-guenstiger 0 kfb-summe)) zusammen) ermaessigung-35 ermaessigung-35a)) = 14656.0 → gewählter Zweig: 0 → gewählter Zweig: (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) → gewählter Zweig: (* 2 (est-grundtarif (/ zve 2))) = 14.656,00
 3/2 Solidaritätszuschlag (Freigrenze, Milderungszone)
     Formel: (let [grenze (if zusammen (* 2 soli-freigrenze) soli-freigrenze)] (if (<= bmg-zuschlagsteuern grenze) 0 (min (* soli-satz bmg-zuschlagsteuern) (* soli-milderungssatz (- bmg-zuschlagsteuern grenze)))))
-    Rechenweg: let([grenze; if(true; 2 × 20.350; 20.350)]; if(14.656 ≤ grenze; 0; min(0,055 × 14.656; 0,119 × (14.656 − grenze)))) = 0,00
+    Rechenweg: (* 2 soli-freigrenze) = 40700 → (if zusammen (* 2 soli-freigrenze) soli-freigrenze) = 40700 → (<= bmg-zuschlagsteuern grenze) = true → (if (<= bmg-zuschlagsteuern grenze) 0 (min (* soli-satz bmg-zuschlagsteuern) (* soli-milderungssatz (- bmg-zuschlagsteuern grenze)))) = 0 → (let [grenze (if zusammen (* 2 soli-freigrenze) soli-freigrenze)] (if (<= bmg-zuschlagsteuern grenze) 0 (min (* soli-satz bmg-zuschlagsteuern) (* soli-milderungssatz (- bmg-zuschlagsteuern grenze))))) = 0 → gewählter Zweig: (* 2 soli-freigrenze) → gewählter Zweig: 0 = 0,00
 3/3 Kirchensteuer
     Formel: (* kirchensteuersatz bmg-zuschlagsteuern)
-    Rechenweg: 0,09 × 14.656 = 1.319,04
+    Rechenweg: (* kirchensteuersatz bmg-zuschlagsteuern) = 1319.040 = 1.319,04
 3/4 Zuschlagsteuern
     Formel: solidaritaetszuschlag + kirchensteuer
-    Rechenweg: 0 + 1.319,04 = 1.319,04
+    Rechenweg: 0.00 + 1319.04 = 1.319,04
 4/3 Festgesetzte Steuern
     Formel: abr-est + abr-soli + abr-kist
-    Rechenweg: 17.764 + 0 + 1.319,04 = 19.083,04
+    Rechenweg: 17764.0 + 0.00 + 1319.04 = 19.083,04
 4/7 Nachzahlung (+) / Erstattung (−)
     Formel: festgesetzte-steuern − lohnsteuer − soli-lohnsteuer − kist-lohnsteuer − vorauszahlungen
-    Rechenweg: 19.083,04 − 14.200 − 0 − 1.278 − 2.400 = 1.205,04
+    Rechenweg: 19083.04 − 14200 − 0 − 1278.00 − 2400 = 1.205,04
+4/8 Abrechnung stimmt mit Steuern und Zahlungen überein
+    Formel: abrechnungsergebnis ≈ (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) (± 0.01)
+    Rechenweg: abrechnungsergebnis = 1205.04; (dim/sum lohnsteuer) = 14200 → (dim/sum soli-lohnsteuer) = 0 → (dim/sum kist-lohnsteuer) = 1278.00 → (- festgesetzte-steuern (dim/sum lohnsteuer) (dim/sum soli-lohnsteuer) (dim/sum kist-lohnsteuer) vorauszahlungen) = 1205.04 → 1205.04 − 1205.04 = 0.00 (± 0.01) = 0,00
 5/5 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person A]
     Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
-    Rechenweg: if(2.340 > 1.230; 2.340; min(1.230; 68.500)) = 2.340,00
+    Rechenweg: (> wk-nachgewiesen an-pauschbetrag) = true → (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 2340 → gewählter Zweig: wk-nachgewiesen = 2.340,00
 5/5 Werbungskosten, mindestens Arbeitnehmer-Pauschbetrag [Person B]
     Formel: (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn))
-    Rechenweg: if(650 > 1.230; 650; min(1.230; 31.200)) = 1.230,00
+    Rechenweg: (> wk-nachgewiesen an-pauschbetrag) = false → (min an-pauschbetrag bruttoarbeitslohn) = 1230 → (if (> wk-nachgewiesen an-pauschbetrag) wk-nachgewiesen (min an-pauschbetrag bruttoarbeitslohn)) = 1230 → gewählter Zweig: (min an-pauschbetrag bruttoarbeitslohn) = 1.230,00
 5/6 Einkünfte aus nichtselbständiger Arbeit [Person A]
     Formel: bruttoarbeitslohn − werbungskosten
-    Rechenweg: 68.500 − 2.340 = 66.160,00
+    Rechenweg: 68500 − 2340 = 66.160,00
 5/6 Einkünfte aus nichtselbständiger Arbeit [Person B]
     Formel: bruttoarbeitslohn − werbungskosten
-    Rechenweg: 31.200 − 1.230 = 29.970,00
+    Rechenweg: 31200 − 1230 = 29.970,00
 5/8 Sparer-Pauschbetrag [Person A]
     Formel: (min kapitalertraege sparer-pauschbetrag)
-    Rechenweg: min(620; 1.000) = 620,00
+    Rechenweg: (min kapitalertraege sparer-pauschbetrag) = 620 = 620,00
 5/8 Sparer-Pauschbetrag [Person B]
     Formel: (min kapitalertraege sparer-pauschbetrag)
-    Rechenweg: min(1.850; 1.000) = 1.000,00
+    Rechenweg: (min kapitalertraege sparer-pauschbetrag) = 1000 = 1.000,00
 5/9 Einkünfte aus Kapitalvermögen [Person A]
     Formel: kapitalertraege − sparer-pauschbetrag-abzug
     Rechenweg: 620 − 620 = 0,00
 5/9 Einkünfte aus Kapitalvermögen [Person B]
     Formel: kapitalertraege − sparer-pauschbetrag-abzug
-    Rechenweg: 1.850 − 1.000 = 850,00
+    Rechenweg: 1850 − 1000 = 850,00
 5/14 Einkünfte des Objekts [ETW Leipzig, Karl-Heine-Str.]
     Formel: mieteinnahmen − afa − schuldzinsen − sonstige-wk-vuv
-    Rechenweg: 9.600 − 2.450 − 2.180 − 1.120 = 3.850,00
+    Rechenweg: 9600 − 2450 − 2180 − 1120 = 3.850,00
 5/17 Private Veräußerungsgeschäfte (Freigrenze) [Person A]
     Formel: (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn)
-    Rechenweg: if(0 < 1.000; 0; 0) = 0,00
+    Rechenweg: (< veraeusserungsgewinn freigrenze-23) = true → (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn) = 0 → gewählter Zweig: 0 = 0,00
 5/17 Private Veräußerungsgeschäfte (Freigrenze) [Person B]
     Formel: (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn)
-    Rechenweg: if(740 < 1.000; 0; 740) = 0,00
+    Rechenweg: (< veraeusserungsgewinn freigrenze-23) = true → (if (< veraeusserungsgewinn freigrenze-23) 0 veraeusserungsgewinn) = 0 → gewählter Zweig: 0 = 0,00
 5/18 Sonstige Einkünfte [Person A]
     Formel: rente-steuerpflichtig − wk-renten + veraeusserung-steuerpflichtig
-    Rechenweg: 0 − 0 + 0 = 0,00
+    Rechenweg: 0.00 − 0 + 0 = 0,00
 5/18 Sonstige Einkünfte [Person B]
     Formel: rente-steuerpflichtig − wk-renten + veraeusserung-steuerpflichtig
-    Rechenweg: 0 − 0 + 0 = 0,00
+    Rechenweg: 0.00 − 0 + 0 = 0,00
 5/19 Summe der Einkünfte
     Formel: einkuenfte-luf + einkuenfte-gewerbe + einkuenfte-selbstaendig + einkuenfte-nsa + einkuenfte-kap-tariflich + einkuenfte-vuv + einkuenfte-sonstige
-    Rechenweg: 0 + 12.400 + 0 + 96.130 + 0 + 3.850 + 0 = 112.380,00
+    Rechenweg: 0 + 12400 + 0 + 96130 + 0 + 3850 + 0.00 = 112.380,00
 6/3 Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil) [Person A]
     Formel: (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil))
-    Rechenweg: max(0; min(12.741; 30.826) − 6.370,5) = 6.370,50
+    Rechenweg: (min rv-beitraege hoechstbetrag-altersvorsorge) = 12741.00 → (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil) = 6370.50 → (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil)) = 6370.50 = 6.370,50
 6/3 Altersvorsorgeaufwendungen (Höchstbetrag, abzgl. Arbeitgeberanteil) [Person B]
     Formel: (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil))
-    Rechenweg: max(0; min(5.803,2; 30.826) − 2.901,6) = 2.901,60
+    Rechenweg: (min rv-beitraege hoechstbetrag-altersvorsorge) = 5803.20 → (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil) = 2901.60 → (max 0 (- (min rv-beitraege hoechstbetrag-altersvorsorge) rv-ag-anteil)) = 2901.60 = 2.901,60
 6/7 Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung) [Person A]
     Formel: (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)))
-    Rechenweg: max(5.480; min(5.480 + 820; if(true; 1.900; 2.800))) = 5.480,00
+    Rechenweg: (+ kv-pv-basis weitere-vorsorge) = 6300 → (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge) = 1900 → (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)) = 1900 → (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge))) = 5480 → gewählter Zweig: hoechstbetrag-vorsorge-an = 5.480,00
 6/7 Sonstige Vorsorgeaufwendungen (Höchstbetrag, mindestens Basisabsicherung) [Person B]
     Formel: (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)))
-    Rechenweg: max(2.610; min(2.610 + 380; if(true; 1.900; 2.800))) = 2.610,00
+    Rechenweg: (+ kv-pv-basis weitere-vorsorge) = 2990 → (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge) = 1900 → (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge)) = 1900 → (max kv-pv-basis (min (+ kv-pv-basis weitere-vorsorge) (if steuerfreie-kv-zuschuesse hoechstbetrag-vorsorge-an hoechstbetrag-vorsorge))) = 2610 → gewählter Zweig: hoechstbetrag-vorsorge-an = 2.610,00
 6/8 Abziehbare Vorsorgeaufwendungen [Person A]
     Formel: altersvorsorge + sonstige-vorsorge
-    Rechenweg: 6.370,5 + 5.480 = 11.850,50
+    Rechenweg: 6370.50 + 5480 = 11.850,50
 6/8 Abziehbare Vorsorgeaufwendungen [Person B]
     Formel: altersvorsorge + sonstige-vorsorge
-    Rechenweg: 2.901,6 + 2.610 = 5.511,60
+    Rechenweg: 2901.60 + 2610 = 5.511,60
 6/11 Abziehbare Zuwendungen (höchstens 20 % des Gesamtbetrags der Einkünfte)
     Formel: (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte))
-    Rechenweg: min(450; 0,2 × 112.380) = 450,00
+    Rechenweg: (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte) = 22476.000 → (min spenden (* spenden-hoechstsatz gesamtbetrag-der-einkuenfte)) = 450 = 450,00
 6/12 Sonderausgaben-Pauschbetrag (soweit höher als die übrigen Sonderausgaben)
     Formel: (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)))
-    Rechenweg: max(0; if(true; 2 × 36; 36) − (1.210 + 450)) = 0,00
+    Rechenweg: (* 2 sonderausgaben-pauschbetrag) = 72 → (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) = 72 → (+ kirchensteuer-gezahlt spenden-abziehbar) = 1660 → (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar)) = -1588 → (max 0 (- (if zusammen (* 2 sonderausgaben-pauschbetrag) sonderausgaben-pauschbetrag) (+ kirchensteuer-gezahlt spenden-abziehbar))) = 0 → gewählter Zweig: (* 2 sonderausgaben-pauschbetrag) = 0,00
 6/13 Schulgeld Privatschule (30 %, höchstens 5.000 €)
     Formel: (min 5000 (* 0.3 1800))
-    Rechenweg: min(5.000; 0,3 × 1.800) = 540,00
+    Rechenweg: (* 0.3 1800) = 540.0 → (min 5000 (* 0.3 1800)) = 540.0 = 540,00
 6/14 Sonderausgaben insgesamt
     Formel: vorsorgeaufwendungen + kirchensteuer-gezahlt + spenden-abziehbar + sa-pauschbetrag + schulgeld
-    Rechenweg: 17.362,1 + 1.210 + 450 + 0 + 540 = 19.562,10
+    Rechenweg: 17362.10 + 1210 + 450 + 0 + 540.0 = 19.562,10
 7/2 Zumutbare Belastung (stufenweise Berechnung)
     Formel: (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen))
-    Rechenweg: calc/stepwise(max(0; 112.380); zumutbare-belastung-baender(1; true)) = 3.830,50
+    Rechenweg: (defn zumutbare-belastung-baender [^Integer kinder ^Boolean zusammen] (let [saetze (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07])] [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]])) = [Wert nicht verfügbar] → (max 0 gesamtbetrag-der-einkuenfte) = 112380.00 → (>= kinder 3) = false → (>= kinder 1) = true → (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07]) = [0.02 0.03 0.04] → (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07]) = [0.02 0.03 0.04] → (nth saetze 0) = 0.02 → (nth saetze 1) = 0.03 → (nth saetze 2) = 0.04 → (let [saetze (cond (>= kinder 3) [0.01 0.01 0.02] (>= kinder 1) [0.02 0.03 0.04] zusammen [0.04 0.05 0.06] :else [0.05 0.06 0.07])] [[15340 (nth saetze 0)] [51130 (nth saetze 1)] [nil (nth saetze 2)]]) = [[15340 0.02] [51130 0.03] [nil 0.04]] → (zumutbare-belastung-baender kinder zusammen) = [[15340 0.02] [51130 0.03] [nil 0.04]] → (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen)) = 3830.5000 → (calc/stepwise (max 0 gesamtbetrag-der-einkuenfte) (zumutbare-belastung-baender kinder zusammen)) = 3830.5000 → gewählter Zweig: [0.02 0.03 0.04] = 3.830,50
 7/3 Abziehbare außergewöhnliche Belastungen
     Formel: (max 0 (- agb-aufwendungen zumutbare-belastung))
-    Rechenweg: max(0; 3.100 − 3.830,5) = 0,00
+    Rechenweg: (- agb-aufwendungen zumutbare-belastung) = -730.5000 → (max 0 (- agb-aufwendungen zumutbare-belastung)) = 0 = 0,00
 8/1 Freibeträge für Kinder
     Formel: (* kinder (if zusammen 2 1) (+ kinderfreibetrag bea-freibetrag))
-    Rechenweg: 1 × if(true; 2; 1) × (3.414 + 1.464) = 9.756,00
+    Rechenweg: (if zusammen 2 1) = 2 → (+ kinderfreibetrag bea-freibetrag) = 4878 → (* kinder (if zusammen 2 1) (+ kinderfreibetrag bea-freibetrag)) = 9756 → gewählter Zweig: 2 = 9.756,00
 8/2 Anspruch auf Kindergeld
     Formel: (* kinder kindergeld-monat 12)
-    Rechenweg: 1 × 259 × 12 = 3.108,00
+    Rechenweg: (* kinder kindergeld-monat 12) = 3108 = 3.108,00
 8/3 Tarifliche Einkommensteuer ohne Freibeträge für Kinder
     Formel: (est-tarif einkommen zusammen)
-    Rechenweg: est-tarif(92.817,9; true) = 18.618,00
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (/ zve 2) = 46408.95 → (decimal/floor zve 0) = 46408 → (<= x tarif-gfb) = false → (<= x tarif-g2) = false → (<= x tarif-g3) = true → (- x tarif-g2) = 28609 → (/ (- x tarif-g2) 10000) = 2.8609 → (* tarif-a3 z) = 495.221790 → (+ (* tarif-a3 z) 2397) = 2892.221790 → (* (+ (* tarif-a3 z) 2397) z) = 8274.3573190110 → (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3) = 9309.2273190110 → (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) = 9309.2273190110 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 9309.2273190110 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 9309.2273190110 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 9309.2273190110 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 9309 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 9309 → (est-grundtarif (/ zve 2)) = 9309 → (* 2 (est-grundtarif (/ zve 2))) = 18618 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 18618 → (est-tarif einkommen zusammen) = 18618 → (est-tarif einkommen zusammen) = 18618 → gewählter Zweig: (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) → gewählter Zweig: (* 2 (est-grundtarif (/ zve 2))) = 18.618,00
 8/4 Tarifliche Einkommensteuer mit Freibeträgen für Kinder
     Formel: (est-tarif (- einkommen kfb-summe) zusammen)
-    Rechenweg: est-tarif(92.817,9 − 9.756; true) = 15.396,00
+    Rechenweg: (defn est-grundtarif [^Decimal zve] (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0))) = [Wert nicht verfügbar] → (defn est-tarif [^Decimal zve ^Boolean splitting] (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve))) = [Wert nicht verfügbar] → (- einkommen kfb-summe) = 83061.90 → (/ zve 2) = 41530.95 → (decimal/floor zve 0) = 41530 → (<= x tarif-gfb) = false → (<= x tarif-g2) = false → (<= x tarif-g3) = true → (- x tarif-g2) = 23731 → (/ (- x tarif-g2) 10000) = 2.3731 → (* tarif-a3 z) = 410.783610 → (+ (* tarif-a3 z) 2397) = 2807.783610 → (* (+ (* tarif-a3 z) 2397) z) = 6663.1512848910 → (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3) = 7698.0212848910 → (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) = 7698.0212848910 → (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0) = 7698 → (let [x (decimal/floor zve 0)] (decimal/floor (cond (<= x tarif-gfb) 0 (<= x tarif-g2) (let [y (/ (- x tarif-gfb) 10000)] (* (+ (* tarif-a2 y) 1400) y)) (<= x tarif-g3) (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) (<= x tarif-g4) (- (* 0.42 x) tarif-c4) :else (- (* 0.45 x) tarif-c5)) 0)) = 7698 → (est-grundtarif (/ zve 2)) = 7698 → (* 2 (est-grundtarif (/ zve 2))) = 15396 → (if splitting (* 2 (est-grundtarif (/ zve 2))) (est-grundtarif zve)) = 15396 → (est-tarif (- einkommen kfb-summe) zusammen) = 15396 → (est-tarif (- einkommen kfb-summe) zusammen) = 15396 → gewählter Zweig: (let [z (/ (- x tarif-g2) 10000)] (+ (* (+ (* tarif-a3 z) 2397) z) tarif-c3)) → gewählter Zweig: (* 2 (est-grundtarif (/ zve 2))) = 15.396,00
 8/5 Steuerliche Entlastung durch die Freibeträge
     Formel: (- est-ohne-kfb est-mit-kfb)
-    Rechenweg: 18.618 − 15.396 = 3.222,00
+    Rechenweg: (- est-ohne-kfb est-mit-kfb) = 3222 = 3.222,00
 8/6 Geringere Belastung nach Günstigerprüfung
     Formel: min(est-ohne-kfb; (+ est-mit-kfb kindergeld-anspruch))
-    Rechenweg: min(Kindergeld: Einkommensteuer ohne Freibeträge 18.618; Freibeträge: Einkommensteuer mit Freibeträgen zzgl. Kindergeld 18.504) → Freibeträge: Einkommensteuer mit Freibeträgen zzgl. Kindergeld = 18.504,00
+    Rechenweg: min(Kindergeld: Einkommensteuer ohne Freibeträge est-ohne-kfb = 18618; Freibeträge: Einkommensteuer mit Freibeträgen zzgl. Kindergeld (+ est-mit-kfb kindergeld-anspruch) = 18504) → Freibeträge: Einkommensteuer mit Freibeträgen zzgl. Kindergeld = 18.504,00
 8/7 Freibeträge für Kinder sind günstiger
     Formel: (< (+ est-mit-kfb kindergeld-anspruch) est-ohne-kfb)
-    Rechenweg: (15.396 + 3.108) < 18.618 = ✓
+    Rechenweg: (+ est-mit-kfb kindergeld-anspruch) = 18504 → (< (+ est-mit-kfb kindergeld-anspruch) est-ohne-kfb) = true = ✓
 9/1 Einkünfte aus Kapitalvermögen nach Sparer-Pauschbetrag
     Formel: (dim/sum einkuenfte-kap)
-    Rechenweg: dim/sum({:A 0; :B 850}) = 850,00
+    Rechenweg: (dim/sum einkuenfte-kap) = 850 = 850,00
 9/2 Abgeltungsteuer (25 %)
     Formel: (* abgeltungsteuersatz kap-abgeltung-bmg)
-    Rechenweg: 0,25 × 850 = 212,50
+    Rechenweg: (* abgeltungsteuersatz kap-abgeltung-bmg) = 212.50 = 212,50
 9/3 Solidaritätszuschlag zur Abgeltungsteuer
     Formel: (* soli-satz abgeltungsteuer)
-    Rechenweg: 0,055 × 212,5 → 11,6875 (2 floor) = 11,68
+    Rechenweg: (* soli-satz abgeltungsteuer) = 11.68750 → round(11.68750; (2 floor)) = 11.68 = 11,68
 9/4 Durch Steuerabzug abgegolten
     Formel: abgeltungsteuer + abgeltung-soli
-    Rechenweg: 212,5 + 11,68 = 224,18
+    Rechenweg: 212.50 + 11.68 = 224,18

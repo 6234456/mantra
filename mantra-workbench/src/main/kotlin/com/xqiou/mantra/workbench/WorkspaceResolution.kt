@@ -96,7 +96,7 @@ internal fun WorkspaceCatalog.resolve(
     val bound = BoundSources.load(case, schema, casePath, root)
     val result = try {
         if (explain == null) {
-            Mantra.calculate(schema, bound.case, parameters)
+            Mantra.calculateForAudit(schema, bound.case, parameters)
         } else {
             Mantra.calculateForExplain(schema, bound.case, parameters, explain.node, explain.coord)
         }

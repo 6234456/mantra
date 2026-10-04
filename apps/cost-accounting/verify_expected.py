@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 
-def expected(zero_pools=False):
+def expected(zero_pools=False, unit_scale=4):
     direct = [Decimal(5000), Decimal(3000), Decimal(4400)]
     quantities = [Decimal(100), Decimal(50), Decimal(80)]
     primary, secondary = (Decimal(0), Decimal(0)) if zero_pools else (Decimal(900), Decimal(1800))
@@ -26,9 +26,13 @@ def expected(zero_pools=False):
         target = sum(standard[i] for i in indices)
         for name, value in [('product-quantity', quantity), ('product-actual-cost', cost),
                             ('product-standard-cost', target), ('product-variance', cost - target),
-                            ('actual-weighted-unit', (cost / quantity).quantize(Decimal('.0001'), rounding=ROUND_HALF_UP)),
-                            ('standard-weighted-unit', (target / quantity).quantize(Decimal('.0001'), rounding=ROUND_HALF_UP))]:
+                            ('actual-weighted-unit', (cost / quantity).quantize(Decimal(1).scaleb(-unit_scale), rounding=ROUND_HALF_UP)),
+                            ('standard-weighted-unit', (target / quantity).quantize(Decimal(1).scaleb(-unit_scale), rounding=ROUND_HALF_UP))]:
             values[f'{name}@{member}'] = value
+    values['actual-weighted-unit@*'] = (sum(actual) / sum(quantities)).quantize(
+        Decimal('.0001'), rounding=ROUND_HALF_UP)
+    values['standard-weighted-unit@*'] = (sum(standard) / sum(quantities)).quantize(
+        Decimal('.0001'), rounding=ROUND_HALF_UP)
     assert sum(actual) == sum(direct) + primary + secondary
     return values
 
@@ -36,9 +40,10 @@ def expected(zero_pools=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--zero-pools', action='store_true')
+    parser.add_argument('--unit-scale', type=int, choices=[4, 6], default=4)
     parser.add_argument('--verify', type=Path)
     args = parser.parse_args()
-    values = expected(args.zero_pools)
+    values = expected(args.zero_pools, args.unit_scale)
     if args.verify:
         actual = json.loads(args.verify.read_text())
         for key, value in values.items():

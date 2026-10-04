@@ -121,12 +121,12 @@ private fun loadInputs(options: Options): Pair<com.xqiou.mantra.core.model.Schem
 
 private fun run(options: Options) {
     val (schema, case) = loadInputs(options)
-    val result = Mantra.calculate(schema, case)
+    val result = Mantra.calculateForAudit(schema, case)
     val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
     if (options.named["format"] == "xlsx") {
         val out = options.path("out") ?: fail("--format xlsx requires --out <file.xlsx>")
         val workbook = com.xqiou.mantra.excel.ExcelExport.workbook(result, layout)
-        workbook.write(out)
+        workbook.use { it.write(out) }
         val report = workbook.report
         System.err.println(
             "mantra: wrote ${out.toAbsolutePath()} – ${report.formulaCells} formula cells, ${report.inputCells} input cells, ${report.names} names, ${report.fallbacks.size} values without formula",
@@ -223,7 +223,7 @@ private fun diff(options: Options) {
         }
         directory = directory.parent
     }
-    val envelope = WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, document)
+    val envelope = WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, document)
     val output = when (options.named["format"] ?: "json") {
         "json" -> WorkbenchJson.write(envelope)
         "text" -> buildString {
@@ -271,23 +271,41 @@ private fun diff(options: Options) {
 private fun explain(options: Options) {
     val (schema, case) = loadInputs(options)
     if (options.path("case") == null) fail("explain requires --case <case.mantra>")
-    val nodeId = options.named["address"]?.takeIf(String::isNotBlank)
+    val address = options.named["address"]?.takeIf(String::isNotBlank)
         ?: fail("explain requires --address <node>")
+    val aggregate = address.startsWith("aggregate.")
+    val nodeId = address.removePrefix("aggregate.")
     val coord = options.named["coord"]?.split(',')?.map(String::trim) ?: emptyList()
     if (coord.any(String::isBlank)) fail("--coord must contain nonempty member keys")
     val parameterPaths = options.named["parameters"].orEmpty().split(',').filter(String::isNotBlank).map {
         Path.of(it.trim())
     }
-    val result = Mantra.calculateForExplain(schema, case, parameterPaths.map(Mantra::loadParameters), nodeId, coord)
+    val result = if (aggregate) {
+        Mantra.calculateForAudit(schema, case, parameterPaths.map(Mantra::loadParameters))
+    } else {
+        Mantra.calculateForExplain(schema, case, parameterPaths.map(Mantra::loadParameters), nodeId, coord)
+    }
     val view = CalculationView.of(result)
     val node = view.nodes[nodeId] ?: fail("Explain node was not found: $nodeId")
-    if (node.dims.size != coord.size ||
-        coord !in node.values
+    if (!aggregate && (
+            node.dims.size != coord.size ||
+                coord !in node.values
+            )
     ) {
         fail("Explain coordinate was not found: $nodeId${coord.joinToString(prefix = "[", postfix = "]")}")
     }
     val layout = options.path("layout")?.let(Render::loadLayout) ?: Render.defaultLayout(result)
-    val document = WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
+    if (aggregate &&
+        coord.isNotEmpty()
+    ) {
+        fail("Aggregate CLI Explain currently accepts the complete active set; omit --coord")
+    }
+    val document = if (aggregate) {
+        if (node.aggregateTrace == null) fail("Explain ratio aggregate was not found: $nodeId")
+        WorkbenchDocuments.aggregate(view, layout, nodeId)
+    } else {
+        WorkbenchDocuments.explain(view, layout, nodeId, coord, result.explainTrace)
+    }
     val schemaPath = options.positional.first().let(Path::of).toAbsolutePath().normalize()
     val revision = DiffRevision.calculate(
         schemaPath,
@@ -310,12 +328,19 @@ private fun explain(options: Options) {
         directory = directory.parent
     }
     val output = when (options.named["format"] ?: "json") {
-        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.1.0-SNAPSHOT", normein, document))
+        "json" -> WorkbenchJson.write(WorkbenchJson.envelope(revision, "0.2.0-SNAPSHOT", normein, document))
         "text" -> buildString {
             appendLine("${document["label"]}: ${(document["result"] as Map<*, *>) ["display"]}")
             @Suppress("UNCHECKED_CAST")
             (document["steps"] as List<Map<String, Any?>>).forEach { step ->
                 appendLine("  ${step["text"]} = ${step["display"]}")
+            }
+            (document["aggregate"] as? Map<*, *>)?.let { trace ->
+                val display = trace["display"] as Map<*, *>
+                appendLine("  Σ ${trace["numeratorId"]}: ${display["numeratorTotal"]}")
+                appendLine("  Σ ${trace["denominatorId"]}: ${display["denominatorTotal"]}")
+                appendLine("  active members: ${trace["activeMemberCount"]}/${trace["memberCount"]}")
+                trace["undefinedReason"]?.let { appendLine("  undefined: $it") }
             }
         }.trimEnd()
         else -> fail("Unknown --format; use json or text")
@@ -341,6 +366,8 @@ private fun check(options: Options) {
     println("  lines:       ${values.count { it.line != null }}")
     println("  totals:      ${values.count { it.kind == NodeKind.TOTAL }}")
     println("  choices:     ${values.count { it.kind == NodeKind.CHOICE }}")
+    println("  checks:      ${values.count { it.kind == NodeKind.CHECK }}")
+    println("  reconciles:  ${values.count { it.kind == NodeKind.RECONCILE }}")
     println("  functions:   ${schema.functions.joinToString { it.name }.ifEmpty { "–" }}")
     println("  dependency edges: ${view.dependencyCount}")
     println()
@@ -385,6 +412,8 @@ private fun catalog() {
         "(field id \"Label\" {opts})" to "input shown in place",
         "(line id \"Label\" formula {opts})" to "computed line (Normein expression)",
         "(formula-slot id \"Label\" default {opts})" to "typed formula hook; cases may use (bind id formula)",
+        "(check id \"Label\" boolean {opts})" to "nonblocking business check with severity, dimensions and conditions",
+        "(reconcile id \"Label\" left right {opts})" to "business check retaining both sides, difference and tolerance",
         "(total id \"Label\" {opts})" to "running subtotal / total of the section",
         "(choice id \"Label\" {:rule :min|:max} (option :key \"Label\" formula)+)" to
             "alternatives (Günstigerprüfung, higher-of)",

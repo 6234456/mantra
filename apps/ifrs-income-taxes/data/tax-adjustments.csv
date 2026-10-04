@@ -1,0 +1,7 @@
+id;entity-id;label;effect;reason
+N1;North;Non-deductible expenditure;6500;Permanent difference
+N2;North;Exempt revenue;-2400;Permanent difference
+N3;North;Earlier-period correction;1300;Supplied correction
+S1;South;Non-deductible expenditure;800;Permanent difference
+S2;South;Exempt revenue;-1600;Permanent difference
+S3;South;Earlier-period correction;-800;Supplied correction

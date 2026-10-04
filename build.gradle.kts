@@ -18,7 +18,7 @@ spotless {
 }
 
 group = "com.xqiou.mantra"
-version = "0.1.0-SNAPSHOT"
+version = "0.2.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -113,6 +113,12 @@ val checkSourceSize by tasks.registering(Exec::class) {
     commandLine("python3", "scripts/check-source-size.py")
 }
 
+val checkDiagnostics by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Checks that diagnostic codes and their documented categories stay synchronized."
+    commandLine("python3", "scripts/check-diagnostics.py")
+}
+
 val checkBuildGates by tasks.registering(Exec::class) {
     group = "verification"
     description = "Runs regression tests for the architecture and quality gates."
@@ -128,7 +134,15 @@ val checkTestCounts by tasks.registering(Exec::class) {
 
 tasks.named("check") {
     group = "verification"
-    dependsOn(checkBoundaries, "spotlessCheck", checkFrontend, checkSourceSize, checkBuildGates, checkTestCounts)
+    dependsOn(
+        checkBoundaries,
+        "spotlessCheck",
+        checkFrontend,
+        checkSourceSize,
+        checkDiagnostics,
+        checkBuildGates,
+        checkTestCounts,
+    )
     dependsOn(subprojects.filter { it.path != ":apps" }.map { it.tasks.named("check") })
 }
 

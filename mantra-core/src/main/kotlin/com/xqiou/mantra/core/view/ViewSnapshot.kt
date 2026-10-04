@@ -1,6 +1,7 @@
 package com.xqiou.mantra.core.view
 
 import com.xqiou.mantra.core.model.CaseData
+import com.xqiou.mantra.core.model.CheckItem
 import com.xqiou.mantra.core.model.ChoiceItem
 import com.xqiou.mantra.core.model.DimensionDecl
 import com.xqiou.mantra.core.model.FieldItem
@@ -10,6 +11,7 @@ import com.xqiou.mantra.core.model.LineItem
 import com.xqiou.mantra.core.model.NoteItem
 import com.xqiou.mantra.core.model.ParamDecl
 import com.xqiou.mantra.core.model.Presentation
+import com.xqiou.mantra.core.model.ReconcileItem
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SchemaMeta
 import com.xqiou.mantra.core.model.SectionItem
@@ -65,6 +67,8 @@ internal fun Item.snapshot(): Item = when (this) {
         presentation = presentation.snapshot(),
     )
     is NoteItem -> copy(presentation = presentation.snapshot())
+    is CheckItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot())
+    is ReconcileItem -> copy(per = per?.let(::frozenList), presentation = presentation.snapshot())
 }
 
 internal fun CaseData.snapshot(): CaseData = copy(
@@ -82,6 +86,11 @@ internal fun CaseData.snapshot(): CaseData = copy(
         },
     ),
     inputOrigins = frozenMap(inputOrigins.mapValues { (_, origins) -> frozenMap(origins) }),
+    inputCells = frozenMap(
+        inputCells.mapValues { (_, cells) ->
+            frozenList(cells.map { it.copy(coord = frozenList(it.coord)) })
+        },
+    ),
 )
 
 internal fun Schema.snapshot(): Schema = copy(
@@ -95,7 +104,7 @@ internal fun Schema.snapshot(): Schema = copy(
 )
 
 internal fun ExplainTrace.snapshot(): ExplainTrace = copy(
-    steps = frozenList(steps.map { it.copy(value = it.value.snapshot()) }),
+    steps = frozenList(steps.map { it.copy(value = it.value?.snapshot()) }),
     branches = frozenList(branches),
 )
 
@@ -122,8 +131,12 @@ internal fun DimensionDecl.snapshot(): DimensionDecl = copy(members = frozenList
 
 internal fun Member.snapshot(): Member = copy(record = frozenMap(record.mapValues { (_, value) -> value.snapshot() }))
 
-internal fun NodeTrace.snapshot(): NodeTrace = when (this) {
-    is NodeTrace.Input, is NodeTrace.Param, is NodeTrace.Inactive, is NodeTrace.Failed -> this
+internal fun NodeTrace.snapshot(
+    traceSnapshot: (ExplainTrace) -> ExplainTrace = { it.snapshot() },
+    aggregateSnapshot: (RatioAggregateTrace) -> RatioAggregateTrace = { it.snapshot() },
+): NodeTrace = when (this) {
+    is NodeTrace.Input, is NodeTrace.Param, is NodeTrace.Inactive -> this
+    is NodeTrace.Failed -> copy(explanation = explanation?.let(traceSnapshot))
     is NodeTrace.Computed -> copy(
         references = frozenList(
             references.map {
@@ -131,12 +144,27 @@ internal fun NodeTrace.snapshot(): NodeTrace = when (this) {
             },
         ),
         raw = raw.snapshot(),
+        explanation = explanation?.let(traceSnapshot),
     )
-    is NodeTrace.Sum -> copy(parts = frozenList(parts))
+    is NodeTrace.Sum -> copy(
+        parts = frozenList(
+            parts.map {
+                it.copy(aggregate = it.aggregate?.let(aggregateSnapshot))
+            },
+        ),
+    )
+    is NodeTrace.Validation -> copy(
+        explanation = explanation?.let(traceSnapshot),
+        rightExplanation = rightExplanation?.let(traceSnapshot),
+    )
     is NodeTrace.Choice -> copy(
         options = frozenList(
             options.map {
-                it.copy(value = it.value.snapshot())
+                it.copy(
+                    value = it.value.snapshot(),
+                    explanation = it.explanation?.let(traceSnapshot),
+                    conditionExplanation = it.conditionExplanation?.let(traceSnapshot),
+                )
             },
         ),
         raw = raw.snapshot(),
@@ -148,6 +176,12 @@ internal fun <T> Map<Coord, T>.snapshotCoords(value: (T) -> T): Map<Coord, T> = 
         frozenList(coord) to
             value(item)
     },
+)
+
+internal fun RatioAggregateTrace.snapshot(): RatioAggregateTrace = copy(
+    dimensions = frozenList(dimensions),
+    fixed = frozenMap(fixed),
+    members = frozenList(members.map { it.copy(coord = frozenList(it.coord)) }),
 )
 
 internal fun SchemaMap.snapshot(): SchemaMap = SchemaMap(

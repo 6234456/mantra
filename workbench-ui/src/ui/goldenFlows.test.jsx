@@ -44,6 +44,14 @@ const scenarios = [
     cell: '12,400.00',
     address: { node: 'direct-primary-total' },
   },
+  {
+    id: 'ifrs-income-taxes/case-demo.mantra',
+    heading: 'IAS 12 – Tax-expense reconciliation',
+    result: '79,800',
+    panel: 'entity-tax',
+    cell: '240,000',
+    address: { node: 'accounting-profit', coord: ['North'] },
+  },
 ]
 
 function serveGolden(extraFiles = {}, fixtureManifest = manifest) {
@@ -65,7 +73,7 @@ afterEach(() => {
   history.replaceState(null, '', '/')
 })
 
-describe('the three tracked golden cases, from overview to a selected Paper cell', () => {
+describe('the four tracked applications, from overview to a selected Paper cell', () => {
   it('shows real Explain steps from the ESt golden on the provenance route', async () => {
     const id = 'de-est/case-mustermann.mantra'
     const address = { node: 'ermaessigung-35a' }
@@ -152,5 +160,42 @@ describe('the three tracked golden cases, from overview to a selected Paper cell
         ).toBe(true)
       }
     }
+  })
+
+  it('opens the IAS 12 weighted rate from its aggregate fixture without synthesizing formula steps', async () => {
+    const id = 'ifrs-income-taxes/case-demo.mantra'
+    const address = { node: 'aggregate.effective-tax-rate' }
+    const entry = manifest.cases.find((item) => item.id === id)
+    const explanation = files[entry.files.explains[addressToPath(address)]].data
+    expect(explanation.aggregate.result).toEqual({ n: '0.249375' })
+    expect(explanation.steps).toEqual([])
+    serveGolden()
+    history.replaceState(null, '', `${casePath(id)}/provenance/${encodeURIComponent(addressToPath(address))}`)
+    render(<App />)
+    const evidence = await screen.findByRole('region', { name: 'Gewichtete Quote' })
+    expect(within(evidence).getByText(explanation.aggregate.display.numeratorTotal)).toBeTruthy()
+    expect(within(evidence).getByText('Mitglieder · 2/2')).toBeTruthy()
+    expect(document.querySelectorAll('.provenance-layout .calculation-step')).toHaveLength(0)
+  })
+
+  it('keeps the unreconciled IAS 12 calculation open and links its missing table fact to the input', async () => {
+    const id = 'ifrs-income-taxes/case-unreconciled.mantra'
+    const entry = manifest.cases.find((item) => item.id === id)
+    const run = files[entry.files.run].data
+    expect(run.succeeded).toBe(true)
+    expect(run.validationPassed).toBe(false)
+    const finding = run.diagnostics.find((item) => item.code === 'MANTRA-INPUT-REQUIRED')
+    expect(finding.rowIndex).toBe(0)
+    expect(finding.column).toBe('reason')
+    serveGolden()
+    history.replaceState(null, '', `${casePath(id)}/diagnostics`)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: /MANTRA-INPUT-REQUIRED/ }))
+    expect(screen.getByText('Zeile 1 · reason')).toBeTruthy()
+    fireEvent.click(screen.getByRole('link', { name: /Zum betroffenen Wert/ }))
+    expect(new URLSearchParams(location.search).get('cell')).toBe('tax-adjustments#0.reason')
+    const [input] = await screen.findAllByRole('textbox', { name: /^reason ·/ })
+    expect(document.activeElement).toBe(input)
+    expect(input.closest('td').textContent).toContain(finding.message)
   })
 })
