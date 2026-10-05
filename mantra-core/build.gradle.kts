@@ -17,7 +17,13 @@ val generateRuntimeVersion by tasks.registering {
         val file = generatedVersionSource.get().file("com/xqiou/mantra/core/api/BuildVersions.kt").asFile
         file.parentFile.mkdirs()
         file.writeText(
-            "package com.xqiou.mantra.core.api\ninternal object BuildVersions { const val MANTRA = \"$engineVersion\"; const val NORMEIN = \"$kernelVersion\" }\n",
+            """
+            package com.xqiou.mantra.core.api
+            internal object BuildVersions {
+                val MANTRA = "$engineVersion"
+                val NORMEIN = "$kernelVersion"
+            }
+            """.trimIndent() + "\n",
         )
     }
 }

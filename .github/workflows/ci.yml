@@ -34,6 +34,15 @@ jobs:
         run: npm ci
       - name: Quality gates, JVM tests and application rendering
         run: ./gradlew --no-daemon check :mantra-cli:installDist :mantra-lsp:installDist :benchmarks:installDist :mantra-cli:verifyDocumentationExamples
+      - name: Compiled runtime identity across release and RC version switches
+        run: |
+          mkdir -p build/runtime-version-probe
+          javac -cp mantra-core/build/libs/mantra-core-1.0.0-rc.1.jar -d build/runtime-version-probe release-fixtures/runtime-version-probe/RuntimeVersionProbe.java
+          java -cp build/runtime-version-probe:mantra-core/build/libs/mantra-core-1.0.0-rc.1.jar RuntimeVersionProbe 1.0.0-rc.1 0.3.0
+          ./gradlew --no-daemon --max-workers=1 -Pkotlin.compiler.execution.strategy=in-process -PmantraReleaseVersion=1.0.0 :mantra-core:jar
+          java -cp build/runtime-version-probe:mantra-core/build/libs/mantra-core-1.0.0.jar RuntimeVersionProbe 1.0.0 0.3.0
+          ./gradlew --no-daemon --max-workers=1 :mantra-core:jar
+          java -cp build/runtime-version-probe:mantra-core/build/libs/mantra-core-1.0.0-rc.1.jar RuntimeVersionProbe 1.0.0-rc.1 0.3.0
       - name: ABI binary counterexample and isolated staged consumers
         run: ./gradlew --no-daemon --max-workers=1 checkAbiCounterexample checkCleanConsumer
       - name: Archived public-kernel and v1 performance statistics and public profiling consumer

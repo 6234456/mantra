@@ -2,6 +2,7 @@ package com.xqiou.mantra.consumer
 
 import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.api.CalculationOptions
+import com.xqiou.mantra.core.api.RuntimeVersions
 import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Value
 import com.xqiou.mantra.core.read.ParameterSet
@@ -9,7 +10,14 @@ import com.xqiou.mantra.core.read.SourceResolver
 import com.xqiou.mantra.core.read.SourceText
 import com.xqiou.normein.dsl.runtime.DslBudgetCounter
 
-fun main() {
+fun main(args: Array<String>) {
+    check(args.size == 1) { "The explicitly selected Mantra artifact version is required" }
+    check(RuntimeVersions.mantra == args.single()) {
+        "Selected Mantra ${args.single()} but the artifact reports ${RuntimeVersions.mantra}"
+    }
+    check(RuntimeVersions.normein == "0.3.0") {
+        "The artifact reports unexpected Normein ${RuntimeVersions.normein}"
+    }
     val schema = Mantra.loadSchema(
         SourceText("schema.mantra", """(schema consumer/core (param multiplier 2) (input base :decimal) (line answer "Answer" (* base multiplier)))"""),
         SourceResolver { _, _ -> null },
