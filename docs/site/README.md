@@ -1,4 +1,4 @@
-# Offline documentation snapshot
+# Documentation and application gallery
 
 This directory builds the offline M5/M6 documentation for the current checkout. The joint
 `1.0.0-rc.1` candidate implementation and functional acceptance are complete. Measured source
@@ -9,8 +9,9 @@ selection, migration, dynamic workbooks, language tooling, PDF and localization 
 [M5](../milestones/m5-work-packages.md) and [M6](../milestones/m6-work-packages.md) work packages
 separate candidate checks from stable/Maven publication. The `v1.0.0-rc.1` tag and
 [source-candidate report](../release-candidate.md) release receipt identify the final source revision and CI.
-Hosted deployment, installed native IDE plugins and publicly uploaded Maven artifacts are not
-implied by this snapshot; stable `1.0.0` has not been declared.
+The static snapshot is published at [GitHub Pages](https://6234456.github.io/mantra/)
+after the complete `main` CI run passes. Installed native IDE plugins and publicly uploaded Maven
+artifacts are separate delivery steps; stable `1.0.0` has not been declared.
 
 Build with Python 3.10+; no package installation, browser, server, Java execution or network is needed:
 
@@ -21,7 +22,8 @@ python3 -m unittest discover -s docs/site/tests -p 'test_*.py'
 ```
 
 Open `build/docs-site/index.html`. The generated guide/gallery pages use local CSS, system fonts
-and ordinary links, without JavaScript or a CDN. Copied Dokka pages retain their own local assets. Its generator renders a deliberately small Markdown subset: headings, paragraphs,
+and ordinary links, without JavaScript or a CDN. Copied Dokka pages retain their generated assets;
+their optional Kotlin Playground and external fonts need network access. Its generator renders a deliberately small Markdown subset: headings, paragraphs,
 fenced code, lists, tables, inline code, bold text and links. Raw HTML is escaped.
 
 The generator reads the current English DSL and diagnostic documentation. The diagnostic inventory
@@ -49,10 +51,18 @@ after the coordinated build, then require all configured showcase HTML/Text/XLSX
 python3 scripts/generate-docs-site.py --require-artifacts --catalog build/mantra-catalog.txt
 ```
 
-This generator does not run Gradle or change CI. The existing `verification-results` CI artifact
-retains application outputs, tutorial exports and PDF checks. A hosted documentation deployment
-has not been performed. A strict offline build has passed; this documentation update requires a
-fresh site manifest before publication.
+This generator does not run Gradle. The existing `verification-results` CI artifact retains
+application outputs, tutorial exports and PDF checks. CI additionally uploads only `build/docs-site`
+as the Pages artifact after all JVM, independent application, frontend and browser checks pass.
+Its dependent `pages` job deploys only pushes or manual runs on `main`, using the `github-pages`
+environment and scoped `pages: write` / `id-token: write` permissions. Pull requests and other
+branches cannot deploy. The repository's Pages source is GitHub Actions; no `gh-pages` branch,
+custom domain or additional secret is needed. Re-run CI on `main` to retry a deployment.
+
+Pages serves the static gallery and downloads. Input editing, Explain requests against new inputs
+and engine recalculation require the local JVM workbench; the frontend alone is not an online
+calculation service. Downloaded XLSX formulas still recalculate in Excel and mark their engine
+audit snapshot outdated after input changes, as documented in the repository README.
 Without `--require-artifacts`, missing outputs receive explicit unavailable labels and generation
 commands. An existing HTML output with broken internal links is also withheld and recorded under
 `artifact_issues` in the manifest; strict mode rejects it. No dead download link or stand-in workbook
@@ -112,5 +122,6 @@ unprofiled measurement and leaves the measured Kotlin source/harness unchanged.
 
 The final source-publication revision and CI are identified by the `v1.0.0-rc.1` tag and the release
 receipt in the [source-candidate report](../release-candidate.md). Maven Central upload has not been
-performed: namespace, signing and the matching public Normein 0.3.0 artifact remain
-pending the maintainer's decision/setup. Local staging and clean consumers are not an upload.
+performed: namespace and signing configuration remain deferred by the maintainer. The required
+public Normein DSL 0.3.0 artifact is available and verified. Local staging and clean consumers
+are not a Mantra Maven upload; publishing the static Pages gallery does not change that boundary.

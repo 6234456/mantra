@@ -4,6 +4,11 @@ Mantra is a general calculation-schema library built on the [Normein DSL](https:
 
 This monorepo contains the engine and domain demonstration applications under `apps/`. Domain rules live in their schemas; the engine and reference workbench provide generic capabilities.
 
+Browse the [documentation and ten example applications](https://6234456.github.io/mantra/),
+including generated HTML working papers and downloadable Text/XLSX results. The static gallery
+is published from `main` after the complete CI checks pass. To edit inputs and run the JVM engine,
+start the [reference workbench](#reference-workbench) locally.
+
 **The applications are demonstrations only. They are not production tax or accounting software and do not provide tax or accounting advice.** Their simplifications and verification sources are documented in each application's README. Mantra is pre-1.0; APIs and DSL contracts may change with documented version changes. Mantra library artifacts have not yet been published; the required `com.xqiou:normein-dsl:0.3.0` kernel is available from Maven Central. The remaining release work is tracked in the [roadmap](docs/roadmap.md).
 
 The current `1.0.0-rc.1` source candidate includes M4 embedding/packages, M5 language tools and

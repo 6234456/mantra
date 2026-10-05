@@ -70,7 +70,7 @@
   {
     "id": "ifrs-income-taxes",
     "title": "IFRS income taxes",
-    "description": "A fictional IAS 12 rate reconciliation and temporary-difference measurement.",
+    "description": "A fictional single-period IAS 12 tax-expense and rate reconciliation.",
     "schema": "schema.mantra",
     "case": "case-demo.mantra",
     "verification": "verify_expected.py",
