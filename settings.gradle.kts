@@ -27,16 +27,18 @@ include(
     ":apps:project-portfolio",
 )
 
-// ── Normein DSL kernel (pinned composite build) ─────────────────────────────
+// ── Normein DSL kernel (Maven Central, optional pinned composite build) ──────
 //
-// Mantra reuses the Normein DSL kernel unchanged. The checkout must be clean and at the exact
-// commit recorded in normein-build.lock. Resolution order for the checkout location:
+// Mantra normally resolves the unmodified normein-dsl artifact from Maven Central. A source
+// composite is enabled only by an explicit checkout path; an existing .deps/normein is ignored.
+// A selected checkout must be clean and at the exact commit recorded in normein-build.lock.
+// Resolution order for an explicitly selected checkout location:
 //   1. -PnormeinBuildPath=<dir>
 //   2. NORMEIN_BUILD_PATH=<dir>
-//   3. .deps/normein (created by scripts/bootstrap-normein.sh)
 //
 // -PnormeinCandidate=true skips the commit and cleanliness checks so that an unreleased kernel can
-// be assessed against Mantra's tests (RFC 0001, acceptance contracts). Never release from such a build.
+// be assessed against Mantra's tests (RFC 0001, acceptance contracts). It requires an explicit
+// source path. Never release from such a build.
 
 private val normeinLockFileName = "normein-build.lock"
 
@@ -67,37 +69,42 @@ private fun runNormeinGit(checkout: java.io.File, vararg arguments: String): Str
     return output
 }
 
-val normeinLock = readNormeinLock(file(normeinLockFileName))
-val expectedNormeinCommit = normeinLock["normeinCommit"] ?: error("normein-build.lock must define normeinCommit")
-val normeinBuild = file(
+val normeinBuildPath =
     providers.gradleProperty("normeinBuildPath").orNull
         ?: System.getenv("NORMEIN_BUILD_PATH")
-        ?: ".deps/normein",
-)
-require(normeinBuild.isDirectory) {
-    "Normein checkout not found at ${normeinBuild.absolutePath}. Run scripts/bootstrap-normein.sh " +
-        "or set NORMEIN_BUILD_PATH to a clean checkout of commit $expectedNormeinCommit."
-}
 val normeinCandidate = providers.gradleProperty("normeinCandidate").orNull?.toBoolean() == true
-if (normeinCandidate) {
-    logger.warn(
-        "Mantra: using an UNPINNED Normein candidate at ${normeinBuild.absolutePath}; " +
-            "$normeinLockFileName ($expectedNormeinCommit) is not enforced.",
-    )
-} else {
-    val actualNormeinCommit = runNormeinGit(normeinBuild, "rev-parse", "--verify", "HEAD^{commit}")
-    check(actualNormeinCommit == expectedNormeinCommit) {
-        "Normein checkout ${normeinBuild.absolutePath} is at $actualNormeinCommit but $normeinLockFileName " +
-            "requires $expectedNormeinCommit."
-    }
-    val normeinDirtyFiles = runNormeinGit(normeinBuild, "status", "--porcelain", "--untracked-files=no")
-    check(normeinDirtyFiles.isEmpty()) {
-        "Normein checkout ${normeinBuild.absolutePath} has local modifications:\n$normeinDirtyFiles"
-    }
+require(!normeinCandidate || normeinBuildPath != null) {
+    "normeinCandidate requires an explicit source checkout via -PnormeinBuildPath or NORMEIN_BUILD_PATH."
 }
+if (normeinBuildPath != null) {
+    require(normeinBuildPath.isNotBlank()) { "The explicitly selected Normein source path must not be blank." }
+    val normeinLock = readNormeinLock(file(normeinLockFileName))
+    val expectedNormeinCommit = normeinLock["normeinCommit"] ?: error("normein-build.lock must define normeinCommit")
+    val normeinBuild = file(normeinBuildPath)
+    require(normeinBuild.isDirectory) {
+        "Normein source checkout not found at ${normeinBuild.absolutePath}. " +
+            "Select a clean checkout of commit $expectedNormeinCommit or omit the source path to use Maven Central."
+    }
+    if (normeinCandidate) {
+        logger.warn(
+            "Mantra: using an UNPINNED Normein candidate at ${normeinBuild.absolutePath}; " +
+                "$normeinLockFileName ($expectedNormeinCommit) is not enforced.",
+        )
+    } else {
+        val actualNormeinCommit = runNormeinGit(normeinBuild, "rev-parse", "--verify", "HEAD^{commit}")
+        check(actualNormeinCommit == expectedNormeinCommit) {
+            "Normein checkout ${normeinBuild.absolutePath} is at $actualNormeinCommit but $normeinLockFileName " +
+                "requires $expectedNormeinCommit."
+        }
+        val normeinDirtyFiles = runNormeinGit(normeinBuild, "status", "--porcelain", "--untracked-files=no")
+        check(normeinDirtyFiles.isEmpty()) {
+            "Normein checkout ${normeinBuild.absolutePath} has local modifications:\n$normeinDirtyFiles"
+        }
+    }
 
-includeBuild(normeinBuild) {
-    dependencySubstitution {
-        substitute(module("com.xqiou:normein-dsl")).using(project(":normein-dsl"))
+    includeBuild(normeinBuild) {
+        dependencySubstitution {
+            substitute(module("com.xqiou:normein-dsl")).using(project(":normein-dsl"))
+        }
     }
 }

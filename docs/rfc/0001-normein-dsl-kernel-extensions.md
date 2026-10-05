@@ -10,6 +10,12 @@
 | Executable contract | [`NormeinRfcContractTest`](../../mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinRfcContractTest.kt) pins the current behaviour of every item |
 | Scope | Requests only. Mantra does not modify Normein; every item has a working Mantra-side workaround today. |
 
+The source baseline above remains the historical development/measurement lock. From 2026-10-05,
+normal Mantra builds consume public `com.xqiou:normein-dsl:0.3.0`. Its existing kernel JVM ABI
+is preserved, with identity/replay implementation differences and an added `replayArtifact()`
+method. See [published kernel integration](../normein-publication.md) for binary identity and
+separate validation; the public binary is not assigned the source baseline's Git commit.
+
 ## 摘要（中文）
 
 Mantra 以“宿主形式 + 嵌入 Normein 表达式”的方式复用 Normein DSL。本 RFC 先说明各项需求，再在[逐项验收契约](#acceptance-contracts)中给出每项的输入与错误示例、版本及指纹影响、资源上限和旧版 Mantra 的迁移方式。2026-09-27 已锁定发布的提交 `0a3ae1de`（language 25 / stdlib 33），并以 `NormeinRfcContractTest` 验证新行为。

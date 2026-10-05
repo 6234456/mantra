@@ -2,6 +2,7 @@
 
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension
 
@@ -36,7 +37,21 @@ spotless {
 }
 
 group = "com.xqiou.mantra"
-version = "1.0.0-rc.1"
+val mantraReleaseVersion = providers.gradleProperty("mantraReleaseVersion").orNull
+if (mantraReleaseVersion != null) {
+    require(
+        mantraReleaseVersion.length <= 64 &&
+            Regex("(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)\\.(?:0|[1-9][0-9]*)").matches(mantraReleaseVersion),
+    ) { "mantraReleaseVersion must be an explicit stable major.minor.patch version" }
+    require(gradle.includedBuilds.isEmpty()) {
+        "Release staging must resolve the public kernel without source substitution"
+    }
+}
+version = mantraReleaseVersion ?: "1.0.0-rc.1"
+val mantraSignRelease = providers.gradleProperty("mantraSignRelease").map { it.toBooleanStrict() }.getOrElse(false)
+require(!mantraSignRelease || mantraReleaseVersion != null) { "Release signing requires explicit mantraReleaseVersion" }
+val mantraStagingDirectory = providers.gradleProperty("mantraStagingPath")
+    .map { rootProject.file(it) }.getOrElse(rootProject.layout.buildDirectory.dir("staging").get().asFile)
 
 repositories {
     mavenCentral()
@@ -230,7 +245,28 @@ configure(subprojects.filter { it.path in abiLibraryPaths }) {
             }
             repositories.maven {
                 name = "LocalStaging"
-                url = uri(rootProject.layout.buildDirectory.dir("staging"))
+                url = uri(mantraStagingDirectory)
+            }
+        }
+        if (mantraSignRelease) {
+            val keyId = providers.environmentVariable("MANTRA_SIGNING_KEY_ID").orNull
+                ?: error("Explicit MANTRA_SIGNING_KEY_ID is required")
+            val key = providers.environmentVariable("MANTRA_SIGNING_KEY").orNull
+                ?: error("Explicit MANTRA_SIGNING_KEY is required")
+            val password = providers.environmentVariable("MANTRA_SIGNING_PASSWORD").orNull
+                ?: error("Explicit MANTRA_SIGNING_PASSWORD is required")
+            require(Regex("(?:[A-Fa-f0-9]{8}|[A-Fa-f0-9]{16})").matches(keyId)) {
+                "MANTRA_SIGNING_KEY_ID must be an explicit OpenPGP key ID"
+            }
+            require(key.startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----") && password.isNotEmpty()) {
+                "An armored password-protected signing key is required"
+            }
+            apply(plugin = "signing")
+            extensions.configure<SigningExtension> {
+                // Gradle 9.4's PgpKeyId accepts the short ID; bundle verification checks the full fingerprint.
+                useInMemoryPgpKeys(keyId.takeLast(8), key, password)
+                isRequired = true
+                sign(libraryProject.extensions.getByType<PublishingExtension>().publications["mavenJava"])
             }
         }
     }
@@ -253,15 +289,10 @@ tasks.named("check") { dependsOn(checkAbiCoverage) }
 
 tasks.register("stageLibraries") {
     group = "publishing"
-    description = "Creates local reviewable Maven artifacts only; no remote repository or signing is configured."
+    description =
+        "Creates local Maven artifacts with optional explicit release signing; no remote repository is configured."
     dependsOn(abiLibraryPaths.map { "$it:publishAllPublicationsToLocalStagingRepository" })
 }
-
-val normeinPublicationCheckout = rootProject.file(
-    providers.gradleProperty("normeinBuildPath").orNull
-        ?: System.getenv("NORMEIN_BUILD_PATH")
-        ?: ".deps/normein",
-)
 
 val verifyLocalStaging by tasks.registering(Exec::class) {
     group = "verification"
@@ -270,25 +301,27 @@ val verifyLocalStaging by tasks.registering(Exec::class) {
     commandLine(
         "python3",
         "scripts/verify-local-staging.py",
-        rootProject.layout.buildDirectory.dir("staging").get().asFile.absolutePath,
+        mantraStagingDirectory.absolutePath,
         rootProject.version.toString(),
     )
 }
 
 val checkCleanConsumer by tasks.registering(Exec::class) {
     group = "verification"
-    description = "Compiles and executes standalone Java/Kotlin consumers from local POMs with fresh caches."
+    description = "Executes staged Java/Kotlin POM consumers with a fresh Maven Central kernel dependency."
     dependsOn(verifyLocalStaging)
-    // This exact pre-existing pinned task publishes locally only. Never invoke generic publish.
-    dependsOn(gradle.includedBuild("normein").task(":normein-dsl:publishMavenPublicationToLocalStagingRepository"))
     val executable = checkNotNull(gradle.gradleHomeDir).resolve(
         if (System.getProperty("os.name").startsWith("Windows")) "bin/gradle.bat" else "bin/gradle",
     )
     commandLine(
-        "python3", "scripts/check-clean-consumer.py", "--gradle", executable.absolutePath,
-        "--version", rootProject.version.toString(), "--mantra-repository",
-        rootProject.layout.buildDirectory.dir("staging").get().asFile.absolutePath,
-        "--normein-repository", normeinPublicationCheckout.resolve("build/staging").absolutePath,
+        "python3",
+        "scripts/check-clean-consumer.py",
+        "--gradle",
+        executable.absolutePath,
+        "--version",
+        rootProject.version.toString(),
+        "--mantra-repository",
+        mantraStagingDirectory.absolutePath,
     )
 }
 

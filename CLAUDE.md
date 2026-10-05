@@ -17,8 +17,9 @@ changing engine semantics and `docs/roadmap.md` for the accepted R1–R10 decisi
 - **Public calculation and result contracts belong in `core.api` and `core.view`.** Consumers may also
   use public document models, diagnostics, structure and data adapters. No module outside
   `mantra-core` imports `core.engine`; planners, compiled expressions and execution caches are internal.
-- **Normein is consumed unchanged** at the commit in `normein-build.lock` (composite build of
-  `normein-dsl`). Kernel-level needs go into an RFC under `docs/rfc/`, never into a patched kernel.
+- **Normein is consumed unchanged** as `com.xqiou:normein-dsl:0.3.0` from Maven Central by default.
+  Explicit source builds enforce the commit in `normein-build.lock`. Kernel-level needs go into
+  an RFC under `docs/rfc/`, never into a patched kernel.
   Coordinate kernel requirements and releases by milestone (R4); never release an unpinned candidate.
 - **Presentation is a separate layer.** Layouts never change values; the layout DSL is owned by this
   project and extended here. Core, Text/HTML, XLSX and Explain must agree on values; report formula
@@ -34,8 +35,9 @@ changing engine semantics and `docs/roadmap.md` for the accepted R1–R10 decisi
 
 ## Commands
 
-- Pinned checkout: `scripts/bootstrap-normein.sh`; `NORMEIN_SOURCE` selects a remote or local clone.
-  A separate clean checkout can be used with `NORMEIN_BUILD_PATH` or `-PnormeinBuildPath=<dir>`.
+- Default kernel: Maven Central; no checkout or private credentials required.
+- Optional pinned checkout: `scripts/bootstrap-normein.sh`; `NORMEIN_SOURCE` selects a remote or local clone.
+  Enable it explicitly with `NORMEIN_BUILD_PATH` or `-PnormeinBuildPath=<dir>`.
 - Verification: `npm --prefix workbench-ui ci` then `./gradlew --no-daemon check` (JVM,
   Kotlin format/style, source size, boundaries and frontend format/lint/type checks).
 - CLI: `./gradlew :mantra-cli:installDist`, then

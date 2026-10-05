@@ -279,19 +279,6 @@ private fun evaluate(
     )
 }
 
-private fun normeinVersion(schemaPath: Path): String {
-    var directory: Path? = schemaPath.toAbsolutePath().normalize().parent
-    while (directory != null) {
-        val lock = directory.resolve("normein-build.lock")
-        if (Files.isRegularFile(lock)) {
-            return Files.readAllLines(lock).firstOrNull { it.startsWith("normeinCommit=") }
-                ?.substringAfter('=')?.take(8) ?: "unknown"
-        }
-        directory = directory.parent
-    }
-    return "unknown"
-}
-
 private fun run(options: Options) {
     val execution = evaluate(options)
     val result = execution.result
@@ -400,7 +387,7 @@ private fun diff(options: Options) {
     val envelope = WorkbenchJson.envelope(
         revision,
         com.xqiou.mantra.core.api.RuntimeVersions.mantra,
-        normeinVersion(options.schemaPath()),
+        com.xqiou.mantra.core.api.RuntimeVersions.normein,
         document,
     )
     val output = when (options.named["format"] ?: "json") {
@@ -493,7 +480,7 @@ private fun explain(options: Options) {
             WorkbenchJson.envelope(
                 revision,
                 com.xqiou.mantra.core.api.RuntimeVersions.mantra,
-                normeinVersion(options.schemaPath()),
+                com.xqiou.mantra.core.api.RuntimeVersions.normein,
                 document + ("revision" to revision),
             ),
         )

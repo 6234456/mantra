@@ -13,7 +13,7 @@ Mantra 的目标是把这些计算中**本质的、跨领域不变的模式**抽
 
 | 层 | 归属 | 内容 | 不包含 |
 | --- | --- | --- | --- |
-| Normein DSL 内核 | `6234456/normein`（固定 commit 引用） | 表达式语言、类型系统、BigDecimal 精确计算、运行时预算 | Mantra 不修改它；需求写入 RFC |
+| Normein DSL 内核 | `com.xqiou:normein-dsl:0.3.0`（可选固定源码 commit） | 表达式语言、类型系统、BigDecimal 精确计算、运行时预算 | Mantra 不修改它；需求写入 RFC |
 | Mantra 引擎库与工具 | 本仓库 `mantra-core`、`mantra-render`、`mantra-excel`、`mantra-cli`、`mantra-workbench`、`mantra-server` | 通用计算组件、通用表格组件、常用预设与参考工具 | **任何具体业务逻辑**（税法条文、准则步骤） |
 | 领域展示应用 | `apps/`，每个应用是独立 Gradle 子项目 `:apps:<名称>` | ESt 2025、IAS 36、SAP CO 风格成本归集等具体方案、参数集、案例、版式和独立核对 | 引擎内部代码 |
 
@@ -213,7 +213,7 @@ SAP CO 风格案例遵守同一边界：引擎负责表格记录、工单与产�
 
 ## 7. 与 Normein 的集成
 
-* 以 composite build 引用固定 commit（`normein-build.lock`，与 invoice-parser 的做法一致），只替换 `com.xqiou:normein-dsl`。
+* 默认从 Maven Central 直接消费 `com.xqiou:normein-dsl:0.3.0`，不引入发票领域的 `normein-api` 门面。仅在显式指定 `normeinBuildPath` 或 `NORMEIN_BUILD_PATH` 时启用固定 commit 的 composite build（`normein-build.lock`）；已有 `.deps/normein` 不会隐式替换公共依赖。
 * Mantra 自己的函数库 `mantra.calc@1`（`alloc/*`、`calc/stepwise`、`table/band`、`dim/*`、`fin/*`）作为普通领域库通过 `DslLibraryDescriptor` 组合到标准环境中；Normein 内核不做任何修改。
 * 使用中发现的内核层需求记录在 [RFC 0001](rfc/0001-normein-dsl-kernel-extensions.md)。
 * 已合入的 WP1 锁定已发布的 `0a3ae1de`（language 25 / stdlib 33），用 `hostPosition` 向内核传递嵌入公式与定义的文档坐标，直接消费内核返回的绝对诊断位置；数据字面量委托 `DslFormLiterals`。

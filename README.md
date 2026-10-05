@@ -4,13 +4,14 @@ Mantra is a general calculation-schema library built on the [Normein DSL](https:
 
 This monorepo contains the engine and domain demonstration applications under `apps/`. Domain rules live in their schemas; the engine and reference workbench provide generic capabilities.
 
-**The applications are demonstrations only. They are not production tax or accounting software and do not provide tax or accounting advice.** Their simplifications and verification sources are documented in each application's README. Mantra is pre-1.0; APIs and DSL contracts may change with documented version changes. Library artifacts have not yet been published; coordinated publication with `normein-dsl` is planned in the [roadmap](docs/roadmap.md).
+**The applications are demonstrations only. They are not production tax or accounting software and do not provide tax or accounting advice.** Their simplifications and verification sources are documented in each application's README. Mantra is pre-1.0; APIs and DSL contracts may change with documented version changes. Mantra library artifacts have not yet been published; the required `com.xqiou:normein-dsl:0.3.0` kernel is available from Maven Central. The remaining release work is tracked in the [roadmap](docs/roadmap.md).
 
 The current `1.0.0-rc.1` source candidate includes M4 embedding/packages, M5 language tools and
 documentation, and the M6 specification, conformance and acceptance checks. See the
 [release candidate evidence](docs/release-candidate.md), [final performance report](docs/performance-v1.md)
 and [scoped security review](docs/security-review-v1.md). Stable Maven publication still requires the
-public pinned kernel artifact and publisher namespace/signing configuration.
+publisher namespace/signing configuration, which the maintainer deferred on 2026-10-05.
+The default build resolves the public kernel from Maven Central; no private checkout is needed.
 
 ```text
 schema + case + parameters ─▶ mantra-core ─▶ calculation values and traces
@@ -24,18 +25,27 @@ schema + case + parameters ─▶ mantra-core ─▶ calculation values and trac
 
 Requirements: JDK 21, Git, and Node.js 22.13+ (22.x) or 24+ for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
 
-Normein is currently private, so a full build requires authorized access or an existing authorized
-local checkout. See the [kernel publication plan](docs/normein-publication.md) for the public artifact
-release sequence. Create the pinned checkout using SSH by default, or select HTTPS explicitly:
+The default build resolves `com.xqiou:normein-dsl:0.3.0` from Maven Central. A Normein source
+checkout or private-repository credentials are not required.
 
 ```bash
-NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
 npm --prefix workbench-ui ci
 ./gradlew --no-daemon check
 ./gradlew :mantra-cli:installDist
 ```
 
-The full kernel commit is in [normein-build.lock](normein-build.lock): `0a3ae1de844c92635fbbc03406a13cb0e8920c03` (language semantics 25, standard library 33). To use a separate clean checkout at that commit, set `NORMEIN_BUILD_PATH` or pass `-PnormeinBuildPath=/path/to/checkout`. The build rejects a different commit or tracked modifications.
+For kernel development only, create the optional source checkout and select it explicitly:
+
+```bash
+NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
+./gradlew --no-daemon check -PnormeinBuildPath=.deps/normein
+```
+
+The source baseline remains in [normein-build.lock](normein-build.lock):
+`0a3ae1de844c92635fbbc03406a13cb0e8920c03` (language semantics 25, standard library 33).
+`NORMEIN_BUILD_PATH` or `-PnormeinBuildPath=/path/to/checkout` enables source substitution;
+the build rejects a different commit or tracked modifications. An existing `.deps/normein`
+directory does not enable substitution automatically. See [kernel integration](docs/normein-publication.md).
 
 Render the impairment demonstration as an HTML working paper:
 

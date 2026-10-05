@@ -4,7 +4,8 @@ plugins {
 
 val mantraVersion = providers.gradleProperty("mantraVersion").get()
 val mantraRepository = providers.gradleProperty("mantraRepository").get()
-val normeinRepository = providers.gradleProperty("normeinRepository").get()
+val mantraMetadataMode = providers.gradleProperty("mantraMetadataMode").getOrElse("pom")
+require(mantraMetadataMode in setOf("pom", "gradle")) { "mantraMetadataMode must be pom or gradle" }
 
 subprojects {
     repositories {
@@ -12,29 +13,26 @@ subprojects {
             forRepository {
                 maven {
                     url = uri(mantraRepository)
-                    metadataSources {
-                        mavenPom()
-                        ignoreGradleMetadataRedirection()
-                        artifact()
+                    if (mantraMetadataMode == "pom") {
+                        metadataSources {
+                            mavenPom()
+                            ignoreGradleMetadataRedirection()
+                            artifact()
+                        }
                     }
                 }
             }
             filter { includeGroup("com.xqiou.mantra") }
         }
-        exclusiveContent {
-            forRepository {
-                maven {
-                    url = uri(normeinRepository)
-                    metadataSources {
-                        mavenPom()
-                        ignoreGradleMetadataRedirection()
-                        artifact()
-                    }
+        mavenCentral {
+            if (mantraMetadataMode == "pom") {
+                metadataSources {
+                    mavenPom()
+                    ignoreGradleMetadataRedirection()
+                    artifact()
                 }
             }
-            filter { includeGroup("com.xqiou") }
         }
-        mavenCentral()
     }
     extra["mantraVersion"] = mantraVersion
 }

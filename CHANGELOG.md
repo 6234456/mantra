@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Resolve the published `com.xqiou:normein-dsl:0.3.0` kernel from Maven Central by default;
+  CI and isolated POM consumers no longer require a private checkout or deploy key.
+  Source substitution remains an explicit pinned-development option.
+- Report the embedded kernel version in CLI/workbench output rather than a caller's ancestor
+  lockfile commit; retain original source/runtime identities in archived performance evidence.
+
 ## 1.0.0-rc.1 — M4–M6 source candidate
 
 - Add immutable compiled templates, owner-confined reusable sessions and streamed typed batches,

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Creates the pinned Normein checkout used by the composite build (.deps/normein).
+# Creates an optional pinned Normein checkout; normal builds use Maven Central.
+# Select this checkout explicitly with -PnormeinBuildPath=.deps/normein.
 # NORMEIN_SOURCE may point to a local clone or a remote URL (default: git@github.com:6234456/normein.git).
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -13,3 +14,4 @@ fi
 git -C "$target" fetch --quiet origin "$commit" 2>/dev/null || true
 git -C "$target" checkout --quiet --detach "$commit"
 echo "Normein pinned at $(git -C "$target" rev-parse HEAD) in $target"
+echo "Enable source substitution explicitly: ./gradlew -PnormeinBuildPath=.deps/normein check"

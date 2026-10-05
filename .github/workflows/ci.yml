@@ -20,19 +20,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Read pinned kernel revision
-        id: normein
-        run: echo "commit=$(sed -n 's/^normeinCommit=//p' normein-build.lock)" >> "$GITHUB_OUTPUT"
-      # Normein is currently private. This dedicated deploy key grants read-only access to that
-      # repository; credentials are removed by checkout and never enter Gradle caches/artifacts.
-      - name: Checkout pinned Normein kernel
-        uses: actions/checkout@v4
-        with:
-          repository: 6234456/normein
-          ref: ${{ steps.normein.outputs.commit }}
-          path: .deps/normein
-          ssh-key: ${{ secrets.NORMEIN_DEPLOY_KEY }}
-          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

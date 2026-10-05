@@ -13,7 +13,7 @@ it is not a replacement for the full notices required in a binary distribution.
 
 | Component | Version at this baseline | Upstream license | Use |
 | --- | --- | --- | --- |
-| [Normein DSL](https://github.com/6234456/normein) | 0.3.0, commit `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Apache-2.0 | Unmodified calculation kernel, included through a pinned composite build |
+| [Normein DSL](https://github.com/6234456/normein) | 0.3.0 (Maven Central); optional source baseline `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Apache-2.0 | Unmodified calculation kernel; source substitution requires explicit opt-in |
 | [Kotlin standard library](https://github.com/JetBrains/kotlin) | 2.2.20 | Apache-2.0 | JVM runtime |
 | [JetBrains annotations](https://github.com/JetBrains/java-annotations) | 13.0 | Apache-2.0 | Kotlin runtime dependency |
 | [Apache POI](https://poi.apache.org/) (`poi`, `poi-ooxml`, `poi-ooxml-lite`) | 5.5.1 | Apache-2.0 | XLSX export, descriptions and import |

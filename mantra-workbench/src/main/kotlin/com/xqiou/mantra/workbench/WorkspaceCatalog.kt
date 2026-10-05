@@ -67,7 +67,7 @@ class WorkspaceCatalog(
         internal val writeLocks = ConcurrentHashMap<Path, Any>()
     }
     val root: Path = directory.toRealPath().also { require(Files.isDirectory(it)) { "Workspace must be a directory" } }
-    private val normeinVersion = normeinVersion ?: lockedNormein(root)
+    private val normeinVersion = normeinVersion ?: com.xqiou.mantra.core.api.RuntimeVersions.normein
 
     /** Test seam for an external file change after calculation and before the final write check. */
     internal var beforeWriteCheck: (() -> Unit)? = null
@@ -378,17 +378,4 @@ class WorkspaceCatalog(
     )
 
     internal fun diagnostic(code: String, message: String) = Diagnostic(Severity.ERROR, code, message)
-
-    private fun lockedNormein(from: Path): String {
-        var cursor: Path? = from
-        while (cursor != null) {
-            val lock = cursor.resolve("normein-build.lock")
-            if (Files.isRegularFile(lock)) {
-                return Files.readAllLines(lock)
-                    .firstOrNull { it.startsWith("normeinCommit=") }?.substringAfter('=')?.take(8) ?: "unknown"
-            }
-            cursor = cursor.parent
-        }
-        return "unknown"
-    }
 }

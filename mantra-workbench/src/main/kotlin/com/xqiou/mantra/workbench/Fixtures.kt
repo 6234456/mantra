@@ -71,7 +71,7 @@ object Fixtures {
         val layouts = linkedMapOf<CanonicalCaseKey, LayoutSpec>()
         val sources = linkedSetOf<CanonicalCaseKey>()
         val expected = linkedMapOf<CanonicalCaseKey, CaseRunCase>()
-        val normein = readNormeinCommit(root)
+        val normein = com.xqiou.mantra.core.api.RuntimeVersions.normein
         fun consistent(first: CaseRunCase, next: CaseRunCase) {
             require(first.revision == next.revision && first.schema == next.schema && first.caseId == next.caseId) {
                 "Case identity or revision changed during fixture generation: ${first.key.value}"
@@ -321,17 +321,4 @@ object Fixtures {
 
     private fun hash(value: String, bytes: Int): String = MessageDigest.getInstance("SHA-256")
         .digest(value.toByteArray(Charsets.UTF_8)).take(bytes).joinToString("") { "%02x".format(it) }
-
-    private fun readNormeinCommit(directory: Path): String {
-        var cursor: Path? = directory
-        while (cursor != null) {
-            val lock = cursor.resolve("normein-build.lock")
-            if (Files.isRegularFile(lock)) {
-                return Files.readAllLines(lock)
-                    .firstOrNull { it.startsWith("normeinCommit=") }?.substringAfter('=')?.take(8) ?: "unknown"
-            }
-            cursor = cursor.parent
-        }
-        return "unknown"
-    }
 }

@@ -5,13 +5,13 @@ tax or accounting rules do not belong in the engine or workbench.
 
 ## Build and verification
 
-Use JDK 21, Git and Node.js 22.13+ (22.x) or 24+. Bootstrap a clean Normein checkout at the commit in
-`normein-build.lock`; do not patch it as part of a Mantra change. Normein is currently private, so
-bootstrap requires authorized repository access. Alternatively, set `NORMEIN_BUILD_PATH` to an
-existing authorized, clean checkout at the locked commit. See the [kernel publication plan](docs/normein-publication.md).
+Use JDK 21, Git and Node.js 22.13+ (22.x) or 24+. Normal builds resolve the published
+`com.xqiou:normein-dsl:0.3.0` kernel from Maven Central without a source checkout or private
+credentials. Kernel development can explicitly select a clean checkout with `NORMEIN_BUILD_PATH`
+or `-PnormeinBuildPath`; its commit must match `normein-build.lock` and it must not be patched as
+part of a Mantra change. See [kernel integration](docs/normein-publication.md).
 
 ```bash
-NORMEIN_SOURCE=https://github.com/6234456/normein.git scripts/bootstrap-normein.sh
 npm --prefix workbench-ui ci
 ./gradlew --no-daemon check
 ./gradlew :mantra-cli:installDist

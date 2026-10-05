@@ -53,16 +53,22 @@ were stopped and removed; existing user browser profiles and services were prese
 
 ## Stable publication prerequisites
 
-No Maven Central upload or signing has occurred. Six local Mantra publications are reviewable,
-but the required publisher namespace/signing/Central configuration is absent. The pinned
-`com.xqiou:normein-dsl:0.3.0` POM returned HTTP 404 at the official Maven Central repository on
-2026-10-04 at 16:22 UTC. The private kernel checkout and read-only CI deploy key do not make that
-dependency publicly resolvable.
+No Mantra Maven Central upload or signing has occurred. Six local Mantra publications are
+reviewable. On 2026-10-05 the maintainer explicitly deferred Mantra Central publication and
+its independent environment secret configuration. The main-only `maven-central` environment
+and local preparation tools remain ready for later setup.
+The original `normein-dsl:0.3.0` POM probe returned HTTP 404 on 2026-10-04 at 16:22 UTC.
+A new official probe on 2026-10-05 successfully fetched its POM, JAR, sources and Gradle metadata,
+following the maintainer's notice that `normein-api:0.3.0` had been published. The API POM
+references the now-public DSL. That public dependency prerequisite is resolved.
 
-The [coordinated publication sequence](normein-publication.md) remains in force. The maintainer's
-choice between configuring that release and explicitly deferring Central is pending; this source
-candidate does not silently change R10 or announce stable `1.0.0`. Signing secrets belong in secure
-release configuration, never in this repository or chat.
+Default builds and CI now consume the public DSL directly. Its identity/replay implementation
+has differences from the source-built kernel used for the measurements above. New functional
+and isolated-consumer validation accompanies the dependency change; the archived measurements
+retain their original source and runtime identities. See [kernel integration](normein-publication.md).
+
+The source candidate does not announce stable `1.0.0` or a public Mantra Maven release. Signing
+secrets belong in secure release configuration, never in this repository or chat.
 
 Strict secure-directory handles remain the package default. On a filesystem/provider without them,
 the host may explicitly choose `TRUSTED_LOCAL` for a cooperative directory; the library never

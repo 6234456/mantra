@@ -1,0 +1,174 @@
+name: Prepare Central release
+
+on:
+  workflow_dispatch:
+    inputs:
+      sourceCommit:
+        description: Exact current main commit (40 lowercase hexadecimal characters)
+        type: string
+        required: true
+      version:
+        description: Explicit stable major.minor.patch version
+        type: string
+        required: true
+      signerFingerprint:
+        description: Full uppercase public fingerprint matching the environment policy
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: mantra-central-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    environment: maven-central
+    env:
+      SOURCE_COMMIT: ${{ inputs.sourceCommit }}
+      RELEASE_VERSION: ${{ inputs.version }}
+      SIGNER_FINGERPRINT: ${{ inputs.signerFingerprint }}
+      SIGNER_POLICY: ${{ vars.SIGNING_FINGERPRINT }}
+      RELEASE_OUTPUT_DIR: build/central-release
+    steps:
+      # No repository code, signing key or Central credential is used before this gate.
+      - name: Validate exact main source and successful CI
+        id: source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/mantra-central-source-gate.py" <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlencode
+          from urllib.request import HTTPRedirectHandler, Request, build_opener
+
+          def require(condition, message):
+              if not condition:
+                  raise ValueError(message)
+
+          class NoRedirect(HTTPRedirectHandler):
+              def redirect_request(self, request, response, code, message, headers, new_url):
+                  raise ValueError("Release source API redirects are refused")
+
+          def fetch(path):
+              request = Request("https://api.github.com" + path, headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": "Bearer " + os.environ["GITHUB_TOKEN"],
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "mantra-central-release-source-gate",
+              })
+              with build_opener(NoRedirect()).open(request, timeout=20) as response:
+                  data = response.read(2 * 1024 * 1024 + 1)
+              require(len(data) <= 2 * 1024 * 1024, "Release source API response exceeds its byte bound")
+              return json.loads(data.decode("utf-8", errors="strict"))
+
+          def validate_inputs():
+              require(os.environ["GITHUB_REPOSITORY"] == "6234456/mantra", "Release requires the Mantra repository")
+              require(os.environ["GITHUB_REF"] == "refs/heads/main", "Release dispatch must use main")
+              source = os.environ["SOURCE_COMMIT"]
+              require(re.fullmatch(r"[0-9a-f]{40}", source), "sourceCommit must be an exact 40-hex commit")
+              require(source == os.environ["GITHUB_SHA"], "sourceCommit must match the dispatch workflow commit")
+              version = os.environ["RELEASE_VERSION"]
+              require(len(version) <= 64 and re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", version),
+                      "version must be canonical stable major.minor.patch")
+              fingerprint = os.environ["SIGNER_FINGERPRINT"]
+              require(re.fullmatch(r"(?:[A-F0-9]{40}|[A-F0-9]{64})", fingerprint), "A full uppercase public fingerprint is required")
+              require(fingerprint == os.environ["SIGNER_POLICY"], "Fingerprint does not match maven-central environment policy")
+              return source
+
+          def verify_source(source):
+              branch = fetch("/repos/6234456/mantra/branches/main")
+              require(branch["commit"]["sha"] == source, "sourceCommit is no longer current main HEAD")
+              query = urlencode({"head_sha": source, "branch": "main", "event": "push", "per_page": 100})
+              response = fetch("/repos/6234456/mantra/actions/workflows/ci.yml/runs?" + query)
+              runs = [run for run in response["workflow_runs"] if run.get("head_sha") == source
+                      and run.get("head_branch") == "main" and run.get("event") == "push"
+                      and run.get("head_repository", {}).get("full_name") == "6234456/mantra"]
+              require(runs, "No exact-main CI run exists for the release source")
+              latest = max(runs, key=lambda run: (run["run_number"], run.get("run_attempt", 1)))
+              require(latest["status"] == "completed" and latest["conclusion"] == "success",
+                      "The latest exact-main CI run must have completed successfully")
+              # Recheck after querying CI; do not accept a main update during validation.
+              require(fetch("/repos/6234456/mantra/branches/main")["commit"]["sha"] == source,
+                      "main changed while validating release CI")
+              return {"sourceCommit": source, "version": os.environ["RELEASE_VERSION"],
+                      "signerFingerprint": os.environ["SIGNER_FINGERPRINT"], "phase": "prepare",
+                      "ciRunId": latest["id"], "ciRunAttempt": latest.get("run_attempt", 1),
+                      "ciRunUrl": latest["html_url"], "ciConclusion": "success", "published": False}
+
+          if __name__ == "__main__":
+              try:
+                  receipt = verify_source(validate_inputs())
+              except (ValueError, KeyError, HTTPError, URLError) as error:
+                  raise SystemExit("Release source gate refused; no signing or upload was attempted: " + str(error))
+              # This public receipt survives the subsequent checkout.
+              location = Path(os.environ["RUNNER_TEMP"]) / "mantra-central-ci-receipt.json"
+              location.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+              with Path(os.environ["GITHUB_ENV"]).open("a", encoding="utf-8") as output:
+                  output.write("RELEASE_CI_RECEIPT=" + str(location) + "\n")
+          PY
+          python3 "$RUNNER_TEMP/mantra-central-source-gate.py"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sourceCommit }}
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Confirm unchanged source immediately before signing
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_COMMIT"
+          python3 "$RUNNER_TEMP/mantra-central-source-gate.py"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          destination = Path(os.environ["RELEASE_OUTPUT_DIR"])
+          if destination.exists() or destination.is_symlink():
+              raise SystemExit("Preparation output directory must be new; signing refused")
+          Path("build").mkdir(exist_ok=True)
+          Path("build/central-ci-receipt.json").write_bytes(Path(os.environ["RELEASE_CI_RECEIPT"]).read_bytes())
+          PY
+      - name: Prepare signed local bundle and isolated consumers
+        id: prepare
+        env:
+          MANTRA_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          MANTRA_SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/prepare-central-release.py \
+            --version "$RELEASE_VERSION" \
+            --source-commit "$SOURCE_COMMIT" \
+            --signer-fingerprint "$SIGNER_FINGERPRINT" \
+            --output-dir "$RELEASE_OUTPUT_DIR"
+      - name: Retain public review evidence
+        if: always() && steps.source.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mantra-central-preparation
+          path: |
+            build/central-ci-receipt.json
+            build/central-release/mantra-*-central.zip
+            build/central-release/bundle-receipt.json
+            build/central-release/preparation-receipt.json
+            build/central-release/signer-public.gpg
+            build/central-release/consumer-pom.log
+            build/central-release/consumer-gradle.log
+          if-no-files-found: ignore
+          retention-days: 30
