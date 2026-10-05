@@ -304,3 +304,12 @@ The updated scripts passed **114 Python tests** and a real, offline Gradle block
 test. That test used no signing key, verified both launcher and separate daemon exit, and removed
 its temporary project/cache without stopping unrelated processes. The earlier 98-test suite and
 canonical signing receipt above remain evidence for their dated `a1e6e65` revision.
+
+The hardened preparer then passed a new actual canonical TEST-key run on
+`75d0258a377d27bff828a3e7217bb75c61a391a5`. Six signed local publications produced a 144-entry
+GPGv-verified bundle with SHA-256
+`53f0b4596e4ddc8c62ae3349fb54430463be488f4b470adb34823b107b04c031`.
+Five fresh POM-only and five fresh ordinary Gradle consumers passed. Owned daemon exit,
+GPG shutdown, private staging removal and outer TEST key/bundle removal were verified.
+[The retained local receipts](evidence/release-process-cleanup/README.md) distinguish the unit
+suite, real timeout test and real signed-consumer run. Nothing was uploaded or published.

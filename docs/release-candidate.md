@@ -75,6 +75,14 @@ preparer boundary regressions. This proves the local preparation path; it does n
 namespace/signer/token configuration, run the hosted workflow or upload a Mantra artifact. See
 [preparation evidence](central-publication.md).
 
+The subsequent cleanup hardening passed 114 Python tests, an actual offline Gradle timeout
+exercise and a new canonical TEST-key preparation on `75d0258a377d27bff828a3e7217bb75c61a391a5`.
+All 144 bundle entries and both five-consumer modes passed; task-owned daemon/key/staging cleanup
+was verified. The POSIX preparer uses dedicated Gradle homes and handles catchable cancellation;
+unverified cleanup retains a failure receipt. See [the new local receipts](evidence/release-process-cleanup/README.md)
+and [cleanup controls](central-publication.md#task-owned-process-cleanup). Production publication
+remains deferred.
+
 The original `normein-dsl:0.3.0` POM probe returned HTTP 404 on 2026-10-04 at 16:22 UTC.
 A new official probe on 2026-10-05 successfully fetched its POM, JAR, sources and Gradle metadata,
 following the maintainer's notice that `normein-api:0.3.0` had been published. The API POM

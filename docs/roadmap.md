@@ -172,7 +172,7 @@ M0 巩固、开源准备与 monorepo ─► M1 校验与审计 ─► M2 连续�
 
 - **远端与 CI**
   - 建立远端并推送。维护者已于 2026-10-03 确认使用公开仓库，覆盖 R10 原定的公开时点；其余发布条件不变。
-  - Normein 的锁定提交已在其远端 `origin/main` 上。`bootstrap-normein.sh` 默认使用 SSH 地址；CI 使用专用只读 deploy key 检出锁定提交，凭据不进入构建缓存或产物。
+  - 历史 M0 通过专用只读 deploy key 检出 Normein 锁定源码，凭据不进入缓存或产物。2026-10-05 起，默认构建与 CI 直接消费 Maven Central 的公共 `normein-dsl:0.3.0`，不需要 deploy key；锁定源码 composite 保留为显式开发选项。
   - CI 任务：先安装前端依赖，再运行 `./gradlew --no-daemon check`；在 `workbench-ui` 中执行 `npm ci`、`npm test`、`npm run build` 和 `npm run test:e2e`（无头浏览器）。
 - **Monorepo（R3）**
   - `examples/` 迁为 `apps/<应用>`，每个应用是一个 Gradle 子项目（如 `:apps:de-est`），只依赖库模块；库模块保持在根目录。
@@ -404,12 +404,12 @@ Normein 保持锁定提交且未修改；仓库已公开，首个库制品仍按
 | ESt（§ 2、§ 32a EStG） | `apps/de-est` | 已有；M3 跨年结转 | Staffel、人员维度、择优、分段、扩展槽 | § 32a 公式；`verify_expected.py` |
 | IAS 36 总部资产 | `apps/ifrs-impairment` | 已有；M2 补使用价值 | 分摊、择优、带上限分摊、现金流 × 期间 | 独立虚构事实；`verify_expected.py` Fraction 复算 |
 | SAP CO 风格成本 | `apps/cost-accounting` | 已有；M1 | 表格、关系汇总、比率度量、校验与对账 | 独立对账 |
-| IAS 12 税率调节与递延税 | `apps/ifrs-income-taxes` | M1；M2 递延税变动 | 对账、比率、按项目的表格 | 公开示例或独立复算 |
+| IAS 12 税率调节与递延税 | `apps/ifrs-income-taxes` | M1 单期税率调节；递延税变动为后续候选，未纳入 M2 展示退出条件 | 对账、比率、按项目的表格 | 公开示例或独立复算 |
 | 资产变动表（IAS 16、HGB） | `apps/fixed-assets` | M2 | 连续期间、每期期末、存量与流量、转置矩阵 | 独立复算 |
 | IFRS 16 租赁 | `apps/ifrs-leases` | M2；M4 批量嵌入 | 连续期间、实际利率、`fin/pmt`、日期计算 | 公开示例或独立复算 |
 | § 10d EStG 亏损结转 | `apps/de-est` | M3 | 跨案例延续 | 独立复算 |
 | GewSt → § 35 EStG | `apps/de-gewst` | M3 | 跨方案传值、免征额与阈值 | 独立复算 |
-| 循环计算（奖金、gross-up） | 待定 | M3 | 有界迭代 | 闭式解 |
+| 循环计算（奖金、gross-up） | `apps/circular-calculation` | M3 | 有界迭代 | 闭式解 |
 | § 4h EStG 利息上限 | 待定 | v1.0 后 | 多项结转、按年度分层的到期 | 待定 |
 | IFRS 9 预期信用损失 | 待定 | v1.0 后 | 情景加权、阶段划分、连续期间 | 待定 |
 | Grundsteuer（联邦模式） | 待定 | v1.0 后 | 大型参数表、键控查找 | 待定 |

@@ -1,0 +1,14 @@
+{
+  "testOnly": true,
+  "signingKeyUsed": false,
+  "uploaded": false,
+  "unrelatedProcessesStopped": false,
+  "actualTimeoutHandled": true,
+  "readyTaskObserved": true,
+  "allObservedDaemonsSharedOwnedLauncherGroup": false,
+  "observedDaemonCount": 1,
+  "taskHomeDaemonExitVerified": true,
+  "ownedLauncherGroupExited": true,
+  "status": "ACTUAL_GRADLE_TIMEOUT_AND_DAEMON_CLEANUP_PASSED",
+  "temporaryProjectAndCacheRemoved": true
+}

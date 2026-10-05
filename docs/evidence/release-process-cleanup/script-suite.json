@@ -1,0 +1,13 @@
+{
+  "status": "PYTHON_RELEASE_GATES_PASSED",
+  "tests": 114,
+  "actualGradleInUnitSuite": false,
+  "uploaded": false,
+  "testedImplementationCommit": "75d0258a377d27bff828a3e7217bb75c61a391a5",
+  "implementationSha256": {
+    "scripts/release_processes.py": "56dca1d9348cf28f36da51705130dc65921c40fa6b8ff6847db3250185b2ec3f",
+    "scripts/prepare-central-release.py": "6b80c6d05caaf11c007837f0f9a2663742dee4174c8cd7b7ca1c3be315f310dd",
+    "scripts/check-clean-consumer.py": "2dde6ac1da73e56d185045de4c5ad22e44d2e0a3897cdd907d53eba92aca4dac"
+  },
+  "realTimeoutAndSigningRunsRecordedSeparately": true
+}

@@ -1,0 +1,11 @@
+{
+  "gradleStopped": true,
+  "metadataMode": "gradle",
+  "processGroupsStopped": true,
+  "published": false,
+  "status": "CLEANUP_VERIFIED",
+  "temporaryStateRemoved": true,
+  "verifiedGradleDaemonPids": [
+    41331
+  ]
+}

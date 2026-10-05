@@ -170,5 +170,7 @@ jobs:
             build/central-release/signer-public.gpg
             build/central-release/consumer-pom.log
             build/central-release/consumer-gradle.log
+            build/central-release/consumer-pom-cleanup.json
+            build/central-release/consumer-gradle-cleanup.json
           if-no-files-found: ignore
           retention-days: 30

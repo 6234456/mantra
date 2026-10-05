@@ -164,6 +164,7 @@ jobs:
             apps/*/build/out/
             benchmarks/build/reports/tests/
             build/staging/
+            build/release-checks/clean-consumer-cleanup.json
             build/lsp-smoke/
             build/tutorial/
             build/docs-site/
