@@ -77,5 +77,8 @@ D1–D8 在最终源码修订的全 `check`、UI 与实际 CI 通过；教程从
 发行记录必须区分源代码、IDE 可安装 ZIP、离线站点、本地 Maven staging 与实际公开制品。
 当前候选的功能、性能、安全与兼容检查已实际通过；最终源码发行修订及 CI 以 `v1.0.0-rc.1`
 tag 和[发行候选记录](../release-candidate.md)的 release receipt 为准。
-公开 Maven 上传尚未执行。Maven namespace/signing 与对应公开 Normein 0.3.0
-制品仍待维护者决定并配置，不能从 consumer 通过推导出已发布。
+Mantra Maven 上传尚未执行。2026-10-05 公开 Normein 0.3.0 的依赖前提已解除，
+默认构建与 CI 直接消费公共 DSL。标准准备器的实际 TEST-key 签名、144 项 bundle 验签、
+十次隔离消费者运行及清理已通过，不能由此推导出生产身份或正式发布。
+维护者已暂缓 Mantra namespace/signing/token 配置与上传；历史候选和站点证据保持原身份。
+详见[发布准备证据](../central-publication.md)。

@@ -1,0 +1,23 @@
+capturedAtUtc=2026-10-05T07:28:36.728081Z
+mantraRevision=a1e6e65a01aa39c792681a138beda31ab66af172
+workingTreeModified=false
+normeinVersion=0.3.0
+normeinSourceBaselineCommit=0a3ae1de844c92635fbbc03406a13cb0e8920c03
+normeinRuntimeJarSha256=83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8
+javaVersion=21.0.12.1
+javaVendor=Azul Systems, Inc.
+vmName=OpenJDK 64-Bit Server VM
+vmArguments=-Xms512m -Xmx2g -XX:+UseG1GC -Dfile.encoding=UTF-8
+kotlinVersion=2.2.20
+os=Mac OS X 27.0 aarch64
+availableProcessors=10
+maxHeapBytes=2147483648
+warmupPerOperation=5
+repetitionsPerOperation=10
+xlsxReadMaxDurationSeconds=300
+series=200
+generatedPeriods=10
+libraryAndHarnessSourceSha256=cbfd26a246033d6e016415a6eca49459801b372d04bc25038200669f6bf54661
+heapMethod=Sum of JVM heap-pool peaks after reset; GC requested before each sample outside measured time; not allocations or process RSS
+sessionMethod=One value-only closeable session; recalc toggles only S1 seed +10/+11; repeat submits unchanged facts; actual runtime counters recorded
+auditMethod=Standard bounded audit options; diagnostic codes and truncation warnings retained in verification.txt

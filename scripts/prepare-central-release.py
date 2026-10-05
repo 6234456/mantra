@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import base64
+from contextlib import redirect_stdout
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -14,6 +16,8 @@ import subprocess
 import tempfile
 import time
 from zipfile import ZipFile
+
+import release_processes as processes
 
 VERSION = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\Z")
 COMMIT = re.compile(r"[a-f0-9]{40}\Z")
@@ -100,13 +104,14 @@ def select_signing_fingerprint(listing: str, expected: str, now: int) -> str:
 def command(arguments: list[str], *, cwd: Path, environment: dict[str, str], log: Path,
             timeout: int = 1200) -> None:
     with log.open("ab") as output:
-        completed = subprocess.run(arguments, cwd=cwd, env=environment, stdout=output,
-                                   stderr=subprocess.STDOUT, timeout=timeout, check=False)
+        completed = processes.run_owned(arguments, cwd=cwd, env=environment, stdout=output,
+                                        stderr=subprocess.STDOUT, timeout=timeout)
     if completed.returncode:
         raise RuntimeError(f"Release preparation command failed; inspect {log.name}")
 
 
 def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Path) -> dict:
+    processes.require_posix()
     validate_identity(version, commit, fingerprint)
     clean_environment = without_secrets(dict(os.environ))
     actual = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, env=clean_environment,
@@ -126,27 +131,38 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
         if not found:
             raise ValueError(f"An already installed {name} is required")
         executables[name] = str(Path(found).resolve())
+    # Resolve an already installed distribution before allocating a task home.
+    # The signing build must not register a secret-bearing daemon in ~/.gradle.
+    gradle_home = Path(clean_environment.get("GRADLE_USER_HOME", str(Path.home() / ".gradle")))
+    candidates = list(gradle_home.glob("wrapper/dists/gradle-9.4.0-bin/*/gradle-9.4.0/bin/gradle"))
+    if len(candidates) != 1 or not candidates[0].is_file():
+        raise ValueError("One already installed Gradle 9.4.0 executable is required")
+    gradle = candidates[0].resolve()
     output.mkdir(parents=True, exist_ok=False)
     log = output / "preparation.log"
     receipt = {"status": "PREPARATION_FAILED", "published": False, "sourceCommit": commit,
-               "version": version, "signerFingerprint": fingerprint}
+               "version": version, "signerFingerprint": fingerprint, "temporaryProcessesStopped": True}
     failure = None
     # macOS TMPDIR can exceed GnuPG's local socket-path limit. Keep the task-owned
     # directory short on POSIX without changing the user's global GnuPG home.
-    temporary_parent = Path("/tmp").resolve() if os.name == "posix" else None
-    with tempfile.TemporaryDirectory(prefix="mantra-release-", dir=temporary_parent) as temporary:
-        task = Path(temporary).resolve()
-        home = task / "gnupg"
+    temporary_parent = Path("/tmp").resolve()
+    task = Path(tempfile.mkdtemp(prefix="mantra-release-", dir=temporary_parent)).resolve()
+    home = task / "gnupg"
+    owned_gradle_home = task / "gradle-home"
+    consumer_temporary = task / "consumer-temporary"
+    gpg = [executables["gpg"], "--no-options", "--homedir", str(home), "--batch"]
+
+    def key_command(arguments: list[str], data: bytes | None = None) -> bytes:
+        result = subprocess.run(gpg + arguments, input=data, env=clean_environment,
+                                capture_output=True, check=False, timeout=60)
+        if result.returncode:
+            raise RuntimeError("GnuPG release-key operation failed; no secret material is logged")
+        return result.stdout
+
+    try:
         home.mkdir(mode=0o700)
-        gpg = [executables["gpg"], "--no-options", "--homedir", str(home), "--batch"]
-
-        def key_command(arguments: list[str], data: bytes | None = None) -> bytes:
-            result = subprocess.run(gpg + arguments, input=data, env=clean_environment,
-                                    capture_output=True, check=False, timeout=60)
-            if result.returncode:
-                raise RuntimeError("GnuPG release-key operation failed; no secret material is logged")
-            return result.stdout
-
+        owned_gradle_home.mkdir(mode=0o700)
+        consumer_temporary.mkdir(mode=0o700)
         try:
             key_command(["--import"], key.encode("ascii"))
             listing = key_command(["--with-colons", "--list-secret-keys"]).decode("utf-8")
@@ -156,7 +172,9 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
             stage = task / "staging"
             signing_environment = dict(clean_environment, MANTRA_SIGNING_KEY_ID=signing_fingerprint[-16:],
                                        MANTRA_SIGNING_KEY=key, MANTRA_SIGNING_PASSWORD=password)
-            command([str(root / "gradlew"), "--no-daemon", "--max-workers=1",
+            command([str(gradle), "--no-daemon", "--max-workers=1",
+                     "--no-configuration-cache",
+                     "--gradle-user-home", str(owned_gradle_home),
                      "-Pkotlin.compiler.execution.strategy=in-process",
                      f"-PmantraReleaseVersion={version}", "-PmantraSignRelease=true",
                      f"-PmantraStagingPath={stage}", "stageLibraries", "verifyLocalStaging",
@@ -166,11 +184,12 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
             if hashlib.sha256(kernel.read_bytes()).hexdigest() != KERNEL_SHA256:
                 raise ValueError("Installed release does not use the verified public kernel binary")
             bundle = output / f"mantra-{version}-central.zip"
-            result = subprocess.run(["python3", str(root / "scripts/central-bundle.py"),
+            result = processes.run_owned(["python3", str(root / "scripts/central-bundle.py"),
                 "--repository", str(stage), "--version", version, "--normein-version", "0.3.0",
                 "--gpgv", executables["gpgv"], "--public-keyring", str(public_keyring),
                 "--signer-fingerprint", fingerprint, "--output", str(bundle)],
-                cwd=root, env=clean_environment, capture_output=True, text=True, check=False, timeout=180)
+                cwd=root, env=clean_environment, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                text=True, timeout=180)
             if result.returncode:
                 raise RuntimeError("Signed bundle verification failed: " + result.stderr[:2000])
             bundle_receipt = json.loads(result.stdout)
@@ -184,34 +203,79 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
                         raise ValueError("Invalid validated-bundle path")
                     target.parent.mkdir(parents=True, exist_ok=True)
                     target.write_bytes(archive.read(entry))
-            # Avoid wrapper downloads in each consumer; use the distribution installed by this build.
-            gradle_home = Path(clean_environment.get("GRADLE_USER_HOME", str(Path.home() / ".gradle")))
-            candidates = list(gradle_home.glob("wrapper/dists/gradle-9.4.0-bin/*/gradle-9.4.0/bin/gradle"))
-            if len(candidates) != 1:
-                raise ValueError("One already installed Gradle 9.4.0 executable is required")
+            # Keep consumer cleanup on this Python stack. An outer subprocess
+            # kill must not bypass its finally while Gradle owns another group.
+            specification = importlib.util.spec_from_file_location(
+                "mantra_release_clean_consumer", root / "scripts/check-clean-consumer.py")
+            consumer = importlib.util.module_from_spec(specification)
+            specification.loader.exec_module(consumer)
             for mode in ("pom", "gradle"):
-                command(["python3", str(root / "scripts/check-clean-consumer.py"),
-                    "--gradle", str(candidates[0]), "--version", version,
-                    "--mantra-repository", str(repository), "--metadata-mode", mode],
-                    cwd=root, environment=clean_environment, log=log)
+                with log.open("a") as output_log, redirect_stdout(output_log):
+                    consumer.verify(root, gradle, version, repository, mode,
+                                    temporary_parent=consumer_temporary)
                 shutil.copyfile(root / "build/release-checks/clean-consumer.log", output / f"consumer-{mode}.log")
+                shutil.copyfile(root / "build/release-checks/clean-consumer-cleanup.json",
+                                output / f"consumer-{mode}-cleanup.json")
             receipt.update(status="SIGNED_VERIFIED_RELEASE_PREPARED_NOT_UPLOADED",
                            bundleSha256=bundle_receipt["bundleSha256"],
                            normeinJarSha256=KERNEL_SHA256, consumerModes=["pom", "gradle"],
                            actualSigningKeyFingerprint=signing_fingerprint)
         except BaseException as error:
             failure = error
-        finally:
+            if isinstance(error, processes.CleanupError) and error.group is not None:
+                receipt.update(temporaryProcessesStopped=False, unverifiedProcessGroup=error.group)
+    except BaseException as error:
+        failure = error
+    finally:
+        # This parent also owns any interrupted consumer's nested fresh home.
+        # Attempt all stops even if one fails; never stop the shared user home.
+        receipt["temporaryGradleStopped"] = True
+        homes = [owned_gradle_home]
+        children = list(consumer_temporary.glob("mantra-clean-consumer-*"))
+        if len(children) > 4 or any(child.is_symlink() for child in children):
+            receipt["temporaryGradleStopped"] = False
+        else:
+            homes.extend(child / "gradle-home" for child in children if child.is_dir())
+        daemon_pids = set()
+        for owned_home in homes:
             try:
+                with log.open("ab") as output_log:
+                    stopped = processes.stop_gradle(gradle, owned_home, cwd=root,
+                                                    env=clean_environment, stdout=output_log)
+                daemon_pids.update(stopped["daemonPids"])
+            except BaseException:
+                receipt["temporaryGradleStopped"] = False
+        receipt["verifiedGradleDaemonPids"] = sorted(daemon_pids)
+        try:
+            if home.exists():
                 stopped = subprocess.run([executables["gpgconf"], "--homedir", str(home), "--kill", "all"],
                                          env=clean_environment, capture_output=True, timeout=30, check=False)
                 receipt["temporaryAgentStopped"] = stopped.returncode == 0
-            except (OSError, subprocess.TimeoutExpired):
-                receipt["temporaryAgentStopped"] = False
-    receipt["temporaryKeyAndStagingRemoved"] = not Path(temporary).exists()
-    cleanup_failed = not receipt["temporaryAgentStopped"] or not receipt["temporaryKeyAndStagingRemoved"]
+            else:
+                receipt["temporaryAgentStopped"] = True
+        except BaseException as error:
+            receipt["temporaryAgentStopped"] = False
+            if failure is None:
+                failure = error
+        if (receipt["temporaryAgentStopped"] and receipt["temporaryGradleStopped"]
+                and receipt["temporaryProcessesStopped"]):
+            try:
+                shutil.rmtree(task)
+            except OSError:
+                pass
+        elif receipt["temporaryAgentStopped"] and home.exists():
+            # Remove on-disk private keys after stopping GPG, even if Gradle
+            # exit could not be verified and its task evidence must be retained.
+            try:
+                shutil.rmtree(home)
+            except OSError:
+                pass
+    receipt["temporaryKeyAndStagingRemoved"] = not task.exists()
+    cleanup_failed = (not receipt["temporaryAgentStopped"] or not receipt["temporaryGradleStopped"]
+                      or not receipt["temporaryProcessesStopped"]
+                      or not receipt["temporaryKeyAndStagingRemoved"])
     if cleanup_failed:
-        receipt.update(status="PREPARATION_FAILED", cleanupFailure=True)
+        receipt.update(status="PREPARATION_FAILED", cleanupFailure=True, retainedTaskDirectory=str(task))
     (output / "preparation-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
     if cleanup_failed:
         raise RuntimeError("Release preparation cleanup is incomplete; failure receipt retained")
@@ -227,8 +291,9 @@ def main() -> None:
     parser.add_argument("--signer-fingerprint", required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    receipt = prepare(Path(__file__).resolve().parents[1], args.version, args.source_commit,
-                      args.signer_fingerprint, args.output_dir)
+    with processes.termination_guard():
+        receipt = prepare(Path(__file__).resolve().parents[1], args.version, args.source_commit,
+                          args.signer_fingerprint, args.output_dir)
     print(json.dumps(receipt, indent=2))
 
 

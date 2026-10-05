@@ -8,9 +8,15 @@ from unittest import TestCase, mock
 import os
 import shutil
 import subprocess
+import json
+import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+HELPER_SPEC = spec_from_file_location("release_processes", ROOT / "scripts/release_processes.py")
+HELPER = module_from_spec(HELPER_SPEC)
+sys.modules[HELPER_SPEC.name] = HELPER
+HELPER_SPEC.loader.exec_module(HELPER)
 SPEC = spec_from_file_location("mantra_clean_consumer", ROOT / "scripts/check-clean-consumer.py")
 CONSUMER = module_from_spec(SPEC)
 SPEC.loader.exec_module(CONSUMER)
@@ -46,7 +52,7 @@ class CleanConsumerIsolationTest(TestCase):
                      "SIGNING_KEY": "test-only-alias-key", "SIGNING_PASSWORD": "test-only-alias-password",
                      "CENTRAL_TOKEN_USERNAME": "test-only-alias-user", "CENTRAL_TOKEN_PASSWORD": "test-only-alias-token"}
         with mock.patch.dict(os.environ, sensitive), \
-                mock.patch.object(CONSUMER.subprocess, "run", side_effect=fake_gradle), \
+                mock.patch.object(CONSUMER.processes, "run_owned", side_effect=fake_gradle), \
                 redirect_stdout(StringIO()):
             if exit_code:
                 with self.assertRaisesRegex(AssertionError, "Staged consumers failed"):
@@ -63,6 +69,7 @@ class CleanConsumerIsolationTest(TestCase):
             self.assertEqual(command[-1], "smoke")
             self.assertIn(f"-PmantraRepository={staged.resolve()}", command)
             self.assertIn("-PmantraMetadataMode=pom", command)
+            self.assertIn("--no-configuration-cache", command)
             self.assertFalse(any("normeinRepository" in argument or "normeinBuildPath" in argument
                                  for argument in command))
             self.assertNotIn("NORMEIN_BUILD_PATH", options["env"])
@@ -89,7 +96,7 @@ class CleanConsumerIsolationTest(TestCase):
     def test_invalid_metadata_mode_fails_before_process_execution(self):
         with TemporaryDirectory(prefix="mantra-consumer-test-") as directory:
             root, _, executable, staged = self.prepare(directory)
-            with mock.patch.object(CONSUMER.subprocess, "run") as invocation:
+            with mock.patch.object(CONSUMER.processes, "run_owned") as invocation:
                 with self.assertRaisesRegex(AssertionError, "Metadata mode"):
                     CONSUMER.verify(root, executable, "1.0.0-rc.1", staged, "local")
                 invocation.assert_not_called()
@@ -110,7 +117,91 @@ class CleanConsumerIsolationTest(TestCase):
                 root, fixture, executable, staged = self.prepare(directory)
                 with (fixture / "build.gradle.kts").open("a") as output:
                     output.write("\n" + escape + "\n")
-                with mock.patch.object(CONSUMER.subprocess, "run") as invocation:
+                with mock.patch.object(CONSUMER.processes, "run_owned") as invocation:
                     with self.assertRaises(AssertionError):
                         CONSUMER.verify(root, executable, "1.0.0-rc.1", staged)
                     invocation.assert_not_called()
+
+    def test_failed_stop_retains_owned_home_and_records_cleanup_failure(self):
+        with TemporaryDirectory(prefix="mantra-consumer-test-") as directory:
+            root, _, executable, staged = self.prepare(directory)
+            homes = []
+
+            def fake_gradle(command, **options):
+                if "--stop" in command:
+                    self.assertEqual(command[-1], str(homes[0]))
+                    return subprocess.CompletedProcess(command, 1, "")
+                home = Path(command[command.index("--gradle-user-home") + 1])
+                home.mkdir()
+                homes.append(home)
+                return subprocess.CompletedProcess(command, 0, "\n".join(CONSUMER.MARKERS))
+
+            printed = StringIO()
+            with mock.patch.object(CONSUMER.processes, "run_owned", side_effect=fake_gradle), \
+                    redirect_stdout(printed):
+                with self.assertRaisesRegex(CONSUMER.processes.CleanupError, "cleanup failed"):
+                    CONSUMER.verify(root, executable, "1.0.0-rc.1", staged)
+            receipt = json.loads((root / "build/release-checks/clean-consumer-cleanup.json").read_text())
+            self.assertEqual(receipt["status"], "CLEANUP_FAILED")
+            self.assertFalse(receipt["gradleStopped"])
+            self.assertFalse(receipt["temporaryStateRemoved"])
+            self.assertTrue(homes[0].is_dir())
+            self.assertNotIn("temporary state removed", printed.getvalue())
+            self.assertTrue(staged.exists())
+            self.assertEqual(Path(receipt["retainedTaskDirectory"]), homes[0].parent)
+            shutil.rmtree(homes[0].parent)  # This test used only mocked processes.
+
+    def test_cancelled_consumer_stops_before_deleting_state_below_parent_task(self):
+        with TemporaryDirectory(prefix="mantra-consumer-test-") as directory:
+            root, _, executable, staged = self.prepare(directory)
+            parent = (root / "preparer-owned-temporary").resolve()
+            parent.mkdir()
+            homes = []
+
+            def fake_gradle(command, **options):
+                if "--stop" in command:
+                    self.assertTrue(homes[0].is_dir(), "Home must exist until stop/exit verification finishes")
+                    self.assertEqual(command[-1], str(homes[0]))
+                    return subprocess.CompletedProcess(command, 0, "")
+                home = Path(command[command.index("--gradle-user-home") + 1])
+                home.mkdir()
+                homes.append(home)
+                self.assertTrue(home.is_relative_to(parent))
+                raise KeyboardInterrupt
+
+            printed = StringIO()
+            with mock.patch.object(CONSUMER.processes, "run_owned", side_effect=fake_gradle), \
+                    redirect_stdout(printed):
+                with self.assertRaises(KeyboardInterrupt):
+                    CONSUMER.verify(root, executable, "1.0.0-rc.1", staged, temporary_parent=parent)
+            receipt = json.loads((root / "build/release-checks/clean-consumer-cleanup.json").read_text())
+            self.assertEqual(receipt["status"], "CLEANUP_VERIFIED")
+            self.assertTrue(receipt["gradleStopped"])
+            self.assertTrue(receipt["temporaryStateRemoved"])
+            self.assertFalse(homes[0].parent.exists())
+            self.assertTrue(parent.exists())
+            self.assertNotIn("consumers executed", printed.getvalue())
+
+    def test_unverified_worker_group_is_forwarded_to_parent_and_state_retained(self):
+        with TemporaryDirectory(prefix="mantra-consumer-test-") as directory:
+            root, _, executable, staged = self.prepare(directory)
+            homes = []
+
+            def fake_gradle(command, **options):
+                if "--stop" in command:
+                    return subprocess.CompletedProcess(command, 0, "")
+                home = Path(command[command.index("--gradle-user-home") + 1])
+                home.mkdir()
+                homes.append(home)
+                raise CONSUMER.processes.CleanupError("Synthetic group exit unverified", group=12345)
+
+            with mock.patch.object(CONSUMER.processes, "run_owned", side_effect=fake_gradle):
+                with self.assertRaises(CONSUMER.processes.CleanupError) as failure:
+                    CONSUMER.verify(root, executable, "1.0.0-rc.1", staged)
+            self.assertEqual(failure.exception.group, 12345, "Parent must receive the actual unverified group")
+            receipt = json.loads((root / "build/release-checks/clean-consumer-cleanup.json").read_text())
+            self.assertFalse(receipt["processGroupsStopped"])
+            self.assertTrue(receipt["gradleStopped"])
+            self.assertFalse(receipt["temporaryStateRemoved"])
+            self.assertTrue(homes[0].is_dir())
+            shutil.rmtree(homes[0].parent)  # The group here was synthetic; no process was started.

@@ -1,0 +1,8 @@
+{
+  "observedAtUtc": "2026-10-05T07:14:01.221109+00:00",
+  "unrelatedUserProcessesPreserved": true,
+  "note": "Root runs benchmark JVMs sequentially and no competing task-owned build/browser/server. Existing unrelated user JVMs were preserved; this is an observed reference-device run, not a controlled whole-machine experiment.",
+  "observedExecutableCounts": {
+    "java": 11
+  }
+}

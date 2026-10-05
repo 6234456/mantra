@@ -1,0 +1,27 @@
+{
+  "status": "INDEPENDENT_REFERENCE_GENERATED_ENGINE_UNEXECUTED",
+  "cases": 10000,
+  "binding": {
+    "schemaId": "ifrs.ifrs16/lessee-schedule",
+    "schemaVersion": "0.1",
+    "versionMode": "legacy-exact",
+    "parameterIds": [],
+    "currencyScale": 2
+  },
+  "policy": "Frozen fictional rates/payments; source reported balances independently Decimal-derived; no liability clamp; cent half-up rounding.",
+  "records": {
+    "path": "lease-batch-reference.jsonl",
+    "byteLength": 44589112,
+    "sha256": "715049290ac763f1c578abf4325fefd944453fc8c0fcaba793f7ab929105961d"
+  },
+  "sources": [
+    {
+      "path": "independent_batch.py",
+      "sha256": "b698d508b4dbcefdb032db1b6f1649091348fbf7306e00350b6e10514be52517"
+    },
+    {
+      "path": "../verify_expected.py",
+      "sha256": "ae13347687037c5be10e38332adcd6cf5a00fc21b56855172ff9bf11eebd4930"
+    }
+  ]
+}

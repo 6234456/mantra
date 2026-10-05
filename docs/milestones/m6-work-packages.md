@@ -3,10 +3,14 @@
 > 状态（2026-10-04）：联合 `1.0.0-rc.1` 候选的实现与功能验收已完成；390 样本、实际 10k 和 JFR 已验收。
 > 测量源码 `ae9af84bde3f82cc86787e908aab7be76ddecee9` 的远端 CI 已通过。
 > 最终源码发行修订及 CI 见 `v1.0.0-rc.1` tag 与[发行候选记录](../release-candidate.md)的 release receipt。
-> 稳定 `1.0.0` 和 Maven Central 尚未发布。
+> 稳定 `1.0.0` 和 Mantra Maven Central 尚未发布。
+> 更新（2026-10-05）：默认构建与 CI 已使用公开 `normein-dsl:0.3.0`；标准准备器
+> 在 `a1e6e65` 上的实际 TEST-key 签名、144 项 bundle、十次隔离消费者及清理通过。
+> 维护者已暂缓 Mantra 生产 secrets 与正式发布；上述历史测量身份不改。
 
 M4/M5 联合候选验收与发布边界见 [M4](m4-work-packages.md) 与 [M5](m5-work-packages.md)。
-Normein 固定为 0.3.0、`0a3ae1de844c92635fbbc03406a13cb0e8920c03`，未改依赖源码。
+上述 2026-10-04 测量使用 Normein 0.3.0、`0a3ae1de844c92635fbbc03406a13cb0e8920c03` 的源码构建，
+未改依赖源码。2026-10-05 的公共制品运行身份单独记录，不将其反标为历史锁定提交。
 本阶段没有提出新的计算原语；两个中性应用只组合既有能力，独立 Fraction/Decimal 预期先行。
 
 ## 1. 工作包和已记录证据
@@ -15,12 +19,12 @@ Normein 固定为 0.3.0、`0a3ae1de844c92635fbbc03406a13cb0e8920c03`，未改依
 | --- | --- | --- |
 | S1 规范 | [语言规范 v1](../language-specification-v1.md) S1–S7、目录/诊断/Nil 对应关系；文档规则和当前全量检查通过 | 说明更新后严格站点已重新生成/核对；最终发行身份见 tag/receipt |
 | S2 一致性 | 独立 24 个完整程序、两个参数文档、冻结 SHA inventory、typed values/诊断效力；runner 24/24 及候选 CI 通过 | 有限 corpus 不是全程序或生命周期证明 |
-| S3 兼容 | 六库全量 ABI、真实二进制反例、五个隔离 POM-only consumer、六份本地 POM/sources/KDoc 制品实际通过 | 公共 Maven namespace/signing/Normein 制品仍缺 |
+| S3 兼容 | 六库全量 ABI、真实二进制反例、五个隔离 POM-only consumer、六份本地 POM/sources/KDoc 制品实际通过 | 公开 Normein 前提已解除；Mantra Central 生产配置与上传已暂缓 |
 | S4 通用性 | energy-budget/project-portfolio 无新原语；十应用 package/三格式/独立逐值与当前完整检查通过 | 展示应用不构成专业建议或生产软件 |
 | S5 安全 | 当前导入 16 项、LSP 21 项、HTTP 33 项含 36 stalled bodies、package policy/bounds/CAS、导出/read 与清理实际通过；见安全记录 | source review/入口回归，不宣称独立第三方渗透或完整 CVE 审计 |
 | S6 性能 | 冻结源码 39 组/390 样本、全预算与独立 CSV 复算通过；实际 10k/1,120,000 精确比对；Combined export JFR 隐私/范围验收通过 | 单次 profile 不归因历史 M2 长尾；批量不是多轮分布 |
 | S7 文档/开发体验 | 教程 300.00、六库 KDoc、26 site tests/严格站点；103 UI、13 browser flows、实际 package live/PDF/LSP 与清理通过 | 文档更新后重新生成摘要；原生 IDE/Excel GUI 未认证 |
-| S8 发布 | [候选 CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941) green；check/ABI/consumer/conformance/stdio/应用等门实际通过 | 源码发行修订与最终 CI 见 tag/release receipt；Maven namespace/signing/公开 Normein 待维护者决定 |
+| S8 发布 | [候选 CI 37220953941](https://github.com/6234456/mantra/actions/runs/37220953941) green；check/ABI/consumer/conformance/stdio/应用等门实际通过 | 历史源码发行修订与 CI 见 tag/release receipt；实际 TEST 准备单独通过，Mantra 生产配置与上传已暂缓 |
 
 计数来自各自实际日志；当前 XML 可能被后续 targeted run 覆盖，不能相加为一次全量运行。
 此前失败日志是问题发现记录，不能删除后称从未失败；修复需有新的实际执行证据。
@@ -107,6 +111,12 @@ profile 不混入 390 个未插桩样本；未复现的 M2 长尾不作无证据
 
 源码发行、离线文档、IDE 插件 ZIP、本地 Maven staging 与公开 Maven 上传分别记录。
 最终源码发行修订和 CI 以 `v1.0.0-rc.1` tag 及[发行候选记录](../release-candidate.md)的 release receipt 为准。
-Public Maven 上传尚未执行。namespace/signing 与对应公开 Normein 0.3.0 制品
-仍待维护者决定并配置，已有本地 staging 和离线 release kit 不证明这些前置已满足。
-候选验收不等于稳定版或公开制品已经发布。
+Mantra Maven 上传尚未执行。公开 `normein-dsl:0.3.0` 的依赖前提已于 2026-10-05 解除。
+标准准备器在 `a1e6e65a01aa39c792681a138beda31ab66af172` 上完成真实 TEST-key 全流程：
+144 项 bundle 通过全部 GPGv 验签，五个 fresh POM 和五个 fresh Gradle 消费者通过；
+临时 agent、私有 key home 及外层 TEST 密钥/bundle 均已清理。98 项 Python 测试通过，
+其中包括七个准备器边界回归。手动 Central 客户端已有 26 项 mocked HTTP 测试，尚无实际 HTTP。
+生产 namespace/signer/token 验证和上传仍由维护者明确暂缓；本地 TEST 通过不代表生产身份或发布。
+详见[发布准备证据](../central-publication.md)。历史测量与 tag/CI 收据保留原身份，
+公共依赖修订的 CI 与 390 样本/实际批量已有[独立复测报告](../performance-public-kernel.md)，
+保持各自实际来源。候选验收不等于稳定版或公开 Mantra 制品已发布。

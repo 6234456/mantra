@@ -1,0 +1,11 @@
+Series: 200; generated periods: 10
+6200 scalar coordinates and 633 global/fixed reductions checked by independent closed-form arithmetic.
+Global first opening: 2010000
+Global last closing: 2043000
+Global cumulative movement: 33000
+Audit diagnostic codes: [MANTRA-AUDIT-TRUNCATED]
+Audit uses standard bounded options; truncation warnings do not change numeric verification.
+matrix: 6633 addressed paper values, 6833 XLSX values, 6908 formula cells, 0 fallbacks, 0 evaluation errors.
+transpose: 603 addressed paper values, 6203 XLSX values, 6230 formula cells, 0 fallbacks, 0 evaluation errors.
+Verified edit stats: RecalculationStats(evaluatedTasks=41, reusedTasks=12161, invalidatedTasks=41, fullRebuild=false, formulaEvaluations=10, executionSessions=2)
+Verified repeat stats: RecalculationStats(evaluatedTasks=0, reusedTasks=12202, invalidatedTasks=0, fullRebuild=false, formulaEvaluations=0, executionSessions=2)

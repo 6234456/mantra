@@ -13,16 +13,17 @@ are never Maven library artifacts.
 | Calculation functions | `mantra.calc@2` | Additive callable signatures retaining existing arithmetic | Function-library major; exact selection remains in metadata |
 | Package manifest | Manifest format 1; strict SemVer package identity | Explicit compatible engine comparator intersection | New manifest format; no implicit latest-package selection |
 | Schema identity | Exact authored ID/version, including legacy versions | Coexisting new versions | Explicit reviewed migration; never automatic case rewriting |
-| Normein kernel | 0.3.0, commit `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Only after RFC/contract/conformance review and lock update | Coordinated adapter/library release and mapping table update |
+| Normein kernel | Public `com.xqiou:normein-dsl:0.3.0`; optional source baseline `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Reviewed artifact identity and RFC/contract/conformance mapping; update the source lock when that baseline changes | Coordinated adapter/library release and mapping table update |
 
-The authoritative baseline for a release is its tag, lock file, ABI dumps, conformance corpus and
-wire schemas. `0.x` and `1.0.0-rc.1` artifacts remain pre-stable; changes still require review and
+The authoritative baseline for a release is its tag, captured runtime dependency identities,
+optional source lock, ABI dumps, conformance corpus and wire schemas. `0.x` and `1.0.0-rc.1` artifacts remain pre-stable; changes still require review and
 release notes. The RC candidate does not establish a published stable 1.0 baseline. The ABI gate
-must not be bypassed by filtering out reachable model or view types. Java and Kotlin
-consumers are compiled and executed against a real local Maven staging repository with no composite
-substitution in the consumer build. Staging the pinned dependency may use the producer's composite;
-the consumer uses a separate temporary fixture, fresh Gradle home and POM-only artifact resolution.
-Local staging does not mean artifacts have been uploaded to Maven Central.
+must not be bypassed by filtering out reachable model or view types. The original RC Java/Kotlin
+acceptance used real local Maven staging, separate fresh Gradle homes and POM-only resolution with
+no consumer composite; the historical producer staged its source-built kernel. Current default
+builds and consumers resolve the public kernel from Central. The separate canonical TEST-key run
+verified five fresh consumers in each of POM-only and ordinary Gradle metadata modes against its
+exact signed Mantra bundle. Local staging and TEST signatures do not establish a Central upload.
 
 All six libraries are in the owned ABI gate: `mantra-core`, `mantra-render`, `mantra-excel`,
 `mantra-workbench`, `mantra-server` and `mantra-packages`. Public model/read, layout, package and
@@ -101,7 +102,9 @@ six disabled private-metadata categories. It leaves the measured production/harn
 and is not inserted into the unprofiled distribution or used to explain historic latency tails.
 
 The final source-publication revision and CI are identified by the `v1.0.0-rc.1` tag and the release
-receipt in the [source-candidate report](release-candidate.md). Maven Central upload has not been
-performed; namespace, signing and a publicly available matching
-Normein 0.3.0 artifact remain pending the maintainer's decision/setup. Current local acceptance and
-staging are not a stable `1.0.0` release or public repository availability.
+receipt in the [source-candidate report](release-candidate.md). The public Normein 0.3.0 prerequisite
+was resolved on 2026-10-05, with its artifact identity and functional checks recorded separately.
+Canonical TEST-key preparation passed on `a1e6e65`; it is distinct from production signer policy.
+The maintainer explicitly deferred Mantra production namespace/signing/token configuration and
+Central upload. See [publication preparation](central-publication.md). Current local acceptance
+and staging are not a stable `1.0.0` release or public Mantra repository availability.

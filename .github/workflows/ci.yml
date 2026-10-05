@@ -36,9 +36,10 @@ jobs:
         run: ./gradlew --no-daemon check :mantra-cli:installDist :mantra-lsp:installDist :benchmarks:installDist :mantra-cli:verifyDocumentationExamples
       - name: ABI binary counterexample and isolated staged consumers
         run: ./gradlew --no-daemon --max-workers=1 checkAbiCounterexample checkCleanConsumer
-      - name: Archived v1 performance statistics and public profiling consumer
+      - name: Archived public-kernel and v1 performance statistics and public profiling consumer
         run: |
           python3 scripts/verify-performance.py --original benchmarks/baselines/v1-macos-aarch64/original --periods benchmarks/baselines/v1-macos-aarch64/periods
+          python3 scripts/verify-performance.py --original benchmarks/baselines/public-kernel-macos-aarch64/original --periods benchmarks/baselines/public-kernel-macos-aarch64/periods
           mkdir -p benchmarks/build/profile-classes
           javac -cp 'benchmarks/build/install/mantra-benchmark/lib/*' -d benchmarks/build/profile-classes benchmarks/profile/CombinedXlsxProfile.java
           jfr summary benchmarks/baselines/v1-macos-aarch64/profile/combined-xlsx.jfr > benchmarks/build/profile-summary.txt

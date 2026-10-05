@@ -51,8 +51,8 @@ The following configuration names are reserved for secure release setup:
 | `MANTRA_SIGNING_KEY_ID` | Explicit 8- or 16-hex-digit OpenPGP signing key/subkey ID | Production identity not verified |
 | `MANTRA_SIGNING_KEY` | ASCII-armored, password-protected private signing key | Mantra production binding not verified; key value not inspected |
 | `MANTRA_SIGNING_PASSWORD` | Private-key passphrase | Production signing not verified |
-| `MANTRA_CENTRAL_USERNAME` | Suggested Central Portal user-token username | No uploader reads it; access not verified |
-| `MANTRA_CENTRAL_PASSWORD` | Suggested Central Portal user-token password | No uploader reads it; access not verified |
+| `MANTRA_CENTRAL_USERNAME` | Central Portal user-token username | Read only by the explicitly invoked manual client; no live access verified |
+| `MANTRA_CENTRAL_PASSWORD` | Central Portal user-token password | Read only by the explicitly invoked manual client; no live access verified |
 
 The maintainer reports existing **environment-scoped secrets in the Normein repository** named
 `SIGNING_KEY`, `SIGNING_PASSWORD`, `CENTRAL_TOKEN_USERNAME` and `CENTRAL_TOKEN_PASSWORD`. GitHub
@@ -110,6 +110,8 @@ This command writes local artifacts only. The example does not claim that stable
 been selected or released. Use a fresh physical staging directory and retain its source/version,
 public dependency identities, gate results and signed-byte digests. Temporary TEST-key exercises
 can validate the mechanism, but cannot establish production signing authority or namespace access.
+This is the low-level Gradle signing interface; use the canonical preparer below for its complete
+task-owned process and cache cleanup.
 
 ## Offline bundle preparation
 
@@ -201,10 +203,21 @@ consumers must accompany the selected release; synthetic unit tests alone do not
 ## Later Central deployment
 
 Formal publication and secret provisioning remain deferred. No upload workflow is installed.
-After work resumes and namespace/token/signing configuration
-and exact-bundle gates are verified, deployment can use the Portal or a separately implemented
-Publisher API client. The API uses a Portal user token in a Bearer header containing base64 of
-`username:password`; avoid verbose HTTP output or credentials in process arguments.
+The manual [Publisher API client](../scripts/central-publish.py) already provides explicit `upload`,
+`status` and `publish` operations. Its **26 tests use mocked HTTP**; no live Portal request or actual
+token validation has been performed. It is not invoked by the prepare-only workflow. After work
+resumes and namespace/token/signer policy plus the exact-bundle gates are verified, deployment can
+use this client or the Portal.
+
+Credentials enter only through `MANTRA_CENTRAL_USERNAME`/`MANTRA_CENTRAL_PASSWORD` or the
+`CENTRAL_TOKEN_USERNAME`/`CENTRAL_TOKEN_PASSWORD` aliases. Incomplete or conflicting mappings are
+refused. Every operation binds `--deployment-receipt`, `--version`, `--source-commit` and
+`--bundle-sha256`; `upload` also requires `--bundle` and `--review-receipt`, while `status`/`publish`
+require the stored `--deployment-id`. Status is a single bounded observation, not polling. Publish
+requires a freshly observed `VALIDATED` deployment and records request acceptance separately from
+`PUBLISHED`. Uncertain remote outcomes retain a receipt and do not trigger automatic retries or
+deletions. The API uses a Portal token in a Bearer header containing base64 of `username:password`;
+avoid verbose HTTP output or credentials in process arguments.
 
 Use `POST /api/v1/publisher/upload` with multipart part `bundle` and explicit
 `publishingType=USER_MANAGED`. Retain the returned deployment ID. `POST /api/v1/publisher/status?id=…`
@@ -216,7 +229,7 @@ Preserve failed deployment evidence. Upload, validation and publication are dist
 
 ## Evidence scope
 
-On 2026-10-05, the integrated preparer passed **28 synthetic Python standard-library tests**,
+On 2026-10-05, the offline bundle validator passed **28 synthetic Python standard-library tests**,
 including signature-status failures, changed bytes/checksums, bounded/corrupt archives, runtime
 dependency omission, profiles/exclusions/system paths and output nonreplacement. Consumer
 isolation passed **five mocked-process tests**, including both metadata modes and removal of
@@ -224,12 +237,24 @@ release credentials. These tests use deliberately synthetic signatures and do no
 Gradle, JVM consumers or HTTP. Actual signing/consumer execution and production namespace/key
 configuration remain distinct evidence; none of this document announces a Central release.
 
-The coordinator separately executed six locally signed TEST-key publications, verified their
-bundle, and ran all five Java/Kotlin consumers in each of the POM/default-Gradle metadata modes
-(ten executions). Those checks validate local signing, the exact POM-only bundle and both consumer
-paths; they do not validate a production signer, Central credentials or an upload. That earlier
-exercise is distinct from the new canonical preparer and its hosted workflow, which are not
-claimed to have run merely because the constituent local flow passed.
+An earlier local exercise signed all six publications with a disposable TEST key, verified the
+bundle and ran five Java/Kotlin consumers in each metadata mode. The canonical
+[`prepare-central-release.py`](../scripts/prepare-central-release.py) then passed its own actual
+TEST-key run on `a1e6e65a01aa39c792681a138beda31ab66af172`, selecting local `1.0.0` staging only.
+Its 144-entry bundle passed all GPGv signature checks and had SHA-256
+`e927a29bd6f6912f4ee310118f517c7911f1dd21817792591b13b9ef1493929e`. The run used the public
+Normein JAR with SHA-256 `83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8`.
+Five fresh POM-only and five fresh ordinary Gradle consumers passed. The receipt confirms temporary
+agent shutdown and private key-home removal; the outer TEST key and bundle were also removed.
+The coordinator retained `build/release-checks/public-normein/canonical-signing-test.json`.
+
+The **98-test Python suite** passed, including seven canonical-preparer boundary regressions;
+this evidence is separate from the real signing/consumer run. The manual client has 26 mocked HTTP
+tests, which do not establish live Portal behavior. No production signer, namespace/token authorization, hosted preparation or
+Mantra upload/publication has been verified. The local TEST run and historical candidate
+measurements retain their own source identities. The [separate public-kernel report](performance-public-kernel.md)
+records actual CI/performance verification for the measured `a1e6e65` revision. None of these checks
+resumes the deferred formal publication.
 
 ## Prepare-only workflow
 
@@ -254,9 +279,28 @@ Seven offline source-gate regressions cover revisions/refs, policy mismatch, fai
 foreign PRs, main updates and redirect refusal; these do not execute a hosted workflow.
 
 Without the deferred environment secrets and public policy, hosted preparation intentionally
-cannot pass its configuration gates. No current execution or publication is implied by committing
-this workflow. The preparer remains responsible for bounded key import/verification, isolated
+cannot pass its configuration gates. The actual local canonical TEST run does not establish
+hosted execution or public publication. The preparer remains responsible for bounded key import/verification, isolated
 signed staging/consumers and cleanup of its own GPG material.
 
 Gradle 9.4 accepts a short signing ID. A supplied 16-digit ID is normalized to its final
 eight digits; bundle verification independently requires the full fingerprint.
+
+## Task-owned process cleanup
+
+The canonical preparer and isolated-consumer script require POSIX process groups and fail
+preflight on unsupported hosts. They use already installed tools and fresh task-owned Gradle
+homes, without stopping daemons in the user's shared home. On success, timeout, interruption or
+catchable SIGTERM, they terminate and wait for launcher process groups, then run Gradle's stop
+command against each owned home and verify that its recorded daemon PIDs have exited. Gradle
+daemons can use a separate process group, so launcher exit alone is insufficient.
+
+An unverified stop prevents success: the scripts retain a failure receipt and the task directory
+for investigation; stopped GPG private-key state is removed where possible. Uncatchable SIGKILL
+or machine failure cannot execute Python cleanup. This behavior is distinct from the low-level
+Gradle command above and from production publishing authority.
+
+The updated scripts passed **114 Python tests** and a real, offline Gradle blocking-task timeout
+test. That test used no signing key, verified both launcher and separate daemon exit, and removed
+its temporary project/cache without stopping unrelated processes. The earlier 98-test suite and
+canonical signing receipt above remain evidence for their dated `a1e6e65` revision.

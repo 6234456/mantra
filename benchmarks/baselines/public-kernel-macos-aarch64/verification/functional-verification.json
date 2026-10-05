@@ -1,0 +1,32 @@
+{
+  "status": "PASSED",
+  "jvmRecords": {
+    "tests": 793,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "staleExamplesReportsExcluded": true,
+  "defaultCompositeUsed": false,
+  "installedNormeinJars": [
+    {
+      "path": "conformance-adapter/build/install/mantra-conformance-adapter/lib/normein-dsl-0.3.0.jar",
+      "sha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8"
+    },
+    {
+      "path": "mantra-lsp/build/install/mantra-lsp/lib/normein-dsl-0.3.0.jar",
+      "sha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8"
+    },
+    {
+      "path": "benchmarks/build/install/mantra-benchmark/lib/normein-dsl-0.3.0.jar",
+      "sha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8"
+    },
+    {
+      "path": "mantra-cli/build/install/mantra/lib/normein-dsl-0.3.0.jar",
+      "sha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8"
+    }
+  ],
+  "frontendTests": 103,
+  "fullGatesLog": "/private/tmp/mantra-public-normein-full-gates.log",
+  "sourceOptInHelpPassed": true
+}

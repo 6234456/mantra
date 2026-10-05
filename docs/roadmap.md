@@ -364,9 +364,11 @@ Normein 保持锁定提交且未修改；仓库已公开，首个库制品仍按
 - 性能预算达标（T2），安全审查通过（T5）；
 - 文档站点完整。
 
-**当前验收**：`1.0.0-rc.1` 的上述工程退出项已通过，实测源码为 `ae9af84bde3f82cc86787e908aab7be76ddecee9`，对应远端 CI 全绿。原始与期间性能共 390 个样本 / 39 组，预算不变且独立复算通过；批量 10,000 个案例 / 1,120,000 值核对通过，22,777 ms、22 次成功关闭、运行时编译和 VALUE_ONLY 证据物化均为 0。独立 XLSX JFR 保留真实 CPU/分配/GC 证据并关闭六类私密元数据。详见 [候选验收](release-candidate.md)、[性能报告](performance-v1.md) 与 [有界内部安全审查](security-review-v1.md)。
+**已归档验收（2026-10-04）**：`1.0.0-rc.1` 的上述工程退出项已通过，实测源码为 `ae9af84bde3f82cc86787e908aab7be76ddecee9`，对应远端 CI 全绿。原始与期间性能共 390 个样本 / 39 组，预算不变且独立复算通过；批量 10,000 个案例 / 1,120,000 值核对通过，22,777 ms、22 次成功关闭、运行时编译和 VALUE_ONLY 证据物化均为 0。独立 XLSX JFR 保留真实 CPU/分配/GC 证据并关闭六类私密元数据。详见 [候选验收](release-candidate.md)、[性能报告](performance-v1.md) 与 [有界内部安全审查](security-review-v1.md)。
 
-**发布未完成项**：六个库的本地制品、ABI 与隔离消费者验证已通过，但尚未执行签名或 Central 上传。2026-10-05 已确认 `com.xqiou:normein-dsl:0.3.0` 的公共 POM、JAR、sources 和 Gradle 元数据可用，默认构建与 CI 改为直接消费公共依赖；公共发布物与早期源码构建的差异单独验收，历史性能来源不改。维护者已于 2026-10-05 明确暂缓 Mantra Central 发布与独立环境 secrets 配置，后续再增加；发布准备工具保留，保持 R10，不把源码候选标成稳定 `1.0.0`。
+**发布准备与暂缓范围（2026-10-05）**：公开 `com.xqiou:normein-dsl:0.3.0` 的 POM、JAR、sources 和 Gradle 元数据已确认可用，默认构建与 CI 直接消费公共依赖；与早期源码构建的差异单独验收，历史性能身份不改。标准准备器在 `a1e6e65a01aa39c792681a138beda31ab66af172` 完成真实 TEST-key 全流程：144 项 bundle 全部 GPGv 验签、五个 fresh POM 与五个 fresh Gradle 消费者、临时 agent/key home 和外层 TEST key/bundle 清理均通过；98 项 Python 测试通过，其中包括七项准备器边界回归。手动 Central 客户端已有 26 项 mocked HTTP 测试，未执行真实 HTTP。生产签名身份、namespace/token 与 Central 上传未验收，维护者已明确暂缓正式发布及独立环境 secrets，后续再增加。当前公共依赖修订的 CI/性能须有自己的实际收据，不借用旧测量。详见[发布准备](central-publication.md)；保持 R10，不把源码候选标成已发布的稳定 `1.0.0`。
+
+**公共内核复测（2026-10-05）**：`a1e6e65a01aa39c792681a138beda31ab66af172` 的实际 CI 已通过；390 个样本 / 39 组按原预算全部通过，10,000 案例 / 1,120,000 值独立核对通过，批量 21,030 ms。213 项源码和 25 项 runtime JAR 在测量前后完全一致。Combined XLSX 中位数 46,144.430 ms、期间矩阵 23,224.216 ms，较旧记录更高但在原预算内；不推断原因。批量初始堆参数不同，不据此宣称内存优化；无新 JFR。详见[独立公共内核报告](performance-public-kernel.md)，旧测量和 tag 保持原身份。
 
 ### v1.0 之后（方向）
 

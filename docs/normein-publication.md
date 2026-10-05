@@ -29,7 +29,11 @@ It is not described as the exact binary of the old source commit.
 
 The v1 performance archive retains its original source lock and runtime JAR hashes. Those
 measurements describe the earlier source-built kernel; switching the default dependency does
-not relabel them as measurements of the published JAR.
+not relabel them as measurements of the published JAR. A separate actual public-kernel run on
+`a1e6e65a01aa39c792681a138beda31ab66af172` retained all 390 samples / 39 groups and passed unchanged
+budgets, with 10,000 streamed cases / 1,120,000 independent numeric comparisons. Its exact-source
+CI passed. See the [public-kernel performance report](performance-public-kernel.md) for source/runtime
+identities, the higher observed timings, JVM-flag differences and the unchanged historical scope.
 
 ## Optional source development
 

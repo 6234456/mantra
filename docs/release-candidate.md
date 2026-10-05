@@ -14,12 +14,20 @@ after the two sequential performance processes finished. The harness fingerprint
 `c41f47cfe0abbe316e4460f15866814502e10c0bbffe18fda6d954ca407ed59f`.
 
 [The candidate CI](https://github.com/6234456/mantra/actions/runs/37220953941) passed on that
-exact implementation revision. Subsequent changes archive evidence, update documentation and CI,
-and disable private metadata events in the separate Java profiler. They do not change production
-Kotlin, the measured Kotlin harnesses, input data, independent expectations or numerical goldens.
-The source tag identifies the final publication revision; its CI receipt accompanies the release.
+exact implementation revision. The archived RC finalization changes retained evidence, updated
+documentation/CI and disabled private metadata events in the separate Java profiler. Those changes
+left the measured production Kotlin, Kotlin harnesses, input data, independent expectations and
+numerical goldens unchanged. The source tag identifies that source-publication revision; its CI
+receipt accompanies the release.
 
-## Executed acceptance
+The separate 2026-10-05 integration changed default kernel resolution to the public Maven artifact
+and corrected embedded runtime identity reporting. Its functional and preparation checks are
+recorded separately below. They do not relabel the measurements or original tag receipts above,
+and they do not establish current-source CI or performance results without their own receipts.
+The separate [public-kernel measurements](performance-public-kernel.md) now record the actual
+`a1e6e65` CI, 390 samples / 39 groups and 10,000-case / 1,120,000-value batch inside unchanged budgets.
+
+## Executed acceptance at the original RC source publication
 
 | Area | Actual evidence |
 | --- | --- |
@@ -42,7 +50,7 @@ Detailed evidence lives in [M4](milestones/m4-work-packages.md), [M5](milestones
 retained in build directories and CI artifacts; the byte-preserved performance records are checked
 into [the v1 archive](../benchmarks/baselines/v1-macos-aarch64/README.md).
 
-Original application data remains unchanged: 792 original files and all 19 original CSV files
+The original RC byte audit found unchanged application data: 792 original files and all 19 CSV files
 match the M3 revision byte for byte; eight application build files have the intended dependency/
 packaging updates. The 431 workbench golden JSON changes only align `engine.mantra` to the RC
 version; parsed comparison found no changed numeric or other fields.
@@ -53,10 +61,20 @@ were stopped and removed; existing user browser profiles and services were prese
 
 ## Stable publication prerequisites
 
-No Mantra Maven Central upload or signing has occurred. Six local Mantra publications are
-reviewable. On 2026-10-05 the maintainer explicitly deferred Mantra Central publication and
-its independent environment secret configuration. The main-only `maven-central` environment
-and local preparation tools remain ready for later setup.
+No production Mantra signer has been configured and no Mantra Maven Central upload has occurred.
+On 2026-10-05 the maintainer explicitly deferred formal Mantra Central publication and its
+independent environment secrets. The main-only `maven-central` environment and prepare-only
+workflow are present; its hosted signing configuration remains deferred.
+
+The canonical preparer passed an actual disposable TEST-key run on
+`a1e6e65a01aa39c792681a138beda31ab66af172`: six signed local publications produced a 144-entry
+bundle with all detached signatures verified by GPGv. Five fresh POM-only consumers and five fresh
+ordinary Gradle consumers passed. The receipt confirms temporary agent shutdown, private key-home
+removal and removal of the outer TEST key/bundle. The 98-test Python suite passed, including seven
+preparer boundary regressions. This proves the local preparation path; it does not verify production
+namespace/signer/token configuration, run the hosted workflow or upload a Mantra artifact. See
+[preparation evidence](central-publication.md).
+
 The original `normein-dsl:0.3.0` POM probe returned HTTP 404 on 2026-10-04 at 16:22 UTC.
 A new official probe on 2026-10-05 successfully fetched its POM, JAR, sources and Gradle metadata,
 following the maintainer's notice that `normein-api:0.3.0` had been published. The API POM

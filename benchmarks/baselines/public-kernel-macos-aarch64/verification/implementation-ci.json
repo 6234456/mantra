@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "a1e6e65a01aa39c792681a138beda31ab66af172",
+  "runId": 37275776080,
+  "url": "https://github.com/6234456/mantra/actions/runs/37275776080",
+  "status": "completed",
+  "conclusion": "success",
+  "frontendTests": 103,
+  "pythonBuildGateTests": 98,
+  "browserFlows": 13,
+  "browserCleanupLog": "Browser and Vite processes stopped; temporary profile removed",
+  "formalCentralWorkflowRun": false
+}

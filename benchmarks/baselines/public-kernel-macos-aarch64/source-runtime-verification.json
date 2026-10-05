@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "measuredSourceCommit": "a1e6e65a01aa39c792681a138beda31ab66af172",
+  "engineVersion": "1.0.0-rc.1",
+  "normeinVersion": "0.3.0",
+  "normeinRuntimeJarSha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8",
+  "libraryAndHarnessSourceSha256": "cbfd26a246033d6e016415a6eca49459801b372d04bc25038200669f6bf54661",
+  "sourceFileCount": 213,
+  "beforeAfterEntireInventoryEqual": true,
+  "runtimeJarCount": 25,
+  "runtimeJarsUnchanged": true,
+  "environmentIdentitiesMatched": true,
+  "kernelSourceCommitClaimed": false,
+  "engineExecutedByVerifier": false
+}

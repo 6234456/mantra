@@ -1,0 +1,1171 @@
+{
+  "format": "mantra-public-normein-static-comparison/1",
+  "scope": "Static Python stdlib ZIP/classfile/source/POM/module inspection only. No Gradle, JVM, browser, network or git mutation executed by this reviewer.",
+  "historicalBaseline": {
+    "normeinVersion": "0.3.0",
+    "normeinLockCommit": "0a3ae1de844c92635fbbc03406a13cb0e8920c03",
+    "localJarPath": ".deps/normein/core-libs/normein-dsl/build/libs/normein-dsl-0.3.0.jar",
+    "localJarSha256": "0af067af89db3655403ff7c4a0af9341143783272a41e05df5f2e53b49280422",
+    "localJarBytes": 3136424,
+    "historicalFilesModified": false
+  },
+  "publicCapturedArtifacts": [
+    {
+      "name": "maven-metadata.xml",
+      "bytes": 389,
+      "sha256": "3c00bae845cc8349761e776836de02cabb0f49e45cd4aa83a8bfb8554936691a"
+    },
+    {
+      "name": "normein-api-0.3.0.jar",
+      "bytes": 126954,
+      "sha256": "3567e1666ae29a797fc9eb4c2ce5e57a33ba84e5a302725fdb6ecc1ac4e1b295"
+    },
+    {
+      "name": "normein-api-0.3.0.pom",
+      "bytes": 3030,
+      "sha256": "d07b546c8b780e005818b0625d39062ee2e2485e619685b9d8f8fb0086059f28"
+    },
+    {
+      "name": "normein-dsl-0.3.0-sources.jar",
+      "bytes": 433059,
+      "sha256": "ca0e45d4f371dae929f67b0dae1326df90bea2ed81c90ee460cd343d0a25bc01"
+    },
+    {
+      "name": "normein-dsl-0.3.0.jar",
+      "bytes": 3210862,
+      "sha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8"
+    },
+    {
+      "name": "normein-dsl-0.3.0.module",
+      "bytes": 4239,
+      "sha256": "81fa71ba23400c2ecbc5d47fc0496ab876b4762edb22188f937e3b4ba5c404b3"
+    },
+    {
+      "name": "normein-dsl-0.3.0.pom",
+      "bytes": 1782,
+      "sha256": "360bb6b2bf72f1fdeaedbf6105940a0a8f84e2493ce3ec957521cc874500f1d9"
+    }
+  ],
+  "normeinApiFacade": {
+    "pomDependencies": [
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-dsl",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-core",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-format",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-profile",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-export-spi",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-posting",
+        "version": "0.3.0",
+        "scope": "compile"
+      },
+      {
+        "groupId": "org.jetbrains.kotlin",
+        "artifactId": "kotlin-stdlib",
+        "version": "2.2.20",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-export-html",
+        "version": "0.3.0",
+        "scope": "runtime"
+      },
+      {
+        "groupId": "com.xqiou",
+        "artifactId": "normein-export-pdf",
+        "version": "0.3.0",
+        "scope": "runtime"
+      }
+    ],
+    "jar": {
+      "classCount": 47,
+      "dslClassCount": 0,
+      "facadeOnly": true
+    },
+    "conclusion": "normein-api is an invoice/posting facade, not a rename or shaded replacement of normein-dsl. Its POM exposes normein-dsl:0.3.0 as compile dependency. Mantra should keep the direct domain-neutral DSL dependency."
+  },
+  "actualImports": {
+    "uniqueProduction": 139,
+    "uniqueTests": 91,
+    "allUseDslNamespace": true,
+    "productionImports": [
+      "com.xqiou.normein.dsl.DslAmountParser",
+      "com.xqiou.normein.dsl.SourceSpan",
+      "com.xqiou.normein.dsl.ast.DslAndNode",
+      "com.xqiou.normein.dsl.ast.DslCallNode",
+      "com.xqiou.normein.dsl.ast.DslCollectionLiteralNode",
+      "com.xqiou.normein.dsl.ast.DslDraftCompileRequest",
+      "com.xqiou.normein.dsl.ast.DslDraftResult",
+      "com.xqiou.normein.dsl.ast.DslFieldAccessNode",
+      "com.xqiou.normein.dsl.ast.DslIfNode",
+      "com.xqiou.normein.dsl.ast.DslLambdaNode",
+      "com.xqiou.normein.dsl.ast.DslLetNode",
+      "com.xqiou.normein.dsl.ast.DslLiteralNode",
+      "com.xqiou.normein.dsl.ast.DslLocalId",
+      "com.xqiou.normein.dsl.ast.DslMapLiteralNode",
+      "com.xqiou.normein.dsl.ast.DslNode",
+      "com.xqiou.normein.dsl.ast.DslNodeBuilder",
+      "com.xqiou.normein.dsl.ast.DslNodeOrigin",
+      "com.xqiou.normein.dsl.ast.DslNodeRewrite",
+      "com.xqiou.normein.dsl.ast.DslNodeRewriteDecision",
+      "com.xqiou.normein.dsl.ast.DslOrNode",
+      "com.xqiou.normein.dsl.ast.DslScopeAwareTransformer",
+      "com.xqiou.normein.dsl.ast.DslSymbolBinding",
+      "com.xqiou.normein.dsl.ast.DslSymbolNode",
+      "com.xqiou.normein.dsl.authoring.DslAuthoringService",
+      "com.xqiou.normein.dsl.authoring.DslCompletionItem",
+      "com.xqiou.normein.dsl.authoring.DslCompletionItemKind",
+      "com.xqiou.normein.dsl.authoring.DslCompletionRequest",
+      "com.xqiou.normein.dsl.authoring.DslCompletionResult",
+      "com.xqiou.normein.dsl.authoring.DslHover",
+      "com.xqiou.normein.dsl.authoring.DslHoverKind",
+      "com.xqiou.normein.dsl.binding.DslFingerprintAlgorithm",
+      "com.xqiou.normein.dsl.binding.DslFingerprintAuthority",
+      "com.xqiou.normein.dsl.catalog.DslArityShape",
+      "com.xqiou.normein.dsl.catalog.DslAuthoringFunction",
+      "com.xqiou.normein.dsl.catalog.DslAuthoringOrigin",
+      "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceEntry",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceKind",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceStatus",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitResult",
+      "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+      "com.xqiou.normein.dsl.compiler.DslCompileResult",
+      "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+      "com.xqiou.normein.dsl.compiler.DslCompiler",
+      "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+      "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+      "com.xqiou.normein.dsl.compiler.DslSourceIndexEntry",
+      "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+      "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+      "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+      "com.xqiou.normein.dsl.diagnostic.DslDiagnosticPhase",
+      "com.xqiou.normein.dsl.diagnostic.DslDiagnosticSeverity",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+      "com.xqiou.normein.dsl.environment.DslEnvironment",
+      "com.xqiou.normein.dsl.environment.DslEnvironmentBuildResult",
+      "com.xqiou.normein.dsl.environment.DslEnvironmentBuilder",
+      "com.xqiou.normein.dsl.environment.DslLanguageDescriptor",
+      "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+      "com.xqiou.normein.dsl.form.DslForm",
+      "com.xqiou.normein.dsl.form.DslFormAtomKind",
+      "com.xqiou.normein.dsl.form.DslFormLiteral",
+      "com.xqiou.normein.dsl.form.DslFormLiterals",
+      "com.xqiou.normein.dsl.form.DslFormPostfix",
+      "com.xqiou.normein.dsl.form.DslFormReadResult",
+      "com.xqiou.normein.dsl.form.DslFormReader",
+      "com.xqiou.normein.dsl.form.DslFormSequenceKind",
+      "com.xqiou.normein.dsl.identity.DslCanonicalNodeId",
+      "com.xqiou.normein.dsl.identity.DslCompilationUnitEntryIdentity",
+      "com.xqiou.normein.dsl.identity.DslDurableExecutionIdentities",
+      "com.xqiou.normein.dsl.identity.DslInputIdentity",
+      "com.xqiou.normein.dsl.identity.DslInputLocatorResult",
+      "com.xqiou.normein.dsl.identity.DslInputLocators",
+      "com.xqiou.normein.dsl.language.DslNameCategory",
+      "com.xqiou.normein.dsl.language.DslNameResult",
+      "com.xqiou.normein.dsl.language.DslNames",
+      "com.xqiou.normein.dsl.language.DslNormalizedName",
+      "com.xqiou.normein.dsl.language.DslSourceOrigin",
+      "com.xqiou.normein.dsl.library.DslArtifactIdentity",
+      "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+      "com.xqiou.normein.dsl.library.DslFunctionHandler",
+      "com.xqiou.normein.dsl.library.DslFunctionIdentity",
+      "com.xqiou.normein.dsl.library.DslFunctionInvocationException",
+      "com.xqiou.normein.dsl.library.DslFunctionResult",
+      "com.xqiou.normein.dsl.library.DslFunctionSignature",
+      "com.xqiou.normein.dsl.library.DslFunctionSpec",
+      "com.xqiou.normein.dsl.library.DslLibraryDescriptor",
+      "com.xqiou.normein.dsl.library.DslLibraryRequirement",
+      "com.xqiou.normein.dsl.library.DslParameterType",
+      "com.xqiou.normein.dsl.library.DslProviderConcurrency",
+      "com.xqiou.normein.dsl.library.DslProviderManifestEntry",
+      "com.xqiou.normein.dsl.library.DslProviderReproducibility",
+      "com.xqiou.normein.dsl.library.DslTypeParameter",
+      "com.xqiou.normein.dsl.library.dslFunctionHandler",
+      "com.xqiou.normein.dsl.reference.DslReferenceKind",
+      "com.xqiou.normein.dsl.reference.DslReferenceOrigin",
+      "com.xqiou.normein.dsl.runtime.DslBorrowedValueRowSink",
+      "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+      "com.xqiou.normein.dsl.runtime.DslBudgetLimits",
+      "com.xqiou.normein.dsl.runtime.DslCancellation",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlan",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanCompiler",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanRequest",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanResult",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSession",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSessionOptions",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSessionResult",
+      "com.xqiou.normein.dsl.runtime.DslFunctionRuntime",
+      "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+      "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+      "com.xqiou.normein.dsl.runtime.DslValueOnlyInput",
+      "com.xqiou.normein.dsl.runtime.executionCostSnapshotOrNull",
+      "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+      "com.xqiou.normein.dsl.trace.DslTraceLimits",
+      "com.xqiou.normein.dsl.trace.DslTraceNode",
+      "com.xqiou.normein.dsl.trace.DslTraceNodeKind",
+      "com.xqiou.normein.dsl.trace.DslTracePolicy",
+      "com.xqiou.normein.dsl.trace.DslTraceStatus",
+      "com.xqiou.normein.dsl.type.DslFieldPresence",
+      "com.xqiou.normein.dsl.type.DslFunctionTypeSignature",
+      "com.xqiou.normein.dsl.type.DslObjectField",
+      "com.xqiou.normein.dsl.type.DslType",
+      "com.xqiou.normein.dsl.type.DslTypeDefinition",
+      "com.xqiou.normein.dsl.type.DslTypeId",
+      "com.xqiou.normein.dsl.type.DslTypeSchema",
+      "com.xqiou.normein.dsl.type.DslTypeSchemaResult",
+      "com.xqiou.normein.dsl.type.DslTypes",
+      "com.xqiou.normein.dsl.value.DslValue",
+      "com.xqiou.normein.dsl.value.DslValueConstructionException",
+      "com.xqiou.normein.dsl.value.DslValueConstructionResult",
+      "com.xqiou.normein.dsl.value.DslValueTypes",
+      "com.xqiou.normein.dsl.value.DslValues"
+    ],
+    "testImports": [
+      "com.xqiou.normein.dsl.authoring.DslAuthoringService",
+      "com.xqiou.normein.dsl.authoring.DslCompletionItemKind",
+      "com.xqiou.normein.dsl.authoring.DslCompletionRequest",
+      "com.xqiou.normein.dsl.binding.DslFingerprintAlgorithm",
+      "com.xqiou.normein.dsl.binding.DslFingerprintAuthority",
+      "com.xqiou.normein.dsl.catalog.DslArityShape",
+      "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceEntry",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceKind",
+      "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceStatus",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitCompiler",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntry",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitRequest",
+      "com.xqiou.normein.dsl.compiler.DslCompilationUnitResult",
+      "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+      "com.xqiou.normein.dsl.compiler.DslCompileResult",
+      "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+      "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+      "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+      "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+      "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+      "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+      "com.xqiou.normein.dsl.environment.DslEnvironment",
+      "com.xqiou.normein.dsl.environment.DslEnvironmentBuildResult",
+      "com.xqiou.normein.dsl.environment.DslEnvironmentBuilder",
+      "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+      "com.xqiou.normein.dsl.form.DslForm",
+      "com.xqiou.normein.dsl.form.DslFormReadResult",
+      "com.xqiou.normein.dsl.form.DslFormReader",
+      "com.xqiou.normein.dsl.form.DslFormReaderLimits",
+      "com.xqiou.normein.dsl.form.DslFormsReadResult",
+      "com.xqiou.normein.dsl.identity.DslCompilationUnitEntryIdentity",
+      "com.xqiou.normein.dsl.identity.DslDurableExecutionIdentities",
+      "com.xqiou.normein.dsl.identity.DslInputIdentity",
+      "com.xqiou.normein.dsl.identity.DslInputLocatorResult",
+      "com.xqiou.normein.dsl.identity.DslInputLocators",
+      "com.xqiou.normein.dsl.language.DslLanguageVersions",
+      "com.xqiou.normein.dsl.language.DslNameCategory",
+      "com.xqiou.normein.dsl.language.DslNameResult",
+      "com.xqiou.normein.dsl.language.DslNames",
+      "com.xqiou.normein.dsl.library.DslArtifactIdentity",
+      "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+      "com.xqiou.normein.dsl.library.DslFunctionResult",
+      "com.xqiou.normein.dsl.library.DslFunctionSignature",
+      "com.xqiou.normein.dsl.library.DslFunctionSpec",
+      "com.xqiou.normein.dsl.library.DslLibraryDescriptor",
+      "com.xqiou.normein.dsl.library.DslLibraryRequirement",
+      "com.xqiou.normein.dsl.library.DslParameterType",
+      "com.xqiou.normein.dsl.library.DslProviderConcurrency",
+      "com.xqiou.normein.dsl.library.DslProviderManifestEntry",
+      "com.xqiou.normein.dsl.library.DslProviderReproducibility",
+      "com.xqiou.normein.dsl.library.dslFunctionHandler",
+      "com.xqiou.normein.dsl.runtime.DslBorrowedValueRowSink",
+      "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+      "com.xqiou.normein.dsl.runtime.DslBudgetLimits",
+      "com.xqiou.normein.dsl.runtime.DslCancellation",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+      "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlan",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanCompiler",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanRequest",
+      "com.xqiou.normein.dsl.runtime.DslExecutionPlanResult",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSession",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSessionOptions",
+      "com.xqiou.normein.dsl.runtime.DslExecutionSessionResult",
+      "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+      "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+      "com.xqiou.normein.dsl.runtime.DslValueOnlyInput",
+      "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+      "com.xqiou.normein.dsl.trace.DslTraceLimits",
+      "com.xqiou.normein.dsl.trace.DslTraceNode",
+      "com.xqiou.normein.dsl.trace.DslTraceNodeKind",
+      "com.xqiou.normein.dsl.trace.DslTracePolicy",
+      "com.xqiou.normein.dsl.type.DslFieldPresence",
+      "com.xqiou.normein.dsl.type.DslObjectField",
+      "com.xqiou.normein.dsl.type.DslType",
+      "com.xqiou.normein.dsl.type.DslTypeDefinition",
+      "com.xqiou.normein.dsl.type.DslTypeId",
+      "com.xqiou.normein.dsl.type.DslTypeSchema",
+      "com.xqiou.normein.dsl.type.DslTypeSchemaResult",
+      "com.xqiou.normein.dsl.type.DslTypes",
+      "com.xqiou.normein.dsl.value.DslValue",
+      "com.xqiou.normein.dsl.value.DslValueConstructionException",
+      "com.xqiou.normein.dsl.value.DslValueConstructionResult",
+      "com.xqiou.normein.dsl.value.DslValues"
+    ],
+    "files": {
+      "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelDatesTest.kt": [
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader"
+      ],
+      "mantra-excel/src/test/kotlin/com/xqiou/mantra/excel/ExcelHigherOrderTest.kt": [
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader"
+      ],
+      "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/FormulaTranslator.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormPostfix",
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelDates.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ],
+      "mantra-excel/src/main/kotlin/com/xqiou/mantra/excel/ExcelStandardSum.kt": [
+        "com.xqiou.normein.dsl.DslAmountParser",
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/FormulaExplainer.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormPostfix",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-render/src/main/kotlin/com/xqiou/mantra/render/layout/LayoutReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-packages/src/main/kotlin/com/xqiou/mantra/packages/CaseMigrationEditor.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-lsp/src/main/kotlin/com/xqiou/mantra/lsp/WorkspaceAnalysis.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/CaseTextEditor.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/WorkspaceFiles.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ],
+      "mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/CasePackageLoader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ],
+      "mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/packages/PackageHostPins.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/ConvergeKernelBudgetTest.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult",
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitResult",
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileResult",
+        "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+        "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.identity.DslCompilationUnitEntryIdentity",
+        "com.xqiou.normein.dsl.identity.DslDurableExecutionIdentities",
+        "com.xqiou.normein.dsl.runtime.DslBorrowedValueRowSink",
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+        "com.xqiou.normein.dsl.runtime.DslBudgetLimits",
+        "com.xqiou.normein.dsl.runtime.DslCancellation",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanCompiler",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanResult",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSessionOptions",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSessionResult",
+        "com.xqiou.normein.dsl.runtime.DslValueOnlyInput",
+        "com.xqiou.normein.dsl.trace.DslTracePolicy",
+        "com.xqiou.normein.dsl.value.DslValue"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/CompiledCalculationTest.kt": [
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinRfcContractTest.kt": [
+        "com.xqiou.normein.dsl.authoring.DslAuthoringService",
+        "com.xqiou.normein.dsl.authoring.DslCompletionRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileResult",
+        "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+        "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader",
+        "com.xqiou.normein.dsl.form.DslFormReaderLimits",
+        "com.xqiou.normein.dsl.form.DslFormsReadResult",
+        "com.xqiou.normein.dsl.language.DslLanguageVersions",
+        "com.xqiou.normein.dsl.language.DslNameCategory",
+        "com.xqiou.normein.dsl.language.DslNameResult",
+        "com.xqiou.normein.dsl.language.DslNames",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+        "com.xqiou.normein.dsl.trace.DslTraceNode",
+        "com.xqiou.normein.dsl.trace.DslTraceNodeKind",
+        "com.xqiou.normein.dsl.trace.DslTracePolicy",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslObjectField",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypeDefinition",
+        "com.xqiou.normein.dsl.type.DslTypeId",
+        "com.xqiou.normein.dsl.type.DslTypeSchema",
+        "com.xqiou.normein.dsl.type.DslTypeSchemaResult",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValueConstructionException",
+        "com.xqiou.normein.dsl.value.DslValueConstructionResult",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/NormeinContractTest.kt": [
+        "com.xqiou.normein.dsl.binding.DslFingerprintAlgorithm",
+        "com.xqiou.normein.dsl.binding.DslFingerprintAuthority",
+        "com.xqiou.normein.dsl.catalog.DslArityShape",
+        "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceEntry",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceKind",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceStatus",
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileResult",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslEnvironment",
+        "com.xqiou.normein.dsl.environment.DslEnvironmentBuildResult",
+        "com.xqiou.normein.dsl.environment.DslEnvironmentBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader",
+        "com.xqiou.normein.dsl.identity.DslInputIdentity",
+        "com.xqiou.normein.dsl.identity.DslInputLocatorResult",
+        "com.xqiou.normein.dsl.identity.DslInputLocators",
+        "com.xqiou.normein.dsl.language.DslNameCategory",
+        "com.xqiou.normein.dsl.language.DslNameResult",
+        "com.xqiou.normein.dsl.language.DslNames",
+        "com.xqiou.normein.dsl.library.DslArtifactIdentity",
+        "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+        "com.xqiou.normein.dsl.library.DslFunctionResult",
+        "com.xqiou.normein.dsl.library.DslFunctionSignature",
+        "com.xqiou.normein.dsl.library.DslFunctionSpec",
+        "com.xqiou.normein.dsl.library.DslLibraryDescriptor",
+        "com.xqiou.normein.dsl.library.DslLibraryRequirement",
+        "com.xqiou.normein.dsl.library.DslParameterType",
+        "com.xqiou.normein.dsl.library.DslProviderConcurrency",
+        "com.xqiou.normein.dsl.library.DslProviderManifestEntry",
+        "com.xqiou.normein.dsl.library.DslProviderReproducibility",
+        "com.xqiou.normein.dsl.library.dslFunctionHandler",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslObjectField",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/FormulaAuthoringPeriodTest.kt": [
+        "com.xqiou.normein.dsl.authoring.DslCompletionItemKind"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/RunControlIntegrationTest.kt": [
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/MantraLibraryTest.kt": [
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/read/LinkReaderTest.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/KernelControlTest.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitCompiler",
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntry",
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult",
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.runtime.DslBorrowedValueRowSink",
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+        "com.xqiou.normein.dsl.runtime.DslBudgetLimits",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlan",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanCompiler",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanResult",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSession",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSessionResult",
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.runtime.DslValueOnlyInput",
+        "com.xqiou.normein.dsl.trace.DslTraceLimits",
+        "com.xqiou.normein.dsl.trace.DslTracePolicy",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/test/kotlin/com/xqiou/mantra/core/engine/PrevLoweringTest.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+        "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/CaseReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/Forms.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormAtomKind",
+        "com.xqiou.normein.dsl.form.DslFormLiteral",
+        "com.xqiou.normein.dsl.form.DslFormLiterals",
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/PeriodReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/LinkReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/ParameterSetReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/read/SchemaReader.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/model/Schema.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/FormulaAuthoring.kt": [
+        "com.xqiou.normein.dsl.authoring.DslAuthoringService",
+        "com.xqiou.normein.dsl.authoring.DslCompletionItem",
+        "com.xqiou.normein.dsl.authoring.DslCompletionItemKind",
+        "com.xqiou.normein.dsl.authoring.DslCompletionRequest",
+        "com.xqiou.normein.dsl.authoring.DslCompletionResult",
+        "com.xqiou.normein.dsl.authoring.DslHover",
+        "com.xqiou.normein.dsl.authoring.DslHoverKind",
+        "com.xqiou.normein.dsl.catalog.DslAuthoringFunction",
+        "com.xqiou.normein.dsl.catalog.DslAuthoringOrigin",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+        "com.xqiou.normein.dsl.library.DslFunctionIdentity",
+        "com.xqiou.normein.dsl.library.DslFunctionSignature",
+        "com.xqiou.normein.dsl.library.DslParameterType",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/CalculationOptions.kt": [
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+        "com.xqiou.normein.dsl.runtime.DslBudgetLimits"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/FormulaDependency.kt": [
+        "com.xqiou.normein.dsl.ast.DslAndNode",
+        "com.xqiou.normein.dsl.ast.DslCallNode",
+        "com.xqiou.normein.dsl.ast.DslCollectionLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslFieldAccessNode",
+        "com.xqiou.normein.dsl.ast.DslIfNode",
+        "com.xqiou.normein.dsl.ast.DslLambdaNode",
+        "com.xqiou.normein.dsl.ast.DslLetNode",
+        "com.xqiou.normein.dsl.ast.DslLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslLocalId",
+        "com.xqiou.normein.dsl.ast.DslMapLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslNode",
+        "com.xqiou.normein.dsl.ast.DslNodeOrigin",
+        "com.xqiou.normein.dsl.ast.DslOrNode",
+        "com.xqiou.normein.dsl.ast.DslSymbolBinding",
+        "com.xqiou.normein.dsl.ast.DslSymbolNode"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/PrevLowering.kt": [
+        "com.xqiou.normein.dsl.SourceSpan",
+        "com.xqiou.normein.dsl.ast.DslAndNode",
+        "com.xqiou.normein.dsl.ast.DslCallNode",
+        "com.xqiou.normein.dsl.ast.DslCollectionLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslDraftCompileRequest",
+        "com.xqiou.normein.dsl.ast.DslDraftResult",
+        "com.xqiou.normein.dsl.ast.DslFieldAccessNode",
+        "com.xqiou.normein.dsl.ast.DslIfNode",
+        "com.xqiou.normein.dsl.ast.DslLambdaNode",
+        "com.xqiou.normein.dsl.ast.DslLetNode",
+        "com.xqiou.normein.dsl.ast.DslLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslMapLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslNode",
+        "com.xqiou.normein.dsl.ast.DslNodeBuilder",
+        "com.xqiou.normein.dsl.ast.DslNodeOrigin",
+        "com.xqiou.normein.dsl.ast.DslNodeRewrite",
+        "com.xqiou.normein.dsl.ast.DslNodeRewriteDecision",
+        "com.xqiou.normein.dsl.ast.DslOrNode",
+        "com.xqiou.normein.dsl.ast.DslScopeAwareTransformer",
+        "com.xqiou.normein.dsl.ast.DslSymbolBinding",
+        "com.xqiou.normein.dsl.ast.DslSymbolNode",
+        "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileResult",
+        "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+        "com.xqiou.normein.dsl.compiler.DslCompiler",
+        "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexEntry",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+        "com.xqiou.normein.dsl.environment.DslEnvironment",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.identity.DslCanonicalNodeId",
+        "com.xqiou.normein.dsl.language.DslNameCategory",
+        "com.xqiou.normein.dsl.language.DslNameResult",
+        "com.xqiou.normein.dsl.language.DslNames",
+        "com.xqiou.normein.dsl.language.DslSourceOrigin",
+        "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+        "com.xqiou.normein.dsl.library.DslFunctionResult",
+        "com.xqiou.normein.dsl.library.DslFunctionSignature",
+        "com.xqiou.normein.dsl.library.DslFunctionSpec",
+        "com.xqiou.normein.dsl.library.DslParameterType",
+        "com.xqiou.normein.dsl.library.DslTypeParameter",
+        "com.xqiou.normein.dsl.library.dslFunctionHandler",
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslFunctionTypeSignature",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/LibraryWork.kt": [
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+        "com.xqiou.normein.dsl.runtime.DslFunctionRuntime"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/MantraLibrary.kt": [
+        "com.xqiou.normein.dsl.catalog.DslArityShape",
+        "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceEntry",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceKind",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceStatus",
+        "com.xqiou.normein.dsl.environment.DslLanguageDescriptor",
+        "com.xqiou.normein.dsl.library.DslArtifactIdentity",
+        "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+        "com.xqiou.normein.dsl.library.DslFunctionHandler",
+        "com.xqiou.normein.dsl.library.DslFunctionInvocationException",
+        "com.xqiou.normein.dsl.library.DslFunctionResult",
+        "com.xqiou.normein.dsl.library.DslFunctionSignature",
+        "com.xqiou.normein.dsl.library.DslFunctionSpec",
+        "com.xqiou.normein.dsl.library.DslLibraryDescriptor",
+        "com.xqiou.normein.dsl.library.DslLibraryRequirement",
+        "com.xqiou.normein.dsl.library.DslParameterType",
+        "com.xqiou.normein.dsl.library.DslProviderConcurrency",
+        "com.xqiou.normein.dsl.library.DslProviderManifestEntry",
+        "com.xqiou.normein.dsl.library.DslProviderReproducibility",
+        "com.xqiou.normein.dsl.library.dslFunctionHandler",
+        "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelPlans.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitEntryResult",
+        "com.xqiou.normein.dsl.compiler.DslCompilationUnitResult",
+        "com.xqiou.normein.dsl.identity.DslCompilationUnitEntryIdentity",
+        "com.xqiou.normein.dsl.identity.DslDurableExecutionIdentities",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlan",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanCompiler",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionPlanResult"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/AuditCapture.kt": [
+        "com.xqiou.normein.dsl.trace.DslTraceLimits",
+        "com.xqiou.normein.dsl.trace.DslTraceNode"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/TraceProjection.kt": [
+        "com.xqiou.normein.dsl.ast.DslNodeOrigin",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+        "com.xqiou.normein.dsl.identity.DslCanonicalNodeId",
+        "com.xqiou.normein.dsl.trace.DslTraceNode",
+        "com.xqiou.normein.dsl.trace.DslTraceNodeKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelControl.kt": [
+        "com.xqiou.normein.dsl.runtime.DslBudgetLimits",
+        "com.xqiou.normein.dsl.runtime.DslCancellation",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSessionOptions",
+        "com.xqiou.normein.dsl.runtime.DslValueOnlyInput"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Evaluator.kt": [
+        "com.xqiou.normein.dsl.runtime.DslInputCandidate",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValueConstructionException",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CompilationTypes.kt": [
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelExecution.kt": [
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+        "com.xqiou.normein.dsl.identity.DslInputIdentity",
+        "com.xqiou.normein.dsl.runtime.DslBorrowedValueRowSink",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationEngine",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationInput",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationOutcome",
+        "com.xqiou.normein.dsl.runtime.DslEvaluationRequest",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSession",
+        "com.xqiou.normein.dsl.runtime.DslExecutionSessionResult",
+        "com.xqiou.normein.dsl.runtime.DslInputRootCandidate",
+        "com.xqiou.normein.dsl.runtime.DslValueOnlyInput",
+        "com.xqiou.normein.dsl.runtime.executionCostSnapshotOrNull",
+        "com.xqiou.normein.dsl.trace.DslTraceNode",
+        "com.xqiou.normein.dsl.trace.DslTracePolicy",
+        "com.xqiou.normein.dsl.trace.DslTraceStatus",
+        "com.xqiou.normein.dsl.value.DslValue"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Planner.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslCompileResult",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSemanticCompiler",
+        "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormAtomKind",
+        "com.xqiou.normein.dsl.form.DslFormPostfix",
+        "com.xqiou.normein.dsl.form.DslFormReadResult",
+        "com.xqiou.normein.dsl.form.DslFormReader",
+        "com.xqiou.normein.dsl.reference.DslReferenceKind",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslObjectField",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypeDefinition",
+        "com.xqiou.normein.dsl.type.DslTypeId",
+        "com.xqiou.normein.dsl.type.DslTypeSchema",
+        "com.xqiou.normein.dsl.type.DslTypeSchemaResult",
+        "com.xqiou.normein.dsl.type.DslTypes"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/Plan.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompiledExpression",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexEntry",
+        "com.xqiou.normein.dsl.identity.DslCanonicalNodeId",
+        "com.xqiou.normein.dsl.type.DslTypeSchema"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/NormeinBridge.kt": [
+        "com.xqiou.normein.dsl.binding.DslFingerprintAlgorithm",
+        "com.xqiou.normein.dsl.binding.DslFingerprintAuthority",
+        "com.xqiou.normein.dsl.environment.DslEnvironment",
+        "com.xqiou.normein.dsl.environment.DslEnvironmentBuildResult",
+        "com.xqiou.normein.dsl.environment.DslEnvironmentBuilder",
+        "com.xqiou.normein.dsl.identity.DslInputIdentity",
+        "com.xqiou.normein.dsl.identity.DslInputLocatorResult",
+        "com.xqiou.normein.dsl.identity.DslInputLocators",
+        "com.xqiou.normein.dsl.language.DslNameCategory",
+        "com.xqiou.normein.dsl.language.DslNameResult",
+        "com.xqiou.normein.dsl.language.DslNames",
+        "com.xqiou.normein.dsl.language.DslNormalizedName",
+        "com.xqiou.normein.dsl.library.DslArtifactIdentity",
+        "com.xqiou.normein.dsl.stdlib.NormeinStandardLibraries",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypeId",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/ConvergeFunction.kt": [
+        "com.xqiou.normein.dsl.catalog.DslFunctionDocumentation",
+        "com.xqiou.normein.dsl.catalog.DslLanguageSurfaceClassification",
+        "com.xqiou.normein.dsl.library.DslEvaluationStrategy",
+        "com.xqiou.normein.dsl.library.DslFunctionInvocationException",
+        "com.xqiou.normein.dsl.library.DslFunctionResult",
+        "com.xqiou.normein.dsl.library.DslFunctionSignature",
+        "com.xqiou.normein.dsl.library.DslFunctionSpec",
+        "com.xqiou.normein.dsl.library.DslParameterType",
+        "com.xqiou.normein.dsl.library.dslFunctionHandler",
+        "com.xqiou.normein.dsl.runtime.DslBudgetCounter",
+        "com.xqiou.normein.dsl.runtime.DslFunctionRuntime",
+        "com.xqiou.normein.dsl.type.DslFunctionTypeSignature",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/CompiledTemplate.kt": [
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.value.DslValueConstructionException",
+        "com.xqiou.normein.dsl.value.DslValueTypes"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/KernelInputs.kt": [
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes",
+        "com.xqiou.normein.dsl.value.DslValue",
+        "com.xqiou.normein.dsl.value.DslValueConstructionResult",
+        "com.xqiou.normein.dsl.value.DslValues"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/engine/FormulaCompiler.kt": [
+        "com.xqiou.normein.dsl.compiler.DslCompileRequest",
+        "com.xqiou.normein.dsl.compiler.DslNamedDefinition",
+        "com.xqiou.normein.dsl.compiler.DslSourcePosition",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnostic",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnosticPhase",
+        "com.xqiou.normein.dsl.diagnostic.DslDiagnosticSeverity",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScope",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuildResult",
+        "com.xqiou.normein.dsl.environment.DslAnalysisScopeBuilder",
+        "com.xqiou.normein.dsl.environment.DslRootDeclaration",
+        "com.xqiou.normein.dsl.reference.DslReferenceKind",
+        "com.xqiou.normein.dsl.type.DslFieldPresence",
+        "com.xqiou.normein.dsl.type.DslObjectField",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/HostLanguageIndex.kt": [
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormPostfix",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/MantraLanguage.kt": [
+        "com.xqiou.normein.dsl.authoring.DslAuthoringService",
+        "com.xqiou.normein.dsl.authoring.DslCompletionRequest",
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.type.DslType"
+      ],
+      "mantra-core/src/main/kotlin/com/xqiou/mantra/core/api/language/StaticFormulaIndex.kt": [
+        "com.xqiou.normein.dsl.ast.DslAndNode",
+        "com.xqiou.normein.dsl.ast.DslCallNode",
+        "com.xqiou.normein.dsl.ast.DslCollectionLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslFieldAccessNode",
+        "com.xqiou.normein.dsl.ast.DslIfNode",
+        "com.xqiou.normein.dsl.ast.DslLambdaNode",
+        "com.xqiou.normein.dsl.ast.DslLetNode",
+        "com.xqiou.normein.dsl.ast.DslLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslLocalId",
+        "com.xqiou.normein.dsl.ast.DslMapLiteralNode",
+        "com.xqiou.normein.dsl.ast.DslNode",
+        "com.xqiou.normein.dsl.ast.DslNodeOrigin",
+        "com.xqiou.normein.dsl.ast.DslOrNode",
+        "com.xqiou.normein.dsl.ast.DslSymbolBinding",
+        "com.xqiou.normein.dsl.ast.DslSymbolNode",
+        "com.xqiou.normein.dsl.compiler.DslSourceIndexOrigin",
+        "com.xqiou.normein.dsl.form.DslForm",
+        "com.xqiou.normein.dsl.form.DslFormSequenceKind",
+        "com.xqiou.normein.dsl.identity.DslCanonicalNodeId",
+        "com.xqiou.normein.dsl.reference.DslReferenceKind",
+        "com.xqiou.normein.dsl.reference.DslReferenceOrigin",
+        "com.xqiou.normein.dsl.type.DslType",
+        "com.xqiou.normein.dsl.type.DslTypes"
+      ],
+      "build-support/app-acceptance/GenericAcceptanceFactory.kt": [
+        "com.xqiou.normein.dsl.form.DslForm"
+      ]
+    }
+  },
+  "jarComparison": {
+    "publicRelevantEntries": 1431,
+    "localRelevantEntries": 1431,
+    "identicalEntries": 1420,
+    "changedEntries": [
+      {
+        "path": "com/xqiou/normein/dsl/library/DslClasspathArtifact$Companion$Key.class",
+        "localBytes": 4465,
+        "publicBytes": 4465,
+        "localSha256": "688ac74b1386e4b80538040f136cbc955d5bb25bfdc17606761ea93512ffafd9",
+        "publicSha256": "e4361e385861675f6506b4da01a9acda845b1d2d17e26aa72f91600e913a7b93"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/library/DslClasspathArtifact$Companion$artifacts$1.class",
+        "localBytes": 2030,
+        "publicBytes": 2030,
+        "localSha256": "492a2ef81a3d5b4811aabaa89a0e8907804e054ba93a3bdb7dce7034cb7bcd81",
+        "publicSha256": "6b0266feb3e2f3b1dac483651c9dfb8ae1ac4bc78b18b665b6f1ad8e9bc3dc92"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/library/DslClasspathArtifact$Companion.class",
+        "localBytes": 16322,
+        "publicBytes": 17882,
+        "localSha256": "ad6c3076f98d7a65d383131852af55f9081bf50a946698b47e30fcf075560f66",
+        "publicSha256": "943cda951630d7ee7d201a2838f786fb3ad4c7089d7e7a7a239eef2bc5b88281"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/library/DslClasspathArtifact.class",
+        "localBytes": 3076,
+        "publicBytes": 3076,
+        "localSha256": "396802c95915fbcda0131eeac5ce0000dcf8a7704b229f54ec51cf7bb78747b4",
+        "publicSha256": "0a090f38d6ff8184a580124c0d806b24ad0c799d7cdb9f20585cd7de6baa8e30"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/replay/DslReplayVerifier$verifyBindings$$inlined$sortedBy$1.class",
+        "localBytes": 2229,
+        "publicBytes": 2229,
+        "localSha256": "ea27c03f5ed970fc198cc7ab8f1dda98314bd20fae66ae8acfdd32f1d33553ec",
+        "publicSha256": "dcbcb841cb72e142057cf8a316fc4b13c68d5903a7e61e6a4edbe638f5c79c27"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/replay/DslReplayVerifier.class",
+        "localBytes": 33011,
+        "publicBytes": 33601,
+        "localSha256": "33209005e0a4d1d2a7ba3f42891a67b24c410d813a60d6b485446eb05048ed42",
+        "publicSha256": "b1a4bdba61145ff3614ce081bdd68e1f9048d4e7aaa67cb2b37ee0cfc09303cd"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/replay/DslReplayVerifierKt.class",
+        "localBytes": 2097,
+        "publicBytes": 2097,
+        "localSha256": "4bc164551db5a5d95fbe16c26dc3e7ae9e26e9897b8ea05c08e77882b89ca8d1",
+        "publicSha256": "809fe4b1bc9bb15f8331494c94fcf4165b1f10e3b7cadf7487f6bada936b0641"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries$special$$inlined$sortedBy$1.class",
+        "localBytes": 2105,
+        "publicBytes": 2105,
+        "localSha256": "96976d914f1d571d27122e149756d74db278a9d3cb94a8952a5c449be2875e50",
+        "publicSha256": "5f87db19c6a9d71b3657fc4d1ddd644c56d26bf8e44e077de0a93f6cfcf947ee"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries$special$$inlined$sortedBy$2.class",
+        "localBytes": 2133,
+        "publicBytes": 2133,
+        "localSha256": "0fd4db8d7255bea987b14c563c6c0b8d4bd1539dff71543519e9b5ae6c30768f",
+        "publicSha256": "079d1cce935a1d21ce19baa0ae642856f865cbfde64a10435e08233e18e8647c"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.class",
+        "localBytes": 21870,
+        "publicBytes": 23333,
+        "localSha256": "34dd2f1d4c870bd0101bc323674dbe2c2747fe4955a560983c80e00944c57d42",
+        "publicSha256": "2de70dd6741e266cf78d220fe2f13bdd5f7a29befb9249beacb25b7a8778f1a4"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibrariesKt.class",
+        "localBytes": 9838,
+        "publicBytes": 9838,
+        "localSha256": "b37a22baeb1bffad123c3993f15d116b7f7eba2190fe34f182ab10583fcfafbf",
+        "publicSha256": "586073ef4d08d1faf4a7536957c7c7b6fbc2dd22ea2c9894405e1d02dde9e1ba"
+      }
+    ],
+    "addedEntries": [],
+    "removedEntries": [],
+    "publicRelevantContentSha256": "64c3f2faadc5466dc4c81bdbb187a255c00a0831cd4b9c0f8b50a8e138e8ebd9",
+    "localRelevantContentSha256": "8212db35e47694ebd6a9e9c2ea1493c90a2d7e4aed66bdec6fb396001491721d",
+    "kotlinModuleByteIdentical": true,
+    "newResources": [
+      "META-INF/normein/artifacts/normein-dsl/identity.properties",
+      "META-INF/normein/documentation/docs/architecture/domain-artifact-identities.md",
+      "META-INF/normein/documentation/docs/architecture/dsl-clojure-compatibility.md",
+      "META-INF/normein/documentation/docs/architecture/normein-dsl-semantic-change-log.md"
+    ],
+    "artifactIdentityProperties": {
+      "META-INF/normein/artifacts/normein-dsl/identity.properties": "format=normein-classpath-artifact-v1\ncoordinates=com.xqiou:normein-dsl:0.3.0\nexecutionSha256=ac5849b99a517ac3c76e04f6b74c2885d82f35ea1a0192034963f8218a46b503\ndocumentationSha256=f0637f3ea33f3200d1ab59cd18d1bf1ff575da0363b06ce8ab6bf3475d380f91\nbuildRevision=content-ac5849b99a517ac3c76e04f6b74c2885d82f35ea1a0192034963f8218a46b503\nreplayResource=/META-INF/normein/artifacts/normein-dsl/replay.jar\n"
+    }
+  },
+  "rawJvmAbi": {
+    "scope": "Public/protected class/member descriptors, access flags, superclass/interfaces, generic Signature, Exceptions, ConstantValue and classfile major/minor parsed from changed classes. Byte-identical classes are already equal. Kotlin metadata visibility is not independently decoded; this is not an abiValidation task result.",
+    "changedClasses": [
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.class",
+        "differences": {
+          "methods": {
+            "addedOrChanged": {
+              "replayArtifact ()Lcom/xqiou/normein/dsl/library/DslClasspathArtifact;": {
+                "access": 17,
+                "genericSignature": null,
+                "exceptions": [],
+                "constantValue": null
+              }
+            },
+            "removedOrChanged": {}
+          }
+        }
+      }
+    ],
+    "removedExistingMembers": false,
+    "conclusion": "One additive public method NormeinStandardLibraries.replayArtifact():DslClasspathArtifact; no existing raw JVM signature removed or changed."
+  },
+  "sourceComparison": {
+    "byteIdenticalMappedKotlinSources": 105,
+    "changedMappedKotlinSources": [
+      {
+        "path": "com/xqiou/normein/dsl/library/DslClasspathArtifact.kt",
+        "localSourcePath": ".deps/normein/core-libs/normein-dsl/src/main/kotlin/com/xqiou/normein/dsl/library/DslClasspathArtifact.kt",
+        "localSha256": "02e665d7fafedc358c21d3f08e9378adbfdf6d2b5b65a7d69b39f3f0d7caf3fe",
+        "publicSha256": "6aad4205c6bc434b85da9466971c6322421e3d986c30ed51493004074d3113bc",
+        "unifiedDiff": "--- pinned/com/xqiou/normein/dsl/library/DslClasspathArtifact.kt\n+++ public/com/xqiou/normein/dsl/library/DslClasspathArtifact.kt\n@@ -1,12 +1,13 @@\n package com.xqiou.normein.dsl.library\n \n+import java.io.ByteArrayInputStream\n import java.net.JarURLConnection\n-import java.net.URL\n import java.security.MessageDigest\n import java.util.Collections\n import java.util.Properties\n import java.util.TreeMap\n import java.util.concurrent.ConcurrentHashMap\n+import java.util.zip.ZipInputStream\n \n /**\n  * Exact, replayable bytes of a classpath artifact, separate from its build-time content identity.\n@@ -54,7 +55,19 @@\n         }\n \n         private fun read(anchor: Class<*>, key: Key): DslClasspathArtifact {\n-            val properties = Properties().apply {\n+            val source = anchor.protectionDomain?.codeSource?.location\n+            val classResource = anchor.getResource(\"/${anchor.name.replace('.', '/')}.class\")\n+            // Resource lookup can be delegated or overridden independently of class loading.\n+            // Prefer the defining class's origin, then read metadata from those same bytes.\n+            val containingJar = if (source?.protocol == \"file\") {\n+                source.takeIf { it.path.endsWith(\".jar\") }\n+            } else {\n+                (classResource?.openConnection() as? JarURLConnection)?.jarFileURL\n+            }\n+            val packagedBytes = containingJar?.openStream()?.use { it.readBytes() }\n+            val properties = if (packagedBytes != null) {\n+                archiveProperties(packagedBytes, key.metadataResource)\n+            } else Properties().apply {\n                 requireNotNull(anchor.getResourceAsStream(key.metadataResource)) {\n                     \"Missing generated artifact metadata: ${key.metadataResource}\"\n                 }.use(::load)\n@@ -68,15 +81,10 @@\n             require(listOf(execution, documentation).all { it.matches(Regex(\"[0-9a-f]{64}\")) }) {\n                 \"Artifact metadata contains an invalid content checksum\"\n             }\n-            val source = anchor.protectionDomain?.codeSource?.location\n-            val classResource = anchor.getResource(\"/${anchor.name.replace('.', '/')}.class\")\n-            val containingJar = (classResource?.openConnection() as? JarURLConnection)?.jarFileURL\n-                ?: source?.takeIf { it.protocol == \"file\" && it.path.endsWith(\".jar\") }\n             val packaged = containingJar != null\n-            val archive: URL = containingJar ?: requireNotNull(\n+            val bytes = packagedBytes ?: requireNotNull(\n                 anchor.getResource(property(\"replayResource\")),\n-            ) { \"Missing generated replay artifact\" }\n-            val bytes = archive.openStream().use { it.readBytes() }\n+            ) { \"Missing generated replay artifact\" }.openStream().use { it.readBytes() }\n             val artifactHash = MessageDigest.getInstance(\"SHA-256\").digest(bytes).toHex()\n             val coordinates = property(\"coordinates\")\n             return DslClasspathArtifact(\n@@ -90,6 +98,18 @@\n                 ),\n                 bytes,\n             )\n+        }\n+\n+        private fun archiveProperties(bytes: ByteArray, metadataResource: String): Properties {\n+            ZipInputStream(ByteArrayInputStream(bytes)).use { archive ->\n+                while (true) {\n+                    val entry = archive.nextEntry ?: break\n+                    if (entry.name == metadataResource.removePrefix(\"/\")) {\n+                        return Properties().apply { load(archive) }\n+                    }\n+                }\n+            }\n+            throw IllegalArgumentException(\"Missing generated artifact metadata: $metadataResource\")\n         }\n \n         private fun String.withDependencies(dependencies: Map<String, String>): String {\n"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/replay/DslReplayVerifier.kt",
+        "localSourcePath": ".deps/normein/core-libs/normein-dsl/src/main/kotlin/com/xqiou/normein/dsl/replay/DslReplayVerifier.kt",
+        "localSha256": "e0d526e298f1f74f8887aa72b298f1e816737d00099c84f1786e40b3e3aae882",
+        "publicSha256": "1d004a7efb29f02a558890bc34f017d63702b26573f592cb06177c7ea96a54cb",
+        "unifiedDiff": "--- pinned/com/xqiou/normein/dsl/replay/DslReplayVerifier.kt\n+++ public/com/xqiou/normein/dsl/replay/DslReplayVerifier.kt\n@@ -70,11 +70,20 @@\n             envelope.environmentDescriptorVersion,\n         )) {\n             is DslEnvironmentResolution.Resolved -> {\n-                if (resolution.identity.fingerprint != envelope.environmentFingerprintAtWrite) {\n+                if (resolution.identity.fingerprint != envelope.environmentFingerprintAtWrite ||\n+                    resolution.environment.fingerprint != envelope.environmentFingerprintAtWrite) {\n                     incompatibilities += incompatible(\"DSL-REPLAY-ENVIRONMENT-FINGERPRINT\", \"environment fingerprint\")\n+                }\n+                if (resolution.identity.contractId != envelope.environmentContractId ||\n+                    resolution.identity.descriptorVersion != envelope.environmentDescriptorVersion ||\n+                    resolution.environment.contractId != envelope.environmentContractId ||\n+                    resolution.environment.descriptorVersion != envelope.environmentDescriptorVersion) {\n+                    incompatibilities += incompatible(\"DSL-REPLAY-ENVIRONMENT-CONTRACT\", \"environment contract\")\n                 }\n                 if (\n                     DslCanonicalExecutionIdentityCodec.providerManifest(resolution.identity.providerManifest)\n+                        .contentEquals(DslCanonicalExecutionIdentityCodec.providerManifest(receipt.providerManifest)).not() ||\n+                    DslCanonicalExecutionIdentityCodec.providerManifest(resolution.environment.providerManifest)\n                         .contentEquals(DslCanonicalExecutionIdentityCodec.providerManifest(receipt.providerManifest)).not()\n                 ) {\n                     incompatibilities += incompatible(\"DSL-REPLAY-PROVIDER-MANIFEST\", \"provider manifest\")\n@@ -101,8 +110,15 @@\n             envelope.analysisScopeDescriptorVersion,\n         )) {\n             is DslAnalysisScopeResolution.Resolved -> {\n-                if (resolution.identity.fingerprint != envelope.analysisScopeFingerprintAtWrite) {\n+                if (resolution.identity.fingerprint != envelope.analysisScopeFingerprintAtWrite ||\n+                    resolution.scope.fingerprint != envelope.analysisScopeFingerprintAtWrite) {\n                     incompatibilities += incompatible(\"DSL-REPLAY-SCOPE-FINGERPRINT\", \"analysis scope fingerprint\")\n+                }\n+                if (resolution.identity.contractId != envelope.analysisScopeContractId ||\n+                    resolution.identity.descriptorVersion != envelope.analysisScopeDescriptorVersion ||\n+                    resolution.scope.contractId != envelope.analysisScopeContractId ||\n+                    resolution.scope.descriptorVersion != envelope.analysisScopeDescriptorVersion) {\n+                    incompatibilities += incompatible(\"DSL-REPLAY-SCOPE-CONTRACT\", \"analysis scope contract\")\n                 }\n                 resolution.scope\n             }\n"
+      },
+      {
+        "path": "com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.kt",
+        "localSourcePath": ".deps/normein/core-libs/normein-dsl/src/main/kotlin/com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.kt",
+        "localSha256": "97eb427b4d671575e07304330222320f1d5a7f05fd93becc327fbb630af1be34",
+        "publicSha256": "72e6692a5ae4a07116f4c6f6f9dd89dc6037e399f1b7fa49b5b6da120a70fcf9",
+        "unifiedDiff": "--- pinned/com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.kt\n+++ public/com/xqiou/normein/dsl/stdlib/NormeinStandardLibraries.kt\n@@ -13,7 +13,7 @@\n import com.xqiou.normein.dsl.environment.DslLanguageDescriptor\n import com.xqiou.normein.dsl.language.DslLanguageVersions\n import com.xqiou.normein.dsl.language.DslReaderGrammarContract\n-import com.xqiou.normein.dsl.library.DslArtifactIdentity\n+import com.xqiou.normein.dsl.library.DslClasspathArtifact\n import com.xqiou.normein.dsl.library.DslEvaluationStrategy\n import com.xqiou.normein.dsl.library.DslFunctionSignature\n import com.xqiou.normein.dsl.library.DslLibraryDescriptor\n@@ -34,17 +34,30 @@\n     const val CLOJURE_PROVIDER_ID: String = \"normein.stdlib.clojure.provider\"\n     const val EXTENSION_PROVIDER_ID: String = \"normein.stdlib.extensions.provider\"\n     private const val CLOJURE_ARTIFACT_SHA256: String =\n-        \"48ce5842c398052acd8de76dd361f62a762111f664aa1bd0ca72e55fdeb41805\"\n+        \"4a9f78b18313490085b5a77184da30398f8e966d7d904e9710960cdcd4c8c16f\"\n     private const val CLOJURE_EXECUTION_SHA256: String =\n-        \"d476c5746c2625a54e563ea2cfbd634b2a820886256180a867dbd87db5533a17\"\n+        \"b2f8e64d8a8c4193411e7573836f11f3edffdc68b9388f3df0a699130a8a247d\"\n     private const val CLOJURE_DOCUMENTATION_SHA256: String =\n-        \"95e57947243b705ce95002f693a5c24461e245c51abf464abb9a0d3153b2625c\"\n+        \"c7a9e6f664093e6bc4003aed89eae50baa04b1caa2282b882b5fab51408d1dd3\"\n     private const val EXTENSION_ARTIFACT_SHA256: String =\n-        \"74fba4a1b333e9cccbfaafdfbd13a1addd4fbe188806da877c700065aedf2edc\"\n+        \"633fb1ff0a06453c8432d1264b832ece1245e7b26ce3c8d898f55680a4b1c09c\"\n     private const val EXTENSION_EXECUTION_SHA256: String =\n-        \"65c7246ca6d33669af128c4facb05049c48af32b0ccc18ef1e4579c6d39dc30c\"\n+        \"be5aa627045ed3d40e4c009ee8f462a408847846d176b954ab8e4f8ef487eb00\"\n     private const val EXTENSION_DOCUMENTATION_SHA256: String =\n-        \"0ce1e98c22b0342c70448811713f6301a3ac46edf3d16605c41545c33ca5bf90\"\n+        \"aa0221f6d70e2b247b63ae28ac7d64654d2c3dc0f3c5bcfcccbcca99c9594fda\"\n+\n+    // Source-package constants above remain build-verified content audit values. Replay\n+    // artifact checksums must describe the exact archive bytes rather than those source hashes.\n+    private val classpathArtifact: DslClasspathArtifact by lazy {\n+        DslClasspathArtifact.load(\n+            NormeinStandardLibraries::class.java,\n+            \"/META-INF/normein/artifacts/normein-dsl/identity.properties\",\n+            listOf(CLOJURE_PROVIDER_ID, EXTENSION_PROVIDER_ID),\n+        )\n+    }\n+\n+    /** Exact archive bytes shared by both providers; execution content identities remain provider-specific. */\n+    fun replayArtifact(): DslClasspathArtifact = classpathArtifact\n \n     val specialForms: List<DslSpecialFormSpec> = listOf(\n         specialForm(\"if\", DslSpecialFormKind.IF, listOf(DslArityShape.Range(2, 3)), DslEvaluationStrategy.SHORT_CIRCUIT),\n@@ -80,8 +93,6 @@\n     val clojure: DslLibraryDescriptor = descriptor(\n         id = CLOJURE_LIBRARY_ID,\n         providerId = CLOJURE_PROVIDER_ID,\n-        coordinates = \"application-code:normein.stdlib.clojure:$LIBRARY_SEMANTICS_VERSION\",\n-        artifactHash = CLOJURE_ARTIFACT_SHA256,\n         executionHash = CLOJURE_EXECUTION_SHA256,\n         documentationHash = CLOJURE_DOCUMENTATION_SHA256,\n         functions = StandardFunctionDefinitions.clojure,\n@@ -91,8 +102,6 @@\n     val extensions: DslLibraryDescriptor = descriptor(\n         id = EXTENSION_LIBRARY_ID,\n         providerId = EXTENSION_PROVIDER_ID,\n-        coordinates = \"application-code:normein.stdlib.extensions:$LIBRARY_SEMANTICS_VERSION\",\n-        artifactHash = EXTENSION_ARTIFACT_SHA256,\n         executionHash = EXTENSION_EXECUTION_SHA256,\n         documentationHash = EXTENSION_DOCUMENTATION_SHA256,\n         functions = StandardFunctionDefinitions.extensions,\n@@ -171,20 +180,15 @@\n     private fun descriptor(\n         id: String,\n         providerId: String,\n-        coordinates: String,\n-        artifactHash: String,\n         executionHash: String,\n         documentationHash: String,\n         functions: List<com.xqiou.normein.dsl.library.DslFunctionSpec>,\n         dependencies: Set<DslLibraryRequirement> = emptySet(),\n         specialForms: List<DslSpecialFormSpec> = emptyList(),\n     ): DslLibraryDescriptor {\n-        val artifact = DslArtifactIdentity(\n-            coordinatesOrApplicationCodeId = coordinates,\n-            artifactSha256 = artifactHash,\n+        val artifact = classpathArtifact.identity.copy(\n             executionContentSha256 = executionHash,\n             documentationContentSha256 = documentationHash,\n-            buildRevision = \"stdlib-$LIBRARY_SEMANTICS_VERSION\",\n             providerIds = listOf(providerId),\n         )\n         return DslLibraryDescriptor(\n"
+      }
+    ],
+    "unmappedPublicKotlinSources": [],
+    "scope": "Compared published Kotlin sources with pinned main source or matching already-generated source. No source rewritten."
+  },
+  "publishedDsl": {
+    "pomDependencies": [
+      {
+        "groupId": "org.jetbrains.kotlin",
+        "artifactId": "kotlin-stdlib",
+        "version": "2.2.20",
+        "scope": "compile"
+      },
+      {
+        "groupId": "com.google.re2j",
+        "artifactId": "re2j",
+        "version": "1.8",
+        "scope": "runtime"
+      }
+    ],
+    "moduleComponent": {
+      "group": "com.xqiou",
+      "module": "normein-dsl",
+      "version": "0.3.0",
+      "attributes": {
+        "org.gradle.status": "release"
+      }
+    },
+    "moduleArtifactHashChecks": [
+      {
+        "variant": "apiElements",
+        "file": "normein-dsl-0.3.0.jar",
+        "declaredHashesMatch": true
+      },
+      {
+        "variant": "runtimeElements",
+        "file": "normein-dsl-0.3.0.jar",
+        "declaredHashesMatch": true
+      },
+      {
+        "variant": "sourcesElements",
+        "file": "normein-dsl-0.3.0-sources.jar",
+        "declaredHashesMatch": true
+      }
+    ]
+  },
+  "compatibilityConclusion": {
+    "missingDslInterfaceEvidence": false,
+    "sourceImportMigrationRequired": false,
+    "binaryEqualityToPinnedBuild": false,
+    "semanticArithmeticCompilerRuntimeClassesByteIdentical": true,
+    "identityReplayBehaviorChanges": [
+      "DslClasspathArtifact reads metadata from defining class origin archive bytes, not an independently delegated classpath metadata lookup.",
+      "NormeinStandardLibraries replaces source/application-code stdlib artifacts with actual classpath artifact identity and changed provider execution/documentation hashes; adds replayArtifact accessor.",
+      "DslReplayVerifier validates resolved actual environment/scope contract, version and fingerprints in addition to supplied identities."
+    ],
+    "publicGitCommitProven": false,
+    "publicBuildRevisionIsContentIdentity": "content-ac5849b99a517ac3c76e04f6b74c2885d82f35ea1a0192034963f8218a46b503",
+    "mustNotClaimHistoricalLockCommitForMavenRuntime": true,
+    "requiredDynamicEvidence": [
+      "Resolve only public normein-dsl plus its declared dependencies without composite substitution.",
+      "Compile/run real public consumers and Normein/Mantra contract tests, conformance and application acceptance on that public artifact.",
+      "Record runtime GAV/complete JAR SHA and library/provider content identity; do not replace historical ae9/lock/performance evidence.",
+      "If commit provenance is required, obtain publisher revision mapping/receipt; content-ac5849... alone is not a Git commit."
+    ]
+  },
+  "engineExecuted": false,
+  "buildExecuted": false,
+  "publicSignatureGateExecuted": false
+}

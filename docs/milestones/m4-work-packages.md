@@ -113,7 +113,7 @@ Combined XLSX 的独立 JFR 实录已完成，详见 M6；不据此解释未复�
 | P4 | 显式日期的期效、重叠/缺档、what-if、按键参数与出处；包及 consumer 回归通过 | 无隐式“今天”或 latest 选择 |
 | P5 | prepare/preview/apply、字节及来源图 CAS、有界 token 和受控重预览；旧/新 ESt、并发与 live 迁移验收通过 | 合作式锁不等于恶意并发写入隔离 |
 | P6 | fixed-assets、IFRS 16 插入/删除/重排、保存重开逐值核对；keyed scalar、固定 scope、分摊、类型、审计过期及导入 round-trip 全量通过 | 容量/公式形状有界；不声称原生 Excel GUI 认证 |
-| P7 | 六库全量 ABI、真实 Int→Long 二进制反例、五个隔离 POM-only Java/Kotlin consumer；六份本地制品/POM/sources/KDoc 通过 | 本地 staging 不是公开上传；namespace/signing/Normein 制品仍缺 |
+| P7 | 六库全量 ABI、真实 Int→Long 二进制反例、五个隔离 POM-only Java/Kotlin consumer；六份本地制品/POM/sources/KDoc 通过 | 本地 staging 不是 Mantra 公开上传；公开 Normein 前提已解除，Mantra 生产配置与上传已暂缓 |
 | P8 | 十应用 package/fixtures/三格式及独立逐值检查、英文教程和严格离线站点通过 | 应用不作为库制品发布；文档更新后的严格站点已重建/检查通过 |
 | P9 | 全 `check`、UI/浏览器/实际 package live 清理、390 样本独立核对、实际批量、JFR 和候选远端 CI 通过 | 源码发行身份及最终 CI 以 tag/release receipt 为准；Maven 发布设定待维护者决定 |
 
@@ -134,5 +134,8 @@ P1–P9 全部通过；八个应用以方案包加载；至少一个公开 API �
 10,000 案例达到冻结预算；T1 动态成员增删完成；公共 ABI 门进入 CI；文档与版本记录准确。
 当前 RC.1 实现与功能验收满足上述工程范围；最终源码发行修订及 CI 以 `v1.0.0-rc.1` tag
 和[发行候选记录](../release-candidate.md)的 release receipt 为准。
-Maven Central 上传尚未执行。namespace、signing 和公开 Normein 0.3.0 制品
-仍待维护者决定并配置；staging 不等于已经公开发布。
+Mantra Maven Central 上传尚未执行。2026-10-05 已确认公开 `normein-dsl:0.3.0`，
+默认构建与 CI 直接消费该制品，可选源码构建仍须显式选择。标准准备器在 `a1e6e65` 上
+完成实际 TEST-key 签名、144 项 bundle 验签、两种元数据模式下各五个隔离消费者及临时密钥清理；
+这不是生产签名身份或上传验收。维护者已明确暂缓 Mantra 生产 secrets 配置与正式发布。
+历史候选的源码、性能与 tag 身份保持原样；详见[发布准备证据](../central-publication.md)。
