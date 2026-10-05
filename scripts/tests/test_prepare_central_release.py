@@ -96,3 +96,45 @@ class PreparationBoundaryTest(unittest.TestCase):
                 self.assertFalse(receipt["temporaryAgentStopped"])
                 self.assertTrue(receipt["temporaryKeyAndStagingRemoved"])
                 self.assertNotIn("synthetic-only", json.dumps(receipt))
+
+    @unittest.skipUnless(prepare.os.name == "posix", "GnuPG UNIX socket path regression")
+    def test_long_tmpdir_does_not_extend_gnupg_home_and_failed_import_cleans_it(self):
+        with TemporaryDirectory() as temporary:
+            output = Path(temporary) / "failed-output"
+            long_parent = Path(temporary) / ("long-inherited-tmpdir-" * 6)
+            long_parent.mkdir()
+            homes = []
+
+            def fake_process(arguments, **options):
+                if arguments[0] == "git":
+                    return subprocess.CompletedProcess(arguments, 0,
+                        "a" * 40 + "\n" if "rev-parse" in arguments else "")
+                home = Path(arguments[arguments.index("--homedir") + 1])
+                homes.append(home)
+                self.assertTrue(home.is_dir())
+                self.assertEqual(home.parent.parent, Path("/tmp").resolve())
+                self.assertEqual(home.stat().st_mode & 0o777, 0o700)
+                self.assertFalse(home.is_relative_to(long_parent))
+                if "--import" in arguments:
+                    return subprocess.CompletedProcess(arguments, 1, b"", b"synthetic import failure")
+                self.assertIn("--kill", arguments)
+                return subprocess.CompletedProcess(arguments, 0, b"", b"")
+
+            with mock.patch.object(prepare.subprocess, "run", side_effect=fake_process), \
+                    mock.patch.object(prepare.shutil, "which", side_effect=lambda name: "/installed/" + name), \
+                    mock.patch.object(prepare.tempfile, "tempdir", str(long_parent)), \
+                    mock.patch.dict(prepare.os.environ, {"TMPDIR": str(long_parent), "MANTRA_SIGNING_KEY": KEY,
+                        "MANTRA_SIGNING_PASSWORD": "synthetic-only"}, clear=True), \
+                    mock.patch.object(prepare, "command") as build:
+                with self.assertRaisesRegex(RuntimeError, "preparation failed; cleanup receipt retained"):
+                    prepare.prepare(Path(temporary), "1.0.0", "a" * 40, FINGERPRINT, output)
+                build.assert_not_called()
+            self.assertEqual(len(homes), 2)
+            self.assertEqual(homes[0], homes[1])
+            self.assertFalse(homes[0].parent.exists())
+            receipt = json.loads((output / "preparation-receipt.json").read_text())
+            self.assertEqual(receipt["status"], "PREPARATION_FAILED")
+            self.assertTrue(receipt["temporaryAgentStopped"])
+            self.assertTrue(receipt["temporaryKeyAndStagingRemoved"])
+            self.assertFalse(receipt["published"])
+            self.assertNotIn("synthetic-only", json.dumps(receipt))

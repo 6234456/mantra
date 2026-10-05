@@ -131,7 +131,10 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
     receipt = {"status": "PREPARATION_FAILED", "published": False, "sourceCommit": commit,
                "version": version, "signerFingerprint": fingerprint}
     failure = None
-    with tempfile.TemporaryDirectory(prefix="mantra-release-") as temporary:
+    # macOS TMPDIR can exceed GnuPG's local socket-path limit. Keep the task-owned
+    # directory short on POSIX without changing the user's global GnuPG home.
+    temporary_parent = Path("/tmp").resolve() if os.name == "posix" else None
+    with tempfile.TemporaryDirectory(prefix="mantra-release-", dir=temporary_parent) as temporary:
         task = Path(temporary).resolve()
         home = task / "gnupg"
         home.mkdir(mode=0o700)
