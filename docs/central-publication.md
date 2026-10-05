@@ -313,3 +313,13 @@ Five fresh POM-only and five fresh ordinary Gradle consumers passed. Owned daemo
 GPG shutdown, private staging removal and outer TEST key/bundle removal were verified.
 [The retained local receipts](evidence/release-process-cleanup/README.md) distinguish the unit
 suite, real timeout test and real signed-consumer run. Nothing was uploaded or published.
+
+A subsequent version-switch regression found that generated inline constants could leave an
+older Mantra stamp in a rebuilt JAR. The `d052f735b9700f41c5379435bd8d5f6f10a555bc` fix uses ordinary
+generated properties and makes the actual core consumer assert the selected artifact version.
+Public-JAR RC → `1.0.0` → RC probes passed across compiler modes. The guarded canonical TEST run
+also passed both fresh consumer modes and all 144 entries, bundle SHA-256
+`866853f375c467b4e902899d66e2d97f54c3b92d5a3d98d78cd342a89b9671d1`.
+Both consumer cleanup receipts and final key/daemon/staging removal are retained in
+[the version-identity evidence](evidence/release-process-cleanup/README.md#compiled-version-identity-guard).
+Earlier receipts retain their narrower scope; formal Mantra publication remains deferred.

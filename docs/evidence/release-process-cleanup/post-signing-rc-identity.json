@@ -1,0 +1,9 @@
+{
+  "status": "DEFAULT_RC_INSTALLED_ARTIFACT_VERSION_VERIFIED_AFTER_SIGNING",
+  "sourceCommit": "d052f735b9700f41c5379435bd8d5f6f10a555bc",
+  "expectedMantra": "1.0.0-rc.1",
+  "expectedNormein": "0.3.0",
+  "probe": "public Java getter assertions",
+  "installedCliCoreJarSha256": "41c622b0750a9259bdd5711c2fa0d6ee97aa416944e2c7015f21b2bcdd552aae",
+  "uploaded": false
+}

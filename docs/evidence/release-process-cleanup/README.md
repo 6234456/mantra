@@ -21,3 +21,30 @@ Mantra's default remains `1.0.0-rc.1`; formal publication and secret provisionin
 The earlier `a1e6e65` canonical TEST receipt remains unchanged in the public-kernel performance
 archive. No runtime JAR, signed TEST bundle, private key, credential or full signing log is stored
 here. See [the cleanup controls](../../central-publication.md#task-owned-process-cleanup).
+
+## Compiled version identity guard
+
+Implementation `d052f735b9700f41c5379435bd8d5f6f10a555bc` fixes stale inline version constants
+when switching release versions and Kotlin compiler modes. Generated fields use ordinary properties;
+the unchanged public getters read the selected build's values. The independent Kotlin consumer now
+asserts the selected Mantra artifact version and Normein `0.3.0` before calculation.
+
+[Actual public-JAR probes](runtime-version-switch.json) passed RC → local `1.0.0` → RC using
+daemon → in-process → daemon compilation. [A new canonical TEST run](canonical-version-guard-test.json)
+passed all 144 bundle entries and both five-consumer modes with this guard. Its receipt retains
+both consumer cleanup records, owned daemon/GPG shutdown and outer TEST key/bundle removal.
+Earlier signing receipts did not independently assert the embedded Mantra version.
+The [post-signing installed CLI probe](post-signing-rc-identity.json) also passed after restoring
+default RC artifacts, covering the exact transition that exposed the regression.
+
+The [static measured-core proof](measured-core-bytecode-proof.json) binds an independently retained
+JAR to the exact SHA-256 in both unchanged `a1e6e65` performance runtime inventories. Its public
+getters return RC and Normein `0.3.0`. This confirms the 390-sample measurement's binary metadata;
+it does not infer a separately uninventoried batch CLI JAR's getter. Batch numeric/lifecycle
+evidence and its explicit compatibility option retain their own scope. The binary is retained
+locally, not committed. Recheck a matching binary with the [static verifier](verify-measured-runtime-version.py):
+
+```sh
+python3 docs/evidence/release-process-cleanup/verify-measured-runtime-version.py \
+  --jar /physical/path/to/the/measured-core.jar
+```

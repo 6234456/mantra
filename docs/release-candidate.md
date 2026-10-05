@@ -83,6 +83,12 @@ unverified cleanup retains a failure receipt. See [the new local receipts](evide
 and [cleanup controls](central-publication.md#task-owned-process-cleanup). Production publication
 remains deferred.
 
+Compiled identity now has an additional guard: RC → local stable → RC public-JAR probes and
+fresh signed consumers assert the actual selected version, after a compiler-mode switch exposed
+stale inline constants. The guarded `d052f735` TEST run passed. An exact-hash static proof confirms
+the original public-kernel benchmark JAR reported RC correctly; the historical archive is unchanged.
+See [version-identity evidence](evidence/release-process-cleanup/README.md#compiled-version-identity-guard).
+
 The original `normein-dsl:0.3.0` POM probe returned HTTP 404 on 2026-10-04 at 16:22 UTC.
 A new official probe on 2026-10-05 successfully fetched its POM, JAR, sources and Gradle metadata,
 following the maintainer's notice that `normein-api:0.3.0` had been published. The API POM

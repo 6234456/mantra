@@ -1,0 +1,260 @@
+{
+  "testKeyOnly": true,
+  "uploaded": false,
+  "status": "CANONICAL_PREPARER_TEST_KEY_PASSED",
+  "preparation": {
+    "status": "SIGNED_VERIFIED_RELEASE_PREPARED_NOT_UPLOADED",
+    "published": false,
+    "sourceCommit": "d052f735b9700f41c5379435bd8d5f6f10a555bc",
+    "version": "1.0.0",
+    "signerFingerprint": "C576275C5EB141550F3579047D00B679015F6F24",
+    "temporaryProcessesStopped": true,
+    "bundleSha256": "866853f375c467b4e902899d66e2d97f54c3b92d5a3d98d78cd342a89b9671d1",
+    "normeinJarSha256": "83a101ac90ae0c2a50bdc9a4b103d1c3de015df8bcbcafa4f63bbe5aa1562cc8",
+    "consumerModes": [
+      "pom",
+      "gradle"
+    ],
+    "actualSigningKeyFingerprint": "C576275C5EB141550F3579047D00B679015F6F24",
+    "temporaryGradleStopped": true,
+    "verifiedGradleDaemonPids": [
+      48563
+    ],
+    "temporaryAgentStopped": true,
+    "temporaryKeyAndStagingRemoved": true
+  },
+  "bundle": {
+    "bundleBytes": 12510619,
+    "bundleSha256": "866853f375c467b4e902899d66e2d97f54c3b92d5a3d98d78cd342a89b9671d1",
+    "entryCount": 144,
+    "excludedGradleModuleMetadata": [
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.module.sha512",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.module.sha512",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.module.sha512",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.module.sha512",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.module.sha512",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.asc",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.asc.md5",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.asc.sha1",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.asc.sha256",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.asc.sha512",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.md5",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.sha1",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.sha256",
+      "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.module.sha512"
+    ],
+    "group": "com.xqiou.mantra",
+    "libraries": [
+      "mantra-core",
+      "mantra-render",
+      "mantra-excel",
+      "mantra-workbench",
+      "mantra-server",
+      "mantra-packages"
+    ],
+    "namespaceOwnership": "NOT_VERIFIED",
+    "normeinDependency": "com.xqiou:normein-dsl:0.3.0",
+    "primaryArtifacts": [
+      {
+        "bytes": 2082,
+        "path": "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.pom",
+        "sha256": "0c518f281605b6e781df09e3d5e9668c25d5c861be943c93d19b3ec95fe9190f"
+      },
+      {
+        "bytes": 1160278,
+        "path": "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0.jar",
+        "sha256": "a7f8ec3705334023dbc1ccb98e06f7437f20d631016ce34970ee144cfd6cf9bd"
+      },
+      {
+        "bytes": 188485,
+        "path": "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0-sources.jar",
+        "sha256": "43f0a3cf81e2b0b5c44ef92c5988723c900ace6794669b40cc42b62b605af84c"
+      },
+      {
+        "bytes": 3803369,
+        "path": "com/xqiou/mantra/mantra-core/1.0.0/mantra-core-1.0.0-javadoc.jar",
+        "sha256": "452a68e15573f76768a856e1c5babee9d19b4b611d625f56bda4b42243ec76a6"
+      },
+      {
+        "bytes": 2269,
+        "path": "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.pom",
+        "sha256": "649acb53cdb7eddd53a000baa5e4a77c6f2574fd07283239e7bb4438da95c3d1"
+      },
+      {
+        "bytes": 1004551,
+        "path": "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0.jar",
+        "sha256": "57ca8373005adc7e5c60779589d0aa4326090f26341bb626f9c53240d301745c"
+      },
+      {
+        "bytes": 781918,
+        "path": "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0-sources.jar",
+        "sha256": "a9b9270c7b16986f2d81f9a0416afb7740021f7347404ce6fe3db8e530f315b8"
+      },
+      {
+        "bytes": 1271144,
+        "path": "com/xqiou/mantra/mantra-render/1.0.0/mantra-render-1.0.0-javadoc.jar",
+        "sha256": "d154dfdbdf0f2a126fb83d1171976c28c4cac5048ca82d266f9f2e39ec2cd2e9"
+      },
+      {
+        "bytes": 2269,
+        "path": "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.pom",
+        "sha256": "99b51e86cb5aaedcdd0a269ac11af442b89e6dd135e5a9fda37b9032a656240d"
+      },
+      {
+        "bytes": 431893,
+        "path": "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0.jar",
+        "sha256": "d277322dad705491dedf020e4fae83bbe0187dbc972ad552e58b71b06a7f18bc"
+      },
+      {
+        "bytes": 86975,
+        "path": "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0-sources.jar",
+        "sha256": "a2afc88d1da781a9a6a9e394b4017f3cf557ef0e476654911c35ee90c4aa335f"
+      },
+      {
+        "bytes": 806918,
+        "path": "com/xqiou/mantra/mantra-excel/1.0.0/mantra-excel-1.0.0-javadoc.jar",
+        "sha256": "cb33460fa90949ee12c3965e7bf79fdf3c49986851a5a62f4f0bde1e08d4c711"
+      },
+      {
+        "bytes": 3018,
+        "path": "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.pom",
+        "sha256": "20d21f5e143bd5fc3f9c91f27e27ecd0f46e410e9f5991fe34b87be711dbcda6"
+      },
+      {
+        "bytes": 441582,
+        "path": "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0.jar",
+        "sha256": "25018945c90e7b8a68226401c17be97de1b5fcd54b0f8edd7416e7d4c3fcd86d"
+      },
+      {
+        "bytes": 80079,
+        "path": "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0-sources.jar",
+        "sha256": "3ef80f14ba5a7b029494a59ad993958a3dcb1293ec532d2abe2d543c83a6e5d8"
+      },
+      {
+        "bytes": 926584,
+        "path": "com/xqiou/mantra/mantra-workbench/1.0.0/mantra-workbench-1.0.0-javadoc.jar",
+        "sha256": "697b0514e8e8ed372e4a2506f1df2589ccdc26068b3bee491a34353eab892ea0"
+      },
+      {
+        "bytes": 2294,
+        "path": "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.pom",
+        "sha256": "6dfd3bb2e60cc4eb177cc2fd6cf5923b08ee8825ee3fa5471a2313f7f452139e"
+      },
+      {
+        "bytes": 69850,
+        "path": "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0.jar",
+        "sha256": "ff51c98120926c86f0d8c902688a560de497086ea362b7025288f524204c06d7"
+      },
+      {
+        "bytes": 17136,
+        "path": "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0-sources.jar",
+        "sha256": "5d085225e047622b792b7359d0ebd351f8827d59a21b8b1acedeb2038457afbd"
+      },
+      {
+        "bytes": 264505,
+        "path": "com/xqiou/mantra/mantra-server/1.0.0/mantra-server-1.0.0-javadoc.jar",
+        "sha256": "7ada81af302e7e7f4894129c28af1f1b5e6b97ce2889681f9458218a17285f61"
+      },
+      {
+        "bytes": 2293,
+        "path": "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.pom",
+        "sha256": "00e10ea7c02f617b5e3e09f0b713d3e59d8cfc395068e3f95f5a7c89fe87e2d1"
+      },
+      {
+        "bytes": 174078,
+        "path": "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0.jar",
+        "sha256": "aab2ee1004d3347c9ccb88e16a65f0a2b142f0063396a617068c65bc86453820"
+      },
+      {
+        "bytes": 28792,
+        "path": "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0-sources.jar",
+        "sha256": "c4d3c58df93413589f051a7c8ab49f453054f37ceae42fa9e6d58484dbfde93d"
+      },
+      {
+        "bytes": 910019,
+        "path": "com/xqiou/mantra/mantra-packages/1.0.0/mantra-packages-1.0.0-javadoc.jar",
+        "sha256": "920e05e4e45bcfc30dc246835f072e9434eb3418cadc3a23660f52cb01ba608d"
+      }
+    ],
+    "publicNormeinAvailability": "NOT_VERIFIED",
+    "published": false,
+    "signerAuthorizationAndRevocation": "REQUIRES_SEPARATE_REVIEW",
+    "signerFingerprint": "C576275C5EB141550F3579047D00B679015F6F24",
+    "status": "LOCAL_VERIFIED_BUNDLE_NOT_UPLOADED",
+    "version": "1.0.0",
+    "sourceCommit": "d052f735b9700f41c5379435bd8d5f6f10a555bc"
+  },
+  "consumerCleanup": {
+    "pom": {
+      "gradleStopped": true,
+      "metadataMode": "pom",
+      "processGroupsStopped": true,
+      "published": false,
+      "status": "CLEANUP_VERIFIED",
+      "temporaryStateRemoved": true,
+      "verifiedGradleDaemonPids": [
+        49128
+      ]
+    },
+    "gradle": {
+      "gradleStopped": true,
+      "metadataMode": "gradle",
+      "processGroupsStopped": true,
+      "published": false,
+      "status": "CLEANUP_VERIFIED",
+      "temporaryStateRemoved": true,
+      "verifiedGradleDaemonPids": [
+        49283
+      ]
+    }
+  },
+  "outerAgentStopSucceeded": true,
+  "sourceCommit": "d052f735b9700f41c5379435bd8d5f6f10a555bc",
+  "outerTestKeyAndBundleRemoved": true
+}

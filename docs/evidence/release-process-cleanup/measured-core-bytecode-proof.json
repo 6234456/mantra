@@ -1,0 +1,75 @@
+{
+  "status": "PASS",
+  "method": "stdlib classfile parsing; no JVM execution",
+  "scope": "exact retained core JAR matched to both 390-sample measurement runtime receipts; batch uses a separate CLI classpath not inventoried by those receipts",
+  "jar": {
+    "name": "measured-core.jar",
+    "bytes": 1160168,
+    "sha256": "ffee7db6d28ee0c56142492908471ff4cd87bc242c0a46104be0424f40d62812"
+  },
+  "correlations": [
+    {
+      "receipt": "benchmarks/baselines/public-kernel-macos-aarch64/runtime-before.json",
+      "receiptSha256": "73f42d16aaf028df697fd0091944ce71f038f6df44752bd729b93a043c0521d8",
+      "sourceCommit": "a1e6e65a01aa39c792681a138beda31ab66af172",
+      "matchedRuntimeJar": {
+        "path": "benchmarks/build/install/mantra-benchmark/lib/mantra-core-1.0.0-rc.1.jar",
+        "bytes": 1160168,
+        "sha256": "ffee7db6d28ee0c56142492908471ff4cd87bc242c0a46104be0424f40d62812"
+      }
+    },
+    {
+      "receipt": "benchmarks/baselines/public-kernel-macos-aarch64/runtime-after.json",
+      "receiptSha256": "73f42d16aaf028df697fd0091944ce71f038f6df44752bd729b93a043c0521d8",
+      "sourceCommit": "a1e6e65a01aa39c792681a138beda31ab66af172",
+      "matchedRuntimeJar": {
+        "path": "benchmarks/build/install/mantra-benchmark/lib/mantra-core-1.0.0-rc.1.jar",
+        "bytes": 1160168,
+        "sha256": "ffee7db6d28ee0c56142492908471ff4cd87bc242c0a46104be0424f40d62812"
+      }
+    }
+  ],
+  "runtimeVersions": {
+    "path": "com/xqiou/mantra/core/api/RuntimeVersions.class",
+    "sha256": "ec351463e8717dce7d3005fae705b5ec20610687e201c107cf1b7431fb5272b7",
+    "classfileVersion": {
+      "major": 65,
+      "minor": 0
+    },
+    "getters": {
+      "getMantra": {
+        "descriptor": "()Ljava/lang/String;",
+        "bytecodeHex": "120fb0",
+        "instructions": [
+          "ldc",
+          "areturn"
+        ],
+        "constantPoolIndex": 15,
+        "returnedLiteral": "1.0.0-rc.1"
+      },
+      "getNormein": {
+        "descriptor": "()Ljava/lang/String;",
+        "bytecodeHex": "1212b0",
+        "instructions": [
+          "ldc",
+          "areturn"
+        ],
+        "constantPoolIndex": 18,
+        "returnedLiteral": "0.3.0"
+      }
+    }
+  },
+  "buildVersions": {
+    "path": "com/xqiou/mantra/core/api/BuildVersions.class",
+    "sha256": "d4dff05119c1833695845c92dbc7e86830567de5878746653e311d709d0b8d66",
+    "classfileVersion": {
+      "major": 65,
+      "minor": 0
+    },
+    "constantValues": {
+      "MANTRA": "1.0.0-rc.1",
+      "NORMEIN": "0.3.0"
+    }
+  },
+  "metadataBoundary": "archived engineVersion field was a wrapper declaration; public-getter identity is independently established here from digest-bound bytecode"
+}

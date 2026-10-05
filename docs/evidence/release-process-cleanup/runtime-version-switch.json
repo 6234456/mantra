@@ -1,0 +1,18 @@
+{
+  "status": "PUBLIC_JAR_RUNTIME_VERSION_SWITCH_PASSED",
+  "sourceCommit": "d052f735b9700f41c5379435bd8d5f6f10a555bc",
+  "observed": [
+    "MANTRA_RUNTIME_IDENTITY_OK 1.0.0-rc.1 0.3.0",
+    "MANTRA_RUNTIME_IDENTITY_OK 1.0.0 0.3.0",
+    "MANTRA_RUNTIME_IDENTITY_OK 1.0.0-rc.1 0.3.0"
+  ],
+  "cleanBeforeFirstBuild": true,
+  "compilerModes": [
+    "daemon",
+    "in-process",
+    "daemon"
+  ],
+  "signed": false,
+  "uploaded": false,
+  "publicProbeSourceSha256": "825ae3b1c47b3ca8fab241b108e9fcc2cb5a0f78947bfe7887dafc2fd77afda7"
+}
