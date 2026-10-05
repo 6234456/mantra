@@ -123,7 +123,7 @@ jobs:
         with:
           ref: ${{ inputs.sourceCommit }}
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
