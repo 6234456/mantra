@@ -218,6 +218,7 @@ export function currentPreview(state: AuthoringState): PreviewResult | undefined
 }
 
 export function previewStatus(state: AuthoringState): string {
+  if (state.conflict) return 'Preview based on previous source revisions (conflict)'
   if (state.preview.status === 'calculating') return `Calculating draft #${state.draftSequence}…`
   if (state.preview.current?.kind === 'runtimeFailure') {
     return `Draft #${state.draftSequence} calculated with a runtime failure`
@@ -253,6 +254,18 @@ function conflictSnapshot(external: SourceConflict): SourceConflict {
   }
 }
 
+function enterConflict(state: AuthoringState, external: SourceConflict): AuthoringState {
+  return {
+    ...state,
+    conflict: conflictSnapshot(external),
+    saving: undefined,
+    preview: {
+      ...state.preview,
+      status: currentPreview(state) ? 'previous' : state.preview.status,
+    },
+  }
+}
+
 function receivePreview(state: AuthoringState, result: PreviewResult): AuthoringState {
   if (!matches(state, result.draftSequence, result.baseRevisions)) return state
   const valid = result.kind === 'valid'
@@ -261,13 +274,20 @@ function receivePreview(state: AuthoringState, result: PreviewResult): Authoring
     ...state,
     validity: result.kind === 'unrecorded' ? 'unchecked' : result.kind,
     preview: {
-      status: current ? 'current' : result.kind === 'unrecorded' ? 'unavailable' : 'previous',
+      status:
+        state.conflict && (current || state.preview.previousValid)
+          ? 'previous'
+          : current
+            ? 'current'
+            : result.kind === 'unrecorded'
+              ? 'unavailable'
+              : 'previous',
       current: current ? result : undefined,
       previousValid: valid ? result : state.preview.previousValid,
     },
     diagnostics: [...result.diagnostics],
     diagnosticsSequence: state.draftSequence,
-    restored: valid ? false : state.restored,
+    restored: current ? false : state.restored,
   }
 }
 
@@ -294,7 +314,7 @@ function rebaseHistory(history: SourceHistory, external: SourceConflict): Source
 function rebase(state: AuthoringState, external: SourceConflict): AuthoringState {
   const overlapping = external.changed.filter((document) => state.documents[document] !== state.baseDocuments[document])
   if (overlapping.length) {
-    return { ...state, conflict: { ...conflictSnapshot(external), overlapping }, saving: undefined }
+    return enterConflict(state, { ...external, overlapping })
   }
   const documents = { ...external.documents }
   for (const document of Object.keys(state.documents)) {
@@ -352,7 +372,14 @@ export function authoringReducer(state: AuthoringState, event: AuthoringEvent): 
     }
     case 'previewStarted':
       return matches(state, event.draftSequence, event.baseRevisions)
-        ? { ...state, preview: { ...state.preview, status: 'calculating', current: undefined } }
+        ? {
+            ...state,
+            preview: {
+              ...state.preview,
+              status: state.conflict && currentPreview(state) ? 'previous' : 'calculating',
+              current: state.conflict ? state.preview.current : undefined,
+            },
+          }
         : state
     case 'previewReceived':
       return receivePreview(state, event.result)
@@ -383,8 +410,7 @@ export function authoringReducer(state: AuthoringState, event: AuthoringEvent): 
     case 'saveFailed': {
       if (!state.saving || event.draftSequence !== state.saving.draftSequence) return state
       const next: AuthoringState = { ...state, saving: undefined, saved: false }
-      if (event.kind === 'conflict')
-        return { ...next, conflict: event.conflict ? conflictSnapshot(event.conflict) : state.conflict }
+      if (event.kind === 'conflict') return event.conflict ? enterConflict(next, event.conflict) : next
       if (event.kind === 'offline') return { ...next, connection: 'offline' }
       return {
         ...next,
@@ -396,9 +422,7 @@ export function authoringReducer(state: AuthoringState, event: AuthoringEvent): 
     }
     case 'externalChanged':
       if (sameRevisions(state.baseRevisions, event.baseRevisions)) return state
-      return isDirty(state) || state.saving
-        ? { ...state, conflict: conflictSnapshot(event), saving: undefined }
-        : rebase(state, event)
+      return isDirty(state) || state.saving ? enterConflict(state, event) : rebase(state, event)
     case 'rebase':
       return state.saving ? state : rebase(state, event)
     case 'discard': {

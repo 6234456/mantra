@@ -286,12 +286,47 @@ describe('external source changes and recovery', () => {
     expect(conflict.history).toBe(state.history)
     expect(saveCapsule(conflict).kind).toBe('conflict')
     expect(canSave(conflict)).toBe(false)
+    expect(conflict.preview.status).toBe('previous')
+    expect(currentPreview(conflict)).toBe(currentPreview(state))
+    expect(previewStatus(conflict)).toBe('Preview based on previous source revisions (conflict)')
     const discarded = authoringReducer(conflict, { type: 'discard' })
     expect(discarded.documents).toEqual(external.documents)
     expect(discarded.baseRevisions).toEqual(external.baseRevisions)
     expect(discarded.conflict).toBeUndefined()
     expect(discarded.history.past).toHaveLength(0)
     expect(isDirty(discarded)).toBe(false)
+  })
+
+  it('keeps runtime evidence marked with the old source revisions until a new-base preview arrives', () => {
+    const runtime = receive(edit(initial()), 'runtimeFailure')
+    const evidence = currentPreview(runtime)
+    const conflict = authoringReducer(runtime, { type: 'externalChanged', ...external })
+    expect(conflict.preview.status).toBe('previous')
+    expect(currentPreview(conflict)).toBe(evidence)
+    expect(currentPreview(conflict)?.baseRevisions).toEqual(revisions)
+
+    const waiting = authoringReducer(conflict, {
+      type: 'previewStarted',
+      draftSequence: conflict.draftSequence,
+      baseRevisions: revisions,
+    })
+    expect(waiting.preview.status).toBe('previous')
+    expect(currentPreview(waiting)).toBe(evidence)
+    const oldBaseResponse = receive(waiting, 'runtimeFailure')
+    expect(oldBaseResponse.preview.status).toBe('previous')
+    expect(previewStatus(oldBaseResponse)).toBe('Preview based on previous source revisions (conflict)')
+    expect(canSave(oldBaseResponse)).toBe(false)
+
+    const rebased = authoringReducer(oldBaseResponse, { type: 'rebase', ...external })
+    expect(rebased.conflict).toBeUndefined()
+    expect(previewStatus(rebased)).not.toContain('conflict')
+    expect(rebased.preview.status).toBe('previous')
+    expect(canSave(rebased)).toBe(false)
+    const ready = receive(rebased, 'runtimeFailure')
+    expect(ready.preview.status).toBe('current')
+    expect(currentPreview(ready)?.baseRevisions).toEqual(external.baseRevisions)
+    expect(previewStatus(ready)).toContain('runtime failure')
+    expect(canSave(ready)).toBe(true)
   })
 
   it('rebases untouched external documents while retaining source edits and making history safe to undo', () => {
@@ -380,6 +415,8 @@ describe('external source changes and recovery', () => {
     expect(conflict.documents).toBe(ready.documents)
     expect(conflict.history).toBe(ready.history)
     expect(conflict.conflict).toEqual(external)
+    expect(conflict.preview.status).toBe('previous')
+    expect(previewStatus(conflict)).toBe('Preview based on previous source revisions (conflict)')
     const invalid = authoringReducer(saving, {
       type: 'saveFailed',
       draftSequence: saving.draftSequence,
@@ -401,24 +438,41 @@ describe('external source changes and recovery', () => {
     expect(canSave(offline)).toBe(false)
   })
 
-  it('keeps restored source unvalidated until a matching successful fresh preview', () => {
-    const recoveredDocuments = edit(initial()).documents
-    const recovered = authoringReducer(initial(), { type: 'restore', documents: recoveredDocuments })
-    expect(recovered.documents).toEqual(recoveredDocuments)
-    expect(saveCapsule(recovered).kind).toBe('restored')
-    expect(canSave(recovered)).toBe(false)
-    const stale = authoringReducer(recovered, { type: 'previewReceived', result: preview(0) })
-    expect(stale).toBe(recovered)
-    for (const kind of ['invalid', 'unrecorded', 'runtimeFailure'] as const) {
-      const notValidated = receive(recovered, kind)
-      expect(saveCapsule(notValidated).kind).toBe('restored')
-      expect(canSave(notValidated)).toBe(false)
-    }
-    const validated = receive(recovered)
-    expect(validated.restored).toBe(false)
-    expect(saveCapsule(validated).kind).toBe('unsaved')
-    expect(canSave(validated)).toBe(true)
-  })
+  it.each(['valid', 'runtimeFailure'] as const)(
+    'keeps restored source unvalidated until a matching technically valid %s preview',
+    (kind) => {
+      const recoveredDocuments = edit(initial()).documents
+      const recovered = authoringReducer(initial(), { type: 'restore', documents: recoveredDocuments })
+      expect(recovered.documents).toEqual(recoveredDocuments)
+      expect(saveCapsule(recovered).kind).toBe('restored')
+      expect(canSave(recovered)).toBe(false)
+      const stale = authoringReducer(recovered, { type: 'previewReceived', result: preview(0, kind) })
+      expect(stale).toBe(recovered)
+      const wrongBase = authoringReducer(recovered, {
+        type: 'previewReceived',
+        result: preview(recovered.draftSequence, kind, external.baseRevisions),
+      })
+      expect(wrongBase).toBe(recovered)
+      for (const rejectedKind of ['invalid', 'unrecorded'] as const) {
+        const notValidated = receive(recovered, rejectedKind)
+        expect(saveCapsule(notValidated).kind).toBe('restored')
+        expect(canSave(notValidated)).toBe(false)
+      }
+      const validated = receive(recovered, kind)
+      expect(validated.restored).toBe(false)
+      expect(validated.validity).toBe(kind)
+      expect(saveCapsule(validated).kind).toBe('unsaved')
+      expect(canSave(validated)).toBe(true)
+      const validatedPreview = currentPreview(validated)
+      const previousValid = validated.preview.previousValid
+      const lateInvalid = authoringReducer(validated, { type: 'previewReceived', result: preview(0, 'invalid') })
+      expect(lateInvalid).toBe(validated)
+      expect(lateInvalid.restored).toBe(false)
+      expect(currentPreview(lateInvalid)).toBe(validatedPreview)
+      expect(lateInvalid.preview.previousValid).toBe(previousValid)
+      expect(canSave(lateInvalid)).toBe(true)
+    },
+  )
 
   it('uses the required capsule priority and preserves edits while read-only', () => {
     const recovered = authoringReducer(initial(), { type: 'restore', documents: edit(initial()).documents })

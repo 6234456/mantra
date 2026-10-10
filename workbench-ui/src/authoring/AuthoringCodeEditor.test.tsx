@@ -214,6 +214,115 @@ it('clamps diagnostics and explicit source selections to the current document', 
   expect(onSelection).toHaveBeenCalledWith(0, 2)
 })
 
+it('keeps primary and secondary source owner marks visible while focus and cursor stay elsewhere', () => {
+  const onChange = vi.fn()
+  const onSelection = vi.fn()
+  const props = { value: 'abc def ghi', onChange, onSelection, ariaLabel: 'Source' }
+  const { rerender } = render(
+    <>
+      <button>Grid cell</button>
+      <AuthoringCodeEditor
+        {...props}
+        ownerHighlights={[
+          { from: 0, to: 3, primary: true },
+          { from: 4, to: 7 },
+        ]}
+      />
+    </>,
+  )
+  const mounted = editor()
+  act(() => mounted.dispatch({ selection: { anchor: 5 } }))
+  onSelection.mockClear()
+  screen.getByRole('button', { name: 'Grid cell' }).focus()
+  expect(document.querySelector('.cm-owner-primary')?.textContent).toBe('abc')
+  expect(document.querySelector('.cm-owner-secondary')?.textContent).toBe('def')
+  expect(mounted.hasFocus).toBe(false)
+  rerender(
+    <>
+      <button>Grid cell</button>
+      <AuthoringCodeEditor {...props} ownerHighlights={[{ from: 8, to: 11, primary: true }]} />
+    </>,
+  )
+  expect(document.querySelector('.cm-owner-primary')?.textContent).toBe('ghi')
+  expect(document.querySelector('.cm-owner-secondary')).toBeNull()
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Grid cell' }))
+  expect(mounted.state.selection.main.from).toBe(5)
+  expect(mounted.state.selection.main.to).toBe(5)
+  expect(onSelection).not.toHaveBeenCalled()
+  expect(onChange).not.toHaveBeenCalled()
+})
+
+it('replaces owner ranges against controlled source changes and clears stale or empty marks', () => {
+  const onChange = vi.fn()
+  const props = { value: 'old', onChange, ariaLabel: 'Source' }
+  const { rerender } = render(<AuthoringCodeEditor {...props} ownerHighlights={[{ from: 0, to: 3, primary: true }]} />)
+  const mounted = editor()
+  rerender(
+    <AuthoringCodeEditor
+      {...props}
+      value="new source"
+      ownerHighlights={[
+        { from: 4, to: 100, primary: true },
+        { from: -2, to: 0 },
+        { from: 4, to: 4 },
+        { from: Number.NaN, to: 8 },
+      ]}
+    />,
+  )
+  expect(editor()).toBe(mounted)
+  expect(document.querySelector('.cm-owner-primary')?.textContent).toBe('source')
+  expect(document.querySelector('.cm-owner-secondary')).toBeNull()
+  rerender(<AuthoringCodeEditor {...props} value="new source" />)
+  expect(document.querySelector('[data-authoring-owner]')).toBeNull()
+  expect(onChange).not.toHaveBeenCalled()
+})
+
+it('handles source navigation inside the editor scroller without scrolling ancestor panes', () => {
+  const { container } = mount()
+  const mounted = editor()
+  const scroller = mounted.scrollDOM
+  container.scrollTop = 73
+  container.scrollLeft = 9
+  scroller.scrollTop = 40
+  scroller.scrollLeft = 10
+  Object.defineProperties(scroller, { clientHeight: { value: 100 }, clientWidth: { value: 100 } })
+  vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue({
+    top: 100,
+    bottom: 200,
+    left: 20,
+    right: 120,
+    width: 100,
+    height: 100,
+    x: 20,
+    y: 100,
+    toJSON: () => ({}),
+  })
+  vi.spyOn(mounted, 'coordsAtPos').mockImplementation(() => {
+    throw new Error('CodeMirror forbids layout reads during its write phase')
+  })
+  const cursor = {
+    setStart: vi.fn(),
+    collapse: vi.fn(),
+    getBoundingClientRect: () => ({ top: 245, bottom: 260, left: 140, right: 145 }),
+  }
+  vi.spyOn(document, 'createRange').mockReturnValue(cursor as unknown as Range)
+  const handler = mounted.state.facet(EditorView.scrollHandler)[0]
+  const handled = handler(mounted, mounted.state.selection.main, {
+    x: 'nearest',
+    y: 'nearest',
+    xMargin: 5,
+    yMargin: 5,
+  })
+  expect(handled).toBe(true)
+  expect(scroller.scrollTop).toBe(105)
+  expect(scroller.scrollLeft).toBe(40)
+  expect(container.scrollTop).toBe(73)
+  expect(container.scrollLeft).toBe(9)
+  expect(cursor.setStart).toHaveBeenCalledOnce()
+  expect(cursor.collapse).toHaveBeenCalledWith(true)
+  expect(document.activeElement).not.toBe(mounted.contentDOM)
+})
+
 it('uses the configured CSP nonce and destroys the old view when editor identity changes', () => {
   const meta = document.createElement('meta')
   meta.name = 'mantra-style-nonce'

@@ -245,6 +245,49 @@ async function formula(text, label = 'Unallocated request') {
   await click('Apply formula')
 }
 
+async function chooseClass(previous, next) {
+  await click('Style')
+  await click(`Remove class ${previous}`)
+  await click('Add class')
+  for (const name of ['normal', 'subtle', 'highlight', 'variance'])
+    assert.equal(await evaluate(`!!${buttonExpression(`Add class ${name}`)}`), true, `Preset class ${name}`)
+  await hasText('dsl-reference §3.4')
+  await click(`Add class ${next}`)
+  await click('Apply classes')
+}
+
+async function desktopLayout() {
+  return evaluate(`(() => {
+    const rect = element => {
+      const box = element?.getBoundingClientRect();
+      return box ? { top: box.top, bottom: box.bottom, height: box.height, left: box.left, right: box.right } : null;
+    };
+    const center = document.querySelector('.author-center');
+    const grid = document.querySelector('.author-grid-panel');
+    const rows = [...document.querySelectorAll('[role="grid"] tr')].filter(row => row.querySelector('[role="gridcell"]'));
+    const source = document.querySelector('.author-source-pane');
+    return {
+      formula: rect(document.querySelector('.author-formula')),
+      grid: rect(grid), firstRow: rect(rows[0]), center: rect(center), source: rect(source),
+      centerScrollTop: center?.scrollTop, centerScrollHeight: center?.scrollHeight, centerClientHeight: center?.clientHeight,
+      sourceScrollerHeight: source?.querySelector('.cm-scroller')?.clientHeight,
+      sourceContentHeight: source?.querySelector('.cm-scroller')?.scrollHeight,
+      sourceScrollTop: source?.querySelector('.cm-scroller')?.scrollTop,
+    };
+  })()`)
+}
+
+async function assertDefaultLayout() {
+  const layout = await desktopLayout()
+  assert.ok(layout.formula && layout.firstRow && layout.center && layout.grid, 'Bounded formula and grid panes')
+  assert.ok(layout.formula.height <= 150, 'Formula starts compact')
+  assert.ok(
+    layout.firstRow.top >= layout.formula.bottom && layout.firstRow.bottom < 900,
+    'Grid rows visible below formula',
+  )
+  assert.ok(layout.centerScrollHeight <= layout.centerClientHeight + 1, 'Center column does not scroll as a whole')
+}
+
 async function resetCopy(port) {
   await evaluate('document.querySelector(".author-controls").open = true')
   await click('Reset prototype to recorded base')
@@ -326,9 +369,71 @@ try {
   await hasText('Confirm editable copy')
   await click('Confirm editable copy')
   await hasText('Allocation conservation')
+  await current()
   assert.equal(await evaluate('document.querySelectorAll("[role=grid]").length'), 1)
+  assert.equal(
+    await evaluate(`(() => {
+      const outline = document.querySelector('[aria-label="Outline"]');
+      const resources = outline.querySelector('section[aria-label="Template resources"]');
+      const panel = outline.querySelector('section[aria-label="Allocation conservation"]');
+      return !resources?.innerText.includes('Allocation conservation') && [...panel.querySelectorAll('button')].some(button => button.innerText.startsWith('Allocation conservation'));
+    })()`),
+    true,
+    'Section owner is grouped with its panel instead of template resources',
+  )
+  await assertDefaultLayout()
   pass('entry and simulated fork')
 
+  await click('Split')
+  const splitBefore = await desktopLayout()
+  await selectRow('Request not allocated', 1)
+  await until(
+    () => evaluate(`!!document.querySelector('.author-source-pane .cm-owner-primary')`),
+    'source owner decoration while grid keeps focus',
+  )
+  const splitAfter = await desktopLayout()
+  assert.ok(splitAfter.source && splitAfter.grid, 'Split contains grid and source panes')
+  assert.ok(splitAfter.grid.right <= splitAfter.source.left, 'Split panes remain side by side')
+  assert.ok(
+    splitAfter.sourceScrollerHeight < splitAfter.sourceContentHeight,
+    'Source editor has a bounded inner scroller',
+  )
+  assert.equal(
+    splitAfter.centerScrollTop,
+    splitBefore.centerScrollTop,
+    'Owner location never scrolls whole center column',
+  )
+  assert.equal(splitAfter.grid.top, splitBefore.grid.top, 'Owner selection keeps grid in the viewport')
+  assert.equal(
+    await evaluate(`!!document.activeElement?.closest('[role="grid"]')`),
+    true,
+    'Source location keeps grid focus',
+  )
+  assert.equal(
+    await evaluate(`(() => {
+      const owner = document.querySelector('.author-source-pane .cm-owner-primary');
+      const rect = owner.getBoundingClientRect();
+      const source = document.querySelector('.author-source-pane').getBoundingClientRect();
+      return rect.height > 0 && rect.bottom > source.top && rect.top < source.bottom && getComputedStyle(owner).backgroundColor !== 'rgba(0, 0, 0, 0)';
+    })()`),
+    true,
+    'Blurred source owner has a visible painted decoration',
+  )
+  await screenshot('split-independent')
+  await click('Grid')
+  await assertDefaultLayout()
+  pass('compact formula, visible grid and independent Split source highlighting')
+
+  await selectRow('Request not allocated', 0)
+  await evaluate(
+    `document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Process', code: 'Process', keyCode: 229, bubbles: true }))`,
+  )
+  assert.equal(
+    await evaluate('document.activeElement?.getAttribute("aria-label")'),
+    'Property text',
+    'Browsing IME key opens an editor synchronously for composition',
+  )
+  await key('Escape')
   await selectRow('Request not allocated', 0)
   await key('F2')
   assert.equal(await evaluate('document.activeElement?.getAttribute("aria-label")'), 'Property text')
@@ -367,21 +472,32 @@ try {
   const rowBeforeClass = await evaluate(
     `(() => { const row = document.activeElement.closest('tr'); return { value: row.querySelector('[data-column="1"]').innerText, appearance: [...row.querySelectorAll('td')].map(cell => [cell.className, cell.getAttribute('style')]) } })()`,
   )
-  await click('Style')
-  await fill('Classes', 'result')
-  await click('Apply classes')
+  await chooseClass('subtotal', 'result')
   await current()
   const styledRow = await evaluate(
     `(() => { const row = [...document.querySelectorAll('[role=grid] tr')].find(item => item.innerText.includes('Capacity not consumed')); return { value: row.querySelector('[data-column="1"]').innerText, appearance: [...row.querySelectorAll('td')].map(cell => [cell.className, cell.getAttribute('style')]) } })()`,
   )
   assert.equal(styledRow.value, rowBeforeClass.value, 'Class changes keep engine-rendered value')
   assert.notDeepEqual(styledRow.appearance, rowBeforeClass.appearance, 'Recorded result class changes Paper appearance')
+  await hasText('Final cell style · Paper')
+  for (const name of ['Weight', 'Tone', 'Fill']) await hasText(name)
+  assert.equal(
+    await evaluate(`!!document.querySelector('[aria-label="Classes"]')`),
+    false,
+    'Style selection uses chips',
+  )
   await screenshot('class-style')
   pass('class style changes presentation without changing the recorded value')
 
   await selectRow('Unallocated request', 1)
+  const compactFormulaHeight = (await desktopLayout()).formula.height
   await key('F2')
   assert.equal(await evaluate('document.activeElement?.getAttribute("aria-label")'), 'Mantra DSL formula')
+  assert.ok(
+    (await desktopLayout()).formula.height > compactFormulaHeight,
+    'Focused formula expands without hiding the grid',
+  )
+  assert.ok((await desktopLayout()).grid.top < 900, 'Expanded formula leaves visible grid space')
   await fill('Mantra DSL formula', '(- request allocated-total)')
   await key('Enter')
   assert.equal(await evaluate('document.querySelectorAll(".authoring-code-editor .cm-line").length > 1'), true)
@@ -441,6 +557,18 @@ try {
   await formula('(/ request 0)')
   await hasText('calculated with a runtime failure')
   await hasText('undefined')
+  assert.equal(await textIncludes('Errors: 0'), false, 'Runtime failure contributes to error count')
+  assert.ok(
+    await evaluate(`${buttonExpression('Problems')}.textContent.includes('(')`),
+    'Runtime problem badge is counted',
+  )
+  assert.equal(
+    await evaluate(
+      `[...document.querySelectorAll('[role="grid"] [aria-label]')].some(item => item.getAttribute('aria-label').includes('previous valid preview'))`,
+    ),
+    false,
+    'Current runtime-failure markers do not claim a previous preview',
+  )
   await screenshot('runtime-failure')
   await evaluate(`document.querySelector('[role=gridcell][tabindex="0"]')?.focus()`)
   await key('z', command, 'KeyZ')
@@ -448,8 +576,14 @@ try {
 
   await click('Simulate external edit to layout.mantra')
   await hasText('Conflict')
+  await hasText('old source revision')
   await click('Save')
   await hasText('Re-preview on the new base')
+  assert.equal(
+    await evaluate(`document.querySelector('[role="dialog"]').innerText.includes('(layout')`),
+    false,
+    'Conflict dialog displays an external diff instead of the unchanged document',
+  )
   await screenshot('conflict')
   const conflictSequence = await sequence()
   await click('Re-preview on the new base')
@@ -463,27 +597,42 @@ try {
 
   // Recovery gets a separate unsaved draft on the immutable recorded base.
   await resetCopy(port)
-  await formula('(- request total-capacity)', 'Request not allocated')
-  await current()
+  await formula('(/ request 0)', 'Request not allocated')
+  await hasText('calculated with a runtime failure')
   await until(
     () =>
       evaluate(
-        `Object.keys(localStorage).some(key => key.startsWith('mantra.authoring.prototype.') && localStorage.getItem(key).includes('(- request total-capacity)'))`,
+        `Object.keys(localStorage).some(key => key.startsWith('mantra.authoring.prototype.') && localStorage.getItem(key).includes('(/ request 0)'))`,
       ),
     'stored unsaved source draft',
   )
   await session.send('Page.reload')
   await hasText('It has not been validated or saved.')
+  assert.equal(
+    await evaluate(
+      `/[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}/.test(document.querySelector('.author-recovery').innerText)`,
+    ),
+    false,
+    'Recovery timestamp is localized for display',
+  )
   await screenshot('recovery')
   await click('Restore')
   await hasText('Restored · not validated')
-  await current()
-  await hasText('(60.00)')
+  await hasText('calculated with a runtime failure')
   assert.equal(await textIncludes('Restored · not validated'), false)
-  pass('reload offers browser draft recovery and validates it before enabling save')
+  assert.equal(
+    await evaluate(`${buttonExpression('Save')}.disabled`),
+    false,
+    'Restored runtime failure is technically validated and saveable',
+  )
+  pass('reload localizes recovery time and accepts a matched runtime-failure preview as validation')
 
   await resetCopy(port)
   await click('Example input')
+  assert.equal(
+    await evaluate(`document.querySelector('.author-definition').textContent.includes('Example input')`),
+    true,
+  )
   await fill('Example input', '9')
   await click('Preview example input')
   await hasText('90.00')
@@ -494,19 +643,172 @@ try {
   pass('example candidate uses recorded Paper and preserves rejected decimal text')
 
   await click('Build')
-  await hasText('Report of the existing ExcelExport path for the saved example case (recorded)')
+  await hasText('recorded base state')
   await disabled('Build')
   await disabled('Publish')
   await disabled('Open in Template Engine')
+  for (const label of ['Build', 'Publish', 'Open in Template Engine'])
+    assert.equal(
+      await evaluate(`(() => {
+        const button = [...document.querySelectorAll('button:disabled')].find(item => item.textContent.trim() === ${JSON.stringify(label)});
+        const ids = button?.getAttribute('aria-describedby')?.split(' ') ?? [];
+        return ids.some(id => document.getElementById(id)?.textContent.trim());
+      })()`),
+      true,
+      `Disabled ${label} has a connected reason`,
+    )
   await screenshot('build-panel')
   pass('build report is recorded; build, publish and Template Engine actions are disabled')
 
+  await resetCopy(port)
+  await selectRow('Rounded request to allocate', 0)
+  await key('F2')
+  await fill('Property text', 'Edited label outside the recording')
+  await key('Enter')
+  await hasText('No engine preview')
+  assert.equal(
+    await evaluate(`!!document.activeElement?.closest('[role="grid"]')`),
+    true,
+    'Accepted unrecorded label moves focus to grid',
+  )
+  await selectRow('Capacity not consumed', 0)
+  await chooseClass('subtotal', 'result')
+  await hasText('No engine preview')
+  await click('Source changes')
+  assert.equal(
+    await evaluate(
+      `[...document.querySelectorAll('.author-diff-del, .author-diff-add')].some(item => item.textContent.includes('Sum of supplied capacities') || item.textContent.includes('Sum of member allocations'))`,
+    ),
+    false,
+    'Separated edits never mark intermediate unchanged declarations as deleted and added',
+  )
+  assert.ok(
+    await evaluate(`document.querySelectorAll('[data-source-hunk]').length >= 2`),
+    'Separated edits produce multiple source hunks',
+  )
+  await click('Problems')
+  await selectRow('Capacity not consumed', 0)
+  const drawerBeforeEscape = await evaluate(`document.querySelector('[aria-label="Authoring drawer"]').innerText`)
+  await key('Escape')
+  assert.equal(
+    await evaluate(`document.querySelector('[aria-label="Authoring drawer"]').innerText`),
+    drawerBeforeEscape,
+    'Grid Escape without a range keeps drawer state',
+  )
+  pass('unrecorded text navigation, true separated source hunks and no-op browsing Escape')
+
+  await resetCopy(port)
+  await selectRow('Allocated plus unallocated equals the request', 1)
+  await click('Property')
+  assert.equal(
+    await evaluate(`document.querySelector('.author-definition').textContent.startsWith('Read-only')`),
+    true,
+    'Readonly owner has its own channel badge',
+  )
+  await click('Split')
   await screenshot('narrow-390', 390, 844)
+  assert.equal(
+    await evaluate(`!!document.querySelector('.author-source-pane')`),
+    false,
+    'Narrow Split falls back to Grid',
+  )
+  assert.equal(
+    await evaluate(`${buttonExpression('Grid')}.getAttribute('aria-pressed')`),
+    'true',
+    'Grid segment reflects effective narrow view',
+  )
   assert.equal(
     await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'),
     true,
     '390 px viewport has no page horizontal overflow',
   )
+  assert.equal(
+    await evaluate(`document.querySelector('[aria-label="Outline"]')?.getBoundingClientRect().height > 0`),
+    false,
+    'Narrow Outline starts closed',
+  )
+  assert.ok(
+    await evaluate(
+      `document.querySelector('[role="grid"] tr:has([role="gridcell"])').getBoundingClientRect().bottom < innerHeight`,
+    ),
+    'Narrow grid appears in first viewport',
+  )
+  await click('Open outline')
+  await until(
+    () => evaluate(`!!document.querySelector('[role="dialog"][aria-label="Outline"]')`),
+    'mobile Outline drawer',
+  )
+  await key('Escape')
+  await selectRow('Request not allocated', 0)
+  await click('Open inspector')
+  await until(
+    () => evaluate(`!!document.querySelector('[role="dialog"][aria-label="Inspector"]')`),
+    'full mobile Inspector',
+  )
+  assert.ok(
+    await evaluate(
+      `document.querySelector('[role="dialog"][aria-label="Inspector"]').getBoundingClientRect().height >= innerHeight - 32`,
+    ),
+    'Mobile Inspector uses the viewport',
+  )
+  await screenshot('narrow-inspector', 390, 844)
+  await click('Close Inspector')
+  assert.equal(
+    await evaluate(`!!document.activeElement?.closest('[role="grid"]')`),
+    true,
+    'Closing mobile Inspector returns focus to selected cell',
+  )
+  await selectRow('Request not allocated', 1)
+  const beforeMobileFormula = await sequence()
+  await key('F2')
+  await until(
+    () =>
+      evaluate(`!!document.querySelector('[role="dialog"][aria-label="Inspector"] [aria-label="Mantra DSL formula"]')`),
+    'mobile formula editor inside full Inspector',
+  )
+  assert.equal(
+    await evaluate(`document.querySelectorAll('[aria-label="Mantra DSL formula"]').length`),
+    1,
+    'Mobile formula editing has one CodeMirror instance',
+  )
+  assert.equal(
+    await evaluate('document.activeElement?.getAttribute("aria-label")'),
+    'Mantra DSL formula',
+    'Mobile F2 focuses formula inside Inspector',
+  )
+  await fill('Mantra DSL formula', '(- request total-capacity)')
+  // Let the completion query settle; Escape first dismisses an active completion menu.
+  await delay(200)
+  if (await evaluate(`!!document.querySelector('[role="dialog"] .cm-tooltip-autocomplete')`)) await key('Escape')
+  await key('Escape')
+  assert.equal(
+    await evaluate(`!!document.querySelector('[role="dialog"][aria-label="Inspector"]')`),
+    false,
+    'Cancelling mobile formula closes Inspector',
+  )
+  assert.equal(
+    await evaluate(`!!document.activeElement?.closest('[role="grid"]')`),
+    true,
+    'Mobile formula cancel returns selected cell focus',
+  )
+  assert.equal(await sequence(), beforeMobileFormula, 'Cancelling mobile formula keeps source draft unchanged')
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  await until(
+    () => evaluate(`!!document.querySelector('.author-source-pane')`),
+    'Split restored after widening viewport',
+  )
+  assert.equal(
+    await evaluate(`${buttonExpression('Split')}.getAttribute('aria-pressed')`),
+    'true',
+    'Widening restores the original Split choice',
+  )
+  await click('Grid')
+  pass('responsive Split fallback and mobile formula Inspector focus and cancellation')
   await evaluate('document.documentElement.dataset.theme = "dark"')
   await screenshot('dark')
   assert.equal(await evaluate('document.documentElement.dataset.theme'), 'dark')

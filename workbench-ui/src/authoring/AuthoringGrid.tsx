@@ -14,12 +14,12 @@ export interface AuthoringGridProps {
   selected?: GridPosition
   onSelect: (position: GridPosition) => void
   ownerFor: (row: number, column: number) => SourceOwner | undefined
-  onEdit: (owner: SourceOwner, initialText?: string) => void
+  onEdit: (owner: SourceOwner, initialText?: string, composition?: boolean) => void
   showFormulas?: boolean
   formulaFor?: (row: number, column: number) => string | undefined
   invalidHandles?: ReadonlySet<string>
+  errorPreview?: 'previous-valid' | 'current-runtime' | 'previous-runtime'
   onToggleFormulas?: () => void
-  onEscape?: () => void
   onCopy?: (positions: GridPosition[]) => void
   onPaste?: (text: string, owner: SourceOwner) => void
   onRangeChange?: (positions: GridPosition[]) => void
@@ -62,13 +62,14 @@ export function AuthoringGrid({
   showFormulas,
   formulaFor,
   invalidHandles,
+  errorPreview = 'previous-valid',
   onToggleFormulas,
-  onEscape,
   onCopy,
   onPaste,
   onRangeChange,
 }: AuthoringGridProps) {
   const tableElement = useRef<HTMLTableElement>(null)
+  const compositionTransfer = useRef(false)
   const [anchor, setAnchor] = useState<GridPosition | null>(null)
   const [announcement, setAnnouncement] = useState('')
   const active = nearestPosition(table, selected ?? { row: 0, column: 0 })
@@ -96,21 +97,31 @@ export function AuthoringGrid({
         ?.focus()
   }
 
-  function edit(position: GridPosition, initialText?: string) {
+  function edit(position: GridPosition, initialText?: string, composition = false) {
     const owner = ownerFor(position.row, position.column)
     if (!owner?.editable) {
       setAnnouncement(owner?.reason ?? 'This cell has no editable template property.')
       return
     }
     setAnnouncement('')
-    onEdit(owner, initialText)
+    if (composition) onEdit(owner, initialText, true)
+    else onEdit(owner, initialText)
   }
 
   function onKey(event: KeyboardEvent<HTMLTableElement>) {
-    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
     const target = (event.target as HTMLElement).closest<HTMLElement>('[role="gridcell"]')
     if (!target || !event.currentTarget.contains(target)) return
     const position = { row: Number(target.dataset.row), column: Number(target.dataset.column) }
+    if (event.nativeEvent.keyCode === 229) {
+      if (!compositionTransfer.current) {
+        compositionTransfer.current = true
+        // The parent must focus an editor synchronously, before the IME delivers its composition.
+        // Keep the native event untouched so the browser can place that composition in the editor.
+        edit(position, undefined, true)
+      }
+      return
+    }
+    if (event.nativeEvent.isComposing || compositionTransfer.current) return
     let next: GridPosition | undefined
     if (event.key === 'ArrowDown') next = { ...position, row: position.row + 1 }
     if (event.key === 'ArrowUp') next = { ...position, row: position.row - 1 }
@@ -133,7 +144,7 @@ export function AuthoringGrid({
       if (positions.length > 1) {
         event.preventDefault()
         setAnchor(null)
-      } else onEscape?.()
+      }
     } else if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault()
       setAnnouncement('Labels and formulas cannot be cleared here. Press Enter to edit.')
@@ -177,6 +188,9 @@ export function AuthoringGrid({
         tabIndex={table.rows.length ? undefined : 0}
         ref={tableElement}
         onKeyDown={onKey}
+        onCompositionEnd={() => {
+          compositionTransfer.current = false
+        }}
         onCopy={(event) => copy(event)}
         onCut={(event) => copy(event, true)}
         onPaste={(event) => {
@@ -234,7 +248,10 @@ export function AuthoringGrid({
                       paddingLeft: column === 0 ? `${12 + Math.min(row.depth, 6) * 12}px` : undefined,
                       ...cellAppearance(cell),
                     }}
-                    onFocus={() => onSelect({ row: rowIndex, column })}
+                    onFocus={() => {
+                      compositionTransfer.current = false
+                      onSelect({ row: rowIndex, column })
+                    }}
                     onClick={(event) => select({ row: rowIndex, column }, event.shiftKey)}
                     onDoubleClick={() => edit({ row: rowIndex, column })}
                   >
@@ -257,7 +274,13 @@ export function AuthoringGrid({
                     {invalid && (
                       <span
                         className="author-definition-mark"
-                        aria-label="Definition has an error; displayed values come from the last valid preview."
+                        aria-label={
+                          errorPreview === 'current-runtime'
+                            ? 'Definition has a runtime failure; displayed values come from the current preview.'
+                            : errorPreview === 'previous-runtime'
+                              ? 'Definition has a runtime failure; displayed values are based on previous source revisions.'
+                              : 'Definition has an error; displayed values come from the last valid preview.'
+                        }
                       >
                         !
                       </span>

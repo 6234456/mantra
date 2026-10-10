@@ -148,27 +148,65 @@ it('lets browsing Tab leave the grid and ignores IME Enter, printable keys and a
   expect(fireEvent.keyDown(cell(1, 0), { key: 'Tab' })).toBe(true)
   expect(fireEvent.keyDown(cell(1, 0), { key: 'Tab', shiftKey: true })).toBe(true)
   fireEvent.keyDown(cell(1, 0), { key: 'Enter', isComposing: true })
-  fireEvent.keyDown(cell(1, 0), { key: 'ArrowDown', keyCode: 229 })
-  fireEvent.keyDown(cell(1, 0), { key: 'a', keyCode: 229 })
+  fireEvent.keyDown(cell(1, 0), { key: 'ArrowDown', isComposing: true })
+  fireEvent.keyDown(cell(1, 0), { key: 'a', isComposing: true })
   expect(onEdit).not.toHaveBeenCalled()
   expect(onSelect).not.toHaveBeenCalled()
 })
 
-it('extends a rectangular range and makes Escape collapse it before invoking an outer dismissal', () => {
-  const onEscape = vi.fn()
-  mount({ selected: { row: 1, column: 0 }, onEscape })
+it('hands the first IME key to its owner without cancelling composition or submitting a character', () => {
+  const { onSelect, onEdit } = mount({ selected: { row: 1, column: 0 } })
+  expect(fireEvent.keyDown(cell(1, 0), { key: 'Process', keyCode: 229 })).toBe(true)
+  expect(onEdit).toHaveBeenCalledExactlyOnceWith(labelOwner, undefined, true)
+  expect(fireEvent.keyDown(cell(1, 0), { key: 'Process', keyCode: 229, isComposing: true })).toBe(true)
+  expect(fireEvent.keyDown(cell(1, 0), { key: 'Enter', isComposing: true })).toBe(true)
+  expect(fireEvent.keyDown(cell(1, 0), { key: 'ArrowDown', isComposing: true })).toBe(true)
+  expect(onEdit).toHaveBeenCalledOnce()
+  expect(onSelect).not.toHaveBeenCalled()
+  expect(display(1, 0)).toBe('Request not allocated')
+  fireEvent.compositionEnd(cell(1, 0), { data: '测试' })
+  fireEvent.keyDown(cell(1, 1), { key: 'Process', keyCode: 229, isComposing: true })
+  expect(onEdit).toHaveBeenLastCalledWith(formulaOwner, undefined, true)
+})
+
+it('allows synchronous IME focus transfer to an input without preventing the native event', () => {
+  const onEdit = vi.fn(() => screen.getByRole('textbox').focus())
+  mount({ selected: { row: 1, column: 0 }, onEdit })
+  render(<input aria-label="Template property editor" defaultValue="Existing definition" />)
+  cell(1, 0).focus()
+  expect(fireEvent.keyDown(cell(1, 0), { key: 'Process', keyCode: 229 })).toBe(true)
+  expect(document.activeElement).toBe(screen.getByRole('textbox'))
+  expect(onEdit).toHaveBeenCalledExactlyOnceWith(labelOwner, undefined, true)
+  expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('Existing definition')
+})
+
+it('explains why an IME key cannot edit a read-only definition', () => {
+  const { onSelect, onEdit } = mount()
+  expect(fireEvent.keyDown(cell(0, 0), { key: 'Process', keyCode: 229 })).toBe(true)
+  expect(screen.getByRole('status').textContent).toBe('This condition is defined by its schema.')
+  expect(onEdit).not.toHaveBeenCalled()
+  expect(onSelect).not.toHaveBeenCalled()
+})
+
+it('extends a rectangular range and makes Escape collapse it without any action for a single cell', () => {
+  const { onSelect, onEdit } = mount({ selected: { row: 1, column: 0 } })
   fireEvent.keyDown(cell(1, 0), { key: 'ArrowRight', shiftKey: true })
   fireEvent.keyDown(cell(1, 1), { key: 'ArrowDown', shiftKey: true })
   expect(screen.getAllByRole('gridcell').filter((item) => item.getAttribute('aria-selected') === 'true')).toHaveLength(
     4,
   )
   fireEvent.keyDown(cell(2, 1), { key: 'Escape' })
-  expect(onEscape).not.toHaveBeenCalled()
   expect(screen.getAllByRole('gridcell').filter((item) => item.getAttribute('aria-selected') === 'true')).toEqual([
     cell(2, 1),
   ])
-  fireEvent.keyDown(cell(2, 1), { key: 'Escape' })
-  expect(onEscape).toHaveBeenCalledOnce()
+  onSelect.mockClear()
+  expect(fireEvent.keyDown(cell(2, 1), { key: 'Escape' })).toBe(true)
+  expect(document.activeElement).toBe(cell(2, 1))
+  expect(onSelect).not.toHaveBeenCalled()
+  expect(onEdit).not.toHaveBeenCalled()
+  expect(screen.getAllByRole('gridcell').filter((item) => item.getAttribute('aria-selected') === 'true')).toEqual([
+    cell(2, 1),
+  ])
 })
 
 it('copies the renderer display as TSV and escaped HTML without exposing source handles', () => {
@@ -212,6 +250,27 @@ it('marks an invalid definition by owner while preserving its last valid display
   expect(
     screen.getByLabelText('Definition has an error; displayed values come from the last valid preview.'),
   ).toBeTruthy()
+})
+
+it('describes a runtime error against the current preview without claiming previous valid values', () => {
+  mount({ invalidHandles: new Set([formulaOwner.handle]), errorPreview: 'current-runtime' })
+  expect(cell(1, 1).getAttribute('aria-invalid')).toBe('true')
+  expect(
+    screen.getByLabelText('Definition has a runtime failure; displayed values come from the current preview.'),
+  ).toBeTruthy()
+  expect(
+    screen.queryByLabelText('Definition has an error; displayed values come from the last valid preview.'),
+  ).toBeNull()
+})
+
+it('identifies runtime evidence retained across an external source conflict', () => {
+  mount({ invalidHandles: new Set([formulaOwner.handle]), errorPreview: 'previous-runtime' })
+  expect(
+    screen.getByLabelText('Definition has a runtime failure; displayed values are based on previous source revisions.'),
+  ).toBeTruthy()
+  expect(
+    screen.queryByLabelText('Definition has an error; displayed values come from the last valid preview.'),
+  ).toBeNull()
 })
 
 it('displays passed DSL formulas without computing values and delegates the formula shortcut', () => {

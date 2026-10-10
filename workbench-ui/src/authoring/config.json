@@ -15,7 +15,11 @@
       "description": "Present a ratio with its denominator and undefined cases.",
       "available": false
     },
-    { "title": "Source control", "description": "Show supplied facts and source reconciliation.", "available": false }
+    {
+      "title": "Source control",
+      "description": "Show supplied facts and source reconciliation.",
+      "available": false
+    }
   ],
   "documentRoles": {
     "capped-allocation/schema.mantra": "schema",
@@ -23,8 +27,6 @@
     "common/formulas.mantra": "fragment",
     "capped-allocation/case-demo.mantra": "case"
   },
-  "classes": ["source", "assumption", "detail", "subtotal", "result", "control", "note", "strong", "muted", "accent"],
-  "classPresets": ["utilities", "working-paper"],
   "readonlyReason": "Not editable in this version (reconcile operand)",
   "exampleInput": "requested-units"
 }

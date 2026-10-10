@@ -1,12 +1,17 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { Annotation, Compartment, EditorState, Prec } from '@codemirror/state'
-import { EditorView, keymap } from '@codemirror/view'
+import { Annotation, Compartment, EditorState, Prec, StateEffect, StateField } from '@codemirror/state'
+import { Decoration, EditorView, keymap, type DecorationSet } from '@codemirror/view'
 import { autocompletion, completionKeymap, type Completion } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { lintGutter, setDiagnostics, type Diagnostic } from '@codemirror/lint'
 
 export type AuthoringCompletion = Pick<Completion, 'label' | 'type' | 'detail'> & { apply?: string }
 export type AuthoringCodeDiagnostic = Diagnostic
+export interface AuthoringOwnerHighlight {
+  from: number
+  to: number
+  primary?: boolean
+}
 
 export interface AuthoringCodeEditorProps {
   value: string
@@ -23,9 +28,74 @@ export interface AuthoringCodeEditorProps {
   selectAll?: boolean
   editorKey?: string
   selection?: { from: number; to: number }
+  ownerHighlights?: readonly AuthoringOwnerHighlight[]
 }
 
 const externalUpdate = Annotation.define<boolean>()
+const setOwnerHighlights = StateEffect.define<readonly AuthoringOwnerHighlight[]>()
+const ownerHighlights = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update: (decorations, transaction) => {
+    decorations = decorations.map(transaction.changes)
+    for (const effect of transaction.effects) {
+      if (!effect.is(setOwnerHighlights)) continue
+      const length = transaction.state.doc.length
+      const ranges = effect.value.flatMap((item) => {
+        if (!Number.isFinite(item.from) || !Number.isFinite(item.to)) return []
+        const from = Math.max(0, Math.min(Math.trunc(item.from), length))
+        const to = Math.max(from, Math.min(Math.trunc(item.to), length))
+        return from === to
+          ? []
+          : [
+              Decoration.mark({
+                class: item.primary ? 'cm-owner-primary' : 'cm-owner-secondary',
+                attributes: { 'data-authoring-owner': item.primary ? 'primary' : 'secondary' },
+              }).range(from, to),
+            ]
+      })
+      decorations = Decoration.set(ranges, true)
+    }
+    return decorations
+  },
+  provide: (field) => EditorView.decorations.from(field),
+})
+
+function scrollDistance(
+  from: number,
+  to: number,
+  start: number,
+  end: number,
+  strategy: 'nearest' | 'start' | 'end' | 'center',
+  margin: number,
+) {
+  if (strategy === 'start') return from - start - margin
+  if (strategy === 'end') return to - end + margin
+  if (strategy === 'center') return (from + to - start - end) / 2
+  if (from < start + margin) return from - start - margin
+  if (to > end - margin) return to - end + margin
+  return 0
+}
+
+/** CodeMirror's default scroll traverses ancestors; author panes own only their internal viewport. */
+const internalScrolling = EditorView.scrollHandler.of((editor, range, options) => {
+  const scroller = editor.scrollDOM
+  if (!scroller.clientHeight || !scroller.clientWidth) return true
+  // The facet runs in CodeMirror's write phase, where coordsAtPos cannot be called.
+  // Read the rendered cursor location directly without mutating the native selection.
+  const position = editor.domAtPos(range.head)
+  const cursor = scroller.ownerDocument.createRange()
+  cursor.setStart(position.node, position.offset)
+  cursor.collapse(true)
+  const target = cursor.getBoundingClientRect()
+  const viewport = scroller.getBoundingClientRect()
+  const top = viewport.top + scroller.clientTop
+  const left = viewport.left + scroller.clientLeft
+  const y = scrollDistance(target.top, target.bottom, top, top + scroller.clientHeight, options.y, options.yMargin)
+  const x = scrollDistance(target.left, target.right, left, left + scroller.clientWidth, options.x, options.xMargin)
+  if (y) scroller.scrollTop = Math.max(0, scroller.scrollTop + y)
+  if (x) scroller.scrollLeft = Math.max(0, scroller.scrollLeft + x)
+  return true
+})
 
 /** Shared controlled editor for formula drafts and the source pane; values are never evaluated here. */
 export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
@@ -33,6 +103,7 @@ export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
   const view = useRef<EditorView | null>(null)
   const current = useRef(props)
   const composing = useRef(false)
+  const highlightedPrimary = useRef<string | undefined>(undefined)
   const editable = useRef(new Compartment())
   useLayoutEffect(() => {
     current.current = props
@@ -55,6 +126,8 @@ export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
             EditorView.contentAttributes.of({ 'aria-label': initial.ariaLabel }),
           ]),
           history(),
+          ownerHighlights,
+          internalScrolling,
           Prec.highest(
             keymap.of([
               ...completionKeymap,
@@ -136,6 +209,15 @@ export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
               borderRight: '1px solid var(--line-soft)',
             },
             '&.cm-focused': { outline: '2px solid var(--blue)', outlineOffset: '-2px' },
+            '.cm-owner-primary': {
+              backgroundColor: 'var(--author-definition-tint)',
+              boxShadow: 'inset 0 -2px var(--author-definition)',
+            },
+            '.cm-owner-secondary': {
+              backgroundColor: 'var(--bar)',
+              textDecoration: 'underline dotted var(--author-definition)',
+              textUnderlineOffset: '3px',
+            },
           }),
         ],
       }),
@@ -157,6 +239,25 @@ export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
       annotations: externalUpdate.of(true),
     })
   }, [props.value, props.editorKey])
+
+  useEffect(() => {
+    const editor = view.current
+    if (!editor) return
+    const highlights = props.ownerHighlights ?? []
+    const primary = highlights.find((item) => item.primary && Number.isFinite(item.from))
+    const primaryKey = primary ? `${props.editorKey ?? ''}:${primary.from}:${primary.to}` : undefined
+    const navigate = primary && primaryKey !== highlightedPrimary.current
+    highlightedPrimary.current = primaryKey
+    editor.dispatch({
+      effects: [
+        setOwnerHighlights.of(highlights),
+        ...(navigate
+          ? [EditorView.scrollIntoView(Math.max(0, Math.min(Math.trunc(primary.from), editor.state.doc.length)))]
+          : []),
+      ],
+      annotations: externalUpdate.of(true),
+    })
+  }, [props.ownerHighlights, props.value, props.editorKey])
 
   useEffect(() => {
     const editor = view.current

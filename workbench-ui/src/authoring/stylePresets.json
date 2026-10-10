@@ -1,0 +1,34 @@
+{
+  "source": {
+    "label": "dsl-reference §3.4",
+    "document": "docs/dsl-reference.md#34-reusable-style-classes",
+    "url": "https://github.com/6234456/mantra/blob/main/docs/dsl-reference.md#34-reusable-style-classes",
+    "registry": "mantra-render/src/main/kotlin/com/xqiou/mantra/render/layout/LayoutStyleRegistry.kt"
+  },
+  "presets": [
+    {
+      "name": "utilities",
+      "classes": [
+        { "name": "normal", "declaration": "Weight normal" },
+        { "name": "strong", "declaration": "Weight bold" },
+        { "name": "muted", "declaration": "Tone muted" },
+        { "name": "accent", "declaration": "Tone accent" },
+        { "name": "subtle", "declaration": "Fill subtle" },
+        { "name": "highlight", "declaration": "Fill accent" }
+      ]
+    },
+    {
+      "name": "working-paper",
+      "classes": [
+        { "name": "source", "declaration": "Tone muted · fill none" },
+        { "name": "assumption", "declaration": "Tone muted · fill subtle" },
+        { "name": "detail", "declaration": "Weight normal · tone default" },
+        { "name": "subtotal", "declaration": "Weight bold · fill subtle" },
+        { "name": "result", "declaration": "Weight bold · tone accent · fill accent" },
+        { "name": "note", "declaration": "Tone muted" },
+        { "name": "variance", "declaration": "Weight bold · tone accent · fill subtle" },
+        { "name": "control", "declaration": "Weight bold · tone accent" }
+      ]
+    }
+  ]
+}

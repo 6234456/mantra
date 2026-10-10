@@ -281,47 +281,200 @@
   color: var(--ink-3);
   font-size: 11px;
 }
-@media (min-width: 1280px) {
-  .authoring[data-author-stage='editor'] {
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .authoring[data-author-stage='editor'] > :not(.author-layout) {
-    flex-shrink: 0;
-  }
-  .author-layout {
-    flex: 1;
-    min-height: 0;
-    align-items: stretch;
-  }
-  .author-layout > * {
-    overflow: auto;
-    max-height: 100%;
-    min-height: 0;
-  }
-  .author-drawer {
-    max-height: 200px;
+/* The formula stays above a bounded work area. Each split pane owns its scroll. */
+.authoring[data-author-stage='editor'] {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.authoring[data-author-stage='editor'] > :not(.author-layout) {
+  flex-shrink: 0;
+}
+.author-layout {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+.author-layout > * {
+  min-height: 0;
+  max-height: 100%;
+}
+.author-center {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+.author-layout > aside,
+.author-outline {
+  overflow: auto;
+}
+.author-outline {
+  max-height: none;
+}
+.author-work-area {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+}
+.author-work-area > * {
+  min-height: 0;
+  max-height: 100%;
+}
+.author-grid-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  overflow: hidden;
+}
+.author-grid-panel > :not(.authoring-grid-scroll) {
+  flex-shrink: 0;
+}
+.author-grid-panel .authoring-grid-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.author-grid-panel h2 {
+  margin: 4px 0;
+}
+.author-grid-panel .author-toolbar {
+  padding: 4px 0;
+  gap: 6px;
+}
+.author-grid-panel .author-reference {
+  margin: 4px 0;
+}
+.author-grid-panel .author-toolbar label {
+  font-size: 11px;
+}
+.author-grid-panel input[type='search'] {
+  max-width: 160px;
+}
+.author-source-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px 12px;
+}
+.author-source-pane > :not(.authoring-code-editor) {
+  flex-shrink: 0;
+}
+.author-source-pane > .authoring-code-editor {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.author-source-pane .cm-editor {
+  height: 100%;
+  min-height: 0 !important;
+}
+.author-source-pane .cm-scroller {
+  overflow: auto;
+}
+.author-formula {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+  padding: 8px 12px;
+}
+.author-formula h2 {
+  font-size: 12px;
+  margin: 0;
+}
+.author-formula > p:not(.author-reference) {
+  font-size: 11px;
+  margin: 0;
+}
+.author-formula > .authoring-code-editor {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow: hidden;
+}
+.author-formula > button {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+}
+.author-formula .cm-editor {
+  height: 38px;
+  min-height: 0 !important;
+  transition: height 120ms ease;
+}
+.author-formula .cm-scroller {
+  overflow: auto;
+}
+.author-formula:focus-within .cm-editor {
+  height: 120px;
+}
+.author-formula > .author-reference {
+  grid-column: 1 / -1;
+  margin: 0;
+  display: none;
+}
+.author-formula:focus-within > .author-reference {
+  display: block;
+}
+.author-drawer {
+  max-height: 170px;
+  padding: 10px 12px;
+}
+.author-drawer .author-tabs {
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+}
+.author-inspector-overlay .author-modal {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  max-height: none;
+  width: min(420px, 100%);
+  border-radius: 0;
+}
+.author-inspector-overlay .author-modal > aside {
+  padding: 12px 0;
+  border: 0;
+}
+.author-outline-overlay .author-modal {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  max-height: none;
+  width: min(320px, 100%);
+  border-radius: 0;
+}
+.author-outline-overlay .author-outline {
+  border: 0;
+  padding: 0;
+  max-height: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .author-formula .cm-editor {
+    transition: none;
   }
 }
-@media (max-width: 1279px) {
+@media (min-width: 1024px) and (max-width: 1279px) {
   .author-layout {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns: 220px minmax(0, 1fr);
   }
-  .author-outline {
-    grid-column: 1 / -1;
-    max-height: 180px;
-  }
-  .author-split {
+}
+@media (max-width: 1023px) {
+  .author-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .authoring {
     padding: 16px;
   }
-  .author-layout,
+  .authoring[data-author-stage='editor'] {
+    padding: 12px 16px;
+  }
   .author-patterns {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -332,8 +485,66 @@
   }
   .author-identity {
     align-items: flex-start;
+    padding-bottom: 6px;
+  }
+  .author-identity h1 {
+    font-size: 14px;
+  }
+  .author-identity p:last-child {
+    display: none;
+  }
+  .author-toolbar {
+    padding: 6px 0;
+    gap: 4px;
+  }
+  .author-toolbar .author-reference {
+    display: none;
+  }
+  .author-formula {
+    padding: 6px 8px;
+  }
+  .author-formula:focus-within .cm-editor {
+    height: 88px;
+  }
+  .author-grid-panel {
+    padding: 8px;
+  }
+  .author-grid-panel .author-reference {
+    font-size: 10px;
+  }
+  .author-grid-panel .author-toolbar input[type='search'] {
+    width: 110px;
+  }
+  .author-drawer {
+    max-height: 100px;
+    margin-top: 6px;
+    padding: 6px 8px;
+  }
+  .author-drawer .author-tabs {
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+  .author-status {
+    padding: 4px 0;
+    gap: 4px 8px;
+    font-size: 10px;
+  }
+  .author-controls {
+    margin-top: 4px;
+    padding: 4px 0;
+    font-size: 11px;
   }
   .author-modal {
     padding: 16px;
+  }
+  .author-inspector-overlay .author-modal {
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    border: 0;
+  }
+  .author-recovery {
+    padding: 6px;
+    margin: 6px 0;
   }
 }

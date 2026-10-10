@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import type { Diagnostic, Envelope, Paper, PreviewPaper } from '../types'
+import type { Envelope, Paper, PreviewPaper } from '../types'
 import { ThemeControl } from '../ui/ThemeControl'
 import { paperMatches } from '../ui/PaperTable'
 import { AuthoringGrid, type GridPosition } from './AuthoringGrid'
 import { AuthoringCodeEditor } from './AuthoringCodeEditor'
-import {
-  BuildPanel,
-  ChangesPanel,
-  ExplainPanel,
-  ProblemsPanel,
-  PrototypeDialog,
-  SourcePane,
-  originalDocuments,
-  ownerText,
-} from './AuthoringPanels'
+import { AuthoringInspector } from './AuthoringInspector'
+import { AuthoringDrawer } from './AuthoringDrawer'
+import { AuthoringOutline } from './AuthoringOutline'
+import { flushSync } from 'react-dom'
+import { PrototypeDialog, SourceDocumentDiff, SourcePane, originalDocuments, ownerText } from './AuthoringPanels'
 import {
   authoringReducer,
   canRedo,
@@ -47,16 +42,25 @@ import './authoring.css'
 const recording: AuthoringRecording = rawRecording
 const baseDocuments = originalDocuments(recording.base)
 
-function responseMessages(result: ExampleInputResult) {
-  const body = result.response as
-    { diagnostics?: Diagnostic[]; error?: { message?: string }; message?: string } | undefined
-  return body?.diagnostics?.map((diagnostic) => diagnostic.message).join(' · ') ?? body?.error?.message ?? body?.message
+function useViewport(query: string) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const changed = () => setMatches(media.matches)
+    media.addEventListener('change', changed)
+    return () => media.removeEventListener('change', changed)
+  }, [query])
+  return matches
 }
 
-function propertyValue(owner: SourceOwner, text: string): SemanticOperation['value'] {
-  if (owner.property === 'hide-zero') return text === 'true' ? true : text === 'false' ? false : text
-  if (owner.property === 'precision' && /^\d+$/.test(text) && Number.isSafeInteger(Number(text))) return Number(text)
-  return text
+function recoveryTime(value: string) {
+  const date = new Date(value)
+  return Number.isNaN(date.getTime())
+    ? 'an earlier session'
+    : new Intl.DateTimeFormat(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(date)
 }
 
 /** Fixture-only review surface. Saves, owners, forks and conflicts are explicitly simulated. */
@@ -223,6 +227,10 @@ function AuthoringEditor({
   const [showFormulas, setShowFormulas] = useState(false)
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState<string>()
+  const inspectorOverlay = useViewport('(max-width: 1279px)')
+  const outlineOverlay = useViewport('(max-width: 1023px)')
+  const [inspectorOpen, setInspectorOpen] = useState(false)
+  const [outlineOpen, setOutlineOpen] = useState(false)
   const [composing, setComposing] = useState(false)
   const [notice, setNotice] = useState('')
   const [conflictDialog, setConflictDialog] = useState(false)
@@ -316,6 +324,9 @@ function AuthoringEditor({
     diagnosticsAreStale(state) ? [] : diagnosticOwners.filter((owner) => !!owner).map((owner) => owner!.handle),
   )
   const technical = state.diagnostics.filter((diagnostic) => ['parsing', 'structural'].includes(diagnostic.category))
+  const runtime = state.diagnostics.filter(
+    (diagnostic) => diagnostic.category === 'evaluation' && diagnostic.severity === 'error',
+  )
   const findings = state.diagnostics.filter((diagnostic) => diagnostic.category === 'business')
   const capsule = saveCapsule(state)
   const schema = preview?.responses.structure?.data
@@ -357,33 +368,7 @@ function AuthoringEditor({
         const move = navigation.current
         if (move?.sequence === result.draftSequence && ['valid', 'runtimeFailure'].includes(result.kind)) {
           navigation.current = undefined
-          setEditing(undefined)
-          let next = {
-            ...move.position,
-            row: Math.max(0, Math.min((table?.rows.length ?? 1) - 1, move.position.row + move.direction)),
-          }
-          if (move.horizontal && table) {
-            const width = table.columns.length
-            const start = move.position.row * width + move.position.column
-            for (
-              let index = start + move.horizontal;
-              index >= 0 && index < table.rows.length * width;
-              index += move.horizontal
-            ) {
-              const candidate = { row: Math.floor(index / width), column: index % width }
-              if (ownerAt(candidate.row, candidate.column)?.editable) {
-                next = candidate
-                break
-              }
-            }
-          }
-          setSelected(next)
-          setExplicitHandle(undefined)
-          requestAnimationFrame(() =>
-            element.current
-              ?.querySelector<HTMLElement>(`[data-row="${next.row}"][data-column="${next.column}"]`)
-              ?.focus(),
-          )
+          finishNavigation(move.position, move.direction, move.horizontal)
         }
       })
       .catch((failure: unknown) => {
@@ -424,7 +409,7 @@ function AuthoringEditor({
   }, [pending])
   useEffect(() => {
     if (editing && textOwner?.handle === editing) propertyField.current?.focus()
-  }, [editing, textOwner?.handle])
+  }, [editing, textOwner?.handle, inspectorOpen])
 
   function input(key: string, value: string) {
     editedOnce.current = true
@@ -451,6 +436,30 @@ function AuthoringEditor({
       element.current
         ?.querySelector<HTMLElement>(`[data-row="${selected.row}"][data-column="${selected.column}"]`)
         ?.focus(),
+    )
+  }
+  function finishNavigation(position: GridPosition, direction: number, horizontal: number) {
+    let next = {
+      ...position,
+      row: Math.max(0, Math.min((table?.rows.length ?? 1) - 1, position.row + direction)),
+    }
+    if (horizontal && table) {
+      const width = table.columns.length
+      const start = position.row * width + position.column
+      for (let index = start + horizontal; index >= 0 && index < table.rows.length * width; index += horizontal) {
+        const target = { row: Math.floor(index / width), column: index % width }
+        if (ownerAt(target.row, target.column)?.editable) {
+          next = target
+          break
+        }
+      }
+    }
+    setEditing(undefined)
+    setInspectorOpen(false)
+    setSelected(next)
+    setExplicitHandle(undefined)
+    requestAnimationFrame(() =>
+      element.current?.querySelector<HTMLElement>(`[data-row="${next.row}"][data-column="${next.column}"]`)?.focus(),
     )
   }
   function apply(owner: SourceOwner, value: SemanticOperation['value'], direction = 0, horizontal = 0) {
@@ -484,8 +493,12 @@ function AuthoringEditor({
     })
     editedOnce.current = true
     setExample(undefined)
-    if (['label', 'formula', 'note', 'section-title', 'title'].includes(owner.property))
+    if (owner.property === 'formula')
       navigation.current = { sequence: state.draftSequence + 1, position: selected, direction, horizontal }
+    else if (['label', 'note', 'section-title', 'title'].includes(owner.property)) {
+      navigation.current = undefined
+      finishNavigation(selected, direction, horizontal)
+    }
     dispatch({
       type: 'transaction',
       label: `${owner.property} · ${owner.nodeId ?? owner.declaration}`,
@@ -582,7 +595,9 @@ function AuthoringEditor({
     }
   }
   function nextProblem(backward: boolean) {
-    const located = technical.map((diagnostic) => ownerForDiagnostic(owners, diagnostic)).filter((owner) => !!owner)
+    const located = [...technical, ...runtime]
+      .map((diagnostic) => ownerForDiagnostic(owners, diagnostic))
+      .filter((owner) => !!owner)
     if (!located.length) return
     const index = located.findIndex((owner) => owner!.handle === selectedOwner?.handle)
     const next = located[(index + (backward ? -1 : 1) + located.length) % located.length]!
@@ -621,11 +636,15 @@ function AuthoringEditor({
       detail: 'Shared fragment declaration',
     }))
   const grid = table ? (
-    <section className="author-card" data-author-region="grid" aria-label="Author grid">
+    <section className="author-card author-grid-panel" data-author-region="grid" aria-label="Author grid">
       <p className="author-reference">Paper · {paper?.title}</p>
       <h2>{table.title}</h2>
       {candidate && <p className="author-stale">Candidate example input preview · recorded, not saved</p>}
-      {stale && preview && <p className="author-stale">Previous valid preview (draft #{preview.draftSequence})</p>}
+      {state.conflict ? (
+        <p className="author-stale">Preview based on old source revisions · resolve the conflict to refresh.</p>
+      ) : stale && preview ? (
+        <p className="author-stale">Previous valid preview (draft #{preview.draftSequence})</p>
+      ) : null}
       {state.preview.status === 'unavailable' && <p className="author-stale">{previewStatus(state)}</p>}
       <div className="author-toolbar">
         <label>
@@ -662,11 +681,22 @@ function AuthoringEditor({
           setSelected(position)
           setExplicitHandle(undefined)
         }}
-        onEdit={(owner, initialText) => {
-          selectOwner(owner)
-          setEditing(owner.handle)
-          setInspector('Property')
-          if (initialText !== undefined) input(owner.handle, initialText)
+        onEdit={(owner, initialText, composition) => {
+          const begin = () => {
+            selectOwner(owner)
+            setEditing(owner.handle)
+            setInspector('Property')
+            setInspectorOpen(true)
+            if (initialText !== undefined) input(owner.handle, initialText)
+          }
+          if (composition) {
+            flushSync(begin)
+            if (owner.property === 'formula')
+              element.current?.querySelector<HTMLElement>('[aria-label="Mantra DSL formula"]')?.focus()
+            else if (owner.property === 'note')
+              element.current?.querySelector<HTMLElement>('[aria-label="Property text"]')?.focus()
+            else propertyField.current?.focus()
+          } else begin()
         }}
         showFormulas={showFormulas}
         formulaFor={(row, column) => {
@@ -674,9 +704,15 @@ function AuthoringEditor({
           return owner && owner.property === 'formula' ? ownerText(owner) : undefined
         }}
         invalidHandles={invalidHandles}
+        errorPreview={
+          preview?.kind === 'runtimeFailure'
+            ? state.conflict || stale
+              ? 'previous-runtime'
+              : 'current-runtime'
+            : 'previous-valid'
+        }
         onRangeChange={setRange}
         onToggleFormulas={() => setShowFormulas((value) => !value)}
-        onEscape={() => setDrawer('')}
         onPaste={(text, owner) => {
           if (!owner) return
           input(owner.handle, text)
@@ -713,6 +749,116 @@ function AuthoringEditor({
     />
   )
 
+  const closeInspector = () => {
+    setInspectorOpen(false)
+    focusGrid()
+  }
+  const outlinePanel = (
+    <AuthoringOutline
+      owners={owners}
+      selectedOwner={selectedOwner}
+      structure={schema}
+      paper={paper}
+      run={preview?.responses.run?.data}
+      panelId={recording.panel}
+      invalidHandles={invalidHandles}
+      onSelect={(owner) => {
+        selectOwner(owner)
+        setOutlineOpen(false)
+      }}
+    />
+  )
+  const effectiveView = inspectorOverlay && view === 'Split' ? 'Grid' : view
+  const mobileFormula =
+    inspectorOverlay && inspectorOpen && selectedOwner?.property === 'formula' && inspector === 'Property'
+  const formulaPanel = (
+    <section className="author-card author-formula" data-author-region="formula">
+      <h2>Mantra DSL formula</h2>
+      <p>
+        {formulaOwner?.nodeId ?? 'Select a formula cell'} · {formulaOwner?.kind}
+      </p>
+      <AuthoringCodeEditor
+        value={formulaText}
+        ariaLabel="Mantra DSL formula"
+        editorKey={formulaOwner?.handle ?? 'no-owner'}
+        readOnly={!formulaOwner?.editable || !!state.saving}
+        onChange={(value) => {
+          if (formulaOwner) input(formulaOwner.handle, value)
+        }}
+        onCommit={(value) => {
+          if (formulaOwner) apply(formulaOwner, value)
+        }}
+        onCancel={() => {
+          if (formulaOwner) input(formulaOwner.handle, ownerText(formulaOwner))
+          setEditing(undefined)
+          closeInspector()
+        }}
+        autoFocus={!!formulaOwner && editing === formulaOwner.handle}
+        selectAll={!!formulaOwner && editing === formulaOwner.handle}
+        onCompositionChange={setComposing}
+        diagnostics={formulaDiagnostics}
+        completions={[...nodeCompletions, ...fragmentCompletions]}
+      />
+      <button
+        disabled={!formulaOwner?.editable || !!state.saving || composing}
+        onClick={() => {
+          if (formulaOwner) apply(formulaOwner, formulaText)
+        }}
+      >
+        Apply formula
+      </button>
+      <p className="author-reference">Completions from recorded structure (simulated language service)</p>
+      {formulaOwner && !formulaOwner.editable && <p>{formulaOwner.reason}</p>}
+    </section>
+  )
+  const inspectorPanel = (
+    <AuthoringInspector
+      inspector={inspector}
+      setInspector={setInspector}
+      state={state}
+      selectedOwner={selectedOwner}
+      textOwner={textOwner}
+      classOwner={classOwner}
+      owners={owners}
+      inputs={inputs}
+      input={input}
+      apply={apply}
+      composing={composing}
+      setComposing={setComposing}
+      editing={editing}
+      propertyField={propertyField}
+      onCancel={() => {
+        setEditing(undefined)
+        closeInspector()
+      }}
+      selectOwner={selectOwner}
+      onApplyClasses={(classes) => {
+        if (!classOwner) return
+        const targets = range.map((position) => ownerAt(position.row, position.column)).filter((owner) => !!owner)
+        if (targets.length > 1) {
+          setNotice('Multi-row class editing is planned; apply to one declaration at a time.')
+          return
+        }
+        apply(classOwner, classes)
+      }}
+      multipleClasses={range.length > 1}
+      selectedCell={selectedCell}
+      preview={preview}
+      caseId={recording.case}
+      exampleInputLabel={config.exampleInput}
+      exampleEnabled={exampleEnabled}
+      formulaEditor={mobileFormula ? formulaPanel : undefined}
+      exampleText={exampleText}
+      example={example}
+      candidate={candidate}
+      onExampleChange={(text) => {
+        exampleGeneration.current++
+        setExampleText(text)
+        setExample(undefined)
+      }}
+      onPreviewExample={() => void previewExample()}
+    />
+  )
   return (
     <main
       className="authoring"
@@ -770,7 +916,9 @@ function AuthoringEditor({
       </header>
       {recovery && (
         <section className="author-recovery" role="status">
-          <p>A draft from {recovery.savedAt} was found in this browser. It has not been validated or saved.</p>
+          <p>
+            A draft from {recoveryTime(recovery.savedAt)} was found in this browser. It has not been validated or saved.
+          </p>
           <button onClick={() => onRestore(recovery)}>Restore</button>{' '}
           <button onClick={onDiscardRecovery}>Discard</button>
         </section>
@@ -790,11 +938,15 @@ function AuthoringEditor({
           Save
         </button>
         {reason && <span className="author-reference">{reason}</span>}
-        {(['Grid', 'Source', 'Split'] as const).map((mode) => (
-          <button key={mode} aria-pressed={view === mode} onClick={() => setView(mode)}>
-            {mode}
-          </button>
-        ))}
+        {outlineOverlay && <button onClick={() => setOutlineOpen(true)}>Open outline</button>}
+        {inspectorOverlay && <button onClick={() => setInspectorOpen(true)}>Open inspector</button>}
+        {(['Grid', 'Source', ...(inspectorOverlay ? [] : ['Split'])] as Array<'Grid' | 'Source' | 'Split'>).map(
+          (mode) => (
+            <button key={mode} aria-pressed={effectiveView === mode} onClick={() => setView(mode)}>
+              {mode}
+            </button>
+          ),
+        )}
         <button onClick={() => setDrawer('Build')}>View build report</button>
       </div>
       {state.conflict && (
@@ -804,281 +956,33 @@ function AuthoringEditor({
         </p>
       )}
       <div className="author-layout">
-        <nav className="author-card author-outline" data-author-region="outline" aria-label="Outline">
-          <h2>Outline</h2>
-          <p className="author-reference">Owner handles and outline are simulated.</p>
-          {owners
-            .filter((owner) => ['section-title', 'label', 'note', 'title', 'declaration'].includes(owner.property))
-            .map((owner) => (
-              <button
-                key={owner.handle}
-                aria-current={selectedOwner?.handle === owner.handle}
-                onClick={() => selectOwner(owner)}
-              >
-                {owner.label ?? owner.declaration} {owner.editable ? 'ƒ' : '🔒'}
-                {table?.rows.find((row) => row.node === owner.nodeId)?.flags?.includes('explains-zero')
-                  ? ' · explains zero'
-                  : ''}
-                {owner.panelId && owner.panelId !== recording.panel ? ' · other panel' : ''}
-                {invalidHandles.has(owner.handle) ? ' !' : ''}
-              </button>
-            ))}
-          <button
-            onClick={() => {
-              const owner = owners.find((item) => item.kind === 'layout' && item.property === 'title')
-              if (owner) selectOwner(owner)
-            }}
-          >
-            Whole Paper title
-          </button>
-        </nav>
-        <div id="author-grid">
-          <section className="author-card" data-author-region="formula">
-            <h2>Mantra DSL formula</h2>
-            <p>
-              {formulaOwner?.nodeId ?? 'Select a formula cell'} · {formulaOwner?.kind}
-            </p>
-            <AuthoringCodeEditor
-              value={formulaText}
-              ariaLabel="Mantra DSL formula"
-              editorKey={formulaOwner?.handle ?? 'no-owner'}
-              readOnly={!formulaOwner?.editable || !!state.saving}
-              onChange={(value) => {
-                if (formulaOwner) input(formulaOwner.handle, value)
-              }}
-              onCommit={(value) => {
-                if (formulaOwner) apply(formulaOwner, value)
-              }}
-              onCancel={() => {
-                if (formulaOwner) input(formulaOwner.handle, ownerText(formulaOwner))
-                setEditing(undefined)
-                focusGrid()
-              }}
-              autoFocus={editing === formulaOwner?.handle}
-              selectAll={editing === formulaOwner?.handle}
-              onCompositionChange={setComposing}
-              diagnostics={formulaDiagnostics}
-              completions={[...nodeCompletions, ...fragmentCompletions]}
-            />
-            <button
-              disabled={!formulaOwner?.editable || !!state.saving || composing}
-              onClick={() => {
-                if (formulaOwner) apply(formulaOwner, formulaText)
-              }}
-            >
-              Apply formula
-            </button>
-            <p className="author-reference">Completions from recorded structure (simulated language service)</p>
-            {formulaOwner && !formulaOwner.editable && <p>{formulaOwner.reason}</p>}
-          </section>
-          <div className={view === 'Split' ? 'author-split' : ''}>
-            {view !== 'Source' && grid}
-            {view !== 'Grid' && source}
+        {!outlineOverlay && outlinePanel}
+
+        <div id="author-grid" className="author-center">
+          {!mobileFormula && formulaPanel}
+
+          <div className={effectiveView === 'Split' ? 'author-work-area author-split' : 'author-work-area'}>
+            {effectiveView !== 'Source' && grid}
+            {effectiveView !== 'Grid' && source}
           </div>
         </div>
-        <aside className="author-card" data-author-region="inspector" aria-label="Inspector">
-          <div className="author-tabs" role="tablist" aria-label="Inspector tabs">
-            {['Property', 'Style', 'Explain', 'Example input'].map((tab) => (
-              <button key={tab} role="tab" aria-selected={inspector === tab} onClick={() => setInspector(tab)}>
-                {tab}
-              </button>
-            ))}
-          </div>
-          <span className="author-definition">ƒ Template definition · simulated owner</span>
-          <p className="author-reference">
-            {selectedOwner
-              ? `${selectedOwner.document} › ${selectedOwner.declaration} › ${selectedOwner.property}`
-              : 'Select a cell to see its owner'}
-          </p>
-          {inspector === 'Property' && (
-            <>
-              {textOwner ? (
-                <>
-                  <label className="author-field">
-                    Property text
-                    {textOwner.property === 'note' ? (
-                      <AuthoringCodeEditor
-                        ariaLabel="Property text"
-                        value={inputs[textOwner.handle] ?? ownerText(textOwner)}
-                        onChange={(value) => input(textOwner.handle, value)}
-                        onCommit={(value) => apply(textOwner, value)}
-                        onCancel={() => {
-                          input(textOwner.handle, ownerText(textOwner))
-                          setEditing(undefined)
-                          focusGrid()
-                        }}
-                        onCompositionChange={setComposing}
-                        readOnly={!textOwner.editable || !!state.saving}
-                        autoFocus={editing === textOwner.handle}
-                        selectAll
-                        editorKey={textOwner.handle}
-                      />
-                    ) : (
-                      <input
-                        ref={propertyField}
-                        aria-label="Property text"
-                        disabled={!textOwner.editable || !!state.saving}
-                        value={inputs[textOwner.handle] ?? ownerText(textOwner)}
-                        onChange={(event) => input(textOwner.handle, event.target.value)}
-                        onCompositionStart={() => setComposing(true)}
-                        onCompositionEnd={() => setComposing(false)}
-                        onKeyDown={(event) => {
-                          if (composing || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
-                          if (event.key === 'Enter') {
-                            event.preventDefault()
-                            apply(
-                              textOwner,
-                              propertyValue(textOwner, inputs[textOwner.handle] ?? ownerText(textOwner)),
-                              event.ctrlKey || event.metaKey ? 0 : event.shiftKey ? -1 : 1,
-                            )
-                          }
-                          if (event.key === 'Tab') {
-                            event.preventDefault()
-                            apply(
-                              textOwner,
-                              propertyValue(textOwner, inputs[textOwner.handle] ?? ownerText(textOwner)),
-                              0,
-                              event.shiftKey ? -1 : 1,
-                            )
-                          }
-                          if (event.key === 'Escape') {
-                            input(textOwner.handle, ownerText(textOwner))
-                            setEditing(undefined)
-                            focusGrid()
-                          }
-                        }}
-                      />
-                    )}
-                  </label>
-                  <button
-                    disabled={!textOwner.editable || !!state.saving || composing}
-                    onClick={() => {
-                      const text = inputs[textOwner.handle] ?? ownerText(textOwner)
-                      apply(textOwner, propertyValue(textOwner, text))
-                    }}
-                  >
-                    Apply property
-                  </button>
-                </>
-              ) : (
-                <p>{selectedOwner?.reason ?? 'Generated by the engine'}</p>
-              )}
-              {selectedOwner && !selectedOwner.editable && <p>{selectedOwner.reason}</p>}
-              <h3>Finite layout options</h3>
-              {owners
-                .filter(
-                  (owner) => owner.kind === 'layout' && ['title', 'precision', 'hide-zero'].includes(owner.property),
-                )
-                .map((owner) => (
-                  <button key={owner.handle} onClick={() => selectOwner(owner)}>
-                    {owner.property} · whole Paper
-                  </button>
-                ))}
-            </>
-          )}
-          {inspector === 'Style' && (
-            <>
-              <label className="author-field">
-                Classes
-                <input
-                  aria-label="Classes"
-                  disabled={!classOwner || !!state.saving}
-                  value={classOwner ? (inputs[classOwner.handle] ?? ownerText(classOwner)) : ''}
-                  onChange={(event) => {
-                    if (classOwner) input(classOwner.handle, event.target.value)
-                  }}
-                  onCompositionStart={() => setComposing(true)}
-                  onCompositionEnd={() => setComposing(false)}
-                />
-              </label>
-              <button
-                disabled={!classOwner || !!state.saving || composing}
-                onClick={() => {
-                  if (!classOwner) return
-                  const value = (inputs[classOwner.handle] ?? ownerText(classOwner)).trim().split(/\s+/).filter(Boolean)
-                  const targets = range
-                    .map((position) => ownerAt(position.row, position.column))
-                    .filter((owner) => !!owner)
-                  if (targets.length > 1) {
-                    setNotice('Multi-row class editing is planned; apply to one declaration at a time.')
-                    return
-                  }
-                  apply(classOwner, value)
-                }}
-              >
-                Apply classes
-              </button>
-              <p>Available classes · {config.classPresets.join(' · ')}</p>
-              <p>{config.classes.join(' · ')}</p>
-              <p>Order does not set precedence.</p>
-              <pre>{JSON.stringify(selectedCell?.style ?? {}, null, 2)}</pre>
-              <p>Rule provenance unavailable.</p>
-              <p>Styles never change values, rounding, aggregation, applicability or validation.</p>
-            </>
-          )}
-          {inspector === 'Explain' && (
-            <ExplainPanel
-              explain={selectedOwner?.nodeId ? preview?.responses.explains[selectedOwner.nodeId]?.data : undefined}
-              value={
-                selectedOwner?.nodeId ? preview?.responses.run?.data.values[selectedOwner.nodeId]?.[''] : undefined
-              }
-              previewSequence={preview?.draftSequence}
-            />
-          )}
-          {inspector === 'Example input' && (
-            <>
-              <p>Changes example inputs in {recording.case} — not the template.</p>
-              <label className="author-field">
-                {config.exampleInput}
-                <input
-                  aria-label="Example input"
-                  value={exampleText}
-                  disabled={!exampleEnabled}
-                  onChange={(event) => {
-                    exampleGeneration.current++
-                    setExampleText(event.target.value)
-                    setExample(undefined)
-                  }}
-                  onCompositionStart={() => setComposing(true)}
-                  onCompositionEnd={() => setComposing(false)}
-                />
-              </label>
-              <button disabled={!exampleEnabled || composing} onClick={() => void previewExample()}>
-                Preview example input
-              </button>
-              {!exampleEnabled && <p>Combined template and example-input preview needs contract G-A4.</p>}
-              {example?.kind === 'invalid' && (
-                <p role="alert">{responseMessages(example) ?? 'Recorded engine input validation failed.'}</p>
-              )}
-              {example?.kind === 'unrecorded' && <p>{example.reason}</p>}
-              {candidate && (
-                <>
-                  <p>Candidate example input preview · recorded, not saved</p>
-                  <pre>{JSON.stringify(candidate.difference, null, 2)}</pre>
-                </>
-              )}
-              <p>Example input changes have a separate channel; this prototype does not write the case.</p>
-            </>
-          )}
-        </aside>
+        {!inspectorOverlay && inspectorPanel}
       </div>
-      <section className="author-card author-drawer" data-author-region="drawer" aria-label="Authoring drawer">
-        <div className="author-tabs" role="tablist" aria-label="Drawer tabs">
-          {['Problems', 'Source changes', 'Build'].map((tab) => (
-            <button key={tab} role="tab" aria-selected={drawer === tab} onClick={() => setDrawer(tab)}>
-              {tab}
-              {tab === 'Problems' && technical.length ? ` (${technical.length})` : ''}
-            </button>
-          ))}
-        </div>
-        {drawer === 'Problems' && <ProblemsPanel state={state} owners={owners} onSelect={selectOwner} />}
-        {drawer === 'Source changes' && <ChangesPanel state={state} onRevert={() => undo()} />}
-        {drawer === 'Build' && <BuildPanel report={service.exportReport()?.data} />}
-      </section>
+      <AuthoringDrawer
+        tab={drawer}
+        onTab={setDrawer}
+        state={state}
+        owners={owners}
+        onSelect={selectOwner}
+        onRevert={() => undo()}
+        report={service.exportReport()?.data}
+        problemCount={technical.length + runtime.length}
+      />
       <footer className="author-status" role="status" aria-live="polite">
         <strong data-testid="preview-status">{previewStatus(state)}</strong>
         <span>Findings: {findings.length}</span>
-        <span>Errors: {technical.length}</span>
+        <span>Runtime failures: {runtime.length}</span>
+        <span>Errors: {technical.length + runtime.length}</span>
         <span>
           Mantra {String(recording.engine.mantra)} · Normein {String(recording.engine.normein)}
         </span>
@@ -1112,13 +1016,38 @@ function AuthoringEditor({
         </div>
         <p>These controls simulate timing and external events. No source file is written.</p>
       </details>
+      {outlineOverlay && outlineOpen && (
+        <div className="author-outline-overlay">
+          <PrototypeDialog title="Outline" onClose={() => setOutlineOpen(false)}>
+            <button aria-label="Close Outline" onClick={() => setOutlineOpen(false)}>
+              Close outline
+            </button>
+            {outlinePanel}
+          </PrototypeDialog>
+        </div>
+      )}
+      {inspectorOverlay && inspectorOpen && (
+        <div className="author-inspector-overlay">
+          <PrototypeDialog title="Inspector" onClose={closeInspector}>
+            <button aria-label="Close Inspector" onClick={closeInspector}>
+              Return to grid
+            </button>
+            {inspectorPanel}
+          </PrototypeDialog>
+        </div>
+      )}
       {conflictDialog && state.conflict && (
         <PrototypeDialog title="Source revision conflict (simulated)" onClose={() => setConflictDialog(false)}>
           <p>Your draft and source history have been preserved.</p>
           {state.conflict.changed.map((path) => (
             <section key={path}>
               <h3>{path}</h3>
-              <pre>{state.conflict!.documents[path]}</pre>
+              <SourceDocumentDiff
+                document={path}
+                before={state.baseDocuments[path]}
+                after={state.conflict!.documents[path]}
+                fallbackOperation="External source edit"
+              />
             </section>
           ))}
           {state.conflict.overlapping?.length ? (

@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { explainDiagnostic } from '../diagnosticMessages'
 import { ExplainDetails } from '../ui/ExplainDetails'
 import { ValidationEvidence } from '../ui/ValidationEvidence'
 import type { Diagnostic, Explain, ExportPreview, RunValue } from '../types'
 import { AuthoringCodeEditor } from './AuthoringCodeEditor'
-import type { AuthoringState } from './model'
+import type { AuthoringState, SourceHistory } from './model'
 import { diagnosticsAreStale } from './model'
 import type { DocumentTexts, SourceOwner, SourcePatch } from './service'
 import { ownerForDiagnostic } from './simulated/sourceOwners'
+import { sourceDiffHunks } from './sourceDiff'
 import config from './config.json'
 
 export function ownerText(owner: SourceOwner | undefined) {
@@ -36,11 +37,23 @@ export function PrototypeDialog({
   onClose: () => void
 }) {
   const element = useRef<HTMLDivElement>(null)
+  const previousFocus = useRef(document.activeElement as HTMLElement | null)
+  const initialFocus = useRef<HTMLElement | null>(null)
   const close = useRef(onClose)
   close.current = onClose
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null
-    element.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    const previous = previousFocus.current
+    // A child editor may already have focused itself during commit; keep that intentional focus.
+    if (element.current?.contains(document.activeElement)) {
+      initialFocus.current = document.activeElement as HTMLElement
+    } else {
+      // StrictMode replays setup after cleanup; retain the child target instead of the close button.
+      const target = element.current?.contains(initialFocus.current)
+        ? initialFocus.current
+        : element.current?.querySelector<HTMLButtonElement>('button')
+      target?.focus()
+      initialFocus.current = target ?? null
+    }
     return () => previous?.focus()
   }, [])
   return (
@@ -119,12 +132,24 @@ export function SourcePane({
     }, 500)
     return () => clearTimeout(timer)
   }, [pending, source, composing, readOnly, selectedDocument])
-  const selection =
+  const ownerHighlights =
     selectedOwner?.document === selectedDocument && pending === source
-      ? { from: selectedOwner.range.start, to: selectedOwner.range.end }
-      : undefined
+      ? [
+          { from: selectedOwner.range.start, to: selectedOwner.range.end, primary: true },
+          ...owners
+            .filter(
+              (owner) =>
+                owner.document === selectedDocument &&
+                owner.handle !== selectedOwner.handle &&
+                owner.property !== 'declaration' &&
+                owner.declarationRange.start === selectedOwner.declarationRange.start &&
+                owner.declarationRange.end === selectedOwner.declarationRange.end,
+            )
+            .map((owner) => ({ from: owner.range.start, to: owner.range.end, primary: false })),
+        ]
+      : []
   return (
-    <section className="author-card" aria-label="Source view">
+    <section className="author-card author-source-pane" aria-label="Source view">
       <div className="author-tabs" role="tablist" aria-label="Participating documents">
         {Object.keys(state.documents).map((path) => (
           <button
@@ -144,7 +169,7 @@ export function SourcePane({
         ariaLabel={`Source ${roles[selectedDocument]}`}
         editorKey={selectedDocument}
         readOnly={readOnly}
-        selection={selection}
+        ownerHighlights={ownerHighlights}
         onChange={(value) => onInput(key, value)}
         onCompositionChange={(value) => {
           setComposing(value)
@@ -259,18 +284,47 @@ export function ProblemsPanel({
   )
 }
 
-function changedLines(before: string, after: string) {
-  const left = before.split('\n')
-  const right = after.split('\n')
-  let start = 0
-  while (start < left.length && start < right.length && left[start] === right[start]) start++
-  let endLeft = left.length
-  let endRight = right.length
-  while (endLeft > start && endRight > start && left[endLeft - 1] === right[endRight - 1]) {
-    endLeft--
-    endRight--
-  }
-  return { start, removed: left.slice(start, endLeft), added: right.slice(start, endRight) }
+export function SourceDocumentDiff({
+  document,
+  before,
+  after,
+  history,
+  fallbackOperation,
+}: {
+  document: string
+  before: string
+  after: string
+  history?: SourceHistory
+  fallbackOperation?: string
+}) {
+  const hunks = sourceDiffHunks(document, before, after, history, fallbackOperation)
+  return (
+    <section className="author-document-diff" aria-label={`Source diff ${document}`} data-source-diff={document}>
+      <h3>{document}</h3>
+      {!hunks.length && <p>No source changes.</p>}
+      {hunks.map((hunk, index) => (
+        <div className="author-diff-hunk" data-source-hunk={index + 1} key={`${hunk.beforeStart}-${hunk.afterStart}`}>
+          <p className="author-reference">{hunk.operations.join(' · ')}</p>
+          <code>
+            @@ -{hunk.beforeStart + 1},{hunk.removed.length} +{hunk.afterStart + 1},{hunk.added.length} @@
+          </code>
+          {(['removed', 'added'] as const).flatMap((kind) =>
+            hunk[kind].map((line, lineIndex) => (
+              <code
+                className={`author-diff-line author-diff-${kind === 'removed' ? 'del' : 'add'}`}
+                key={`${kind}-${lineIndex}`}
+                data-source-change={kind}
+              >
+                {kind === 'removed' ? '−' : '+'} {line.replace(/\r?\n$/, '')}
+                {line.endsWith('\r\n') && <span className="author-reference"> · CRLF</span>}
+                {!line.endsWith('\n') && <span className="author-reference"> · No newline at end of file</span>}
+              </code>
+            )),
+          )}
+        </div>
+      ))}
+    </section>
+  )
 }
 
 export function ChangesPanel({ state, onRevert }: { state: AuthoringState; onRevert: () => void }) {
@@ -278,32 +332,16 @@ export function ChangesPanel({ state, onRevert }: { state: AuthoringState; onRev
   return (
     <>
       {!changed.length && <p>No source changes.</p>}
-      {changed.map((document) => {
-        const diff = changedLines(state.baseDocuments[document], state.documents[document])
-        return (
-          <section key={document}>
-            <h3>{document}</h3>
-            <p className="author-reference">Unrelated bytes unchanged · simulated source patches</p>
-            <p>
-              {state.history.past
-                .filter((transaction) => transaction.patches.some((patch) => patch.document === document))
-                .map((transaction) => transaction.label)
-                .join(' · ')}
-            </p>
-            <code>@@ line {diff.start + 1} @@</code>
-            {diff.removed.map((line, index) => (
-              <code className="author-diff-line author-diff-del" key={`removed-${index}`}>
-                − {line}
-              </code>
-            ))}
-            {diff.added.map((line, index) => (
-              <code className="author-diff-line author-diff-add" key={`added-${index}`}>
-                + {line}
-              </code>
-            ))}
-          </section>
-        )
-      })}
+      {!!changed.length && <p className="author-reference">Unrelated bytes unchanged · simulated source patches</p>}
+      {changed.map((document) => (
+        <SourceDocumentDiff
+          key={document}
+          document={document}
+          before={state.baseDocuments[document]}
+          after={state.documents[document]}
+          history={state.history}
+        />
+      ))}
       {!!state.history.past.length && (
         <button disabled={!!state.history.past.at(-1)?.blockedReason || !!state.saving} onClick={onRevert}>
           Revert latest source transaction
@@ -313,10 +351,13 @@ export function ChangesPanel({ state, onRevert }: { state: AuthoringState; onRev
         <section>
           <h3>External changes (simulated)</h3>
           {state.conflict.changed.map((path) => (
-            <div key={path}>
-              <p>{path}</p>
-              <pre>{state.conflict!.documents[path]}</pre>
-            </div>
+            <SourceDocumentDiff
+              key={path}
+              document={path}
+              before={state.baseDocuments[path] ?? ''}
+              after={state.conflict!.documents[path] ?? ''}
+              fallbackOperation="External source edit (simulated)"
+            />
           ))}
         </section>
       )}
@@ -325,19 +366,31 @@ export function ChangesPanel({ state, onRevert }: { state: AuthoringState; onRev
 }
 
 export function BuildPanel({ report }: { report?: ExportPreview }) {
+  const reasons = useId()
   return (
     <>
-      <h3>Report of the existing ExcelExport path for the saved example case (recorded)</h3>
+      <h3>ExcelExport report for the recorded base state</h3>
+      <p>This recording describes the original base state, not the current simulated saved source revision.</p>
       <p>Mantra runtime template: not built. Derived Excel template: not built.</p>
       {report && <pre>{JSON.stringify(report.report, null, 2)}</pre>}
       <p>Template Engine import and recalculation: not verified.</p>
       <p>Microsoft Excel recalculation: not verified.</p>
       <div className="author-toolbar">
-        <button disabled>Build</button>
-        <button disabled>Publish</button>
-        <button disabled>Open in Template Engine</button>
+        <button disabled aria-describedby={`${reasons}-build`}>
+          Build
+        </button>
+        <button disabled aria-describedby={`${reasons}-publish`}>
+          Publish
+        </button>
+        <button disabled aria-describedby={`${reasons}-open`}>
+          Open in Template Engine
+        </button>
       </div>
-      <p>Build records and publishing require contracts G-A10 and G-A11.</p>
+      <p id={`${reasons}-build`}>Build is unavailable: build records require contract G-A10.</p>
+      <p id={`${reasons}-publish`}>Publish is unavailable: publishing requires contract G-A11 and a built template.</p>
+      <p id={`${reasons}-open`}>
+        Open in Template Engine is unavailable: template import and recalculation are not verified.
+      </p>
     </>
   )
 }
