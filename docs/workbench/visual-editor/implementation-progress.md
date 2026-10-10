@@ -1,7 +1,7 @@
 # 录制引擎原型：实施与复核记录
 
 > 2026-10-10：Codex 已实现 fixture 作者原型；Claude 已复核 `69ab8ff`，见 [复核记录](prototype-review.md)。
-> **F1–F18 与 S1 已修正，待 Claude 按最新已推送 HEAD 再次复查**；逐项说明见 [修正记录](prototype-fixes.md)。
+> **F1–F18 与 S1 已修正，Claude 第二轮复核见 [复核记录 §7](prototype-review.md#7-第二轮复核)**；逐项说明见 [修正记录](prototype-fixes.md)。
 > 任务分支 `codex/mantra-design-handoff-20261010`，沿用
 > [Mantra Draft PR #15](https://github.com/6234456/mantra/pull/15)。
 > 设计要求与人工复核脚本见 [prototype.md](prototype.md)，历史状态见 [README](README.md)。
@@ -97,7 +97,7 @@ npm --prefix workbench-ui run authoring:record
 | 作者浏览器脚本 | 15 个真实 Chrome CDP 流程通过，13 张截图；无未捕获浏览器异常 |
 | 原工作台浏览器脚本 | 13 个既有流程通过 |
 | 浏览器资源清理 | 两套浏览器检查均确认任务进程退出、临时 profile 删除 |
-| Claude 设计与操作复核 | 已复核 `69ab8ff`：门禁与录制真实性通过；F1–F18／S1 已修正，待按最新已推送 HEAD 再次复查 |
+| Claude 设计与操作复核 | 首轮 `69ab8ff`；第二轮 `da8138d`（最新 HEAD `3c281c3` 门禁复跑）：F1–F17 与 S1 通过，F18 部分达成，见 [复核记录 §7](prototype-review.md#7-第二轮复核) |
 | 真实中文拼音 IME | 待人工操作；自动脚本仅验证合成 composition／keyCode 229 守卫 |
 
 首轮新增 101 项，修正后累计新增 143 项。回归包括同文档源码缓冲与语义操作、有限布局输入类型、
@@ -145,7 +145,7 @@ Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、�
 `mantra.workbench/4` 公共合同。D-A1 的多文档文件提交原子性尚未决定，不影响本轮仅内存保存的原型。
 首版继续采用 ui-spec 键位、浏览器恢复、只读共享 defn 与 Mantra DOM 网格；Template Engine 模块提取等待其维护者确认。
 
-下一步由 Claude 对 Mantra PR #15 的最新已推送 HEAD 进行再次复查，按 [F1–F18／S1 对应表](prototype-fixes.md) 复现修正。
+Claude 已按 [F1–F18／S1 对应表](prototype-fixes.md) 完成第二轮复核，结果与后续事项见 [复核记录 §7](prototype-review.md#7-第二轮复核)。
 Template Engine
 [Draft PR #1](https://github.com/6234456/paramita-v2/pull/1) 仍为并行使用设计文档，本轮没有追加其源码变更。
 两个 Draft PR 均不因原型通过而自动合并。

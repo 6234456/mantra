@@ -1,6 +1,6 @@
 # 录制数据原型：Codex 实施说明、操作脚本与复核清单
 
-> 状态：**录制引擎原型已实现，Claude 首轮复核完成；Codex 已修正 F1–F18／S1，待 Claude 再次复查（2026-10-10）**。
+> 状态：**录制引擎原型已实现并经 Claude 两轮复核：F1–F17 与 S1 通过，F18 部分达成（2026-10-10）**。
 > 首轮评估对象为 `69ab8ff`，见 [复核记录](prototype-review.md)；本轮修正见 [prototype-fixes.md](prototype-fixes.md)。
 > 维护者决定：Claude 负责文档与意图，
 > Codex 编码，Claude 复核。启动、实际验证与截图见 [实施记录](implementation-progress.md)。
@@ -266,7 +266,7 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 
 ## 9. 操作脚本（Claude 已复核，见复核记录）
 
-以下脚本已按 F1–F18／S1 修正更新；原版本的首轮复核见 `69ab8ff`，当前版本待 Claude 按 PR 最新已推送 HEAD 再次复查。
+以下脚本已按 F1–F18／S1 修正更新；Claude 已在 `da8138d` 上逐步复核，结果见 [复核记录 §7](prototype-review.md#7-第二轮复核)。
 
 1. `npm --prefix workbench-ui ci`，然后 `npm --prefix workbench-ui run dev`，打开 `http://localhost:5173/authoring`。
 2. 入口页 `Start from a pattern` 列出四个 pattern，只有 Capped allocation 已录制。`Create editable copy` 打开模拟 fork
@@ -317,7 +317,7 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 
 **Claude 已于 2026-10-10 按 `69ab8ff` 复核，结果、需修正项 F1–F18 与设计澄清 S1–S3 见
 [复核记录](prototype-review.md)。Codex 修正完成，逐项映射见 [修正记录](prototype-fixes.md)；
-当前仍待 Claude 再次复查，真实拼音输入法仍待人工操作。**
+第二轮复核已完成，见 [复核记录 §7](prototype-review.md#7-第二轮复核)；真实拼音输入法仍待人工操作。**
 
 1. 以已提交的 HEAD 为准复核，不以工作区为准。
 2. 在仓库根目录重新运行 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`；确认本轮 `recording.json`、

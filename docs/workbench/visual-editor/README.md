@@ -1,6 +1,7 @@
 # 可视化 DSL 编辑器设计交付：进度与恢复记录
 
-> 状态：**设计交付与首轮复核完成，Codex 已修正 F1–F18／S1，待 Claude 按最新已推送 HEAD 再次复查（2026-10-10）**。
+> 状态：**设计交付完成；原型经两轮复核，F1–F17 与 S1 通过、F18 部分达成（2026-10-10）**。
+> 第二轮结论、低优先级观察与本轮未复核的新提交见 [复核记录 §7](prototype-review.md#7-第二轮复核)。
 > 原型入口为 fixture 模式的 `/authoring`；保存、fork、owner 与源修订冲突均为模拟，未写入模板文件。
 > 当前实现、启动步骤与证据见 [实施记录](implementation-progress.md)，复核任务见
 > [继续提示词](resume-prompt.md)。首轮结论见 [复核记录](prototype-review.md)，修正对应见
@@ -79,7 +80,8 @@
   操作脚本及 13 张更新截图。入口、能力边界与实际结果见 [implementation-progress.md](implementation-progress.md)。
 - [x] Claude 复核 `69ab8ff`：[prototype-review.md](prototype-review.md)。门禁与录制真实性通过；交互布局与样式面板的
   F1–F18 与 S1 已由 Codex 修正，见 [prototype-fixes.md](prototype-fixes.md)。
-- [ ] Claude 对 PR 最新已推送 HEAD 再次复查；真实中文拼音输入法仍需人工操作。
+- [x] Claude 第二轮复核：[prototype-review.md §7](prototype-review.md#7-第二轮复核)。
+- [ ] 真实中文拼音输入法人工验证；R2-1–R2-3 低优先级修正；`da8138d` 之后新功能提交的单独评审。
 - [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
   任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
   `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
