@@ -67,6 +67,10 @@ jobs:
         run: ./gradlew --no-daemon -p editors/intellij -PprotocolOnly=true -PlspCommand="$GITHUB_WORKSPACE/mantra-lsp/build/install/mantra-lsp/bin/mantra-lsp" test
       - name: All CLI commands
         run: scripts/smoke-cli.sh
+      - name: Reproducible SQLite snapshots and real-engine source equivalence
+        env:
+          MANTRA_SNAPSHOT_TEST_CLI: ${{ github.workspace }}/mantra-cli/build/install/mantra/bin/mantra
+        run: python3 -m unittest discover -s scripts/tests -p test_snapshot_sqlite.py
       - name: Exact documentation commands and complete offline site
         run: |
           mantra-cli/build/install/mantra/bin/mantra check docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice
@@ -154,6 +158,9 @@ jobs:
       - name: Frontend tests
         working-directory: workbench-ui
         run: npm test
+      - name: Live build isolation counterexamples
+        working-directory: workbench-ui
+        run: npm run test:live-isolation
       - name: Frontend build
         working-directory: workbench-ui
         run: npm run build
@@ -162,6 +169,20 @@ jobs:
         env:
           MANTRA_TEST_CHROME: /usr/bin/google-chrome
         run: npm run test:e2e
+      - name: Authoring browser flows using the runner's installed Chrome
+        working-directory: workbench-ui
+        env:
+          MANTRA_TEST_CHROME: /usr/bin/google-chrome
+          MANTRA_AUTHORING_SCREENSHOTS: ${{ github.workspace }}/build/ui-qa/authoring-browser
+        run: npm run test:authoring:e2e
+      - name: Fresh live build excludes prototype and recorded payloads
+        working-directory: workbench-ui
+        run: npm run check:live-isolation
+      - name: Real template draft preview using the installed CLI and Chrome
+        working-directory: workbench-ui
+        env:
+          MANTRA_TEST_CHROME: /usr/bin/google-chrome
+        run: npm run test:template-preview:e2e
       - name: Verified documentation and examples for GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-pages-artifact@v4

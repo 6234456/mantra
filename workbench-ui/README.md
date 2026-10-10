@@ -54,6 +54,58 @@ The root `./gradlew check` also runs these frontend checks, so install `npm ci` 
 
 For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` to `http://127.0.0.1:8080`; set the server to that port or adjust the proxy. A production build for server hosting must also set `VITE_WORKBENCH_MODE=live`. Live mode removes generated fixtures before starting or building, so they are not served with the live UI.
 
+## Visual DSL authoring prototype
+
+The fixture-only `/authoring` route implements the [visual-editor prototype brief](../docs/workbench/visual-editor/prototype.md).
+Start it from the repository root:
+
+```sh
+npm --prefix workbench-ui ci
+npm --prefix workbench-ui run dev -- --host 0.0.0.0 --port 5173
+```
+
+Open `http://localhost:5173/authoring`, choose **Capped allocation**, and select **Create editable copy…**.
+No running JVM server is needed to try the checked-in recording. The editor supports Grid, Source and Split
+views, property/formula/class edits, exact source undo/redo, Problems and Explain, simulated saving and
+external conflicts, and browser draft recovery. Saves update the simulated service; they do not write repository
+files. Recovery stays in this browser's local storage. Use **Reset prototype** to return to the original recorded
+base before trying example input `9` or `nine`.
+
+All calculation displays come from 32 complete responses recorded against the real Mantra engine, including
+invalid formulas, business findings and runtime failures. Drafts outside the recorded combinations show
+**No engine preview** and retain the previous valid Paper. The UI performs no financial calculations.
+Source edits commit to the draft after a 500 ms idle period; IME composition postpones that commit.
+Split view gives the grid and source separate scroll areas, and source owner highlights remain visible
+when the grid has focus. The formula bar stays above the grid and expands during editing. Style uses
+ordered class chips, with choices derived from the layout's enabled presets and local `style-class`
+declarations; final weight, tone and fill come from the recorded Paper. On narrow screens, Outline
+opens as a drawer and editing opens a full-screen Inspector.
+The prototype clearly marks simulated capabilities; Build, Publish and the Template Engine jump remain disabled.
+Live builds exclude this route and its recording. The [implementation record](../docs/workbench/visual-editor/implementation-progress.md)
+contains the operation sequence, evidence and remaining contract work.
+
+```sh
+npm --prefix workbench-ui run authoring:record:check
+npm --prefix workbench-ui run test:authoring:e2e
+```
+
+The first command verifies that the recorded source closure still matches `docs/patterns`; it does not start a
+server. The browser check uses installed Chrome, a task-specific profile and real browser events, captures
+13 screenshots under `docs/workbench/visual-editor/screenshots/`, and cleans up its processes. Set
+`MANTRA_TEST_CHROME` if Chrome is installed at another path. A physical Chinese IME check remains manual.
+
+To regenerate engine evidence after changing patterns or the engine, first build the CLI and fixture UI:
+
+```sh
+./gradlew :mantra-cli:installDist
+npm --prefix workbench-ui run build
+npm --prefix workbench-ui run authoring:record
+```
+
+The recorder accepts `--cli`, `--ui` and `--output` paths to reuse another built installation. It creates a
+temporary source copy for each state, starts the real server, validates source ranges and revisions, preserves
+complete response bodies, and replaces the asset only after all states pass. It never modifies `docs/patterns`.
+
 ## Current scope
 
 - Implemented: shared header and navigation, overview mainline and branch map, compass and breadcrumbs, tiered and matrix Paper tables, cell selection in the URL, keyboard movement across selectable cells, inspector with Paper audit fallback, choice comparison, and lazy provenance tree.

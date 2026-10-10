@@ -457,6 +457,18 @@ public final class com/xqiou/mantra/excel/XKind : java/lang/Enum {
 	public static fun values ()[Lcom/xqiou/mantra/excel/XKind;
 }
 
+public final class com/xqiou/mantra/excel/XlsxRegionSource : com/xqiou/mantra/core/data/DataSource {
+	public static final field Companion Lcom/xqiou/mantra/excel/XlsxRegionSource$Companion;
+	public static final field MAX_REGION_CELLS J
+	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;[BLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;[BLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getDescription ()Ljava/lang/String;
+	public fun read (Lcom/xqiou/mantra/core/model/Schema;Lcom/xqiou/mantra/core/DiagnosticSink;)Ljava/util/Map;
+}
+
+public final class com/xqiou/mantra/excel/XlsxRegionSource$Companion {
+}
+
 public final class com/xqiou/mantra/excel/XlsxSource : com/xqiou/mantra/core/data/DataSource {
 	public static final field Companion Lcom/xqiou/mantra/excel/XlsxSource$Companion;
 	public fun <init> (Ljava/nio/file/Path;[BLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V

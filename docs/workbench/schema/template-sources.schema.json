@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-sources.schema.json",
+  "title": "Captured template source snapshot",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "$defs": {
+    "sourceRevisions": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1 },
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    }
+  },
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["document", "baseRevisions", "documents"],
+      "properties": {
+        "document": { "type": "string", "minLength": 1 },
+        "baseRevisions": { "$ref": "#/$defs/sourceRevisions" },
+        "documents": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "required": ["handle", "document", "role", "text", "sha256", "editable", "reason"],
+            "properties": {
+              "handle": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "document": { "type": "string", "minLength": 1 },
+              "role": { "enum": ["schema", "layout", "case", "included", "parameters"] },
+              "text": { "type": "string", "maxLength": 65536 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "editable": { "type": "boolean" },
+              "reason": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

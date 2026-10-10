@@ -115,6 +115,21 @@ URL 中使用字符串形式 `节点[@成员/成员…][#行.列]`，例如 `bru
 - `(sources …)` 按声明顺序应用；后面的来源覆盖前面的来源，案例的 `(inputs …)` 最后覆盖来源值，与现有 `DataSources.apply` 一致。省略表示没有数据来源。`csv`、`json`、`xlsx` 的选项对齐现有 `DataSource` 构造参数；`csv :mode :wide` 和 `:member-column` 是 WP11 新增能力（G7）。JSON `:mapping` 的键是目标输入 id、值是源文件内路径；CSV `:columns` 的键是源列名、值是目标输入或表格列 id，具体取决于模式。
 - `:path` 相对于案例文件所在目录解析，规范化后必须留在工作区内；不存在、重复或无法解析的 id 与路径给出带位置的诊断。导入模板可供复用；应用模板时把完整来源声明写入案例，避免结果依赖模板的后续修改。
 
+XLSX 同时支持原有命名单元格模式和一个工作表矩形导入表格输入的区域模式：
+
+```clojure
+(xlsx {:path "facts.xlsx" :input "facts" :sheet "Facts" :range "A1:E20"
+       :columns {"Item" "id" "Amount" "amount"}})
+```
+
+出现 `:input`、`:sheet`、`:range`、`:columns` 任一选项即选择区域模式，前三项必须同时提供。
+`range` 只能是同一工作表上的一个本地 A1 矩形，最多 50,000 个单元格；首行是字面量、唯一且
+非空的列标题，后续行按物理行序导入一个已声明的 TABLE 输入。`columns` 从原始列标题映射到
+表格列 id；省略时使用归一化标题匹配列 id。空的已映射单元格省略，所有已映射列都空的行跳过，
+零和 false 保留。读取公式只消费 XLSX 已存储的缓存值，不执行公式；缓存缺失或 Excel 错误值是
+技术诊断。原有命名单元格模式保持原合同，区域模式沿用 XLSX 包预检、行预算与取消检查。
+细节及示例见 [XLSX 区域合同](visual-editor/xlsx-region-contract.md)。
+
 ## 5. 只读结果视图（mantra-core）
 
 对应[边界文档](../engine-application-boundary.md)第 5 项。M0 收口后，`core.api.CalculationResult`
@@ -447,6 +462,42 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 操作新引入的依赖按首次读取捕获并计入候选修订；预演不锁定这些依赖。后续提交重新解析
 操作和当前依赖，不接受候选修订前置条件，不能保证新增依赖变化后仍等于此前预演结果。
 
+**模板源快照与隔离草稿预览（文件工作区）**：独立接口补充 G-A4／G-A14，不改变已有
+`preview-paper` 操作合同，也不提供文件保存或多文档事务。
+
+- `GET …/template-sources` 不接受查询参数，返回 v4 envelope，外层 `revision` 为完整基准案例图修订。
+  `data` 为 `{document, baseRevisions, documents}`。`baseRevisions` 是全部参与源的逻辑 identity 到
+  64 位 SHA-256 的映射，包含片段、参数、数据与关联案例；`documents` 仅列根案例捕获的 DSL 文档，
+  每项为 `{handle, document, role, text, sha256, editable, reason}`。`handle` 为绑定精确基准图和文档的
+  不透明句柄，不能当作文件路径；角色为 `schema`／`layout`／`case`／`included`／`parameters`。
+  首版只有根案例绑定的 schema 与 layout 可覆写，其余文档只读，`reason` 为原因或 null。
+  快照最多 128 份文档、合计 1 MiB UTF-8 原文。首版要求已保存的基准图技术上可计算；无效基准
+  返回 422，而不是可编辑快照。运行时部分失败和业务 finding 不阻止取得技术有效的快照。
+- `POST …/template-preview` 不接受查询参数，使用现有会话令牌、1 MiB 请求预算与图计算预算。
+  请求仅允许必填 `{baseRevision, baseRevisions, draftSequence, documents, inputs}` 与可选
+  `panel`、`includeZero`、`explain`。`baseRevision` 必须是快照的完整基准图修订；`baseRevisions`
+  必须完整匹配全部参与源，不能缺项或多项。`draftSequence` 为 0–9007199254740991 的整数。
+  `documents` 为最多 32 项 `{handle, text}`，不接受路径或源偏移；每份源最多 65536 字符。
+  `inputs` 为最多 100 项 `{node, text}`，只支持根案例的标量输入，不允许重复节点。
+  两数组可为空，但合计至少一项。`panel` 非空；`includeZero` 默认为 false。
+  `explain` 为 `{node, coord?}`，coord 为最多 8 个字符串，只请求一个根案例地址。
+- 文本覆盖应用于根绑定的已捕获 schema／layout；schema 的 id／version、layout 的 id、include 路径与
+  已捕获依赖闭包必须保持不变。关联案例继续读取其原捕获绑定，不继承根覆盖；新增依赖、身份或绑定
+  变更返回 422。未声明句柄或只读文档返回 400。候选 source 由正式 reader 解析，数值由原引擎计算。
+  示例输入原文在**候选模板与候选版式 locale**中解析后只叠加到候选根案例，不能按已保存模板提前解析。
+- 同一隔离候选生成 `structure`、`run`、`difference`、`paper`、`diagnostics` 与可选 `explain`；
+  响应外层修订仍为基准，data 为 `{document, preview:true, draftSequence, baseRevisions,
+  proposedRevision, succeeded, validationPassed, diagnostics, structure, run, difference, paper, explain}`。
+  `explain` 未请求时为 null，请求时形状与 Explain data 相同，证据属于本候选；不存在的面板／地址返回 404。
+  技术错误返回 422；业务 finding 返回 200 和值；运行时失败返回 200、`succeeded:false` 与部分结果。
+  返回前重验完整基准图；任一参与源变化返回 409。候选不写文件、不推进 undo/redo、不进入正式缓存。
+  外部修改使基准无法再解析时，已捕获源摘要变化仍返回 409，此时当前图修订可能无法提供。
+  调用方同时匹配全部基准修订、草稿序号和编辑上下文，才能将结果视为当前。
+  响应形状见 [template-sources.schema.json](schema/template-sources.schema.json) 与
+  [template-preview.schema.json](schema/template-preview.schema.json)。
+
+本接口完成只读候选计算切片；owner／语义补丁、文件提交、D-A1、构建记录和发布仍需各自合同。
+
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
 | `op` | JSON 字段 |
@@ -493,7 +544,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 ### 8.1 导入
 
-- **格式**：CSV 和 JSON（mantra-core 的 `CsvSource`、`JsonSource`），以及按命名单元格回读的 XLSX（mantra-excel 的 `XlsxSource`）。类型转换和校验都留在引擎，所以各通道行为一致。
+- **格式**：CSV 和 JSON（mantra-core 的 `CsvSource`、`JsonSource`），以及命名单元格或矩形区域回读的 XLSX（mantra-excel）。区域合同见 §4.4。类型转换和校验都留在引擎，所以各通道行为一致。
 - **流程**（设计稿 “Datenquellen”）：
   1. 选择文件；
   2. 检测列、样本行、分隔符和小数点；
@@ -505,6 +556,13 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **映射模板**（“Zuordnung als Vorlage speichern”）就是一份可复用的来源声明，由领域应用随方案提供，或由用户保存在工作区。它不是界面配置。
 - **工作区模板接口**：`GET /api/v1/import-templates` 返回 `{templates:[{name,format,options}]}`；`POST /api/v1/import-templates` 接收 `{name,format,options}`，在工作区 `import-templates/<name>.json` 创建普通来源选项模板（不含 `path`）。名称限 1–80 个 ASCII 字母、数字、`_`、`-`，已有名称返回 409；文件上限 64 KiB。模板文件进入工作区修订与 SSE 扫描。应用模板时前端仍须选择实际文件，路径由导入接口分配。
 - **浏览器导入请求**：`POST …/imports/inspect` 接收 `{name, format, contentBase64}`，仅返回 `{name, format, columns:[{name, sample:[]}], rowCount, delimiter?, decimal?, grouping?, numericAmbiguous?}`，不写文件；CSV 数字分隔符是样本推断，用户可在应用前修改。仅有 `1.234` 一类无法区分小数和千位的样本时返回 `numericAmbiguous: true`，界面要求用户明确选择小数分隔符。`POST …/imports/apply` 再接收同一文件、完整计算的 `baseRevision` 与 `options`（来源声明的普通 JSON 选项对象）；服务端将文件保存到案例目录下的 `imports/`，以内容摘要命名，然后追加 `(sources …)` 声明，响应格式同 §7.1。文件写入成功但案例提交失败时清理本次新建文件。
+- **XLSX 区域检查元数据**：XLSX 检查响应允许可选 `xlsxSheets:[{name,rows,columns,headers:[{column,title}],suggestedRange?}]`。
+  至多 16 张工作表、每张至多 64 个标题、标题至多 256 字符；`headers.column` 是零起始的物理列位置，
+  `title` 是首个物理行的字面量标题去除首尾空格后的文本。`rows` 是最后已存储行位置加一，`columns`
+  是标题行最后已存储单元格位置加一，二者表示范围而非导入记录数，不扫描整个工作表的数据。
+  仅在标题边界可用且不超过 50,000 个单元格时提供从首个物理行、标题跨度到最后存储行的本地 A1
+  `suggestedRange`；这是有界候选元数据，用户仍需确认工作表、区域及映射。原有 `columns` 字段仍表示
+  命名单元格输入，不改含义；检查不写文件，应用使用 §4.4 的同一来源选项。
 - **失效来源修复**：`GET …/sources` 只解析案例文本并列出绑定，不要求来源可计算；其 envelope 修订只覆盖案例和仍存在的绑定文件。`POST …/sources/remove` 接收 `{baseRevision,index}`，按该修订原子移除零起始的来源声明，返回更新后的来源 envelope。即使某个来源文件丢失或格式不合法，也能继续移除其绑定。其他编辑和导入仍使用完整计算修订。
 - **宽表模式（G7）**：工资单 CSV 可用 `:mode :wide` 和 `:member-column` 将每行映射到一个成员、每列映射到不同输入；原有表格行与 `input;value` / `input;member;value` 成对格式仍可用。
 
@@ -562,6 +620,8 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/compare` | Compare（§6.7） |
 | POST | `/cases/{case}/preview` | 预演编辑，不写入（§7.1） |
 | POST | `/cases/{case}/preview-paper` | 预演案例操作并返回同一候选的工作表（§7.1） |
+| GET | `/cases/{case}/template-sources` | 完整基准源修订与根 DSL 快照（§7.1） |
+| POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |

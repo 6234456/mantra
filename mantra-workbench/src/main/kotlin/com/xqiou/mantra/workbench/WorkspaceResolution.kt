@@ -23,6 +23,9 @@ internal fun WorkspaceCatalog.resolve(
     audit: Boolean = false,
     freshDiagnostics: Boolean = false,
     capturedLoader: CasePackageLoader? = null,
+    templateSources: Map<String, String> = emptyMap(),
+    templateInputs: List<TemplateInputText> = emptyList(),
+    allowedSources: Set<String>? = null,
 ): Resolved {
     val casePath = capturedLoader?.capturedCasePath(path(caseId)) ?: path(caseId).toRealPath()
     if (snapshot.kind("case").none {
@@ -33,8 +36,24 @@ internal fun WorkspaceCatalog.resolve(
     }
     val key = CanonicalCaseKey(relative(casePath))
     val overrides =
-        CasePackageOverrides(key.value, caseText, parameterOverride, layoutOverride, includeLayout = includeLayout)
-    val loader = capturedLoader?.fork(overrides) ?: CasePackageLoader(root, overrides)
+        CasePackageOverrides(
+            key.value,
+            caseText,
+            parameterOverride,
+            layoutOverride,
+            includeLayout = includeLayout,
+        )
+    val candidate = TemplateCandidateOverrides(
+        templateSources.toMap(),
+        templateInputs.toList(),
+        allowedSources?.toSet(),
+    )
+        .takeIf { templateSources.isNotEmpty() || templateInputs.isNotEmpty() || allowedSources != null }
+    val loader = if (candidate != null) {
+        (capturedLoader ?: CasePackageLoader(root)).fork(overrides, candidate)
+    } else {
+        capturedLoader?.fork(overrides) ?: CasePackageLoader(root, overrides)
+    }
     val graph = try {
         sessions.graph(
             loader,

@@ -189,6 +189,18 @@ class WorkbenchServer(
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
         val document = match.groupValues[2]
+        if (document in setOf("template-sources", "template-preview")) {
+            if (exchange.requestURI.rawQuery != null) {
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            }
+            val result = when {
+                document == "template-sources" && method == "GET" -> catalog.templateSources(caseId)
+                document == "template-preview" && method == "POST" ->
+                    catalog.templatePreview(caseId, requests.parseTemplatePreview(body))
+                else -> return error(exchange, 405, "MANTRA-WORKBENCH-REQUEST", "Method is not allowed")
+            }
+            return json(exchange, 200, catalog.envelope(result))
+        }
         if (method == "POST" && document == "sources/remove") {
             if (exchange.requestURI.rawQuery != null) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")

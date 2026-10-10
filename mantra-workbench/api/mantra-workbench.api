@@ -387,6 +387,7 @@ public final class com/xqiou/mantra/workbench/EditorValueParser {
 	public static final field INSTANCE Lcom/xqiou/mantra/workbench/EditorValueParser;
 	public final fun parse (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
 	public static synthetic fun parse$default (Lcom/xqiou/mantra/workbench/EditorValueParser;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
+	public final fun parseScalar (Lcom/xqiou/mantra/core/model/ValueType;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
 }
 
 public final class com/xqiou/mantra/workbench/ExplainAddress {
@@ -460,6 +461,58 @@ public final class com/xqiou/mantra/workbench/PackageImports : com/xqiou/mantra/
 	public fun import (Lcom/xqiou/mantra/core/model/Schema;Lcom/xqiou/mantra/core/model/CaseData;Ljava/util/List;Lcom/xqiou/mantra/core/api/CaseLoadControl;)Lcom/xqiou/mantra/core/model/CaseData;
 }
 
+public final class com/xqiou/mantra/workbench/TemplateInputText {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/TemplateInputText;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/TemplateInputText;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/TemplateInputText;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNode ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/TemplatePreviewRequest {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;JLjava/util/List;Ljava/util/List;Ljava/lang/String;ZLcom/xqiou/mantra/workbench/ExplainAddress;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;JLjava/util/List;Ljava/util/List;Ljava/lang/String;ZLcom/xqiou/mantra/workbench/ExplainAddress;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Z
+	public final fun component8 ()Lcom/xqiou/mantra/workbench/ExplainAddress;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;JLjava/util/List;Ljava/util/List;Ljava/lang/String;ZLcom/xqiou/mantra/workbench/ExplainAddress;)Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;Ljava/lang/String;Ljava/util/Map;JLjava/util/List;Ljava/util/List;Ljava/lang/String;ZLcom/xqiou/mantra/workbench/ExplainAddress;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseRevision ()Ljava/lang/String;
+	public final fun getBaseRevisions ()Ljava/util/Map;
+	public final fun getDocuments ()Ljava/util/List;
+	public final fun getDraftSequence ()J
+	public final fun getExplain ()Lcom/xqiou/mantra/workbench/ExplainAddress;
+	public final fun getIncludeZero ()Z
+	public final fun getInputs ()Ljava/util/List;
+	public final fun getPanel ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/TemplateSourceEdit {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/TemplateSourceEdit;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/TemplateSourceEdit;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/TemplateSourceEdit;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHandle ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoCloseable {
 	public static final field Companion Lcom/xqiou/mantra/workbench/WorkspaceCatalog$Companion;
 	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExportBudget;)V
@@ -494,6 +547,8 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun sourceContext (Ljava/lang/String;ILjava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun sources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun templatePreview (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun templateSources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun undo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun workspace ()Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun workspaceStamp (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$WorkspaceStamp;

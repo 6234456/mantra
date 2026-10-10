@@ -42,6 +42,18 @@ const words = {
     ambiguous: 'Zahlenformat mehrdeutig. Bitte Dezimal- und Tausenderzeichen ausdrücklich wählen.',
     readOnly: 'Dieser Fall ist schreibgeschützt.',
     sourcesReadOnly: 'Datenquellen sind in dieser Ansicht schreibgeschützt.',
+    xlsxMode: 'Excel-Import',
+    namedInputs: 'Benannte Eingabezellen',
+    worksheetRange: 'Arbeitsblattbereich',
+    worksheet: 'Arbeitsblatt',
+    range: 'Zellbereich',
+    tableInput: 'Tabelleneingabe',
+    tableColumn: 'Zielspalte',
+    headerOrigin:
+      'Die gezeigten Überschriften stammen aus der ersten gespeicherten Zeile. Der gewählte Bereich wird beim Anwenden geprüft.',
+    noSheets: 'Keine Arbeitsblattinformationen verfügbar. Benannte Eingabezellen bleiben nutzbar.',
+    rangeRequired:
+      'Arbeitsblatt, gültigen Zellbereich, Tabelleneingabe und mindestens eine eindeutige Spaltenzuordnung wählen.',
   },
   en: {
     eyebrow: 'Data access',
@@ -81,6 +93,17 @@ const words = {
     ambiguous: 'Ambiguous number format. Choose decimal and grouping separators explicitly.',
     readOnly: 'This case is read-only.',
     sourcesReadOnly: 'Data sources are read-only in this view.',
+    xlsxMode: 'Excel import',
+    namedInputs: 'Named inputs',
+    worksheetRange: 'Worksheet range',
+    worksheet: 'Worksheet',
+    range: 'Cell range',
+    tableInput: 'Table input',
+    tableColumn: 'Target column',
+    headerOrigin:
+      'Shown headers come from the first stored worksheet row. The selected range is validated when applied.',
+    noSheets: 'Worksheet metadata is unavailable. Named input cells can still be imported.',
+    rangeRequired: 'Choose a worksheet, valid cell range, table input and at least one unique column mapping.',
   },
 }
 
@@ -96,7 +119,7 @@ function base64(bytes: Uint8Array): string {
   return btoa(binary)
 }
 
-function inputFields(structure: Structure): InputField[] {
+function inputFields(structure: Structure, tables = false): InputField[] {
   const items = [...structure.generalInputs, ...structure.panels.flatMap((panel) => panel.fields)]
   return Array.from(
     new Map(
@@ -105,7 +128,14 @@ function inputFields(structure: Structure): InputField[] {
         return [field.id, field] as const
       }),
     ).values(),
-  ).filter((field) => field.type !== 'table')
+  ).filter((field) => (field.type === 'table') === tables)
+}
+
+function columnLetter(column: number) {
+  let result = ''
+  for (let value = column + 1; value > 0; value = Math.floor((value - 1) / 26))
+    result = String.fromCharCode(65 + ((value - 1) % 26)) + result
+  return result
 }
 
 export function SourcesPage({
@@ -144,7 +174,26 @@ export function SourcesPage({
   const [mapping, setMapping] = useState<Record<string, string>>({})
   const [templates, setTemplates] = useState<ImportTemplate[]>([])
   const [templateName, setTemplateName] = useState('')
+  const [xlsxMode, setXlsxMode] = useState<'named' | 'range'>('named')
+  const [xlsxSheet, setXlsxSheet] = useState('')
+  const [xlsxRange, setXlsxRange] = useState('')
+  const [xlsxInput, setXlsxInput] = useState('')
   const inputs = useMemo(() => (structure ? inputFields(structure) : []), [structure])
+  const tableInputs = useMemo(() => (structure ? inputFields(structure, true) : []), [structure])
+  const worksheet = inspection?.xlsxSheets?.find((sheet) => sheet.name === xlsxSheet)
+  const tableInput = tableInputs.find((input) => input.id === xlsxInput)
+  const worksheetHeaders = worksheet?.headers.filter((header) => header.title.trim()) ?? []
+  const tableColumns = tableInput?.columns ?? []
+
+  function xlsxMapping(sheetName: string, inputId: string) {
+    const sheet = inspection?.xlsxSheets?.find((item) => item.name === sheetName)
+    const columns = tableInputs.find((item) => item.id === inputId)?.columns ?? []
+    return Object.fromEntries(
+      (sheet?.headers ?? [])
+        .filter((header) => header.title.trim())
+        .map((header) => [header.title, columns.find((column) => column.name === header.title)?.name ?? '']),
+    )
+  }
   useEffect(() => {
     if (!canManageSources) {
       setTemplates([])
@@ -188,6 +237,10 @@ export function SourcesPage({
     setError('')
     setInspection(undefined)
     setMapping({})
+    setXlsxMode('named')
+    setXlsxSheet('')
+    setXlsxRange('')
+    setXlsxInput('')
     setFileName(file.name)
     setFormat(formatFromName(file.name))
     if (file.size > 10 * 1024 * 1024) {
@@ -205,6 +258,9 @@ export function SourcesPage({
     try {
       const response = await data.importInspect(caseId, fileName, format, content)
       setInspection(response.data)
+      setXlsxSheet(response.data.xlsxSheets?.[0]?.name ?? '')
+      setXlsxRange(response.data.xlsxSheets?.[0]?.suggestedRange ?? '')
+      setXlsxInput(tableInputs[0]?.id ?? '')
       setDecimal(response.data.numericAmbiguous ? '' : (response.data.decimal ?? ','))
       setGrouping(response.data.numericAmbiguous ? '' : (response.data.grouping ?? '.'))
       setMapping(
@@ -229,7 +285,21 @@ export function SourcesPage({
   }
 
   function options(): Record<string, unknown> {
-    if (format === 'xlsx') return {}
+    if (format === 'xlsx')
+      return xlsxMode === 'named'
+        ? {}
+        : {
+            input: xlsxInput,
+            sheet: xlsxSheet,
+            range: xlsxRange.trim(),
+            columns: Object.fromEntries(
+              Object.entries(mapping).filter(
+                ([source, target]) =>
+                  worksheetHeaders.some((header) => header.title === source) &&
+                  tableColumns.some((column) => column.name === target),
+              ),
+            ),
+          }
     if (format === 'json')
       return {
         mapping: Object.fromEntries(
@@ -304,7 +374,14 @@ export function SourcesPage({
           ]),
         ),
       )
-    else setMapping({})
+    else {
+      const region = ['input', 'sheet', 'range', 'columns'].some((key) => Object.hasOwn(options, key))
+      setXlsxMode(region ? 'range' : 'named')
+      setXlsxInput(typeof options.input === 'string' ? options.input : '')
+      setXlsxSheet(typeof options.sheet === 'string' ? options.sheet : '')
+      setXlsxRange(typeof options.range === 'string' ? options.range : '')
+      setMapping((options.columns as Record<string, string> | undefined) ?? {})
+    }
     if (inspection?.format !== template.format) setInspection(undefined)
   }
 
@@ -330,6 +407,16 @@ export function SourcesPage({
     Object.values(mapping).some((target) => inputs.find((input) => input.id === target)?.dims?.length)
   const mapped = Object.values(mapping).filter(Boolean).length
   const duplicateTargets = new Set(Object.values(mapping).filter(Boolean)).size !== mapped
+  const rangeMapping = format === 'xlsx' && xlsxMode === 'range'
+  const mappedWorksheetColumns = worksheetHeaders.filter((header) =>
+    tableColumns.some((column) => column.name === mapping[header.title]),
+  ).length
+  const rangeReady =
+    !!worksheet &&
+    !!tableInput &&
+    /^\$?[A-Za-z]{1,3}\$?[1-9][0-9]*(?::\$?[A-Za-z]{1,3}\$?[1-9][0-9]*)?$/.test(xlsxRange.trim()) &&
+    mappedWorksheetColumns > 0 &&
+    new Set(worksheetHeaders.map((header) => header.title)).size === worksheetHeaders.length
   const ready =
     canManageSources &&
     !!revision &&
@@ -337,6 +424,7 @@ export function SourcesPage({
     (format === 'xlsx' || format === 'json' || (format === 'csv' && mode === 'pairs') || mapped > 0) &&
     (!needsMember || !!memberColumn) &&
     !duplicateTargets &&
+    (!rangeMapping || rangeReady) &&
     (format !== 'csv' || (!!decimal && decimal !== grouping))
   return (
     <div className="sources-page">
@@ -481,6 +569,123 @@ export function SourcesPage({
                     )}
                   </div>
                 )}
+                {format === 'xlsx' && (
+                  <>
+                    <div className="sources-mode">
+                      <label>
+                        {w.xlsxMode}
+                        <select
+                          disabled={!canManageSources || busy}
+                          value={xlsxMode}
+                          onChange={(event) => {
+                            const next = event.target.value as typeof xlsxMode
+                            setXlsxMode(next)
+                            setMapping(next === 'range' ? xlsxMapping(xlsxSheet, xlsxInput) : {})
+                          }}
+                        >
+                          <option value="named">{w.namedInputs}</option>
+                          <option value="range" disabled={!inspection.xlsxSheets?.length}>
+                            {w.worksheetRange}
+                          </option>
+                        </select>
+                      </label>
+                      {rangeMapping && (
+                        <>
+                          <label>
+                            {w.worksheet}
+                            <select
+                              disabled={!canManageSources || busy}
+                              value={xlsxSheet}
+                              onChange={(event) => {
+                                const name = event.target.value
+                                setXlsxSheet(name)
+                                setXlsxRange(
+                                  inspection.xlsxSheets?.find((sheet) => sheet.name === name)?.suggestedRange ?? '',
+                                )
+                                setMapping(xlsxMapping(name, xlsxInput))
+                              }}
+                            >
+                              <option value="">—</option>
+                              {inspection.xlsxSheets?.map((sheet) => (
+                                <option key={sheet.name}>{sheet.name}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label>
+                            {w.range}
+                            <input
+                              value={xlsxRange}
+                              disabled={!canManageSources || busy}
+                              placeholder="A1:C10"
+                              onChange={(event) => setXlsxRange(event.target.value)}
+                            />
+                          </label>
+                          <label>
+                            {w.tableInput}
+                            <select
+                              disabled={!canManageSources || busy}
+                              value={xlsxInput}
+                              onChange={(event) => {
+                                setXlsxInput(event.target.value)
+                                setMapping(xlsxMapping(xlsxSheet, event.target.value))
+                              }}
+                            >
+                              <option value="">—</option>
+                              {tableInputs.map((input) => (
+                                <option key={input.id} value={input.id}>
+                                  {input.label ?? input.id} · {input.id}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </>
+                      )}
+                    </div>
+                    {!inspection.xlsxSheets?.length && <p className="muted">{w.noSheets}</p>}
+                    {rangeMapping && (
+                      <>
+                        <p className="muted">{w.headerOrigin}</p>
+                        <div className="sources-table-wrap">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>{w.source}</th>
+                                <th>{w.tableColumn}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {worksheetHeaders.map((header) => (
+                                <tr key={`${header.column}:${header.title}`}>
+                                  <td>
+                                    {columnLetter(header.column)} · {header.title}
+                                  </td>
+                                  <td>
+                                    <select
+                                      aria-label={`${w.tableColumn}: ${header.title}`}
+                                      value={mapping[header.title] ?? ''}
+                                      disabled={!canManageSources || busy}
+                                      onChange={(event) =>
+                                        setMapping((previous) => ({ ...previous, [header.title]: event.target.value }))
+                                      }
+                                    >
+                                      <option value="">{w.skip}</option>
+                                      {tableColumns.map((column) => (
+                                        <option key={column.name} value={column.name}>
+                                          {column.name} · {column.type}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {!rangeReady && <p className="input-diagnostic">{w.rangeRequired}</p>}
+                      </>
+                    )}
+                  </>
+                )}
                 {format === 'csv' && (
                   <>
                     <div className="sources-mode sources-number-format">
@@ -554,7 +759,11 @@ export function SourcesPage({
               <div className="sources-step sources-apply">
                 <span className="eyebrow">{w.check}</span>
                 <p>
-                  {format === 'xlsx' ? 'Named input cells' : `${mapped} ${w.target.toLowerCase()}`}
+                  {format === 'xlsx'
+                    ? rangeMapping
+                      ? `${mappedWorksheetColumns} ${w.tableColumn.toLowerCase()}`
+                      : w.namedInputs
+                    : `${mapped} ${w.target.toLowerCase()}`}
                   {duplicateTargets ? ' · duplicate targets' : ''}
                 </p>
                 <button className="primary-button" type="button" disabled={!ready || busy} onClick={() => void apply()}>

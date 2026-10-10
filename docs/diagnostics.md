@@ -139,10 +139,12 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-DATA-UNKNOWN-INPUT` | structural | A source mapping targets an undeclared input. |
 | `MANTRA-DATA-UTF8` | structural | CSV or JSON import bytes are not valid UTF-8; the import is rejected without replacing characters. |
 | `MANTRA-DATA-XLSX` | structural | A workbook source supplies no recognized named input cells. |
-| `MANTRA-DATA-XLSX-CELL` | structural | An input workbook cell contains an Excel error, an invalid date serial or an unsupported value; import fails without a nil or zero substitute. |
+| `MANTRA-DATA-XLSX-CELL` | structural | An input workbook cell contains an Excel error, an invalid date serial, an unsupported value or a formula without a stored result; import fails without a nil or zero substitute. |
+| `MANTRA-DATA-XLSX-COLUMN` | structural | An unmapped XLSX region header does not match a declared table column; it is skipped with a warning. |
 | `MANTRA-DATA-XLSX-CONTAINER` | structural | The workbook ZIP is malformed, duplicates entries, lacks required OOXML parts or has inconsistent local and central contents. |
-| `MANTRA-DATA-XLSX-LIMIT` | structural | A workbook import exceeds its compressed-byte, entry-count, per-entry expanded-byte or total expanded-byte limit. |
+| `MANTRA-DATA-XLSX-LIMIT` | structural | A workbook import exceeds its compressed-byte, entry-count, per-entry expanded-byte, total expanded-byte or 50,000 region-cell limit. |
 | `MANTRA-DATA-XLSX-NAME` | structural | A named input cell has an unknown, incomplete or ambiguous coordinate, a conflicting sanitized name or an invalid cell reference. |
+| `MANTRA-DATA-XLSX-REGION` | structural | Invalid local rectangle, missing sheet/table target, ambiguous headers or merged geometry, or invalid/repeated column mapping rejects region import. |
 | `MANTRA-DEFN` | structural | A schema or case function declaration is malformed. |
 | `MANTRA-DIMENSION` | structural | A dimension declaration lacks a valid identifier, members or table source. |
 | `MANTRA-DIMENSION-KEY` | structural | A dimension member key is missing, invalid or duplicated. |
@@ -174,6 +176,7 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-INPUT-REFERENCE` | structural | A supplied table foreign key refers to an unavailable member. |
 | `MANTRA-INPUT-REQUIRED` | business | An unconditional or applicable conditional requirement lacks an explicitly supplied nonblank fact. |
 | `MANTRA-INPUT-TYPE` | structural | A supplied input or table-cell value does not match its declared type. |
+| `MANTRA-INPUT-UNKNOWN` | structural | A template candidate requests an input not declared in its candidate schema. |
 | `MANTRA-LAYOUT-COL` | structural | A layout column declaration is malformed. |
 | `MANTRA-LAYOUT-COLUMNS` | structural | A layout column list or style selection is malformed. |
 | `MANTRA-LAYOUT-CONTENT` | structural | A layout column requests unsupported content. |
@@ -227,6 +230,9 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-SCHEMA-TYPE` | structural | A declared value type is unknown. |
 | `MANTRA-SLOT-CONTENT` | structural | An extension slot contains an unsupported item. |
 | `MANTRA-SPREAD-DIMS` | structural | An allocation-spread line has an invalid dimension context. |
+| `MANTRA-TEMPLATE-DEPENDENCY` | structural | A template candidate changes include paths or introduces a participating source outside its captured dependency closure. |
+| `MANTRA-TEMPLATE-IDENTITY` | structural | A template candidate changes its root declaration kind, schema id/version or layout id. |
+| `MANTRA-TEMPLATE-INPUT` | structural | A template candidate tries to replace a table or dimensioned input through the scalar-text interface. |
 | `MANTRA-TOTAL-DIMS` | structural | A total combines incompatible dimension contexts. |
 | `MANTRA-TOTAL-TRAILING` | structural | An unterminated contributing sequence has no appropriate total. |
 | `MANTRA-TYPES` | structural | Internal record-type definitions are inconsistent. |

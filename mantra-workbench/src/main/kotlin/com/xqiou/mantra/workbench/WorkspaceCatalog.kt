@@ -351,6 +351,11 @@ class WorkspaceCatalog(
         includeZero: Boolean = false,
     ): DocumentResult = previewCaseEdits(caseId, baseRevision, operations, draftSequence, panel, includeZero)
 
+    fun templateSources(caseId: String): DocumentResult = readTemplateSources(caseId)
+
+    fun templatePreview(caseId: String, request: TemplatePreviewRequest): DocumentResult =
+        previewTemplate(caseId, request)
+
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
         caseId: String,

@@ -25,6 +25,7 @@ object ImportFiles {
         var decimal: String? = null
         var grouping: String? = null
         var numericAmbiguous = false
+        var xlsxSheets: List<Map<String, Any?>>? = null
         try {
             when (format) {
                 "csv" -> {
@@ -100,6 +101,7 @@ object ImportFiles {
                                     )
                                 }
                             rowCount = workbook.numberOfSheets
+                            xlsxSheets = xlsxRegionInspection(workbook)
                         }
                     }
                 }
@@ -134,6 +136,7 @@ object ImportFiles {
             if (decimal != null) put("decimal", decimal)
             if (grouping != null) put("grouping", grouping)
             if (numericAmbiguous) put("numericAmbiguous", true)
+            if (xlsxSheets != null) put("xlsxSheets", xlsxSheets)
         }
     }
 }
