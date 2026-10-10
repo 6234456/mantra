@@ -67,6 +67,10 @@ jobs:
         run: ./gradlew --no-daemon -p editors/intellij -PprotocolOnly=true -PlspCommand="$GITHUB_WORKSPACE/mantra-lsp/build/install/mantra-lsp/bin/mantra-lsp" test
       - name: All CLI commands
         run: scripts/smoke-cli.sh
+      - name: Reproducible SQLite snapshots and real-engine source equivalence
+        env:
+          MANTRA_SNAPSHOT_TEST_CLI: ${{ github.workspace }}/mantra-cli/build/install/mantra/bin/mantra
+        run: python3 -m unittest discover -s scripts/tests -p test_snapshot_sqlite.py
       - name: Exact documentation commands and complete offline site
         run: |
           mantra-cli/build/install/mantra/bin/mantra check docs/site/examples/invoice/schema.mantra --case docs/site/examples/invoice/case.mantra --workspace docs/site/examples/invoice
