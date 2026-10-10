@@ -4,7 +4,8 @@
 > 原型入口为 fixture 模式的 `/authoring`；保存、fork、owner 与源修订冲突均为模拟，未写入模板文件。
 > 当前实现、启动步骤与证据见 [实施记录](implementation-progress.md)，复核任务见
 > [继续提示词](resume-prompt.md)。首轮结论见 [复核记录](prototype-review.md)，修正对应见
-> [prototype-fixes.md](prototype-fixes.md)。正式模板 API 与发布能力仍属于接口缺口。
+> [prototype-fixes.md](prototype-fixes.md)。真实模板草稿预览与其余工程扩展见
+> [extension-progress.md](extension-progress.md)；录制原型尚未切换到真实模板 API，保存与发布仍有接口缺口。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
 > 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
@@ -84,3 +85,5 @@
   `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
   Draft PR：[6234456/paramita-v2#1](https://github.com/6234456/paramita-v2/pull/1)。
 - [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
+- [x] [六项工程扩展与边界](extension-progress.md)：草稿备份与 CI、真实模板草稿预览、完整 Excel
+  清单、Template Engine 实际执行证明、普通 XLSX 区域导入、SQLite 可重放快照。

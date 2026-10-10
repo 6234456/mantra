@@ -9,7 +9,9 @@
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，
 Codex 负责编码。你已在 `92664ae` 推送对 `69ab8ff` 的初次复核；现在按同一 Draft PR 的最新提交复查修正。
-修正代码检查点是已推送的 `dc01609`；其后文档提交不改变源码，仍应记录并读取 PR 最新已推送 HEAD。
+修正代码检查点是已推送的 `dc01609`。后续已增加草稿备份、真实模板草稿预览、普通 Excel 区域输入、
+SQLite 快照和完整 Excel／Template Engine 审计；见 [工程扩展记录](extension-progress.md)。
+仍应记录并读取 PR 最新已推送 HEAD，不把早期修正检查点当作本轮源码。
 
 ## 恢复与保护已有工作
 
@@ -24,7 +26,8 @@ Codex 负责编码。你已在 `92664ae` 推送对 `69ab8ff` 的初次复核；�
 
 先读 `CLAUDE.md`、`docs/workbench/visual-editor/prototype-review.md`、`prototype-fixes.md`、
 `implementation-progress.md` 和 `prototype.md`。按需补读 `design-spec.md`、`state-matrix.md`。
-本轮不扩展 G-A1–G-A15，也不替正式多文档文件事务选择 D-A1 策略。
+本轮复核不继续扩展 G-A1–G-A15，也不替正式多文档文件事务选择 D-A1 策略。
+已实现的真实预览仅推进部分契约缺口，未将录制原型替换为正式可视化作者服务。
 
 ## 复查实现与交互
 
@@ -52,7 +55,7 @@ Codex 负责编码。你已在 `92664ae` 推送对 `69ab8ff` 的初次复核；�
 
 ## 检查与真实性
 
-运行 check、test、fixture 与 live 构建、边界检查及录制摘要漂移检查：
+运行 check、test、fixture 与 live 构建、边界检查及录制摘要检查：
 
 ```sh
 npm --prefix workbench-ui run check
@@ -63,10 +66,11 @@ python3 scripts/check-boundaries.py
 npm --prefix workbench-ui run authoring:record:check
 ```
 
-本轮代码检查点实测 40 个文件／347 项测试通过，作者浏览器 15 个、原工作台 13 个流程通过，共 28 个；
+F1–F18 修正检查点实测 40 个文件／347 项测试通过，作者浏览器 15 个、原工作台 13 个流程通过，共 28 个；
 fixture／live 构建、边界与 32 状态漂移检查均通过。live 产物不能包含原型或录制数据；
 原有 204 项测试保持通过，复查数量以你当前运行输出为准。
-`App.tsx` 保持不变，现有入口行为应不变。已有安装 Chrome 时可运行作者和原工作台浏览器脚本：
+工程扩展的最新门禁见 [extension-progress.md](extension-progress.md)。`App.tsx` 新增 live 文件工作区的
+Template draft 链接；原有工作台流程仍需通过。已有安装 Chrome 时可运行作者和原工作台浏览器脚本：
 
 ```sh
 MANTRA_TEST_CHROME=/path/to/installed/chrome npm --prefix workbench-ui run test:authoring:e2e
@@ -76,17 +80,33 @@ MANTRA_TEST_CHROME=/path/to/installed/chrome npm --prefix workbench-ui run test:
 使用专属临时 profile，检查退出清理；不安装浏览器 bundle。浏览器脚本结果和完整门禁见实施记录。
 
 你在初次复核中独立重录 32 状态，确认 277 个完整响应 blob、307 个响应除执行间 eventId 外一致。
-本轮 recording.json、pattern 和 JVM 引擎没有修改；检查提交差异与摘要漂移即可，布局修正不要求重复生成录制文件。
-如确有数据变更，才重新核对真实服务响应。任何数值、Paper、诊断、Explain 均须来自真实录制，未录制草稿不合成结果。
+工程扩展没有修改 recording.json 或 pattern；后端预览与 XLSX 导入有新增代码。Codex 已用新 CLI 独立
+重录，32 状态／307 响应只有动态 eventId 差异。检查最新差异与摘要；没有新数据或行为问题时无需再次生成。
+如确有数据变更，才重新核对真实服务响应。原型的数值、Paper、诊断、Explain 均须来自真实录制，
+未录制草稿不合成结果；独立真实服务页直接使用引擎响应。
 
 ## 复核边界与输出
 
 owner、源补丁、fork、保存与冲突都是模拟，保存不写模板文件。Build／Publish／Open in Template Engine 仍禁用；
-报告属于原始录制 base，不能证明 Template Engine 或 Excel 重算兼容。正式接口与发布、D-A1 文件原子性仍未决定。
+报告属于原始录制 base，不能证明 Template Engine 或 Excel 重算兼容。正式作者写入、发布与 D-A1 文件原子性尚未实现。
 S2 的 Inspector 文字编辑作为原型接受项保留，S3 多行 class 分配延后。
 
 保留 shared DSL → 编译／预览／构建 → Mantra 原生与派生 Excel 分叉架构，以及 Template Engine 独立纯 Excel 作者路径。
 本轮仍为 Mantra HTML table，没有引入 Office Canvas、React 18 workspace UI 包或新 npm 依赖。
+
+## 工程扩展的补充复核
+
+- `/authoring` 新增恢复成功／失败反馈和可携带备份；实际下载／文件导入已自动化验证。
+  检查编辑 JSON 时的撤销快捷键不会触发模板历史；恢复后仍需重新预览，不把备份视为可信结果。
+- `/template-preview` 是独立真实服务页，启动见 [用户说明](../../site/template-draft-preview.md)。
+  它同时预览 schema、layout 和示例标量输入，保留无效／冲突草稿，没有保存或发布操作。
+  可以复核信息层次和下一阶段交互方案，不要求把 source-first 页当作最终视觉编辑器。
+- Sources 的 Worksheet range 使用检查元数据的首个已存储行；更靠后的表头可以用源 DSL 显式映射，
+  尚无按任意范围重新检查表头的 UI API。
+- [Excel 兼容报告](excel-compatibility.md) 的实际导入／有限业务重算通过，但完整工作簿兼容为 false。
+  不得把它改写成全面兼容或成功发布；审计页函数、舍入、精度和定义名称的失败均有真实证据。
+
+主应用 npm 依赖保持原样；可选审计工具另有隔离锁。Template Engine 源码保持只读。
 
 输出独立的再次复核记录：写明提交 SHA、门禁结果，按 F1–F18／S1 列出通过或具体剩余问题及操作步骤／源位置。
 保留 prototype-review.md 的初次评估；不要把编码方修正说明改成你的签收。真实 IME 另列实测或未测。
