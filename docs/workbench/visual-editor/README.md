@@ -45,16 +45,16 @@
   `CellEditorOverlay` 内置 Excel 补全，宿主补全不能替代它；所有包都声明 React 18 peer、
   `workspace:*` 依赖且入口为 TS 源码。首版建议使用 Mantra 自己的 DOM `PaperTable`，不引入 Canvas。
 
-## 3. 未完成项
+## 3. 交付进度
 
-1. `design-spec.md`：模板入口、双视图、属性与公式面板、输入／Explain、源差异、保存与构建反馈、
-   首次使用、键盘／IME／剪贴板／撤销／焦点返回／窄屏，以及与 Template Engine 并行使用的约定。
-2. `state-matrix.md`：生命周期状态、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
-3. `implementation-plan.md`：组件复用清单、设计 token、接口缺口（owner 句柄、源补丁、draft Paper、
-   样式来源、构建记录、发布）和分步实施计划。
-4. 原型：`workbench-ui/src/authoring/`、生成脚本、测试、启动步骤、操作脚本和截图；
-   导出／发布按钮不得假成功。
-5. Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 及索引条目
-   （用 plumbing 提交，不触碰他人未提交的改动）。
-6. 两个仓库各自的 draft PR。Mantra Draft PR 在本提交推送后创建；Template Engine 在其任务分支
-   有文档提交后创建。
+- [x] [design-spec.md](design-spec.md)：页面流程、双视图、属性／公式／样式面板、Explain 与示例输入、源差异、
+  保存与构建反馈、首次使用、窄屏、键盘／IME／剪贴板／撤销／焦点返回、可访问性，以及与 Template Engine
+  并行使用的约定。
+- [ ] `state-matrix.md`：生命周期状态、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
+- [ ] `implementation-plan.md`：组件复用清单、设计 token、接口缺口（owner 句柄、源补丁、draft Paper、
+  样式来源、构建记录、发布）和分步实施计划。
+- [ ] 原型：`workbench-ui/src/authoring/`、生成脚本、测试、启动步骤、操作脚本和截图；
+  导出／发布按钮不得假成功。
+- [ ] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 及索引条目
+  （用 plumbing 提交，不触碰他人未提交的改动），以及该仓库的 Draft PR。
+- [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
