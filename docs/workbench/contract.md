@@ -431,7 +431,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 **候选工作表预演（文件工作区）**：`POST …/preview-paper` 使用相同的操作、权限、令牌和读取预算，
 额外要求 `draftSequence` 为 0–9007199254740991 的 JSON 整数；可选 `panel` 是非空板块 id，
 `includeZero` 是布尔值，默认 false。请求只允许 `baseRevision`、`operations`、`draftSequence`、
-`panel`、`includeZero`，不接受查询参数、任意源文件路径、源偏移或 schema/layout 原文。
+`panel`、`includeZero`，不接受查询参数、用路径或源偏移指定的任意写目标、或 schema/layout 原文。
 该端点采用独立计算会话，在已捕获的基准文档、数据与路径绑定上执行已有案例操作；同一次 FULL-audit
 候选计算生成 `run`、`difference` 与 `paper`，不通过读取已保存案例获得候选工作表。
 响应外层 `revision` 仍是基准修订；`data` 包含 `document`、`preview: true`、

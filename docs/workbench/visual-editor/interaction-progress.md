@@ -20,7 +20,7 @@
 提交继续使用正式 `/edits` CAS 接口，不能把预演响应冒充已保存内容。
 新引入依赖首次读取后计入候选修订，但预演不锁定它们；提交重新读取并计算，不能承诺稍后提交与旧候选完全相同。
 
-这个端点只接受既有 case 操作，不接收任意路径、offset、schema/layout 原文或模板 owner。
+这个端点只接受既有 case 操作，不以任意路径或 offset 选择模板写目标，也不接收 schema/layout 原文或模板 owner。
 标签、class、样式来源、结构插入及 layout 作者预演仍需要未来契约；原型录制这些状态时必须标注模拟能力。
 此轮没有实现可视化作者页面、自动恢复持久化、多文档事务、派生模板发布或 Template Engine UI。
 
@@ -28,7 +28,34 @@
 
 包保护先复现四个失败场景，再通过新旧目标 13 项测试；两个逻辑修复检查点已推送到
 `codex/mantra-design-handoff-20261010`：`e5b2a54`（包保护）、`2e95dd8`（公式异步状态）。
-后续端点、页面整合和整体验证结果在完成后补入本记录。
+后续已推送 `b2ae64b`（页面草稿保留）、`e1e65f8`（隔离候选 Paper、传输与契约）。
+
+整体验证通过：Gradle `check :mantra-cli:installDist`，918 项 JVM 测试、129 项 Python 测试、
+24 项 conformance、公共 ABI、格式/边界/诊断/源码尺寸检查；前端 check、204 项测试、生产构建及
+13 个浏览器流程通过。容器 PID 1 不回收孤儿进程，进程清理测试使用已有的云端 subreaper 启动器；
+浏览器/Vite 退出与临时 profile 删除均已验证，无产品逻辑或测试断言豁免。
+
+安装后的 CLI 又在 `docs/patterns` 临时副本启动真实服务，选择 `capped-allocation/case-demo.mantra`
+的 `controls`，预演 `requested-units` 从 8 变为 9：候选请求值是精确的 `90.00`，Paper 与候选 Run
+一致，`includeZero: true` 使 `unallocated` 零行可定位。正式 Run 仍为 `80.00`，基准修订不变，
+副本全部 16 个文件的哈希不变；测试服务已关闭。
+
+接入该面板的请求示例（令牌沿用当前服务 session metadata，修订从当前 Run 获取）：
+
+```json
+{
+  "baseRevision": "<current-run-revision>",
+  "draftSequence": 23,
+  "panel": "controls",
+  "includeZero": true,
+  "operations": [
+    {"op": "setInput", "address": {"node": "requested-units"}, "value": {"n": "9"}}
+  ]
+}
+```
+
+该请求发往 `/api/v1/cases/capped-allocation%2Fcase-demo.mantra/preview-paper`，只适用于文件工作区。
+编译后新增的 public 方法是 `WorkspaceCatalog.previewPaper`；库构造器与旧 wire 响应保持兼容。
 
 GitHub API 仍受当前云端网络规则阻断，尚未创建 Draft PR；Git HTTPS 推送可用。
 恢复后先正常同步远端，再按 [continuation prompt](resume-prompt.md) 完成视觉交付与两个仓库的真实 PR。
