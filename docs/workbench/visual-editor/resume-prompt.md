@@ -1,15 +1,16 @@
 # Claude Code continuation prompt
 
-使用说明：设计交付与初次复核已完成，Codex 已按 F1–F18／S1 修正原型。
-本轮请对 Mantra PR #15 最新已推送 HEAD 再次复查，重点验证你在 `69ab8ff` 上发现的问题；
+使用说明：设计交付与两轮复核已完成，你在 `55c2c98` 记录 F1–F17／S1 通过、F18 部分达成。
+本轮请对 Mantra PR #15 最新已推送 HEAD 复查 R2-1–R2-3，按需抽查首轮通过的行为；
 不要重做设计基线，也不要将 Codex 的自动检查视作 Claude 的人工签收。
-修正映射见 [prototype-fixes.md](prototype-fixes.md)，启动与检查证据见 [实施记录](implementation-progress.md)。
+第二轮残留修正见 [prototype-r2-fixes.md](prototype-r2-fixes.md)，首轮修正映射见
+[prototype-fixes.md](prototype-fixes.md)，启动与检查证据见 [实施记录](implementation-progress.md)。
 
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，
-Codex 负责编码。你已在 `92664ae` 推送对 `69ab8ff` 的初次复核；现在按同一 Draft PR 的最新提交复查修正。
-修正代码检查点是已推送的 `dc01609`。后续已增加草稿备份、真实模板草稿预览、普通 Excel 区域输入、
+Codex 负责编码。你已在 `92664ae` 推送首轮复核，在 `55c2c98` 推送第二轮复核；现在按同一 Draft PR 的最新提交复查残留项。
+首轮修正代码检查点是 `dc01609`，第二轮接受结果见 `prototype-review.md` §7。后续已增加草稿备份、真实模板草稿预览、普通 Excel 区域输入、
 SQLite 快照和完整 Excel／Template Engine 审计；见 [工程扩展记录](extension-progress.md)。
 仍应记录并读取 PR 最新已推送 HEAD，不把早期修正检查点当作本轮源码。
 
@@ -24,12 +25,20 @@ SQLite 快照和完整 Excel／Template Engine 审计；见 [工程扩展记录]
   https://github.com/6234456/paramita-v2/pull/1，任务分支 `codex/mantra-parallel-use-20261010`。
   本轮未修改该仓库；另一会话的工作区与真实 index 保持原样，遵守不创建或切换 worktree 的规则。
 
-先读 `CLAUDE.md`、`docs/workbench/visual-editor/prototype-review.md`、`prototype-fixes.md`、
+先读 `CLAUDE.md`、`docs/workbench/visual-editor/prototype-review.md` §7、`prototype-r2-fixes.md`、`prototype-fixes.md`、
 `implementation-progress.md` 和 `prototype.md`。按需补读 `design-spec.md`、`state-matrix.md`。
 本轮复核不继续扩展 G-A1–G-A15，也不替正式多文档文件事务选择 D-A1 策略。
 已实现的真实预览仅推进部分契约缺口，未将录制原型替换为正式可视化作者服务。
 
 ## 复查实现与交互
+
+优先复查第二轮的三项残留：
+
+- R2-1：1440×900 Split 中由网格定位源码；主 owner 的全部高亮应在源码内部滚动区完整可见且接近中心，网格焦点和外层滚动不变。
+- R2-2：390×844 展开 Prototype controls，再展开 Draft recovery and JSON backup；表格仍有可见行并可内部滚动，底部控制区内部滚动可到达 Validate backup JSON，summary 保持可见且可收起。
+- R2-3：从标签、公式、note 单元格用中文拼音开始输入；焦点移交后原文全选，新组合替换原文；候选 Enter 不提交、不导航。合成事件已有覆盖，真实系统输入法仍需人工实测。
+
+下面为已接受行为的回归参考，无需重新标记已经通过的首轮问题：
 
 1. `npm --prefix workbench-ui ci`，`npm --prefix workbench-ui run dev`，打开
    `http://localhost:5173/authoring`。这是 fixture 入口；live 构建不包含原型，原工作台仍为 `/`。
@@ -108,6 +117,6 @@ S2 的 Inspector 文字编辑作为原型接受项保留，S3 多行 class 分�
 
 主应用 npm 依赖保持原样；可选审计工具另有隔离锁。Template Engine 源码保持只读。
 
-输出独立的再次复核记录：写明提交 SHA、门禁结果，按 F1–F18／S1 列出通过或具体剩余问题及操作步骤／源位置。
+输出独立的补充复核记录：写明提交 SHA、门禁结果，按 R2-1–R2-3 列出通过或具体剩余问题及操作步骤／源位置。
 保留 prototype-review.md 的初次评估；不要把编码方修正说明改成你的签收。真实 IME 另列实测或未测。
 确认通过后才更新 prototype.md §11／README 的人工评审状态；仅加入本任务文档，及时提交、正常推送同一 Draft PR。

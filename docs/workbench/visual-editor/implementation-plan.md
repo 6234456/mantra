@@ -5,6 +5,11 @@
 > [状态矩阵](state-matrix.md)。新增公共 API 前先在 [工作台契约](../contract.md) 定义合同；
 > 通用引擎、工作台与 UI 不加入业务规则（CLAUDE.md、契约 W2）。
 
+后续实现范围更新：`1165dfe` 已实现 G-A4／G-A14 的文件工作区只读候选切片，入口为独立的
+`/template-preview` 页，合同见 [工作台契约 §7.1](../contract.md#71-操作)，启动与边界见
+[用户说明](../../site/template-draft-preview.md)。本轮不改变以下设计选择和验收；录制作者原型
+`/authoring` 尚未接入该真实接口，属性 owner、语义补丁和文件 Save 仍需各自合同。
+
 ## 1. 能力现状
 
 | 能力 | 状态 | 入口 |
@@ -19,7 +24,7 @@
 | Paper 浏览：显示零值行、表内查找 | 【已实现】 | `includeZero`，`PaperTable` |
 | 模板 owner 句柄、源投影与 Outline | 【设计】 | G-A1、G-A2 |
 | 模板语义操作与最小源补丁 | 【设计】 | G-A3 |
-| 模板草稿预览（draft Paper、Explain、诊断） | 【设计】 | G-A4、G-A14、G-A15 |
+| 模板草稿预览（draft Paper、Explain、诊断） | 【部分已实现】，仅文件工作区根 schema/layout 原文与标量示例输入；无文件 Save | `template-sources`、`template-preview`，独立 `/template-preview` 页；G-A4／G-A14 只读候选切片，G-A15 的 owner 诊断仍为设计 |
 | schema 公式语言服务 | 【设计】 | G-A5 |
 | 源历史、提交与多文档原子性 | 【设计】 | G-A6、G-A7、D-A1 |
 | workspace fork | 【设计】 | G-A8 |
@@ -124,12 +129,15 @@
 以下合同先写入 `docs/workbench/contract.md`（新版本节），附 JSON Schema、生成的 TypeScript 类型与 golden 后再实现。
 所有响应使用 v4 外层，数值使用精确编码。
 
+G-A4／G-A14 已按契约 §7.1 实现下述只读候选切片，并有 JSON Schema、生成的 TypeScript 类型和
+回归检查；其余缺口不因此关闭。文档句柄绑定完整基准图和文档，不是 G-A1 的属性 owner 句柄。
+
 | # | 缺口 | 最小合同 | 原型中的处理 |
 | --- | --- | --- | --- |
 | G-A1 | owner 句柄 | 每个可编辑属性返回不透明 `handle`、`kind`（label／title／note／formula／classes／layoutOption）、文档、显示范围、显示路径、`editable` 与原因、共享范围（include 它的 schema）、在 Paper 中的投影（面板、行 anchor、单元格）。句柄绑定精确文档修订与 graph 修订；删除或歧义使其失效 | 【原型】前端模拟扫描器生成句柄，并用测试与录制的 Structure 位置核对 |
 | G-A2 | 模板身份与 Outline | 模板 = schema id／version + layout id + 参与文档；Outline 包括隐藏、零值隐藏与不活跃声明及原因 | 【原型】由模拟扫描器与录制的 Paper flags 组合 |
 | G-A3 | 语义操作与最小补丁 | `{baseRevisions, draftSequence, operations:[{op, handle, value}]}` → `{patches:[{document, startOffset, endOffset, text, inverse}], diagnostics}`；不变式同契约 §7.2：读回语义等价、编辑区间外字节不变 | 【原型】前端模拟补丁 |
-| G-A4 | 模板草稿预览 | 语义与 `preview-paper` 一致：`draftSequence`、全部参与修订、候选修订、`succeeded`、`validationPassed`、`diagnostics`、`run`、`difference`、`paper`；修订不一致 409；技术无效 422 | 【原型】按文档集摘要查找录制的真实响应；未录制显示无引擎预览 |
+| G-A4 | 模板草稿预览 | 语义与 `preview-paper` 一致：`draftSequence`、全部参与修订、候选修订、`succeeded`、`validationPassed`、`diagnostics`、`run`、`difference`、`paper`；修订不一致 409；技术无效 422 | 【部分已实现】文件工作区 `template-sources`／`template-preview` 接受根 schema/layout 原文与标量示例输入，保持模板身份和依赖闭包，在同一隔离候选中返回 Structure／Run／Paper／Difference／诊断；返回前重验完整源修订，提供 409／422 与序号。独立 `/template-preview` 页已接入，无文件 Save；【录制原型】仍按文档集摘要查找响应，未录制显示无引擎预览，尚未接入真实 API |
 | G-A5 | schema 公式语言服务 | 以句柄为目标的 complete／hover／check，作用域为该声明可见的节点、`defn` 与函数目录 | 【原型】补全来自录制的 Structure 与 CLI catalog |
 | G-A6 | 源历史 | 服务端返回逆补丁；客户端保存事务；应用撤销时服务端核对基准修订 | 【原型】客户端历史，逆补丁在前端计算 |
 | G-A7 | 提交 | 重新核对全部参与修订与句柄；409 返回当前修订与变化文档；422 返回技术诊断；成功返回新修订与写入的文档 | 【原型】模拟 409 与“已保存（未写入文件）” |
@@ -139,7 +147,7 @@
 | G-A11 | 发布与目录 | 版本化产物与 Template Engine 目录登记合同（计划） | 按钮禁用 |
 | G-A12 | 恢复草稿 | 浏览器本地保存基准修订集、源事务与未提交输入；只作恢复，不作校验结果 | 【原型】localStorage |
 | G-A13 | 模板级外部修改 | SSE 增加受影响的模板／case graph 修订，或由客户端按路径刷新参与修订 | 【原型】模拟外部修改按钮 |
-| G-A14 | 草稿 Explain | 草稿预览的 trace 与步骤 | 【原型】录制状态的 Explain |
+| G-A14 | 草稿 Explain | 草稿预览的 trace 与步骤 | 【部分已实现】`template-preview` 可请求一个根案例地址的 Explain，证据与该次候选 Structure／Run／Paper 一致；独立真实预览页可查看。【录制原型】Inspector 仍使用录制状态的 Explain，尚未接入候选 Explain API |
 | G-A15 | 无效草稿诊断的 owner | 诊断附 owner 句柄；现有诊断只有位置与地址 | 【原型】录制诊断的源范围映射到模拟句柄 |
 
 ## 5. 分步实施
@@ -167,6 +175,10 @@
 | D-A6 | Template Engine 模块提取 | 现在提取；或等 Template Engine 上线后 | 等 Template Engine 维护者确认 |
 
 ## 7. 原型能做与需要未来契约的事项
+
+下表描述 `/authoring` 录制原型；“需要的契约”包含已经定义、实现但尚未接入该原型的
+G-A4／G-A14 切片。独立 `/template-preview` 页可预览未录制的根模板原文及其示例标量输入，
+不提供正式属性 owner、语义最小补丁、源历史提交或多文档保存。
 
 | 事项 | 原型 | 需要的契约 |
 | --- | --- | --- |

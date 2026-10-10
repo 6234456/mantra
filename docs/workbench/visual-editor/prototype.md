@@ -17,7 +17,9 @@
   `No engine preview for this draft (not recorded in this prototype)`，绝不合成数值或 Paper。
 - owner 句柄、源补丁、保存、冲突与 fork 是前端模拟，界面与代码注释都必须标明 `simulated`。
 - 模拟源集合按修订进行比较后整体更新，不是文件系统事务。D-A1 的正式多文档原子性策略仍未确定。
-- 录制的 422 诊断范围证明现有引擎能给出精确范围；不代表模板 owner、源补丁或模板 draft Paper 接口已存在。
+- 录制的 422 诊断范围证明现有引擎能给出精确范围；不代表正式模板 owner 或源补丁接口已存在。
+  后续已实现的模板 draft Paper／Explain 属于独立 `/template-preview` 页的真实候选切片，本录制原型
+  尚未接入；范围见 [契约 §7.1](../contract.md#71-操作) 与 [工程扩展记录](extension-progress.md)。
 - 导出、构建、发布与 Template Engine 跳转按钮永不显示成功。
 
 ## 2. 约束
@@ -212,7 +214,8 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 ### 5.6 示例输入与构建面板
 
 - Example input 标签只提供 `requested-units`。仅当模板草稿干净且已保存基准仍为录制的 `base` 时启用；
-  否则显示 `Combined template and example-input preview needs contract G-A4`。
+  否则说明组合预览尚未接入本录制原型。G-A4／G-A14 的真实组合预览已在独立 `/template-preview` 页
+  实现，见 [契约 §7.1](../contract.md#71-操作)；这不改变本原型的录制状态范围或模拟保存边界。
   `"9"` 显示录制的候选 Run、差异与 Paper；`"nine"` 在字段下显示录制的 422 消息并保留原文；其他输入显示未录制。
 - Build 标签只显示 `base` 录制的 `export-preview` 报告（公式单元格、输入单元格、命名区域、fallback、求值错误），
   标题 `ExcelExport report for the recorded base state`，明确不属于当前模拟保存修订。

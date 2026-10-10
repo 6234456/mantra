@@ -7,6 +7,7 @@
 > [继续提示词](resume-prompt.md)。首轮结论见 [复核记录](prototype-review.md)，修正对应见
 > [prototype-fixes.md](prototype-fixes.md)。真实模板草稿预览与其余工程扩展见
 > [extension-progress.md](extension-progress.md)；录制原型尚未切换到真实模板 API，保存与发布仍有接口缺口。
+> 第二轮残留 R2-1–R2-3 的实现、浏览器证据与 CI 文档失败修复见 [prototype-r2-fixes.md](prototype-r2-fixes.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
 > 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
@@ -81,7 +82,8 @@
 - [x] Claude 复核 `69ab8ff`：[prototype-review.md](prototype-review.md)。门禁与录制真实性通过；交互布局与样式面板的
   F1–F18 与 S1 已由 Codex 修正，见 [prototype-fixes.md](prototype-fixes.md)。
 - [x] Claude 第二轮复核：[prototype-review.md §7](prototype-review.md#7-第二轮复核)。
-- [ ] 真实中文拼音输入法人工验证；R2-1–R2-3 低优先级修正；`da8138d` 之后新功能提交的单独评审。
+- [x] R2-1–R2-3 编码修正与合成事件／浏览器回归，见 [第二轮残留修正](prototype-r2-fixes.md)。
+- [ ] 第二轮残留的 Claude 复查、真实中文拼音输入法人工验证、`da8138d` 之后新功能提交的单独设计评审。
 - [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
   任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
   `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
