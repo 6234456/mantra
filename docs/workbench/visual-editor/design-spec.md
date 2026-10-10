@@ -3,7 +3,8 @@
 > 状态：**设计规范（PLANNED）**。本文规定 Mantra 独立可视化 DSL 编辑器首个切片的界面、交互与反馈，
 > 不声明模板编辑器、owner 句柄、模板源补丁、模板 draft Paper、构建记录或发布能力已经实现。
 > 相关文档：[进度与基线](README.md) · [状态与权限矩阵](state-matrix.md) ·
-> [复用、token、接口缺口与实施计划](implementation-plan.md) · [工作台契约](../contract.md) ·
+> [复用、token、接口缺口与实施计划](implementation-plan.md) · [原型实施说明](prototype.md) ·
+> [工作台契约](../contract.md) ·
 > [界面规格](../ui-spec.md) · [可视化模板编辑提案](../visual-template-authoring.md) ·
 > [DSL 作者路径与两个交付目标](../../template-directions.md) · [可复用模式](../../reusable-patterns.md)
 > 评审基线：Mantra `682bd2c`（任务分支）；Template Engine `6443c688`。

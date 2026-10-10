@@ -53,8 +53,9 @@
 - [x] [state-matrix.md](state-matrix.md)：状态维度、生命周期与转换、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
 - [x] [implementation-plan.md](implementation-plan.md)：能力现状、组件复用清单与前置条件、设计 token、接口缺口
   G-A1–G-A15、分步实施与待决策项。
-- [ ] 原型：`workbench-ui/src/authoring/`、生成脚本、测试、启动步骤、操作脚本和截图；
-  导出／发布按钮不得假成功。
+- [x] [prototype.md](prototype.md)：录制数据原型的实施说明（录制脚本、模拟服务、状态模型、键盘、测试）、
+  操作脚本、截图清单与复核清单。维护者 2026-10-10 决定由 Codex 编码、Claude 复核。
+- [ ] 原型代码：`workbench-ui/src/authoring/`、录制脚本、测试与截图，待 Codex 按 prototype.md 实施后由 Claude 复核。
 - [ ] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 及索引条目
   （用 plumbing 提交，不触碰他人未提交的改动），以及该仓库的 Draft PR。
 - [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
