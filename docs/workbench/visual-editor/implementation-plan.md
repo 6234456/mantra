@@ -43,9 +43,9 @@
 
 ### 2.2 Template Engine 模块
 
-依赖闭包按 `6443c688` 源码逐个 import 核对。所有包都是 `private` monorepo 包：`main`／`types` 指向
-`src/index.ts`，依赖为 `workspace:*`，React 组件声明 `react`／`react-dom` `^18` peer。它们不是可直接安装的
-React 19 SDK。
+依赖闭包按 `6443c688` 源码逐个 import 核对。`packages/*` 都没有发布到 registry（根 `package.json` 为 `private`），
+`main`／`types` 都指向 `src/index.ts`；除 `theme-tokens`、`kernel-core` 等少数包外都依赖 `workspace:*`；
+`office-ui` 与 `office-workbook-ui` 声明 `react`／`react-dom` `^18` peer。它们不是可直接安装的 React 19 SDK。
 
 | 模块 | 实际依赖闭包 | 价值 | 结论 |
 | --- | --- | --- | --- |

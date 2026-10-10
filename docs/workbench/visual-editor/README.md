@@ -42,8 +42,8 @@
   `keyboard-input-session.ts`、`focus-boundary.ts` 和 `theme-tokens` 没有依赖；
   `ApplicationStatusPill`／`OfficeSidePaneShell` 经 `OfficeActionIcons` 依赖 `@fluentui/react-icons`
   与 `--te-*` 主题变量；剪贴板 transport 依赖 `formula-engine` 和 `office-model-v2`；
-  `CellEditorOverlay` 内置 Excel 补全，宿主补全不能替代它；所有包都声明 React 18 peer、
-  `workspace:*` 依赖且入口为 TS 源码。首版建议使用 Mantra 自己的 DOM `PaperTable`，不引入 Canvas。
+  `CellEditorOverlay` 内置 Excel 补全，宿主补全不能替代它；两个 UI 包声明 React 18 peer；
+  各包入口都是 TS 源码，多数依赖 `workspace:*`，均未发布到 registry。首版建议使用 Mantra 自己的 DOM `PaperTable`，不引入 Canvas。
 
 ## 3. 交付进度
 
