@@ -1,0 +1,58 @@
+{
+  "items": [
+    {
+      "id": "Plant",
+      "title": "Taxable plant difference",
+      "opening-pl-difference": "10000",
+      "opening-oci-difference": "0",
+      "opening-rate": "0.25"
+    },
+    {
+      "id": "Guarantee",
+      "title": "Recognized deductible guarantee difference",
+      "opening-pl-difference": "-4000",
+      "opening-oci-difference": "0",
+      "opening-rate": "0.25"
+    }
+  ],
+  "rates": [
+    "0.25",
+    "0.30",
+    "0.30"
+  ],
+  "movements": {
+    "Plant": {
+      "P1": [
+        "1000",
+        "0"
+      ],
+      "P2": [
+        "-2000",
+        "3000"
+      ],
+      "P3": [
+        "-3000",
+        "-1000"
+      ]
+    },
+    "Guarantee": {
+      "P1": [
+        "-1000",
+        "0"
+      ],
+      "P2": [
+        "2000",
+        "0"
+      ],
+      "P3": [
+        "3000",
+        "0"
+      ]
+    }
+  },
+  "reported": {
+    "P1": "1500",
+    "P2": "2700",
+    "P3": "2400"
+  }
+}

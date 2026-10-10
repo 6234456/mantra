@@ -5,6 +5,9 @@ numbers and `;` comments. Formulas are Normein expressions; see the pinned kerne
 [expression-language reference](https://github.com/6234456/normein/blob/0a3ae1de844c92635fbbc03406a13cb0e8920c03/docs/architecture/dsl-clojure-compatibility.md).
 This document describes Mantra's host forms and calculation library.
 
+For a short overview of calculation paradigms and copyable examples, see the
+[syntax pattern guide](syntax-patterns.md) and [runnable templates](templates/README.md).
+
 The root form determines the document type:
 
 | Root form | Purpose | Typical filename |
@@ -64,13 +67,24 @@ For example, a cost table may use `:references {:order-id order}`, while the cas
 | `(section id "Label" {opts} item*)` | Group items. A section containing a `total` is opaque: its result is its last total |
 | `(field id "Label" {opts})` | Display an input as a row and declare it; inherits the section's dimensions by default |
 | `(line id "Label" <formula> {opts})` | Calculated row |
+| `(subtract id "Label" <formula> {opts})` | `line` with `:op :minus`; retains the row value and reverses its contribution |
+| `(info id "Label" <formula> {opts})` | `line` with `:op :info`; retains the value and contributes zero |
 | `(formula-slot id "Label" <default-formula> {opts})` | Application-controlled formula extension point. The schema fixes type, dimensions, rounding and position; `:uses [root …]` limits accessible roots. A case replaces the formula with `bind` |
 | `(total id "Label" {opts})` | Running-total checkpoint: previous total plus signed contributions since it |
 | `(choice id "Label" {:rule :min\|:max} (option :key "Label" <formula> {:when …})+)` | Evaluate available options and select the minimum or maximum |
+| `(choose-min id "Label" {opts} (option …)+)`, `(choose-max id "Label" {opts} (option …)+)` | `choice` with a fixed `:rule :min` or `:rule :max` |
 | `(check id "Label" <boolean-formula> {opts})` | Report a failed business condition; nil also fails |
 | `(reconcile id "Label" <left-formula> <right-formula> {:tolerance 0.01})` | Retain both numeric sides and their difference; pass when `abs(left-right) <= tolerance` |
 | `(slot id "Label" {opts})` | Application-controlled insertion point, populated by a case's `extend` |
 | `(note "Text")` | Explanatory paper row |
+
+`subtract`, `info`, `choose-min` and `choose-max` keep the ordinary row or choice model, including
+the authored ID, formula, source location, applicability, dimensions, rounding and option trace.
+Their option maps are optional. `subtract` fixes `:op :minus` and `info` fixes `:op :info`;
+`choose-min` and `choose-max` fix only `:rule` and accept ordinary contribution options such as
+`:op :info` or `:op :minus`. Repeating a fixed option must agree with the alias; a conflicting
+setting is rejected at the authored value. Use these forms wherever their canonical
+`line` or `choice` form is allowed, including fragments and licensed case extensions.
 
 Checks and reconciliations contribute zero to totals and cannot be referenced as ordinary
 calculation roots. They support inherited dimensions/section conditions and their own `:when`;
@@ -136,6 +150,8 @@ authors do not configure evaluation order or cross-dimension condition propagati
 | `(alloc/capped amount weights caps scale)` | Pro-rata allocation with per-key caps and redistribution to uncapped keys; excess beyond all caps is unallocated |
 | `(alloc/waterfall amount capacities)` | Allocate in capacity-map key order. Each key receives the smaller of its nonnegative capacity and the remaining amount; nil capacity absorbs the remainder |
 | `(table/band x rows)`, `(table/band x rows default)` | Given ascending `[[threshold value] …]`, return the last value whose threshold is at most x. Below the first threshold, return default or nil |
+| `(table/sum-where records criteria value-key)` | Exact sum of numeric `value-key` cells in record maps matching every scalar keyword-keyed equality criterion. No matches return zero; matched missing, nil or nonnumeric values are technical failures |
+| `(table/count-where records criteria)` | Integer count of record maps matching every scalar keyword-keyed equality criterion; no matches return zero |
 | `(fin/pmt rate n pv scale)` | Positive end-of-period annuity payment for present value pv over n positive periods, rounded half-up to scale. At rate zero, return pv/n |
 | `(calc/stepwise amount [[upper rate] … [nil rate]])` | Apply each rate only to the amount within its band; nil is the open upper limit of the final band |
 | `(calc/converge f init max-iterations tolerance)` | Return the first `next=f(current)` with `abs(next-current) <= tolerance`; the callback receives Decimal, the bound is an exact integer 1..1000 and tolerance is nonnegative. Exhaustion is a technical failure with no result. |
@@ -150,6 +166,19 @@ Run `mantra catalog` for the executable function directory. Normein standard fun
 available, including `min`, `max`, `if`, `cond`, `let`, `decimal/round`, `decimal/floor` and
 `decimal/divide`. Division with `/` rejects non-terminating decimals; request explicit rounding
 with `decimal/divide` or `:round`.
+
+Table equality matching preserves scalar types, except that exact numbers compare independently
+of scale (`1` equals `1.00`). An absent key does not match a nil criterion. An empty criteria map
+matches all records; duplicate matching records are all counted or summed. Criteria values may
+be nil, Boolean, text, keyword or exact numeric values; date and collection criteria are rejected.
+The functions accept concrete ordered vectors or sequences of keyword-keyed record maps, including
+typed input tables, and perform no joins, uniqueness checks, defaulting or rounding. See
+[table matching examples](syntax-patterns.md#match-table-records).
+
+Matching operates on bound records after ordinary input conversion. Typed `:table` inputs retain
+their existing rules: omitted nullable columns become nil; omitted or nil ordinary numeric columns
+become implicit zero. These helpers cannot reconstruct authored presence from those values. Raw
+literal/parameter record maps preserve absent keys. Use input completeness checks for supplied facts.
 
 `calc/converge` executes its pure callback through the pinned kernel; the trace records the actual
 invocations and selected branches. Apply monetary rounding inside the callback when the recurrence
@@ -174,6 +203,20 @@ XLSX uses bounded helper formulas and preserves eager `let` errors, including un
 
 Dimensioned inputs use nested maps keyed by member. A declared `:schema` must match the loaded
 schema id; application cases should always declare it. Omission is permitted for temporary calculations.
+
+Rectangular table inputs can use a compact literal directly in the `inputs` map:
+
+```clojure
+(inputs {:rates (rows [:period :rate]
+                 [:P1 0.25]
+                 [:P2 0.30])})
+```
+
+This expands to `[{:period :P1 :rate 0.25} {:period :P2 :rate 0.30}]` without evaluating cells.
+The nonempty header contains unique keyword columns; each row must be a vector of matching width.
+Zero rows are allowed. Authored cell locations are retained for diagnostics and editing, and the
+schema still checks column types. Use nil for an explicit nil cell, or record-map literals when a
+key must be omitted. `rows` is case-input syntax only, not a formula function or parameter literal.
 
 Cases may supply only declared inputs and parameters. `extend` targets declared `slot` items;
 `bind` targets declared `formula-slot` items. A binding is compiled in the original row's dimension
@@ -262,7 +305,7 @@ for source options and structured editing.
 
 ### 3.3 Style rules and selectors
 
-The only syntax is `(style {selector} {declarations})`; both arguments must be maps.
+Rules use `(style {selector} {declarations})`; both arguments must be maps.
 `{:all true}` is a default rule and must appear alone. `:class` matches schema style tags; unmatched
 tags remain available without changing appearance.
 
@@ -286,8 +329,64 @@ final table configuration; `:column :row-number` matches only row-number cells.
 
 Styles apply over built-in output styles in declaration order; later matches override only the
 properties they specify. Supported properties are `:weight :normal|:bold`,
-`:tone :default|:muted|:accent` and `:fill :none|:subtle|:accent`. HTML and XLSX share these
-meanings; Text ignores visual styling. Styles cannot alter values, rounding, aggregation or dependencies.
+`:tone :default|:muted|:accent` and `:fill :none|:subtle|:accent`. HTML, XLSX, PDF and Workbench
+share these meanings; Text ignores visual styling. Styles cannot alter values, rounding,
+aggregation, applicability, validation or dependencies.
+
+### 3.4 Reusable style classes
+
+Choose style classes independently of the table/number preset:
+
+```clojure
+(layout example/paper
+  {:preset :ifrs-schedule :style-preset [:utilities :working-paper]}
+  (style-class :key-result {:weight :bold :tone :accent :fill :subtle})
+  (style {:class :key-result :column :value}
+    {:use [:strong :accent] :fill :accent})
+  (table calculation :label :value))
+```
+
+Attach the named class to a calculation item using the existing presentation option:
+
+```clojure
+(total net "Net amount" {:class :key-result})
+(info rate "Declared rate" rate-input {:class [:assumption :muted]})
+```
+
+| Style preset | Class | Declaration |
+| --- | --- | --- |
+| `:utilities` | `:normal`, `:strong` | Normal or bold weight |
+| `:utilities` | `:muted`, `:accent` | Muted or accent tone |
+| `:utilities` | `:subtle`, `:highlight` | Subtle or accent fill |
+| `:working-paper` | `:source` | Muted tone, no fill |
+| `:working-paper` | `:assumption` | Muted tone, subtle fill |
+| `:working-paper` | `:detail` | Normal weight, default tone |
+| `:working-paper` | `:subtotal` | Bold weight, subtle fill |
+| `:working-paper` | `:result` | Bold weight, accent tone and fill |
+| `:working-paper` | `:note` | Muted tone |
+| `:working-paper` | `:variance` | Bold weight, accent tone, subtle fill |
+| `:working-paper` | `:control` | Bold weight, accent tone |
+
+`:style-preset` accepts one keyword or an ordered keyword vector. It is opt-in; omitting it
+preserves existing layout defaults. Empty vectors are valid. Unknown or repeated presets fail.
+Preset rules come before authored rules, in the selected preset order.
+
+`style-class` accepts a simple lowercase keyword (`[a-z][a-z0-9-]*`) and one declaration map. A local name
+can occur once and may override a preset class. Its rule appears at the definition's authored
+position and contains only the authored properties. Section tags belong to the section itself;
+use `{:section section-id}` when styling its descendants. Unknown item tags remain valid.
+
+A style rule's `:use` accepts one class keyword or a vector of up to 64 class keywords. Referenced
+declarations merge left to right; explicit properties apply last. Local definitions can be
+referenced before their declaration. Reusing a locally overridden preset class merges its preset
+properties with its local declaration. There can be at most 256 local definitions; explicit
+unknown references and duplicate local definitions fail at their authored locations. Definitions
+contain only weight, tone and fill, so they cannot recursively inherit other classes.
+
+An item's class-vector order does not establish precedence: matching rules still follow layout
+declaration order, property by property. These are controlled presentation classes; they do not
+execute CSS, add selector specificity or imply that a `control` passed validation.
+See the [shared pattern guide](reusable-patterns.md) for runnable examples.
 
 ## 4. Diagnostic codes (selection)
 

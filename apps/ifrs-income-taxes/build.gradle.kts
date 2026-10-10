@@ -17,3 +17,16 @@ tasks.named<Test>("test") {
         .withPropertyName("mantraDocuments")
     outputs.dir(layout.buildDirectory.dir("out")).withPropertyName("renderedPapers")
 }
+
+val checkDeferredTaxReference by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Verifies locked independent deferred-tax Decimal sources and expected values."
+    workingDir(projectDir)
+    commandLine("python3", "verify_roll_forward.py", "--check")
+    inputs.file("verify_roll_forward.py")
+    inputs.dir("independent/roll-forward")
+}
+
+tasks.named("check") {
+    dependsOn(checkDeferredTaxReference)
+}

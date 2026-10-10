@@ -404,7 +404,7 @@ Normein 保持锁定提交且未修改；仓库已公开，首个库制品仍按
 | ESt（§ 2、§ 32a EStG） | `apps/de-est` | 已有；M3 跨年结转 | Staffel、人员维度、择优、分段、扩展槽 | § 32a 公式；`verify_expected.py` |
 | IAS 36 总部资产 | `apps/ifrs-impairment` | 已有；M2 补使用价值 | 分摊、择优、带上限分摊、现金流 × 期间 | 独立虚构事实；`verify_expected.py` Fraction 复算 |
 | SAP CO 风格成本 | `apps/cost-accounting` | 已有；M1 | 表格、关系汇总、比率度量、校验与对账 | 独立对账 |
-| IAS 12 税率调节与递延税 | `apps/ifrs-income-taxes` | M1 单期税率调节；递延税变动为后续候选，未纳入 M2 展示退出条件 | 对账、比率、按项目的表格 | 公开示例或独立复算 |
+| IAS 12 税率调节与递延税 | `apps/ifrs-income-taxes` | M1 单期税率调节；另增三期递延税变动示例 | 对账、比率、项目 × 期间、存量与流量、损益与 OCI 分配、税率变动 | 锁定的独立 Decimal 复算；不判断税额可确认性 |
 | 资产变动表（IAS 16、HGB） | `apps/fixed-assets` | M2 | 连续期间、每期期末、存量与流量、转置矩阵 | 独立复算 |
 | IFRS 16 租赁 | `apps/ifrs-leases` | M2；M4 批量嵌入 | 连续期间、实际利率、`fin/pmt`、日期计算 | 公开示例或独立复算 |
 | § 10d EStG 亏损结转 | `apps/de-est` | M3 | 跨案例延续 | 独立复算 |

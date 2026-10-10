@@ -114,6 +114,14 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-CASE-INPUT-UNKNOWN` | structural | The case supplies an input not declared by its schema. |
 | `MANTRA-CASE-PARAM-UNKNOWN` | structural | The case overrides a parameter not declared by its schema. |
 | `MANTRA-CASE-ROOT` | structural | The document is not a case document. |
+| `MANTRA-CASE-ROWS-COLUMN` | structural | A compact table header contains a non-keyword or duplicate column. |
+| `MANTRA-CASE-ROWS-HEADER` | structural | A compact table lacks a nonempty keyword-vector header. |
+| `MANTRA-CASE-ROWS-ROW` | structural | A compact table row is not a vector matching its header length. |
+| `DSL-MANTRA-TABLE-CRITERIA` | evaluation cause | A condition-selection criterion is not a supported scalar value. |
+| `DSL-MANTRA-TABLE-KEY` | evaluation cause | A record key or selected value column is not a keyword. |
+| `DSL-MANTRA-TABLE-NUMBER` | evaluation cause | A matched record has an absent, nil or nonnumeric sum value. |
+| `DSL-MANTRA-TABLE-RECORD` | evaluation cause | A condition-selection record or criteria value is not a keyword-keyed map. |
+| `DSL-MANTRA-TABLE-ROWS` | evaluation cause | A condition-selection input is not a concrete ordered vector or sequence. |
 | `MANTRA-CASE-SCHEMA-MISMATCH` | structural | The case declares a different schema from the selected one. |
 | `MANTRA-CASE-SLOT-UNKNOWN` | structural | A case extends an undeclared extension slot. |
 | `MANTRA-CASE-SOURCE` | structural | A source declaration lacks valid source options or form. |
@@ -176,6 +184,9 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-LAYOUT-ROW-NUMBERS` | structural | The row-numbering mode is unsupported. |
 | `MANTRA-LAYOUT-SELECTOR` | structural | A style selector is malformed or uses an unsupported selector key. |
 | `MANTRA-LAYOUT-STYLE` | structural | Style declarations contain unsupported values or properties. |
+| `MANTRA-LAYOUT-STYLE-CLASS` | structural | A named style class is malformed, duplicated or exceeds the local definition limit. |
+| `MANTRA-LAYOUT-STYLE-PRESET` | structural | A style preset selection is unknown, malformed or repeated. |
+| `MANTRA-LAYOUT-STYLE-USE` | structural | A style declaration explicitly references an unavailable class or an invalid or excessive reference list. |
 | `MANTRA-LAYOUT-TABLE` | structural | A layout table declaration is malformed. |
 | `MANTRA-LINE-ARITY` | structural | A line has unexpected arguments. |
 | `MANTRA-LINE-FORMULA` | structural | A line is missing its calculation formula. |

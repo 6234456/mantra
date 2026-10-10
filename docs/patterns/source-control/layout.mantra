@@ -1,0 +1,5 @@
+(layout pattern/source-paper
+  {:schema "pattern/source-control" :schema-version "1.0.0"
+   :preset :ifrs-schedule :style-preset [:utilities :working-paper]
+   :title "Independent source controls" :hide-zero false}
+  (table controls {:style :matrix} :label (members bucket) :cross-total :status))

@@ -1,0 +1,5 @@
+(layout pattern/ratio-paper
+  {:schema "pattern/ratio-use" :schema-version "1.0.0"
+   :preset :ifrs-schedule :style-preset [:utilities :working-paper]
+   :title "Explicit ratio policies" :hide-zero false}
+  (table ratios {:style :matrix} :label (members member) :cross-total))

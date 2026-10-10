@@ -1,0 +1,23 @@
+; Fictional quantities, prices and allowances. No classification of a variance as good or bad.
+(schema pattern/actuals-vs-baseline
+  {:title "Actuals, baseline and remaining allowance" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [comparison] :headline remaining}
+  (include "../common/formulas.mantra")
+  (input entries :table
+    {:columns {:id :keyword :title :text :quantity :decimal :actual-price :decimal
+               :baseline-price :decimal :allowance :decimal} :min-rows 1})
+  (input amount-scale :integer {:default 2 :label "Explicit amount rounding scale"})
+  (dimension member {:from entries :key :id :title :title :total-label "All members"})
+  (section comparison "Named comparison measures" {:per member :op :info :panel true}
+    (info supplied-quantity "Supplied quantity" member.quantity {:class :source :format :number})
+    (info actual-price "Supplied actual price" member.actual-price {:class :source :aggregate false})
+    (info baseline-price "Supplied baseline price" member.baseline-price {:class :assumption :aggregate false})
+    (info actual "Actual amount"
+      (pattern-rounded-product supplied-quantity actual-price amount-scale) {:class :detail})
+    (info baseline "Baseline amount"
+      (pattern-rounded-product supplied-quantity baseline-price amount-scale) {:class :detail})
+    (info variance "Actual less baseline" (- actual baseline) {:class :variance})
+    (info allowance "Supplied allowance" member.allowance {:class :assumption})
+    (info remaining "Allowance less actual" (- allowance actual) {:class [:result :key-result]})
+    (check allowance-fits "Actual amount is within supplied allowance" (>= remaining 0) {:class :control})
+    (note "A signed difference has no implicit favourable or unfavourable interpretation." {:class :note})))

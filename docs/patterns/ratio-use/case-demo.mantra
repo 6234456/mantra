@@ -1,0 +1,7 @@
+(case pattern/ratio-demo
+  {:schema "pattern/ratio-use" :schema-version "1.0.0"
+   :layout "pattern/ratio-paper" :title "Finite and repeating ratios with an undefined member"}
+  (inputs {:entries (rows [:id :title :numerator :denominator]
+                      [:A "Member A" 1 3]
+                      [:B "Member B" 1 6]
+                      [:C "Member C" 0 0])}))

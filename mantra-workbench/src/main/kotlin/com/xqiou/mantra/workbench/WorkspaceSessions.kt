@@ -45,8 +45,12 @@ internal class WorkspaceSessions(private val limit: Int = 16) : AutoCloseable {
     fun graph(
         resolver: com.xqiou.mantra.core.api.CasePackageResolver,
         request: com.xqiou.mantra.core.api.CaseRunRequest,
+        fresh: Boolean = false,
     ): com.xqiou.mantra.core.api.CaseRunResult = onOwner {
         check(activeResolver == null) { "Workspace graph requests cannot be nested" }
+        if (fresh) {
+            return@onOwner com.xqiou.mantra.core.api.CaseGraphRunner(resolver, 0).use { it.run(request) }
+        }
         val runner = graphRunner ?: com.xqiou.mantra.core.api.CaseGraphRunner(
             object : com.xqiou.mantra.core.api.CasePackageResolver {
                 override fun identify(

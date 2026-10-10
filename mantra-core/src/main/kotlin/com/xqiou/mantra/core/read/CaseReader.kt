@@ -170,10 +170,13 @@ object CaseReader {
     ) {
         list.values.drop(1).forEach { mapForm ->
             document.options(mapForm, sink, what).forEach { (key, form) ->
-                document.literal(form, sink, "$what :$key")?.let { value ->
+                val rowsForm = (form as? DslForm.Sequence)?.takeIf { cells != null && it.listHead == "rows" }
+                val rows = rowsForm?.let { CaseRowsReader.read(document, it, sink, key) }
+                val value = if (rowsForm != null) rows?.value else document.literal(form, sink, "$what :$key")
+                value?.let { literal ->
                     locations[key] = document.location(form)
-                    cells?.set(key, cellLocations(document, form))
-                    if (target.put(key, value) != null) {
+                    cells?.set(key, rows?.cells ?: cellLocations(document, form))
+                    if (target.put(key, literal) != null) {
                         sink.error("MANTRA-CASE-DUPLICATE", "Duplicate $what entry :$key", document.location(form))
                     }
                 }

@@ -1,0 +1,30 @@
+; Supplied weights and capacities; unused capacity and an unallocated request are distinct facts.
+(schema pattern/capped-allocation
+  {:title "Capped allocation with explicit residue" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [allocation controls] :headline allocated-total}
+  (include "../common/formulas.mantra")
+  (input requested-units :decimal {:min 0})
+  (input unit-value :decimal {:min 0})
+  (input entries :table
+    {:columns {:id :keyword :title :text :weight :decimal :capacity :decimal} :min-rows 1})
+  (input amount-scale :integer {:default 2 :label "Explicit amount rounding scale"})
+  (dimension member {:from entries :key :id :title :title :total-label "All members"})
+  (info request "Rounded request" (pattern-rounded-product requested-units unit-value amount-scale)
+    {:class :assumption})
+  (section allocation "Allocate within supplied capacities" {:per member :op :info :panel true}
+    (info weight "Supplied allocation weight" member.weight {:class :source :format :number})
+    (info capacity "Supplied capacity" member.capacity {:class :assumption})
+    (info allocated "Allocated request" (alloc/capped request all.weight all.capacity amount-scale)
+      {:spread true :class :detail})
+    (info unused-capacity "Unused member capacity" (- capacity allocated) {:class :detail})
+    (check capacity-respected "Allocation is between zero and capacity"
+      (and (>= allocated 0) (<= allocated capacity)) {:class :control}))
+  (section controls "Allocation conservation" {:op :info :panel true}
+    (info requested-value "Rounded request to allocate" request {:class :assumption})
+    (info total-capacity "Sum of supplied capacities" (dim/sum all.capacity) {:class :subtotal})
+    (info allocated-total "Sum of member allocations" (dim/sum all.allocated) {:class :result})
+    (info unallocated "Request not allocated" (- request allocated-total) {:class :result})
+    (info unused-total-capacity "Capacity not consumed" (dim/sum all.unused-capacity) {:class :subtotal})
+    (reconcile conserved "Allocated plus unallocated equals the request"
+      (decimal/round (+ allocated-total unallocated) amount-scale) request {:tolerance 0 :class :control})
+    (note "Unallocated request is a displayed result, not an implicit adjustment." {:class :note})))

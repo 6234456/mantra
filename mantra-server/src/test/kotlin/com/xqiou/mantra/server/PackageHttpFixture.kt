@@ -44,11 +44,16 @@ internal class PackageHttpFixture(private val directory: Path) {
         setOf("rate"),
     )
 
-    fun catalog(editable: Boolean = true, linked: Boolean = false, imported: Boolean = false): PackageWorkspaceCatalog {
+    fun catalog(
+        editable: Boolean = true,
+        linked: Boolean = false,
+        imported: Boolean = false,
+        zeroRows: Boolean = false,
+    ): PackageWorkspaceCatalog {
         if (linked) store.values["root"] = linkedCase(original)
         if (imported) store.values["root"] = importedCase("1.0.0")
-        val old = snapshot("http.old", "1.0.0", 1, linked, imported)
-        val new = snapshot("http.new", "2.0.0", 3, linked, imported)
+        val old = snapshot("http.old", "1.0.0", 1, linked, imported, zeroRows)
+        val new = snapshot("http.new", "2.0.0", 3, linked, imported, zeroRows)
         val writers = if (editable) {
             buildList {
                 add(EditablePackageCase(rootKey, store, "root"))
@@ -81,6 +86,7 @@ internal class PackageHttpFixture(private val directory: Path) {
         factor: Int,
         linked: Boolean,
         imported: Boolean,
+        zeroRows: Boolean,
     ): PackageSnapshot {
         val binding = binding("host/http", version)
         val sourceBinding = binding("host/http-source", "1.0.0")
@@ -90,7 +96,10 @@ internal class PackageHttpFixture(private val directory: Path) {
                 (schema host/http {:version "$version"}
                   (param rate 1) (input base-value :decimal) (input divisor :decimal) (input enabled :boolean)
                   ${if (linked) "(input received :decimal)" else ""}
-                  (section result "Result" (line answer "Answer" (/ $expression divisor))))
+                  (section result "Result" ${if (zeroRows) "{:display :schedule}" else ""}
+                    (line answer "Answer" (/ $expression divisor))
+                    ${if (zeroRows) "(line blank \"Blank\" 0) (line inactive \"Inactive\" 9 {:when false})" else ""}
+                    ${if (zeroRows) "(line concealed \"Concealed\" 13 {:hidden true})" else ""}))
             """.trimIndent(),
             "cases/demo.mantra" to when {
                 imported -> importedCase(version)

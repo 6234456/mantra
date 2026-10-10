@@ -37,6 +37,11 @@ export type EnvelopeStyle = {
   tone: 'default' | 'muted' | 'accent'
   fill: 'none' | 'subtle' | 'accent'
 }
+export type EnvelopeStyleOverrides = {
+  weight?: 'normal' | 'bold'
+  tone?: 'default' | 'muted' | 'accent'
+  fill?: 'none' | 'subtle' | 'accent'
+}
 export type EnvelopeValidation = {
   passed: boolean | null
   active: boolean
@@ -199,6 +204,7 @@ export type Run = Omit<Envelope, 'data'> & {
 
 export type Paper = Omit<Envelope, 'data'> & {
   data: {
+    browsing?: { includeZero: boolean; hideZero: boolean }
     title: string
     subtitle: string | null
     headline: null | { node: string; label: string; value: string }
@@ -223,7 +229,13 @@ export type Paper = Omit<Envelope, 'data'> & {
         optionKey: string | null
         section: string | null
         classes: Array<string>
-        cells: Array<{ text: string; address: EnvelopeAddress | null; editable: boolean; style: EnvelopeStyle }>
+        cells: Array<{
+          text: string
+          address: EnvelopeAddress | null
+          editable: boolean
+          style: EnvelopeStyle
+          styleOverrides?: EnvelopeStyleOverrides
+        }>
       }>
     }>
     audit: Array<{
@@ -251,6 +263,22 @@ export type Paper = Omit<Envelope, 'data'> & {
 export type PaperTextPair = [string, string]
 
 export type Diagnostics = Omit<Envelope, 'data'> & { data: { diagnostics: Array<EnvelopeDiagnostic> } }
+
+export type SourceContext = Omit<Envelope, 'data'> & {
+  data: {
+    case: string
+    revision: string
+    location: EnvelopeLocation
+    lines: Array<{
+      number: number
+      text: string
+      startColumn: number
+      highlightStart: number | null
+      highlightEnd: number | null
+    }>
+    truncated: boolean
+  }
+}
 
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
@@ -424,6 +452,7 @@ export type PackagesMountedPackage = {
   layoutCount: number
   capturedBytes: string
   cases: Array<PackagesPackageCase>
+  parameters?: Array<PackagesPackageParameter>
 }
 export type PackagesWorkspace = { packages: Array<PackagesMountedPackage> }
 export type PackagesBinding = {
@@ -593,10 +622,13 @@ export type PackagesDocument = {
     | Paper
     | Parameters
     | Diagnostics
+    | SourceContext
     | Explain
     | ExportPreview
     | (Omit<Envelope, 'data'> & { data: PackagesSourcesData })
     | (Omit<Envelope, 'data'> & { data: PackagesEditData })
     | null
+    | Compare
   diagnostics?: Array<EnvelopeDiagnostic>
 }
+export type PackagesPackageParameter = { id: string; title: string; schema: string; schemaVersion: string | null }

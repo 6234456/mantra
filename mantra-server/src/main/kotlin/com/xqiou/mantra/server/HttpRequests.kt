@@ -31,6 +31,18 @@ internal fun decode(value: String): String = try {
     throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed URL encoding")
 }
 
+internal fun diagnosticSourceRequest(query: Map<String, String>): Pair<Int, String> {
+    if (query.keys != setOf("diagnostic", "expectedRevision") ||
+        !Regex("0|[1-9][0-9]*").matches(query["diagnostic"].orEmpty()) ||
+        !Regex("[0-9a-f]{16}([0-9a-f]{48})?").matches(query["expectedRevision"].orEmpty())
+    ) {
+        throw WorkspaceException(WorkspaceProblem.REQUEST, "Diagnostic index and exact revision are required")
+    }
+    val index = query.getValue("diagnostic").toIntOrNull()
+        ?: throw WorkspaceException(WorkspaceProblem.REQUEST, "Diagnostic index is too large")
+    return index to query.getValue("expectedRevision")
+}
+
 internal fun parseExplainAddress(value: String): ExplainAddress {
     fun invalid(): Nothing = throw WorkspaceException(WorkspaceProblem.REQUEST, "Malformed Explain address")
     val cellSplit = value.split('#', limit = 2)

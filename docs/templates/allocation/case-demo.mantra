@@ -1,0 +1,8 @@
+(case template/allocation-demo
+  {:schema "template/allocation" :schema-version "1.0.0"
+   :layout "template/allocation-paper" :title "Fictional allocation inputs"}
+  (inputs {:allocation-request 100.01
+           :items (rows [:id :title :weight]
+                    [:A "Member A" 1]
+                    [:B "Member B" 2]
+                    [:C "Member C" 3])}))

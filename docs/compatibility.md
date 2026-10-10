@@ -15,6 +15,25 @@ are never Maven library artifacts.
 | Schema identity | Exact authored ID/version, including legacy versions | Coexisting new versions | Explicit reviewed migration; never automatic case rewriting |
 | Normein kernel | Public `com.xqiou:normein-dsl:0.3.0`; optional source baseline `0a3ae1de844c92635fbbc03406a13cb0e8920c03` | Reviewed artifact identity and RFC/contract/conformance mapping; update the source lock when that baseline changes | Coordinated adapter/library release and mapping table update |
 
+The unreleased authoring additions (`subtract`, `info`, `choose-min`, `choose-max`, case-input
+`rows`, `table/sum-where` and `table/count-where`) retain DSL 1, `mantra.calc@2` and workbench JSON 4.
+They are opt-in; older runtimes may reject documents using these forms/functions. Existing forms
+and function signatures retain their meanings. See specification clauses S1.4, S2.4 and S5.5.
+The Excel translator adds `XKind.KEYWORD` after the existing enum entries to distinguish keywords
+from text in typed selection. Existing entry ordinals, constructors and method descriptors remain
+unchanged; consumers handling the public enum exhaustively must account for the additional kind.
+
+Reusable presentation classes add opt-in `:style-preset`, `style-class` and style-declaration
+`:use` forms under DSL 1. They lower to existing style rules without changing public layout/model
+constructors or enums. Workbench JSON 4 adds optional sparse cell `styleOverrides` metadata while
+retaining the existing required `style` object. Current schemas and clients accept it; older strict
+JSON 4 consumers must update their accepted schema, and an unchanged wire major alone does not
+establish compatibility with those older consumers. Layouts that do not select a style preset keep
+their preset/default rules. PDF and Workbench now honor already-resolved row and cell styles,
+including explicit normal weight, default tone and no fill; previously authored style rules may
+therefore become visible in PDF or override defaults that Workbench previously retained.
+Numerical values and text exports retain their meanings. See specification clause S7.4.
+
 The authoritative baseline for a release is its tag, captured runtime dependency identities,
 optional source lock, ABI dumps, conformance corpus and wire schemas. `0.x` and `1.0.0-rc.1` artifacts remain pre-stable; changes still require review and
 release notes. The RC candidate does not establish a published stable 1.0 baseline. The ABI gate

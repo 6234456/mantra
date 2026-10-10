@@ -12,11 +12,13 @@ import { DiagnosticsPage, ParametersPage } from './ReadOnlyPages'
 import { ExportPage } from './ExportPage'
 import { InputsPage } from './InputsPage'
 import { SourcesPage } from './SourcesPage'
+import { ScenariosPage, scenariosPath } from './ScenariosPage'
 import { ExplainDetails } from './ExplainDetails'
 import { CaseChainEvidence } from './CaseChainEvidence'
 import { ChoiceComparison } from './ChoiceComparison'
 import { AggregateEvidence } from './AggregateEvidence'
 import { ValidationEvidence } from './ValidationEvidence'
+import { PaperTable } from './PaperTable'
 import type { Validation } from './ValidationEvidence'
 const ExtensionsPage = lazy(() => import('./AuthoringPages').then((module) => ({ default: module.ExtensionsPage })))
 const FormulaSlotCard = lazy(() => import('./AuthoringPages').then((module) => ({ default: module.FormulaSlotCard })))
@@ -29,6 +31,7 @@ type Route = {
     | 'provenance'
     | 'inputs'
     | 'parameters'
+    | 'scenarios'
     | 'sources'
     | 'diagnostics'
     | 'extensions'
@@ -39,6 +42,8 @@ type Route = {
   address?: Address
   expectedRevision?: string
   compare?: string
+  scenarios?: string[]
+  effectiveDate?: string
 }
 const lang = language()
 
@@ -83,6 +88,15 @@ function route(): Route {
     }
   if (parts[2] === 'parameters')
     return { caseId, page: 'parameters', compare: new URLSearchParams(location.search).get('compare') ?? undefined }
+  if (parts[2] === 'scenarios') {
+    const query = new URLSearchParams(location.search)
+    return {
+      caseId,
+      page: 'scenarios',
+      scenarios: query.getAll('scenario'),
+      effectiveDate: query.get('effectiveDate') ?? undefined,
+    }
+  }
   if (parts[2] === 'sources') return { caseId, page: 'sources' }
   if (parts[2] === 'diagnostics') return { caseId, page: 'diagnostics' }
   if (parts[2] === 'extensions') return { caseId, page: 'extensions' }
@@ -169,8 +183,18 @@ function Link({
 
 export function App() {
   const [current, navigate, replace] = useRoute()
+  const [scenarioPaths, setScenarioPaths] = useState<Record<string, string>>({})
+  const selectedScenarioPath =
+    current.page === 'scenarios' && current.caseId
+      ? scenariosPath(current.caseId, current.scenarios ?? [], current.effectiveDate)
+      : undefined
+  useEffect(() => {
+    if (current.caseId && selectedScenarioPath)
+      setScenarioPaths((paths) => ({ ...paths, [current.caseId!]: selectedScenarioPath }))
+  }, [current.caseId, selectedScenarioPath])
   const [refresh, setRefresh] = useState(0)
   const [editEffect, setEditEffect] = useState<Compare | undefined>()
+  const [paperBrowsing, setPaperBrowsing] = useState<{ caseId: string; includeZero: boolean }>()
   useEffect(() => setEditEffect(undefined), [current.caseId, current.groupId])
   const data = useMemo(
     () =>
@@ -219,12 +243,13 @@ export function App() {
     (signal) => (caseId ? data.run(caseId, signal) : Promise.reject(new Error('No case'))),
     [data, caseId, refresh],
   )
+  const includeZero = paperBrowsing?.caseId === caseId && paperBrowsing?.includeZero === true
   const paper = useLoad(
     (signal) =>
       caseId
-        ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal)
+        ? data.paper(caseId, current.page === 'panel' ? current.panelId : undefined, signal, includeZero || undefined)
         : Promise.reject(new Error('No case')),
-    [data, caseId, current.page, current.panelId, refresh],
+    [data, caseId, current.page, current.panelId, refresh, includeZero],
   )
   const selectedCase = workspace.data?.cases.find((item) => item.id === caseId)
   const failure =
@@ -268,6 +293,7 @@ export function App() {
             caseId={caseId!}
             activePanel={current.panelId}
             activePage={current.page}
+            scenariosHref={selectedScenarioPath ?? scenarioPaths[caseId!]}
             navigate={navigate}
           />
         )}
@@ -314,6 +340,8 @@ export function App() {
               structure={structure.data!.data}
               run={run.data!.data}
               paper={paper.data?.data}
+              paperLoading={paper.loading}
+              onIncludeZero={(value) => setPaperBrowsing({ caseId: caseId!, includeZero: value })}
               panelId={current.panelId}
               selected={current.address}
               caseId={caseId!}
@@ -361,8 +389,26 @@ export function App() {
               onSaved={() => setRefresh((value) => value + 1)}
               navigate={navigate}
             />
+          ) : current.page === 'scenarios' ? (
+            <ScenariosPage
+              caseId={caseId!}
+              structure={structure.data!.data}
+              workspace={workspace.data}
+              data={data}
+              selected={current.scenarios ?? []}
+              effectiveDate={current.effectiveDate}
+              revision={run.data!.revision}
+              refresh={refresh}
+              navigate={navigate}
+            />
           ) : current.page === 'diagnostics' ? (
-            <DiagnosticsPage caseId={caseId!} structure={structure.data!.data} data={data} navigate={navigate} />
+            <DiagnosticsPage
+              caseId={caseId!}
+              structure={structure.data!.data}
+              data={data}
+              refresh={refresh}
+              navigate={navigate}
+            />
           ) : current.page === 'extensions' ? (
             <Suspense fallback={<div className="skeleton" role="status" aria-label="Loading editor" />}>
               <ExtensionsPage
@@ -482,6 +528,7 @@ function Sidebar({
   caseId,
   activePanel,
   activePage,
+  scenariosHref,
   navigate,
 }: {
   structure: Structure
@@ -489,6 +536,7 @@ function Sidebar({
   caseId: string
   activePanel?: string
   activePage: Route['page']
+  scenariosHref?: string
   navigate: (path: string) => void
 }) {
   const panels = structure.panels
@@ -497,6 +545,7 @@ function Sidebar({
   const sideLinks: Array<[string, string]> = [
     [t('inputs', lang), 'inputs'],
     [t('parameters', lang), 'parameters'],
+    [lang === 'de' ? 'Szenarien' : 'Scenarios', 'scenarios'],
     [t('sources', lang), 'sources'],
     [t('extensions', lang), 'extensions'],
     [t('diagnostics', lang), 'diagnostics'],
@@ -577,7 +626,7 @@ function Sidebar({
         {sideLinks.map(([label, suffix]) => (
           <Link
             key={suffix}
-            href={`${casePath(caseId)}/${suffix}`}
+            href={suffix === 'scenarios' && scenariosHref ? scenariosHref : `${casePath(caseId)}/${suffix}`}
             navigate={navigate}
             current={activePage === suffix}
             className="workspace-link"
@@ -805,6 +854,8 @@ function PanelPage({
   structure,
   run,
   paper,
+  paperLoading,
+  onIncludeZero,
   panelId,
   selected,
   caseId,
@@ -817,6 +868,8 @@ function PanelPage({
   structure: Structure
   run: Run
   paper?: Paper
+  paperLoading: boolean
+  onIncludeZero: (value: boolean) => void
   panelId?: string
   selected?: Address
   caseId: string
@@ -890,8 +943,17 @@ function PanelPage({
               <h2>{table?.title ?? panel.title}</h2>
             </div>
           </div>
-          {table ? (
-            <PanelTable table={table} selected={focused} onSelect={select} />
+          {paperLoading ? (
+            <div className="skeleton" role="status" aria-label="Loading paper" />
+          ) : table ? (
+            <PaperTable
+              key={`${caseId}-${panelId}`}
+              table={table}
+              browsing={paper?.browsing}
+              onIncludeZero={onIncludeZero}
+              selected={focused}
+              onSelect={select}
+            />
           ) : (
             <p className="muted">{t('noPaper', lang)}</p>
           )}
@@ -925,93 +987,6 @@ function PanelPage({
         </section>
       )}
     </>
-  )
-}
-
-function PanelTable({
-  table,
-  selected,
-  onSelect,
-}: {
-  table: Paper['tables'][number]
-  selected?: Address
-  onSelect: (address: Address) => void
-}) {
-  const visible = table.rows
-  const cells = visible.flatMap((row, rowIndex) =>
-    row.cells
-      .map((cell, columnIndex) => ({ rowIndex, columnIndex, address: cell.address }))
-      .filter((item) => !!item.address),
-  )
-  function onKey(event: React.KeyboardEvent<HTMLTableElement>) {
-    if (!['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return
-    const active = event.target as HTMLElement
-    const row = Number(active.dataset.row),
-      col = Number(active.dataset.col)
-    const next =
-      event.key === 'ArrowDown'
-        ? cells.find((item) => item.columnIndex === col && item.rowIndex > row)
-        : event.key === 'ArrowUp'
-          ? cells.findLast((item) => item.columnIndex === col && item.rowIndex < row)
-          : event.key === 'ArrowRight'
-            ? cells.find((item) => item.rowIndex === row && item.columnIndex > col)
-            : [...cells].reverse().find((item) => item.rowIndex === row && item.columnIndex < col)
-    if (!next) return
-    event.preventDefault()
-    const target = event.currentTarget.querySelector<HTMLButtonElement>(
-      `button[data-row="${next.rowIndex}"][data-col="${next.columnIndex}"]`,
-    )
-    target?.focus()
-    if (next.address) onSelect(next.address)
-  }
-  return (
-    <div className="table-scroll">
-      <table className="paper-table" onKeyDown={onKey}>
-        <thead>
-          <tr>
-            {table.columns.map((column) => (
-              <th key={column.id} scope="col">
-                {column.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {visible.map((row, rowIndex) => (
-            <tr
-              key={row.anchor ?? rowIndex}
-              className={`row-${row.kind.toLowerCase()} ${row.flags?.map((flag) => `flag-${flag.toLowerCase()}`).join(' ') ?? ''}`}
-            >
-              {row.cells.map((cell, columnIndex) => (
-                <td
-                  key={columnIndex}
-                  className={`${cell.editable ? 'editable-cell' : ''} tone-${cell.style?.tone ?? 'default'} fill-${cell.style?.fill ?? 'none'}`}
-                  style={{
-                    paddingLeft: columnIndex === 0 ? `${12 + Math.min(row.depth, 6) * 12}px` : undefined,
-                    fontWeight: cell.style?.weight === 'bold' ? 600 : undefined,
-                  }}
-                >
-                  {cell.address ? (
-                    <button
-                      type="button"
-                      data-row={rowIndex}
-                      data-col={columnIndex}
-                      className={`cell-button ${selected && addressKey(selected) === addressKey(cell.address) ? 'selected' : ''}`}
-                      onClick={() => onSelect(cell.address!)}
-                      aria-label={`${table.columns[columnIndex]?.header ?? ''}: ${cell.text}`}
-                    >
-                      {cell.text || ' '}
-                    </button>
-                  ) : (
-                    cell.text
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   )
 }
 

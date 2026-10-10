@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { FixtureData, LiveData } from './data'
+import { FixtureData, LiveData, WorkbenchReadError } from './data'
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -96,6 +96,46 @@ describe('workbench v4 transport', () => {
     expect(saved.data.run.succeeded).toBe(true)
     expect(saved.data.run.validationPassed).toBe(false)
     expect(saved.data.diagnostics[0].category).toBe('business')
+  })
+})
+
+describe('diagnostic source transport', () => {
+  it('sends the unfiltered diagnostic index and exact root revision without a document path', async () => {
+    const fetch = vi.fn(async (_url: string, _request: RequestInit) => ({
+      ok: true,
+      json: async () => ({
+        contract: 'mantra.workbench/4',
+        revision: 'root-revision',
+        engine: { mantra: 'test', normein: 'test' },
+        data: {},
+      }),
+    }))
+    vi.stubGlobal('fetch', fetch)
+    const controller = new AbortController()
+    await new LiveData().sourceContext('root/case.mantra', 2, 'root-revision', controller.signal)
+    const [url, request] = fetch.mock.calls[0]
+    const parsed = new URL(url, 'http://localhost')
+    expect(parsed.pathname).toBe('/api/v1/cases/root%2Fcase.mantra/diagnostic-source')
+    expect([...parsed.searchParams]).toEqual([
+      ['diagnostic', '2'],
+      ['expectedRevision', 'root-revision'],
+    ])
+    expect(request.signal).toBe(controller.signal)
+    expect('sourceContext' in new FixtureData()).toBe(false)
+  })
+
+  it('retains a source revision conflict for the UI to distinguish from a transport error', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: false,
+        status: 409,
+        json: async () => ({ error: { message: 'Snapshot changed', currentRevision: 'new-revision' } }),
+      })),
+    )
+    const request = new LiveData().sourceContext('root/case.mantra', 0, 'old-revision')
+    await expect(request).rejects.toBeInstanceOf(WorkbenchReadError)
+    await expect(request).rejects.toMatchObject({ status: 409, currentRevision: 'new-revision' })
   })
 })
 

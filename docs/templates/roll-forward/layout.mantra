@@ -1,0 +1,5 @@
+(layout template/roll-forward-paper
+  {:schema "template/roll-forward" :schema-version "1.0.0"
+   :preset :ifrs-schedule :title "Stock and flow" :hide-zero false}
+  (table balances {:style :matrix :row-dimension entity}
+    :label (members period) :cross-total :status))

@@ -1,0 +1,20 @@
+; Summation and a uniqueness assertion are separate; business failures preserve numeric values.
+(schema pattern/source-control
+  {:title "Matching records and independent source controls" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [controls] :headline computed}
+  (include "../common/formulas.mantra")
+  (input buckets :table
+    {:columns {:id :keyword :title :text :reported :decimal} :min-rows 1})
+  (input source-values :table
+    {:columns {:bucket :keyword :value :decimal} :references {:bucket bucket}})
+  (dimension bucket {:from buckets :key :id :title :title :total-label "All buckets"})
+  (section controls "Count, sum and independently reconcile" {:per bucket :op :info :panel true}
+    (info source-count "Matching source rows" (table/count-where source-values {:bucket bucket.key})
+      {:type :integer :format :integer :class :control})
+    (info computed "Sum of matching values" (table/sum-where source-values {:bucket bucket.key} :value)
+      {:class :subtotal})
+    (info independent-reported "Independently supplied report" bucket.reported {:class :source})
+    (check exactly-one-source "Exactly one source row exists" (= source-count 1) {:class :control})
+    (reconcile report-agrees "Computed sum agrees with the independent report"
+      computed independent-reported {:tolerance 0 :class :control})
+    (note "Repeated matches are all summed; the count check reports uniqueness separately." {:class :note})))

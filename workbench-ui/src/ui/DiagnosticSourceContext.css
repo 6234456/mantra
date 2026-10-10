@@ -1,0 +1,78 @@
+.diagnostic-source {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.diagnostic-source h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.diagnostic-source > button {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--field);
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.diagnostic-source > button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.diagnostic-source p {
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+.diagnostic-source [role='alert'] {
+  color: var(--error);
+}
+.diagnostic-source-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: 5px;
+  background: var(--field);
+  padding: 8px 0;
+}
+.diagnostic-source-lines {
+  min-width: max-content;
+  margin: 0;
+  padding: 0 12px 0 48px;
+  font-family: 'IBM Plex Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  font-variant-numeric: tabular-nums;
+}
+.diagnostic-source-lines li {
+  white-space: pre;
+  padding: 0 6px;
+}
+.diagnostic-source-lines li::marker,
+.source-omission {
+  color: var(--ink-3);
+}
+.diagnostic-source-lines .has-highlight {
+  background: var(--blue-field);
+}
+.diagnostic-source-lines code {
+  font: inherit;
+}
+.diagnostic-source-lines mark {
+  background: var(--siena-tint);
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--siena-strong);
+  text-underline-offset: 3px;
+}
+.diagnostic-source-revision {
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 11px;
+}
+.diagnostic-source-revision summary {
+  cursor: pointer;
+}
+.diagnostic-source-revision span,
+.diagnostic-source-revision code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+}

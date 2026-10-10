@@ -36,6 +36,7 @@ internal class PackageHostResolver(
     private val policies: Map<String, PackageParameterChoice>,
     private val overlays: Map<String, EditablePackageCase>,
     private val candidates: Map<String, SourceText> = emptyMap(),
+    private val comparisonChoices: Map<String, PackageParameterChoice> = emptyMap(),
 ) : CasePackageResolver {
     data class Binding(
         val resourceCase: MountedPackageCase,
@@ -53,7 +54,26 @@ internal class PackageHostResolver(
         delegate.identify(reference, control)
 
     override fun load(key: CanonicalCaseKey, control: CaseLoadControl): PreparedCasePackage = try {
-        loadOwned(key, control)
+        val prepared = loadOwned(key, control)
+        val choice = comparisonChoices[key.value]
+        if (choice == null) {
+            prepared
+        } else {
+            val binding = checkNotNull(bindings[key])
+            val selected = checkNotNull(selection(binding.resourceCase, choice))
+            val variant = PreparedCasePackage(
+                prepared.key,
+                prepared.caseId,
+                prepared.schemaIdentity,
+                prepared.schema,
+                prepared.caseData,
+                selected.parameters,
+                prepared.sources,
+                hostFingerprint(listOf(prepared.revision, selected.revision)),
+            )
+            bindings[key] = binding.copy(prepared = variant, selection = selected)
+            variant
+        }
     } catch (error: PackageException) {
         throw MantraException(error.diagnostics).also { it.initCause(error) }
     } catch (error: IllegalArgumentException) {

@@ -1,0 +1,9 @@
+(case pattern/source-demo
+  {:schema "pattern/source-control" :schema-version "1.0.0"
+   :layout "pattern/source-paper" :title "One fictional source row per bucket"}
+  (inputs {:buckets (rows [:id :title :reported]
+                      [:A "Bucket A" 40]
+                      [:B "Bucket B" 15])
+           :source-values (rows [:bucket :value]
+                            [:A 40]
+                            [:B 15])}))

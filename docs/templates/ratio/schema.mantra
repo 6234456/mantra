@@ -1,0 +1,14 @@
+; Generic supplied amounts and units; rates are informational, not additive contributions.
+(schema template/ratio
+  {:title "Member and combined ratios" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [ratios] :headline rate}
+  (input items :table
+    {:columns {:id :keyword :title :text :charge :decimal :units :decimal} :min-rows 1})
+  (dimension member {:from items :key :id :title :title :total-label "Combined"})
+  (section ratios "Explicit member and aggregate rounding" {:per member}
+    (info charge "Supplied charge" member.charge)
+    (info units "Supplied units" member.units)
+    (info rate "Charge per unit"
+      (if (zero? units) nil (decimal/divide charge units 4))
+      {:format :number :precision 6
+       :aggregate {:ratio [charge units] :round [6 :half-up]}})))

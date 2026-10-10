@@ -24,12 +24,14 @@ import java.util.Locale
  * (layout <id> {:preset :de-staffel-4 :title "..." :locale "de-DE" :precision 2 :negative :minus
  *               :zero "–" :hide-zero true :show-inactive false :expand-members false
  *               :explain :appendix :header [:subject :period ...] :theme :classic
- *               :row-numbers :global|:table}
+ *               :row-numbers :global|:table :style-preset [:utilities :working-paper]}
  *   (operators {:plus "" :minus "./." :total "=" :info ""})
  *   (columns :tiered :label (col :pre {:header "Detail" :width 30}) :main)
  *   (columns :matrix  :label (members person) :cross-total)
  *   (style {:all true} {:tone :default :fill :none})
  *   (style {:class :variance} {:weight :bold :tone :accent})
+ *   (style-class :custom {:weight :bold :fill :subtle})
+ *   (style {:column :label} {:use [:custom :muted] :tone :accent})
  *   (style {:section costs :nth-child :even :kind :value} {:fill :subtle})
  *   (table <section-id> {:title "..." :style :matrix :expand-members true} (col ...) ...)
  *   (schedule <section-id> ...) (inline <section-id> ...) (hide <item-id> ...))
@@ -73,8 +75,10 @@ object LayoutReader {
         }
         spec = applyOptions(document, spec, opts, sink)
         val tables = mutableListOf<TableSpec>()
-        val styleRules = spec.styleRules.toMutableList()
-        root.values.drop(index).forEach { form ->
+        val declarations = root.values.drop(index)
+        val styles = LayoutStyleRegistry(document, sink, opts["style-preset"], declarations)
+        val styleRules = (styles.presetRules + spec.styleRules).toMutableList()
+        declarations.forEach { form ->
             val list = form as? DslForm.Sequence
             when (list?.listHead) {
                 "operators" -> {
@@ -174,7 +178,7 @@ object LayoutReader {
                     val target = list.values.getOrNull(1)
                     if (target?.isSequence(DslFormSequenceKind.MAP) == true) {
                         val selector = styleSelector(document, target, sink)
-                        if (selector != null) styleRules += StyleRule(selector, styleRule(document, list, sink))
+                        if (selector != null) styleRules += StyleRule(selector, styles.style(list))
                     } else {
                         sink.error(
                             "MANTRA-LAYOUT-STYLE",
@@ -183,6 +187,7 @@ object LayoutReader {
                         )
                     }
                 }
+                "style-class" -> styles.classRule(list)?.let(styleRules::add)
                 "schedule" -> spec = spec.copy(schedules = spec.schedules + symbols(document, list, sink))
                 "inline" -> spec = spec.copy(inline = spec.inline + symbols(document, list, sink))
                 "hide" -> spec = spec.copy(hidden = spec.hidden + symbols(document, list, sink))
@@ -260,53 +265,6 @@ object LayoutReader {
                 "column",
             ),
             klass = name("class"), rowKind = name("kind"),
-        )
-    }
-
-    private fun styleRule(document: Document, list: DslForm.Sequence, sink: DiagnosticSink): StyleSpec {
-        if (list.values.size >
-            3
-        ) {
-            sink.error(
-                "MANTRA-LAYOUT-STYLE",
-                "(style {selector} {declarations}) has unexpected trailing forms",
-                document.location(list.values[3]),
-            )
-        }
-        val opts = document.options(list.values.getOrNull(2), sink, "style declarations")
-        opts.keys.filter { it !in setOf("weight", "tone", "fill") }.forEach { key ->
-            sink.error("MANTRA-LAYOUT-STYLE", "Unknown style property :$key", document.location(list))
-        }
-        fun <T> choice(key: String, values: Map<String, T>): T? = opts[key]?.let { form ->
-            values[form.keyword] ?: run {
-                sink.error(
-                    "MANTRA-LAYOUT-STYLE",
-                    ":$key must be one of ${values.keys.joinToString {
-                        ":$it"
-                    }}",
-                    document.location(form),
-                )
-                null
-            }
-        }
-        return StyleSpec(
-            weight = choice("weight", mapOf("normal" to StyleWeight.NORMAL, "bold" to StyleWeight.BOLD)),
-            tone = choice(
-                "tone",
-                mapOf(
-                    "default" to StyleTone.DEFAULT,
-                    "muted" to StyleTone.MUTED,
-                    "accent" to StyleTone.ACCENT,
-                ),
-            ),
-            fill = choice(
-                "fill",
-                mapOf(
-                    "none" to StyleFill.NONE,
-                    "subtle" to StyleFill.SUBTLE,
-                    "accent" to StyleFill.ACCENT,
-                ),
-            ),
         )
     }
 

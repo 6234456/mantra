@@ -23,7 +23,14 @@ internal class PackageHostFixture(val root: Path) {
           (inputs {:base-value 0 :enabled false}))
     """.trimIndent()
 
-    fun snapshot(id: String, version: String, factor: Int = 1, technical: Boolean = false): PackageSnapshot {
+    fun snapshot(
+        id: String,
+        version: String,
+        factor: Int = 1,
+        technical: Boolean = false,
+        alternative: Boolean = false,
+        baseValue: Int = 0,
+    ): PackageSnapshot {
         val files = linkedMapOf(
             "schema.mantra" to """
                 (schema host/demo {:version "$version"}
@@ -31,12 +38,21 @@ internal class PackageHostFixture(val root: Path) {
                   (section result "Result"
                     (line answer "Answer" ${if (technical) "(/ base-value 0)" else "(* base-value rate $factor)"})))
             """.trimIndent(),
-            "cases/demo.mantra" to original.replace("1.0.0", version),
+            "cases/demo.mantra" to original.replace(
+                "1.0.0",
+                version,
+            ).replace(":base-value 0", ":base-value $baseValue"),
             "parameters/current.mantra" to """
                 (parameters current {:for "host/demo" :valid-from "2026-01-01" :valid-until "2027-01-01"}
                   (value rate 2 {:reference "Fictional independent rate source"}))
             """.trimIndent(),
         )
+        if (alternative) {
+            files["parameters/alternative.mantra"] = """
+                (parameters alternative {:for "host/demo" :valid-from "2027-01-01" :valid-until "2028-01-01"}
+                  (value rate 3 {:reference "Fictional independently specified alternative rate"}))
+            """.trimIndent()
+        }
         return jar(id, version, files)
     }
 
@@ -59,9 +75,13 @@ internal class PackageHostFixture(val root: Path) {
                 )
             },
             "schemas" to listOf(mapOf("schema" to binding, "path" to "schema.mantra")),
-            "parameters" to listOf(
-                mapOf("id" to "current", "schema" to binding, "path" to "parameters/current.mantra"),
-            ),
+            "parameters" to files.keys.filter { it.startsWith("parameters/") }.map {
+                mapOf(
+                    "id" to Path.of(it).fileName.toString().removeSuffix(".mantra"),
+                    "schema" to binding,
+                    "path" to it,
+                )
+            },
             "layouts" to emptyList<Any>(),
             "cases" to
                 listOf(

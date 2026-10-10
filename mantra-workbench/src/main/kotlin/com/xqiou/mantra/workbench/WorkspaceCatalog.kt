@@ -184,8 +184,24 @@ class WorkspaceCatalog(
         return DocumentResult(revision(all), data)
     }
 
-    fun document(caseId: String, name: String, panel: String? = null, layoutId: String? = null): DocumentResult {
-        val resolved = resolve(caseId, scan(), layoutId, audit = name == "paper")
+    fun document(caseId: String, name: String, panel: String? = null, layoutId: String? = null): DocumentResult =
+        document(caseId, name, panel, layoutId, false)
+
+    fun document(
+        caseId: String,
+        name: String,
+        panel: String? = null,
+        layoutId: String? = null,
+        includeZero: Boolean,
+    ): DocumentResult {
+        val resolved = resolve(
+            caseId,
+            scan(),
+            layoutId,
+            audit = name == "paper",
+            freshDiagnostics =
+            name == "diagnostics",
+        )
         val view = resolved.view
         val data = when (name) {
             "structure" -> WorkbenchDocuments.structure(view)
@@ -195,7 +211,7 @@ class WorkspaceCatalog(
                 if (panel != null && view.structure.panels.none { it.id == panel }) {
                     throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Panel was not found")
                 }
-                WorkbenchDocuments.paper(view, resolved.layout, panel)
+                WorkbenchDocuments.paper(view, resolved.layout, panel, includeZero)
             }
             "diagnostics" -> WorkbenchDocuments.diagnostics(view.diagnostics)
             else -> throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Document was not found")
@@ -360,6 +376,10 @@ class WorkspaceCatalog(
     fun explain(caseId: String, address: ExplainAddress, depth: Int = 1): DocumentResult =
         explainGraph(caseId, address, depth)
 
+    /** Projects only a server-selected finding from this exact case graph revision. */
+    fun sourceContext(caseId: String, diagnostic: Int, expectedRevision: String): DocumentResult =
+        diagnosticSourceContext(caseId, diagnostic, expectedRevision)
+
     fun envelope(document: DocumentResult): String = WorkbenchJson.write(
         WorkbenchJson.envelope(document.revision, mantraVersion, normeinVersion, document.data),
     )
@@ -375,6 +395,9 @@ class WorkspaceCatalog(
         val sourceOverrides: List<List<String>> = emptyList(),
         val graph: com.xqiou.mantra.core.api.CaseRunResult? = null,
         val caseLayouts: Map<com.xqiou.mantra.core.api.CanonicalCaseKey, LayoutSpec> = emptyMap(),
+        val caseSources:
+        Map<com.xqiou.mantra.core.api.CanonicalCaseKey, Map<String, com.xqiou.mantra.core.read.SourceText>> =
+            emptyMap(),
     )
 
     internal fun diagnostic(code: String, message: String) = Diagnostic(Severity.ERROR, code, message)

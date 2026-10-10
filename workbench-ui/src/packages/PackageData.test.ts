@@ -15,6 +15,22 @@ afterEach(() => {
 })
 
 describe('package workbench adaptor', () => {
+  it('reads diagnostic source evidence only through the explicit package route', async () => {
+    const wire = embedded({ lines: [] })
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(wrap({ document: wire }))))
+    vi.stubGlobal('fetch', fetch)
+    const controller = new AbortController()
+    expect(
+      await new PackageData().sourceContext('pkg/cases/demo.mantra', 2, 'a'.repeat(64), controller.signal),
+    ).toEqual(wire)
+    const [url, options] = fetch.mock.calls[0]
+    expect(url).toBe(
+      '/api/v1/package-cases/pkg%2Fcases%2Fdemo.mantra/diagnostic-source?diagnostic=2&expectedRevision=' +
+        'a'.repeat(64),
+    )
+    expect(options.signal).toBe(controller.signal)
+    expect(fetch).toHaveBeenCalledOnce()
+  })
   it('reads the existing wire4 projection through the explicit package route and preserves zero false', async () => {
     const wire = embedded({ values: { charge: { '': { value: { n: '0' } } }, enabled: { '': { value: false } } } })
     const fetch = vi

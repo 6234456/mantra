@@ -1,0 +1,764 @@
+IAS 12 deferred-tax roll-forward
+Supplied recognized balances and rates – fictional demonstration only
+================================
+Entity: Fictional demonstration entity
+Period: 2026–2028
+Calculation schema: IAS 12 – Deferred-tax roll-forward v0.1.0 [ifrs.ias12/deferred-tax-roll-forward]
+Prepared by: Mantra demonstration
+WP ref.: Independent Decimal roll-forward fixtures
+Closing signed deferred tax: –
+
+Structure of the calculation
+  Mainline 1: Recognized temporary-difference stocks and movements [3]
+  Mainline 2: Separate PL and OCI measurement [4]
+      ↳ Supplied rates and source completeness [5]    → 2 · Measured closing PL tax, → 3 · PL tax effect of difference movements
+  Mainline 3: Signed deferred-tax bridge by item [2]  –
+  Mainline 4: All-item signed control totals [1]  –
+
+[1] 1 · All-item signed control bridge
+    Mainline › 4 All-item signed control totals
+Description                                      | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | Total |
+-------------------------------------------------+-------------------------+-------------------------+-------------------------+-------+--
+Opening signed deferred tax                      |                       – |                       – |                       – |     – |
+PL tax effect of difference movements            |                       – |                       – |                       – |     – |
+OCI tax effect of difference movements           |                       – |                       – |                       – |     – |
+PL rate-change effect                            |                       – |                       – |                       – |     – |
+OCI rate-change effect                           |                       – |                       – |                       – |     – |
+                                                -+-------------------------+-------------------------+-------------------------+-------+-
+Closing signed deferred tax                      |                       – |                       – |                       – |     – | Σ
+                                                =+=========================+=========================+=========================+=======+=
+Total recognized closing tax assets              |                     250 |                     250 |                     250 |   250 |
+Total recognized closing tax liabilities         |                     250 |                     250 |                     250 |   250 |
+Independently reported signed closing tax        |                       – |                       – |                       – |     – |
+Computed less independently reported closing tax |                       – |                       – |                       – |       | ✓
+
+[2] 2 · Deferred-tax bridge by item and year
+    Mainline › 3 Signed deferred-tax bridge by item
+Description                                              | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | Total | status
+---------------------------------------------------------+-------------------------+-------------------------+-------------------------+-------+-------
+Taxable difference                                       |                         |                         |                         |       |
+  Opening signed deferred tax                            |                     250 |                     250 |                     250 |   250 |
+  PL tax effect of difference movements                  |                       – |                       – |                       – |     – |
+  OCI tax effect of difference movements                 |                       – |                       – |                       – |     – |
+  PL rate-change effect on the opening difference        |                       – |                       – |                       – |     – |
+  OCI rate-change effect on the opening difference       |                       – |                       – |                       – |     – |
+                                                        -+-------------------------+-------------------------+-------------------------+-------+-
+  Closing signed deferred tax                            |                     250 |                     250 |                     250 |   250 | Σ
+  Bridge agrees with separately measured closing buckets |                       – |                       – |                       – |       | ✓
+  Recognized closing tax asset                           |                       – |                       – |                       – |     – |
+  Recognized closing tax liability                       |                     250 |                     250 |                     250 |   250 |
+Recognized deductible difference                         |                         |                         |                         |       |
+  Opening signed deferred tax                            |                   (250) |                   (250) |                   (250) | (250) |
+  PL tax effect of difference movements                  |                       – |                       – |                       – |     – |
+  OCI tax effect of difference movements                 |                       – |                       – |                       – |     – |
+  PL rate-change effect on the opening difference        |                       – |                       – |                       – |     – |
+  OCI rate-change effect on the opening difference       |                       – |                       – |                       – |     – |
+                                                        -+-------------------------+-------------------------+-------------------------+-------+-
+  Closing signed deferred tax                            |                   (250) |                   (250) |                   (250) | (250) | Σ
+  Bridge agrees with separately measured closing buckets |                       – |                       – |                       – |       | ✓
+  Recognized closing tax asset                           |                     250 |                     250 |                     250 |   250 |
+  Recognized closing tax liability                       |                       – |                       – |                       – |     – |
+Total                                                    |                         |                         |                         |       |
+  Opening signed deferred tax                            |                       – |                       – |                       – |     – |
+  PL tax effect of difference movements                  |                       – |                       – |                       – |     – |
+  OCI tax effect of difference movements                 |                       – |                       – |                       – |     – |
+  PL rate-change effect on the opening difference        |                       – |                       – |                       – |     – |
+  OCI rate-change effect on the opening difference       |                       – |                       – |                       – |     – |
+                                                        -+-------------------------+-------------------------+-------------------------+-------+-
+  Closing signed deferred tax                            |                       – |                       – |                       – |     – | Σ
+  Bridge agrees with separately measured closing buckets |                         |                         |                         |       | ✓
+  Recognized closing tax asset                           |                     250 |                     250 |                     250 |   250 |
+  Recognized closing tax liability                       |                     250 |                     250 |                     250 |   250 |
+
+[3] 3 · Recognized temporary differences
+    Mainline › 1 Recognized temporary-difference stocks and movements
+Description                           | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 |   Total
+--------------------------------------+-------------------------+-------------------------+-------------------------+--------
+Taxable difference                    |                         |                         |                         |
+  Opening PL temporary difference     |                   1,000 |                   1,000 |                   1,000 |   1,000
+  Opening OCI temporary difference    |                       – |                       – |                       – |       –
+  Supplied PL difference movement     |                       – |                       – |                       – |       –
+  Supplied OCI difference movement    |                       – |                       – |                       – |       –
+  Closing PL temporary difference     |                   1,000 |                   1,000 |                   1,000 |   1,000
+  Closing OCI temporary difference    |                       – |                       – |                       – |       –
+  Closing signed temporary difference |                   1,000 |                   1,000 |                   1,000 |   1,000
+Recognized deductible difference      |                         |                         |                         |
+  Opening PL temporary difference     |                       – |                       – |                       – |       –
+  Opening OCI temporary difference    |                 (1,000) |                 (1,000) |                 (1,000) | (1,000)
+  Supplied PL difference movement     |                       – |                       – |                       – |       –
+  Supplied OCI difference movement    |                       – |                       – |                       – |       –
+  Closing PL temporary difference     |                       – |                       – |                       – |       –
+  Closing OCI temporary difference    |                 (1,000) |                 (1,000) |                 (1,000) | (1,000)
+  Closing signed temporary difference |                 (1,000) |                 (1,000) |                 (1,000) | (1,000)
+Total                                 |                         |                         |                         |
+  Opening PL temporary difference     |                   1,000 |                   1,000 |                   1,000 |   1,000
+  Opening OCI temporary difference    |                 (1,000) |                 (1,000) |                 (1,000) | (1,000)
+  Supplied PL difference movement     |                       – |                       – |                       – |       –
+  Supplied OCI difference movement    |                       – |                       – |                       – |       –
+  Closing PL temporary difference     |                   1,000 |                   1,000 |                   1,000 |   1,000
+  Closing OCI temporary difference    |                 (1,000) |                 (1,000) |                 (1,000) | (1,000)
+  Closing signed temporary difference |                       – |                       – |                       – |       –
+
+[4] 4 · PL and OCI provenance measurement
+    Mainline › 2 Separate PL and OCI measurement
+Description                              | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 | Total | status
+-----------------------------------------+-------------------------+-------------------------+-------------------------+-------+-------
+Taxable difference                       |                         |                         |                         |       |
+  Supplied opening tax rate              |                 25.00 % |                 25.00 % |                 25.00 % |       |
+  Opening rate lies between zero and one |                       ✓ |                       ✓ |                       ✓ |       | ✓
+  Opening recognized PL tax              |                     250 |                     250 |                     250 |   250 |
+  Opening recognized OCI tax             |                       – |                       – |                       – |     – |
+  Measured closing PL tax                |                     250 |                     250 |                     250 |   250 |
+  Measured closing OCI tax               |                       – |                       – |                       – |     – |
+Recognized deductible difference         |                         |                         |                         |       |
+  Supplied opening tax rate              |                 25.00 % |                 25.00 % |                 25.00 % |       |
+  Opening rate lies between zero and one |                       ✓ |                       ✓ |                       ✓ |       | ✓
+  Opening recognized PL tax              |                       – |                       – |                       – |     – |
+  Opening recognized OCI tax             |                   (250) |                   (250) |                   (250) | (250) |
+  Measured closing PL tax                |                       – |                       – |                       – |     – |
+  Measured closing OCI tax               |                   (250) |                   (250) |                   (250) | (250) |
+Total                                    |                         |                         |                         |       |
+  Supplied opening tax rate              |                         |                         |                         |       |
+  Opening rate lies between zero and one |                         |                         |                         |       | ✓
+  Opening recognized PL tax              |                     250 |                     250 |                     250 |   250 |
+  Opening recognized OCI tax             |                   (250) |                   (250) |                   (250) | (250) |
+  Measured closing PL tax                |                     250 |                     250 |                     250 |   250 |
+  Measured closing OCI tax               |                   (250) |                   (250) |                   (250) | (250) |
+
+[5] 5 · Supplied rates and source completeness
+    Mainline › 2 Separate PL and OCI measurement › „Measured closing PL tax“ › Supplied rates and source completeness
+Description                                         | 2026-01-01 – 2026-12-31 | 2027-01-01 – 2027-12-31 | 2028-01-01 – 2028-12-31 |
+----------------------------------------------------+-------------------------+-------------------------+-------------------------+--
+Supplied closing tax rate                           |                 25.00 % |                 25.00 % |                 25.00 % |
+Closing-rate source rows                            |                       1 |                       1 |                       1 |
+Reported-closing source rows                        |                       1 |                       1 |                       1 |
+Closing rate lies between zero and one              |                       ✓ |                       ✓ |                       ✓ | ✓
+Exactly one closing rate is supplied per period     |                       ✓ |                       ✓ |                       ✓ | ✓
+Exactly one reported closing is supplied per period |                       ✓ |                       ✓ |                       ✓ | ✓
+
+Audit trail
+-----------
+1/1 Σ Opening signed deferred tax (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-year=P1] 0.00 included → 0.00 = –
+1/1 Opening signed deferred tax [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum opening-deferred-tax)
+    Working: (dim/sum opening-deferred-tax) = 0.00 = –
+1/1 Opening signed deferred tax [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum opening-deferred-tax)
+    Working: (dim/sum opening-deferred-tax) = 0.00 = –
+1/1 Opening signed deferred tax [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum opening-deferred-tax)
+    Working: (dim/sum opening-deferred-tax) = 0.00 = –
+1/2 Σ PL tax effect of difference movements (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-year=P1] 0.00 included; [tax-year=P2] 0.00 included; [tax-year=P3] 0.00 included → 0.00 = –
+1/2 PL tax effect of difference movements [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum pl-tax-movement)
+    Working: (dim/sum pl-tax-movement) = 0.00 = –
+1/2 PL tax effect of difference movements [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum pl-tax-movement)
+    Working: (dim/sum pl-tax-movement) = 0.00 = –
+1/2 PL tax effect of difference movements [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum pl-tax-movement)
+    Working: (dim/sum pl-tax-movement) = 0.00 = –
+1/3 Σ OCI tax effect of difference movements (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-year=P1] 0.00 included; [tax-year=P2] 0.00 included; [tax-year=P3] 0.00 included → 0.00 = –
+1/3 OCI tax effect of difference movements [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum oci-tax-movement)
+    Working: (dim/sum oci-tax-movement) = 0.00 = –
+1/3 OCI tax effect of difference movements [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum oci-tax-movement)
+    Working: (dim/sum oci-tax-movement) = 0.00 = –
+1/3 OCI tax effect of difference movements [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum oci-tax-movement)
+    Working: (dim/sum oci-tax-movement) = 0.00 = –
+1/4 Σ PL rate-change effect (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-year=P1] 0.00 included; [tax-year=P2] 0.00 included; [tax-year=P3] 0.00 included → 0.00 = –
+1/4 PL rate-change effect [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum pl-rate-effect)
+    Working: (dim/sum pl-rate-effect) = 0.00 = –
+1/4 PL rate-change effect [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum pl-rate-effect)
+    Working: (dim/sum pl-rate-effect) = 0.00 = –
+1/4 PL rate-change effect [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum pl-rate-effect)
+    Working: (dim/sum pl-rate-effect) = 0.00 = –
+1/5 Σ OCI rate-change effect (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-year=P1] 0.00 included; [tax-year=P2] 0.00 included; [tax-year=P3] 0.00 included → 0.00 = –
+1/5 OCI rate-change effect [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum oci-rate-effect)
+    Working: (dim/sum oci-rate-effect) = 0.00 = –
+1/5 OCI rate-change effect [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum oci-rate-effect)
+    Working: (dim/sum oci-rate-effect) = 0.00 = –
+1/5 OCI rate-change effect [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum oci-rate-effect)
+    Working: (dim/sum oci-rate-effect) = 0.00 = –
+1/6 Σ Closing signed deferred tax (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-year=P3] 0.00 included → 0.00 = –
+1/6 Closing signed deferred tax [2026-01-01 – 2026-12-31]
+    Formula: period-opening-deferred-tax + period-pl-tax-movement + period-oci-tax-movement + period-pl-rate-effect + period-oci-rate-effect
+    Working: 0.00 + 0.00 + 0.00 + 0.00 + 0.00 = –
+1/6 Closing signed deferred tax [2027-01-01 – 2027-12-31]
+    Formula: period-opening-deferred-tax + period-pl-tax-movement + period-oci-tax-movement + period-pl-rate-effect + period-oci-rate-effect
+    Working: 0.00 + 0.00 + 0.00 + 0.00 + 0.00 = –
+1/6 Closing signed deferred tax [2028-01-01 – 2028-12-31]
+    Formula: period-opening-deferred-tax + period-pl-tax-movement + period-oci-tax-movement + period-pl-rate-effect + period-oci-rate-effect
+    Working: 0.00 + 0.00 + 0.00 + 0.00 + 0.00 = –
+1/7 Σ Total recognized closing tax assets (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-year=P3] 250.00 included → 250.00 = 250
+1/7 Total recognized closing tax assets [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum closing-tax-asset)
+    Working: (dim/sum closing-tax-asset) = 250.00 = 250
+1/7 Total recognized closing tax assets [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum closing-tax-asset)
+    Working: (dim/sum closing-tax-asset) = 250.00 = 250
+1/7 Total recognized closing tax assets [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum closing-tax-asset)
+    Working: (dim/sum closing-tax-asset) = 250.00 = 250
+1/8 Σ Total recognized closing tax liabilities (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-year=P3] 250.00 included → 250.00 = 250
+1/8 Total recognized closing tax liabilities [2026-01-01 – 2026-12-31]
+    Formula: (dim/sum closing-tax-liability)
+    Working: (dim/sum closing-tax-liability) = 250.00 = 250
+1/8 Total recognized closing tax liabilities [2027-01-01 – 2027-12-31]
+    Formula: (dim/sum closing-tax-liability)
+    Working: (dim/sum closing-tax-liability) = 250.00 = 250
+1/8 Total recognized closing tax liabilities [2028-01-01 – 2028-12-31]
+    Formula: (dim/sum closing-tax-liability)
+    Working: (dim/sum closing-tax-liability) = 250.00 = 250
+1/9 Σ Independently reported signed closing tax (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-year=P3] 0 included → 0 = –
+1/9 Independently reported signed closing tax [2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) = [value unavailable] → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings)) = 0 → selected branch: entry.signed-tax → selected branch: 0 → selected branch: 0 = –
+1/9 Independently reported signed closing tax [2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings)) = 0 → selected branch: 0 → selected branch: entry.signed-tax → selected branch: 0 = –
+1/9 Independently reported signed closing tax [2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.signed-tax 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings)) = 0 → selected branch: 0 → selected branch: 0 → selected branch: entry.signed-tax = –
+1/10 Computed less independently reported closing tax [2026-01-01 – 2026-12-31]
+    Formula: period-closing-deferred-tax ≈ reported-deferred-tax (± 0.01)
+    Working: period-closing-deferred-tax = 0.00; reported-deferred-tax = 0 → 0.00 − 0 = 0.00 (± 0.01) = –
+1/10 Computed less independently reported closing tax [2027-01-01 – 2027-12-31]
+    Formula: period-closing-deferred-tax ≈ reported-deferred-tax (± 0.01)
+    Working: period-closing-deferred-tax = 0.00; reported-deferred-tax = 0 → 0.00 − 0 = 0.00 (± 0.01) = –
+1/10 Computed less independently reported closing tax [2028-01-01 – 2028-12-31]
+    Formula: period-closing-deferred-tax ≈ reported-deferred-tax (± 0.01)
+    Working: period-closing-deferred-tax = 0.00; reported-deferred-tax = 0 → 0.00 − 0 = 0.00 (± 0.01) = –
+2/1 Σ Opening signed deferred tax (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-item=Taxable, tax-year=P1] 250.00 included; [tax-item=Deductible, tax-year=P1] -250.00 included → 0.00 = –
+2/1 Opening signed deferred tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = 250.00 = 250
+2/1 Opening signed deferred tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = 250.00 = 250
+2/1 Opening signed deferred tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = 250.00 = 250
+2/1 Opening signed deferred tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = -250.00 = (250)
+2/1 Opening signed deferred tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = -250.00 = (250)
+2/1 Opening signed deferred tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-pl-tax opening-oci-tax)
+    Working: (+ opening-pl-tax opening-oci-tax) = -250.00 = (250)
+2/2 Σ PL tax effect of difference movements (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0.00 included; [tax-item=Taxable, tax-year=P2] 0.00 included; [tax-item=Taxable, tax-year=P3] 0.00 included; [tax-item=Deductible, tax-year=P1] 0.00 included; [tax-item=Deductible, tax-year=P2] 0.00 included; [tax-item=Deductible, tax-year=P3] 0.00 included → 0.00 = –
+2/2 PL tax effect of difference movements [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/2 PL tax effect of difference movements [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/2 PL tax effect of difference movements [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/2 PL tax effect of difference movements [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/2 PL tax effect of difference movements [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/2 PL tax effect of difference movements [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale))
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 Σ OCI tax effect of difference movements (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0.00 included; [tax-item=Taxable, tax-year=P2] 0.00 included; [tax-item=Taxable, tax-year=P3] 0.00 included; [tax-item=Deductible, tax-year=P1] 0.00 included; [tax-item=Deductible, tax-year=P2] 0.00 included; [tax-item=Deductible, tax-year=P3] 0.00 included → 0.00 = –
+2/3 OCI tax effect of difference movements [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 OCI tax effect of difference movements [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 OCI tax effect of difference movements [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 OCI tax effect of difference movements [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 OCI tax effect of difference movements [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/3 OCI tax effect of difference movements [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale))
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)) = 0.00 = –
+2/4 Σ PL rate-change effect on the opening difference (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0.00 included; [tax-item=Taxable, tax-year=P2] 0.00 included; [tax-item=Taxable, tax-year=P3] 0.00 included; [tax-item=Deductible, tax-year=P1] 0.00 included; [tax-item=Deductible, tax-year=P2] 0.00 included; [tax-item=Deductible, tax-year=P3] 0.00 included → 0.00 = –
+2/4 PL rate-change effect on the opening difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/4 PL rate-change effect on the opening difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/4 PL rate-change effect on the opening difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 250.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/4 PL rate-change effect on the opening difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/4 PL rate-change effect on the opening difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/4 PL rate-change effect on the opening difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax)
+    Working: (* opening-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax) = 0.00 = –
+2/5 Σ OCI rate-change effect on the opening difference (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0.00 included; [tax-item=Taxable, tax-year=P2] 0.00 included; [tax-item=Taxable, tax-year=P3] 0.00 included; [tax-item=Deductible, tax-year=P1] 0.00 included; [tax-item=Deductible, tax-year=P2] 0.00 included; [tax-item=Deductible, tax-year=P3] 0.00 included → 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = 0.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/5 OCI rate-change effect on the opening difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax)
+    Working: (* opening-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) = -250.00 → (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax) = 0.00 = –
+2/6 Σ Closing signed deferred tax (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 250.00 included; [tax-item=Deductible, tax-year=P3] -250.00 included → 0.00 = –
+2/6 Closing signed deferred tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: 250.00 + 0.00 + 0.00 + 0.00 + 0.00 = 250
+2/6 Closing signed deferred tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: 250.00 + 0.00 + 0.00 + 0.00 + 0.00 = 250
+2/6 Closing signed deferred tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: 250.00 + 0.00 + 0.00 + 0.00 + 0.00 = 250
+2/6 Closing signed deferred tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: -250.00 + 0.00 + 0.00 + 0.00 + 0.00 = (250)
+2/6 Closing signed deferred tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: -250.00 + 0.00 + 0.00 + 0.00 + 0.00 = (250)
+2/6 Closing signed deferred tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: opening-deferred-tax + pl-tax-movement + oci-tax-movement + pl-rate-effect + oci-rate-effect
+    Working: -250.00 + 0.00 + 0.00 + 0.00 + 0.00 = (250)
+2/7 Bridge agrees with separately measured closing buckets [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = 250.00; (+ measured-pl-tax measured-oci-tax) = 250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = 250.00 → 250.00 − 250.00 = 0.00 (± 0) = –
+2/7 Bridge agrees with separately measured closing buckets [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = 250.00; (+ measured-pl-tax measured-oci-tax) = 250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = 250.00 → 250.00 − 250.00 = 0.00 (± 0) = –
+2/7 Bridge agrees with separately measured closing buckets [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = 250.00; (+ measured-pl-tax measured-oci-tax) = 250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = 250.00 → 250.00 − 250.00 = 0.00 (± 0) = –
+2/7 Bridge agrees with separately measured closing buckets [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = -250.00; (+ measured-pl-tax measured-oci-tax) = -250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = -250.00 → -250.00 − -250.00 = 0.00 (± 0) = –
+2/7 Bridge agrees with separately measured closing buckets [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = -250.00; (+ measured-pl-tax measured-oci-tax) = -250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = -250.00 → -250.00 − -250.00 = 0.00 (± 0) = –
+2/7 Bridge agrees with separately measured closing buckets [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round closing-deferred-tax currency-scale) ≈ (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) (± 0)
+    Working: (decimal/round closing-deferred-tax currency-scale) = -250.00; (+ measured-pl-tax measured-oci-tax) = -250.00 → (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) = -250.00 → -250.00 − -250.00 = 0.00 (± 0) = –
+2/8 Σ Recognized closing tax asset (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 0 included; [tax-item=Deductible, tax-year=P3] 250.00 included → 250.00 = 250
+2/8 Recognized closing tax asset [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = -250.00 → (max 0 (- closing-deferred-tax)) = 0 = –
+2/8 Recognized closing tax asset [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = -250.00 → (max 0 (- closing-deferred-tax)) = 0 = –
+2/8 Recognized closing tax asset [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = -250.00 → (max 0 (- closing-deferred-tax)) = 0 = –
+2/8 Recognized closing tax asset [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = 250.00 → (max 0 (- closing-deferred-tax)) = 250.00 = 250
+2/8 Recognized closing tax asset [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = 250.00 → (max 0 (- closing-deferred-tax)) = 250.00 = 250
+2/8 Recognized closing tax asset [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (max 0 (- closing-deferred-tax))
+    Working: (- closing-deferred-tax) = 250.00 → (max 0 (- closing-deferred-tax)) = 250.00 = 250
+2/9 Σ Recognized closing tax liability (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 250.00 included; [tax-item=Deductible, tax-year=P3] 0 included → 250.00 = 250
+2/9 Recognized closing tax liability [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 250.00 = 250
+2/9 Recognized closing tax liability [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 250.00 = 250
+2/9 Recognized closing tax liability [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 250.00 = 250
+2/9 Recognized closing tax liability [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 0 = –
+2/9 Recognized closing tax liability [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 0 = –
+2/9 Recognized closing tax liability [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (max 0 closing-deferred-tax)
+    Working: (max 0 closing-deferred-tax) = 0 = –
+3/1 Σ Opening PL temporary difference (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-item=Taxable, tax-year=P1] 1000 included; [tax-item=Deductible, tax-year=P1] 0 included → 1000 = 1,000
+3/1 Opening PL temporary difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 1000 = 1,000
+3/1 Opening PL temporary difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 1000 = 1,000
+3/1 Opening PL temporary difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 1000 = 1,000
+3/1 Opening PL temporary difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 0 = –
+3/1 Opening PL temporary difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 0 = –
+3/1 Opening PL temporary difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-pl-difference tax-item.opening-pl-difference)
+    Working: (prev closing-pl-difference tax-item.opening-pl-difference) = 0 = –
+3/2 Σ Opening OCI temporary difference (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-item=Taxable, tax-year=P1] 0 included; [tax-item=Deductible, tax-year=P1] -1000 included → -1000 = (1,000)
+3/2 Opening OCI temporary difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = 0 = –
+3/2 Opening OCI temporary difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = 0 = –
+3/2 Opening OCI temporary difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = 0 = –
+3/2 Opening OCI temporary difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = -1000 = (1,000)
+3/2 Opening OCI temporary difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = -1000 = (1,000)
+3/2 Opening OCI temporary difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-oci-difference tax-item.opening-oci-difference)
+    Working: (prev closing-oci-difference tax-item.opening-oci-difference) = -1000 = (1,000)
+3/3 Σ Supplied PL difference movement (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0 included; [tax-item=Taxable, tax-year=P2] 0 included; [tax-item=Taxable, tax-year=P3] 0 included; [tax-item=Deductible, tax-year=P1] 0 included; [tax-item=Deductible, tax-year=P2] 0 included; [tax-item=Deductible, tax-year=P3] 0 included → 0 = –
+3/3 Supplied PL difference movement [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/3 Supplied PL difference movement [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/3 Supplied PL difference movement [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/3 Supplied PL difference movement [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/3 Supplied PL difference movement [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/3 Supplied PL difference movement [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.pl-change 0)) difference-movements)) = nil = –
+3/4 Σ Supplied OCI difference movement (Total)
+    Formula: Σ contributions
+    Working: Σ contributions: [tax-item=Taxable, tax-year=P1] 0 included; [tax-item=Taxable, tax-year=P2] 0 included; [tax-item=Taxable, tax-year=P3] 0 included; [tax-item=Deductible, tax-year=P1] 0 included; [tax-item=Deductible, tax-year=P2] 0 included; [tax-item=Deductible, tax-year=P3] 0 included → 0 = –
+3/4 Supplied OCI difference movement [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/4 Supplied OCI difference movement [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/4 Supplied OCI difference movement [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/4 Supplied OCI difference movement [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/4 Supplied OCI difference movement [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/4 Supplied OCI difference movement [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements))
+    Working: (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) = [value unavailable] → (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements) = [value unavailable] → (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key)) entry.oci-change 0)) difference-movements)) = nil = –
+3/5 Σ Closing PL temporary difference (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 1000 included; [tax-item=Deductible, tax-year=P3] 0 included → 1000 = 1,000
+3/5 Closing PL temporary difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 1000 = 1,000
+3/5 Closing PL temporary difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 1000 = 1,000
+3/5 Closing PL temporary difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 0 = –
+3/5 Closing PL temporary difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 0 = –
+3/5 Closing PL temporary difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 1000 = 1,000
+3/5 Closing PL temporary difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-pl-difference pl-difference-movement)
+    Working: (+ opening-pl-difference pl-difference-movement) = 0 = –
+3/6 Σ Closing OCI temporary difference (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 0 included; [tax-item=Deductible, tax-year=P3] -1000 included → -1000 = (1,000)
+3/6 Closing OCI temporary difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = 0 = –
+3/6 Closing OCI temporary difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = 0 = –
+3/6 Closing OCI temporary difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = -1000 = (1,000)
+3/6 Closing OCI temporary difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = -1000 = (1,000)
+3/6 Closing OCI temporary difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = 0 = –
+3/6 Closing OCI temporary difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ opening-oci-difference oci-difference-movement)
+    Working: (+ opening-oci-difference oci-difference-movement) = -1000 = (1,000)
+3/7 Σ Closing signed temporary difference (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 1000 included; [tax-item=Deductible, tax-year=P3] -1000 included → 0 = –
+3/7 Closing signed temporary difference [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = 1000 = 1,000
+3/7 Closing signed temporary difference [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = 1000 = 1,000
+3/7 Closing signed temporary difference [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = 1000 = 1,000
+3/7 Closing signed temporary difference [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = -1000 = (1,000)
+3/7 Closing signed temporary difference [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = -1000 = (1,000)
+3/7 Closing signed temporary difference [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (+ closing-pl-difference closing-oci-difference)
+    Working: (+ closing-pl-difference closing-oci-difference) = -1000 = (1,000)
+4/1 Supplied opening tax rate [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/1 Supplied opening tax rate [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/1 Supplied opening tax rate [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/1 Supplied opening tax rate [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/1 Supplied opening tax rate [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/1 Supplied opening tax rate [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev closing-tax-rate tax-item.opening-rate)
+    Working: (prev closing-tax-rate tax-item.opening-rate) = 0.25 = 25.00 %
+4/2 Opening rate lies between zero and one [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/2 Opening rate lies between zero and one [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/2 Opening rate lies between zero and one [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/2 Opening rate lies between zero and one [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/2 Opening rate lies between zero and one [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/2 Opening rate lies between zero and one [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (and (>= opening-tax-rate 0) (<= opening-tax-rate 1))
+    Working: (>= opening-tax-rate 0) = true → (<= opening-tax-rate 1) = true → (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)) = true = ✓
+4/3 Σ Opening recognized PL tax (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-item=Taxable, tax-year=P1] 250.00 included; [tax-item=Deductible, tax-year=P1] 0.00 included → 250.00 = 250
+4/3 Opening recognized PL tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (* opening-pl-difference opening-tax-rate) = 250.00 → (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale) = 250.00 → (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 250.00 = 250
+4/3 Opening recognized PL tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 250.00 = 250
+4/3 Opening recognized PL tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 250.00 = 250
+4/3 Opening recognized PL tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (* opening-pl-difference opening-tax-rate) = 0.00 → (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale) = 0.00 → (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/3 Opening recognized PL tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/3 Opening recognized PL tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/4 Σ Opening recognized OCI tax (Total)
+    Formula: first(tax-year)
+    Working: first(tax-year): [tax-item=Taxable, tax-year=P1] 0.00 included; [tax-item=Deductible, tax-year=P1] -250.00 included → -250.00 = (250)
+4/4 Opening recognized OCI tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (* opening-oci-difference opening-tax-rate) = 0.00 → (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale) = 0.00 → (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/4 Opening recognized OCI tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/4 Opening recognized OCI tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = 0.00 = –
+4/4 Opening recognized OCI tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (* opening-oci-difference opening-tax-rate) = -250.00 → (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale) = -250.00 → (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = -250.00 = (250)
+4/4 Opening recognized OCI tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = -250.00 = (250)
+4/4 Opening recognized OCI tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+    Working: (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale)) = -250.00 = (250)
+4/5 Σ Measured closing PL tax (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 250.00 included; [tax-item=Deductible, tax-year=P3] 0.00 included → 250.00 = 250
+4/5 Measured closing PL tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 250.00 = 250
+4/5 Measured closing PL tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 250.00 = 250
+4/5 Measured closing PL tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/5 Measured closing PL tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/5 Measured closing PL tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 250.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 250.00 = 250
+4/5 Measured closing PL tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+    Working: (* closing-pl-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/6 Σ Measured closing OCI tax (Total)
+    Formula: last(tax-year)
+    Working: last(tax-year): [tax-item=Taxable, tax-year=P3] 0.00 included; [tax-item=Deductible, tax-year=P3] -250.00 included → -250.00 = (250)
+4/6 Measured closing OCI tax [Taxable difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/6 Measured closing OCI tax [Taxable difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/6 Measured closing OCI tax [Recognized deductible difference / 2026-01-01 – 2026-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = -250.00 = (250)
+4/6 Measured closing OCI tax [Recognized deductible difference / 2027-01-01 – 2027-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = -250.00 = (250)
+4/6 Measured closing OCI tax [Taxable difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = 0.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = 0.00 = –
+4/6 Measured closing OCI tax [Recognized deductible difference / 2028-01-01 – 2028-12-31]
+    Formula: (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+    Working: (* closing-oci-difference closing-tax-rate) = -250.00 → (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale) = -250.00 = (250)
+5/1 Supplied closing tax rate [2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) = [value unavailable] → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.rate 0) = 0.25 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates)) = 0.25 → selected branch: entry.rate → selected branch: 0 → selected branch: 0 = 25.00 %
+5/1 Supplied closing tax rate [2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.rate 0) = 0.25 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates)) = 0.25 → selected branch: 0 → selected branch: entry.rate → selected branch: 0 = 25.00 %
+5/1 Supplied closing tax rate [2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) entry.rate 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) entry.rate 0) = 0.25 → (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates)) = 0.25 → selected branch: 0 → selected branch: 0 → selected branch: entry.rate = 25.00 %
+5/2 Closing-rate source rows [2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates)) = 1 → selected branch: 1 → selected branch: 0 → selected branch: 0 = 1
+5/2 Closing-rate source rows [2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates)) = 1 → selected branch: 0 → selected branch: 1 → selected branch: 0 = 1
+5/2 Closing-rate source rows [2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates)) = 1 → selected branch: 0 → selected branch: 0 → selected branch: 1 = 1
+5/3 Reported-closing source rows [2026-01-01 – 2026-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings)) = 1 → selected branch: 1 → selected branch: 0 → selected branch: 0 = 1
+5/3 Reported-closing source rows [2027-01-01 – 2027-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings)) = 1 → selected branch: 0 → selected branch: 1 → selected branch: 0 = 1
+5/3 Reported-closing source rows [2028-01-01 – 2028-12-31]
+    Formula: (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings))
+    Working: (fn [entry] (if (= entry.period tax-year.key) 1 0)) = [value unavailable] → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = false → (if (= entry.period tax-year.key) 1 0) = 0 → (= entry.period tax-year.key) = true → (if (= entry.period tax-year.key) 1 0) = 1 → (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings) = [value unavailable] → (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings)) = 1 → selected branch: 0 → selected branch: 0 → selected branch: 1 = 1
+5/4 Closing rate lies between zero and one [2026-01-01 – 2026-12-31]
+    Formula: (and (>= closing-tax-rate 0) (<= closing-tax-rate 1))
+    Working: (>= closing-tax-rate 0) = true → (<= closing-tax-rate 1) = true → (and (>= closing-tax-rate 0) (<= closing-tax-rate 1)) = true = ✓
+5/4 Closing rate lies between zero and one [2027-01-01 – 2027-12-31]
+    Formula: (and (>= closing-tax-rate 0) (<= closing-tax-rate 1))
+    Working: (>= closing-tax-rate 0) = true → (<= closing-tax-rate 1) = true → (and (>= closing-tax-rate 0) (<= closing-tax-rate 1)) = true = ✓
+5/4 Closing rate lies between zero and one [2028-01-01 – 2028-12-31]
+    Formula: (and (>= closing-tax-rate 0) (<= closing-tax-rate 1))
+    Working: (>= closing-tax-rate 0) = true → (<= closing-tax-rate 1) = true → (and (>= closing-tax-rate 0) (<= closing-tax-rate 1)) = true = ✓
+5/5 Exactly one closing rate is supplied per period [2026-01-01 – 2026-12-31]
+    Formula: (= rate-source-count 1)
+    Working: (= rate-source-count 1) = true = ✓
+5/5 Exactly one closing rate is supplied per period [2027-01-01 – 2027-12-31]
+    Formula: (= rate-source-count 1)
+    Working: (= rate-source-count 1) = true = ✓
+5/5 Exactly one closing rate is supplied per period [2028-01-01 – 2028-12-31]
+    Formula: (= rate-source-count 1)
+    Working: (= rate-source-count 1) = true = ✓
+5/6 Exactly one reported closing is supplied per period [2026-01-01 – 2026-12-31]
+    Formula: (= reported-source-count 1)
+    Working: (= reported-source-count 1) = true = ✓
+5/6 Exactly one reported closing is supplied per period [2027-01-01 – 2027-12-31]
+    Formula: (= reported-source-count 1)
+    Working: (= reported-source-count 1) = true = ✓
+5/6 Exactly one reported closing is supplied per period [2028-01-01 – 2028-12-31]
+    Formula: (= reported-source-count 1)
+    Working: (= reported-source-count 1) = true = ✓

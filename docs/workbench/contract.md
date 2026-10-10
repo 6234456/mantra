@@ -234,6 +234,23 @@ Paper 顶层的 `headline` 为 `{node, label, value}` 或 `null`；`inputGroups[
 - **行标志**：沿用 `RowFlag`（`INACTIVE`、`USER_DEFINED`、`SELECTED`、`FOOTED`、`INFO`、`GRAND`、`NEGATED`），另新增 `EXPLAINS_ZERO`，标记“非零输入经规则变为零”而保留的行。`:hide-zero` 已经保留这类行，v1 只是把原因显式标出。
 - **样式**：只有 `weight`、`tone`、`fill` 三类受控属性，与 layout 的 `style` 相同；前端把它们映射到设计令牌。
 
+共享样式类仍展开为这三个现有属性，Paper JSON 4 不增加 class 库或预设配置字段。
+每个 cell 保留现有必填 `style`，并允许可选的 `styleOverrides` 对象。后者只含已解析的
+非空 `weight`、`tone`、`fill` 属性，至少一个属性；没有显式属性时省略整个对象。
+这使前端可以区分未指定属性与明确的 `normal`／`default`／`none` 重置，同时保留默认输入
+高亮及行类型外观。当前受支持的 schema、类型和前端均接受该字段；旧版严格 schema 需更新，
+不能将此扩展宣称为所有旧 JSON 4 客户端均无需修改。
+
+layout 可以通过 `:style-preset :utilities|:working-paper` 或有序 keyword 向量选用预设，
+通过 `(style-class :name {weight/tone/fill})` 定义本地样式类，并通过
+`(style {selector} {:use [:name ...] ...显式属性})` 复用声明。预设规则在前，本地 class 规则
+保留原文声明位置，之后匹配的规则按属性覆盖；项目的多个 class 标签顺序不改变优先级。
+class 只属于声明它的项目，不向 section 子项自动继承。命名声明支持向前引用，`:use`
+从左到右合并后应用显式属性；本地声明在复用时与同名预设合并，本地规则自身只含作者属性。
+未知的显式引用、重复本地定义、未知或重复预设均使用原文位置诊断。最多 256 个本地定义、
+每规则最多 64 个复用引用；空预设或复用向量有效。HTML、XLSX、PDF 与工作台使用同一已解析
+样式，Text 忽略视觉属性。样式类别（含 `control`）不代表校验通过，不改变计算或编辑地址。
+
 ### 6.5 Explain（一个值的计算过程）
 
 请求：地址，外加可选的深度。响应示例（节选，ESt 样例 [schema.mantra:153](../../apps/de-est/schema.mantra)）：
@@ -425,6 +442,14 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 | `addSource` / `removeSource` | 新增时提供 `kind`（`csv`/`json`/`xlsx`）和 `options`（精确值编码映射）；删除时提供零起始 `index`。只修改案例中的 `(sources …)`。 |
 
 ### 7.2 最小改动回写
+
+案例输入的表格也可以用 `(rows [:column ...] [literal ...] ...)` 声明。它只缩短文本，
+对外仍是相同的记录表与单元格地址。修改已有列的单元格时，只替换原来的字面量，
+保留表头、注释及其它单元格；原始位置继续用于诊断与源码预览。删除单元格表示字段缺失，
+不能用 `nil` 代替。删除字段、设置表头外的字段，或增删、重排记录时，可以将受影响的表格
+转换成已有的向量与记录 map 写法；其它输入不变。撤销恢复操作前的原始文本。
+`rows` 的表头必须是非空、唯一的 keyword 列名，每一行长度必须一致，单元格必须是字面量。
+这是一项兼容的 DSL 1 增补，不改变工作台 JSON v4 的表格表示。
 
 - **只改受影响的形式。** 注释、空白、其他条目的顺序和写法逐字节保持不变。
 - **新条目的位置。** 追加到对应映射的末尾，沿用前一条目的缩进。对应形式不存在时新建（例如 `(inputs {…})`），放在第一个 `(defn …)` 之前或文档末尾。
@@ -857,3 +882,73 @@ for loading failures. Read/render/export controls belong to an independent bound
 never mutate the original calculation usage; multiple cells or source views share that read
 request's allowance. Formula or convergence failures publish nil with genuine failure evidence,
 not a neutral numeric zero. Business findings remain nonblocking and retain source case ownership.
+
+### Diagnostic source context (additive v4)
+
+`GET /api/v1/cases/{case}/diagnostic-source` and the equivalent
+`/api/v1/package-cases/{case}/diagnostic-source` accept exactly `diagnostic` (the zero-based index
+in that case's `/diagnostics` endpoint's complete, unfiltered array) and `expectedRevision` (the exact root
+revision of the displayed diagnostics envelope). Missing, duplicate or malformed query fields are
+400; an absent diagnostic, location or authorized source document is 404. A changed root revision
+is 409 with its current revision. Client-side diagnostic filters retain the original array index.
+
+The server derives the owning case and source identity from the selected diagnostic. Clients cannot
+request a path, another case, an arbitrary line or an expanded context budget. Excerpts come from the
+same immutable, bounded buffers used to load the current case graph; the workspace confined loader
+and captured package resources retain their existing authority. Only participating DSL documents
+(case, schema/include, parameters or layout) may be shown. Data files, manifests, unrelated workspace
+files and unmounted packages do not become readable through this endpoint.
+
+The workbench envelope keeps the root graph revision. Its `SourceContext` data contains `case`
+(canonical owning case), `revision` (that case's graph revision), the original `location`, `lines`
+and `truncated`. Each line contains its one-based `number`, `text`, one-based `startColumn`, and
+nullable `highlightStart`/`highlightEnd` (zero-based, end-exclusive UTF-16 offsets into the displayed
+text). At most seven lines are returned, with three surrounding lines on either side of the finding;
+each displayed line has at most 512 UTF-16 units. Long lines use a bounded window around the finding,
+without splitting surrogate pairs. Omitted parts of the highlighted span or clipped line text set
+`truncated`. Invalid source
+spans are rejected rather than silently highlighting a different construct. Source contents are
+plain text, never HTML. Package mode uses the existing `mantra.packages/1` document wrapper with a
+nested workbench envelope. Static fixtures can explicitly report source context as unavailable.
+
+Live diagnostics and their source excerpts use fresh owner-confined VALUE_ONLY graph requests,
+with the same confined loader and shared run controls. This preserves planning warnings and their
+array order even after ordinary cached Run requests; it collects no FULL trace and retains no
+indefinite diagnostic or source-text cache. Each request closes its graph runner after capturing
+the detached result. Normal Run and Paper keep their existing session reuse.
+
+### Paper browsing (additive v4)
+
+Both live `/cases/{case}/paper` and `/package-cases/{case}/paper` accept optional
+`includeZero=true|false`; malformed or extra values are 400. Live Paper data adds optional
+`browsing: {includeZero: boolean, hideZero: boolean}` to declare support and the original layout's
+zero-hiding policy. Fixture and CLI projections may omit this field.
+
+When `includeZero=true`, the renderer overrides only `hideZero`, while preserving explicit hidden
+rows, inactive policies, values and exports. The UI requests renderer-produced rows. Text search
+navigates and highlights rows already present in the Paper; it does not remove, reorder or filter
+them (W3).
+
+### Parameter scenarios (additive frontend workflow)
+
+The generic `/scenarios` UI route accepts up to eight selected, server-provided parameter-set IDs,
+represented by repeated `scenario` query parameters. Each selection invokes the existing Compare
+resource independently against the current case, with at most two concurrent requests. The UI
+presents engine-returned values, deltas and diagnostics without calculating financial results or
+branching on application identity. The live workspace uses its existing HTTP Compare resource;
+the mounted-package extension below adds an equivalent read-only host capability, with no engine
+calculation-contract changes.
+
+Mounted-package workspace data may add `parameters` descriptors containing `id`
+(`mount/resourcePath`), `title`, `schema` and `schemaVersion`. The read-only
+`POST /api/v1/package-cases/{case}/compare` accepts exactly `variantParameters` (one to eight
+distinct scoped parameter resource IDs), `effectiveDate` (an explicit ISO `YYYY-MM-DD` date) and
+`expectedRevision` (the baseline root graph revision). Malformed requests are 400 and a stale
+baseline is 409. Only captured parameter resources belonging to the actual root-selected schema
+and mount are eligible; selections do not write cases or change their pins.
+
+The server uses the existing `ParameterSelector.whatIf` with the supplied date and captured
+parameter keys, then projects the existing engine Compare result. The outer package document
+wrapper embeds Compare and preserves scoped IDs; dates and provenance come from the variant
+selection. This scenario capability is independent of the migration workflow shown by the existing
+Parameters page.

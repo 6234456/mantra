@@ -1,6 +1,10 @@
 package com.xqiou.mantra.render.pdf
 
 import com.xqiou.mantra.render.layout.Align
+import com.xqiou.mantra.render.layout.StyleFill
+import com.xqiou.mantra.render.layout.StyleSpec
+import com.xqiou.mantra.render.layout.StyleTone
+import com.xqiou.mantra.render.layout.StyleWeight
 import com.xqiou.mantra.render.paper.PaperTable
 import com.xqiou.mantra.render.paper.RowKind
 import com.xqiou.mantra.render.paper.WorkingPaper
@@ -213,15 +217,43 @@ private class Pages(
         }
         table.rows.forEach { row ->
             val strong = row.kind in setOf(RowKind.HEADING, RowKind.SUBTOTAL, RowKind.RESULT, RowKind.TOTAL)
-            row(row.cells, widths, aligns, strong, row.kind in setOf(RowKind.RESULT, RowKind.TOTAL))
+            val styles = widths.indices.map { row.style.merge(row.cellStyles.getOrNull(it) ?: StyleSpec()) }
+            row(row.cells, widths, aligns, strong, row.kind in setOf(RowKind.RESULT, RowKind.TOTAL), styles)
         }
         tableContinuation = null
         y -= 14f
     }
 
-    private fun row(cells: List<String>, widths: List<Float>, aligns: List<Align>, strong: Boolean, fill: Boolean) {
-        val font = if (strong) bold else regular
-        val lines = widths.indices.map { index -> wrap(cells.getOrElse(index) { "" }, font, 8f, widths[index] - 10f) }
+    private fun row(
+        cells: List<String>,
+        widths: List<Float>,
+        aligns: List<Align>,
+        strong: Boolean,
+        fill: Boolean,
+        styles: List<StyleSpec> = emptyList(),
+    ) {
+        val fonts = widths.indices.map { index ->
+            val weight = styles.getOrNull(index)?.weight
+            if (weight == StyleWeight.BOLD || (weight == null && strong)) bold else regular
+        }
+        val colors = widths.indices.map { index ->
+            when (styles.getOrNull(index)?.tone) {
+                StyleTone.MUTED -> Color(107, 114, 128)
+                StyleTone.ACCENT -> Color(31, 95, 191)
+                else -> Color(23, 38, 48)
+            }
+        }
+        val fills = widths.indices.map { index ->
+            when (styles.getOrNull(index)?.fill) {
+                StyleFill.NONE -> null
+                StyleFill.SUBTLE -> Color(0xE7EAEE)
+                StyleFill.ACCENT -> Color(0xEEF3FA)
+                null -> if (fill) Color(232, 239, 242) else null
+            }
+        }
+        val lines = widths.indices.map { index ->
+            wrap(cells.getOrElse(index) { "" }, fonts[index], 8f, widths[index] - 10f)
+        }
         var first = 0
         val total = lines.maxOfOrNull { it.size } ?: 1
         while (first < total) {
@@ -229,13 +261,25 @@ private class Pages(
             val available = ((y - bottom - 8f) / 11f).toInt().coerceAtLeast(1)
             val take = minOf(total - first, available)
             val height = take * 11f + 8f
-            if (fill) {
-                stream!!.setNonStrokingColor(Color(232, 239, 242))
+            // Preserve the original full-width fill and drawing order when every cell agrees.
+            if (fills.firstOrNull() != null && fills.all { it == fills.first() }) {
+                stream!!.setNonStrokingColor(fills.first()!!)
                 stream!!.addRect(margin, y - height, width, height)
                 stream!!.fill()
+            } else {
+                var x = margin
+                fills.forEachIndexed { column, color ->
+                    if (color != null) {
+                        stream!!.setNonStrokingColor(color)
+                        stream!!.addRect(x, y - height, widths[column], height)
+                        stream!!.fill()
+                    }
+                    x += widths[column]
+                }
             }
             var x = margin
             widths.forEachIndexed { column, columnWidth ->
+                val font = fonts[column]
                 for (line in 0 until take) {
                     val text = lines[column].getOrNull(first + line).orEmpty()
                     val textWidth = font.getStringWidth(text) * 8f / 1000f
@@ -244,7 +288,7 @@ private class Pages(
                         Align.CENTER -> x + (columnWidth - textWidth) / 2f
                         else -> x + 5f
                     }
-                    draw(text, position, y - 11f - line * 11f, font, 8f)
+                    draw(text, position, y - 11f - line * 11f, font, 8f, colors[column])
                 }
                 x += columnWidth
             }

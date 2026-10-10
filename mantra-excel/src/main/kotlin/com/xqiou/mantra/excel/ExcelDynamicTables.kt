@@ -303,12 +303,10 @@ internal class DynamicWorkbookTables(builder: ExcelWorkbookBuilder) {
                 )
                 when (val fact = fields[column.name] ?: Value.Nil) {
                     is Value.Num -> cell.setCellValue(fact.value.toDouble())
-                    is Value.Text -> if (column.type ==
-                        ValueType.DATE
-                    ) {
-                        cell.setCellValue(java.time.LocalDate.parse(fact.value).atStartOfDay())
-                    } else {
-                        cell.setCellValue(fact.value)
+                    is Value.Text -> when (column.type) {
+                        ValueType.DATE -> cell.setCellValue(java.time.LocalDate.parse(fact.value).atStartOfDay())
+                        ValueType.KEYWORD -> cell.setCellValue(fact.value.removePrefix(":"))
+                        else -> cell.setCellValue(fact.value)
                     }
                     is Value.Kw -> cell.setCellValue(fact.name)
                     is Value.Bool -> cell.setCellValue(fact.value)
@@ -335,7 +333,8 @@ internal class DynamicWorkbookTables(builder: ExcelWorkbookBuilder) {
         type == ValueType.BOOLEAN -> XKind.BOOL
         type ==
             ValueType.DATE -> XKind.DATE
-        type == ValueType.KEYWORD || type == ValueType.TEXT -> XKind.TEXT
+        type == ValueType.KEYWORD -> XKind.KEYWORD
+        type == ValueType.TEXT -> XKind.TEXT
         else -> XKind.ANY
     }
 }
@@ -385,12 +384,10 @@ internal fun ExcelWorkbookBuilder.layoutDynamicTableInput(input: com.xqiou.mantr
         columns.forEachIndexed { col, column ->
             val slot = ExcelWorkbookBuilder.Slot(sheet, row + 1, col)
             val raw = fields[Value.Kw(column.name)] ?: fields[Value.Text(column.name)] ?: Value.Nil
-            val fact = if (column.type == ValueType.DATE &&
-                raw is Value.Text
-            ) {
-                Value.Date(java.time.LocalDate.parse(raw.value))
-            } else {
-                raw
+            val fact = when {
+                column.type == ValueType.DATE && raw is Value.Text -> Value.Date(java.time.LocalDate.parse(raw.value))
+                column.type == ValueType.KEYWORD && raw is Value.Text -> Value.Kw(raw.value.removePrefix(":"))
+                else -> raw
             }
             writeValue(slot, fact)
             cell(sheet, row + 1, col).cellStyle =

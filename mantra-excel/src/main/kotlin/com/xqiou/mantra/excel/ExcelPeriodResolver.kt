@@ -8,7 +8,7 @@ data class ExcelPrevious(val first: Boolean, val value: X?)
 
 internal fun ExcelWorkbookBuilder.periodKeyValues(dimension: String): X.Vec? {
     if (view.dimensions[dimension]?.periods == null) return null
-    return X.Vec(members[dimension].orEmpty().map { Ex.text(it.key) })
+    return X.Vec(members[dimension].orEmpty().map { Ex.keyword(it.key) })
 }
 
 internal fun ExcelWorkbookBuilder.previousReference(id: String, dims: List<String>, coord: Coord): ExcelPrevious {

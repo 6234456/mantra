@@ -1,0 +1,4 @@
+(layout template/rules-paper
+  {:schema "template/rules" :schema-version "1.0.0"
+   :preset :ifrs-schedule :title "Named rules" :precision 2 :hide-zero false}
+  (table calculation {:style :tiered} :operator :label :main :status))

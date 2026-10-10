@@ -1,0 +1,20 @@
+(case template/roll-forward-demo
+  {:schema "template/roll-forward" :schema-version "1.0.0"
+   :layout "template/roll-forward-paper" :title "Fictional stock and flow inputs"}
+  (inputs {:entities (rows [:id :title :opening]
+                      [:A "Entity A" 100]
+                      [:B "Entity B" 50])
+           :movements (rows [:entity :period :amount]
+                       [:A :P1 20]
+                       [:A :P2 -5]
+                       [:A :P3 10]
+                       [:B :P1 -10]
+                       [:B :P2 5]
+                       [:B :P3 -45])
+           :reported (rows [:entity :period :closing]
+                       [:A :P1 120]
+                       [:A :P2 115]
+                       [:A :P3 125]
+                       [:B :P1 40]
+                       [:B :P2 45]
+                       [:B :P3 0])}))

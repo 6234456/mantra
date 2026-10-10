@@ -21,6 +21,7 @@ internal fun WorkspaceCatalog.resolve(
     caseText: String? = null,
     explain: ExplainAddress? = null,
     audit: Boolean = false,
+    freshDiagnostics: Boolean = false,
 ): Resolved {
     val casePath = path(caseId).toRealPath()
     if (snapshot.kind("case").none { it.path.toRealPath() == casePath }) {
@@ -46,6 +47,7 @@ internal fun WorkspaceCatalog.resolve(
                     )
                 },
             ),
+            fresh = freshDiagnostics,
         )
     } catch (error: MantraException) {
         throw WorkspaceException(WorkspaceProblem.INVALID, "Case cannot be resolved", error.diagnostics)
@@ -71,5 +73,6 @@ internal fun WorkspaceCatalog.resolve(
         view, layout, graph.cases.getValue(key).revision, binding.parameterIds, graph.explain,
         binding.packageData.schema, binding.packageData.parameters, binding.sourceOverrides, graph,
         graph.cases.mapValues { (case, run) -> loader.binding(case).layout ?: Render.defaultLayout(run.view) },
+        graph.cases.keys.associateWith(loader::sourceTexts),
     )
 }

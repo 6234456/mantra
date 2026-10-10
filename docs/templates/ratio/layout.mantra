@@ -1,0 +1,5 @@
+(layout template/ratio-paper
+  {:schema "template/ratio" :schema-version "1.0.0"
+   :preset :ifrs-schedule :title "Ratios" :hide-zero false}
+  (table ratios {:style :matrix}
+    :label (members member) :cross-total))

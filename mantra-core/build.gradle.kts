@@ -6,6 +6,13 @@ dependencies {
     api("com.xqiou:normein-dsl:${project.extra["normeinVersion"]}")
 }
 
+tasks.named<Test>("test") {
+    inputs.files(rootProject.fileTree("docs/templates") { include("**/*.mantra", "README.md") })
+        .withPropertyName("syntaxPatternTemplates")
+    inputs.files(rootProject.fileTree("docs/patterns") { include("**/*.mantra", "README.md") })
+        .withPropertyName("sharedCalculationPatterns")
+}
+
 val generatedVersionSource = layout.buildDirectory.dir("generated/sources/runtime-version")
 val generateRuntimeVersion by tasks.registering {
     val engineVersion = project.version.toString()

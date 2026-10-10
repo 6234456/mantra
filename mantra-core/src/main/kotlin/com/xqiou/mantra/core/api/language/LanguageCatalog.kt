@@ -32,6 +32,18 @@ object LanguageCatalog {
                 "Computes one typed value per coordinate.",
             ),
             form(
+                "subtract",
+                "schema,fragment,extend,section",
+                "(subtract id \"Label\" expression {options}?)",
+                "Computes a line with :op :minus; the line value retains its sign.",
+            ),
+            form(
+                "info",
+                "schema,fragment,extend,section",
+                "(info id \"Label\" expression {options}?)",
+                "Computes a line with :op :info, contributing nothing to totals.",
+            ),
+            form(
                 "formula-slot",
                 "schema,fragment,section",
                 "(formula-slot id \"Label\" expression {options}?)",
@@ -56,8 +68,20 @@ object LanguageCatalog {
                 "Selects among applicable numeric options.",
             ),
             form(
+                "choose-min",
+                "schema,fragment,extend,section",
+                "(choose-min id \"Label\" {options}? options...)",
+                "Selects the minimum applicable numeric option with :rule :min.",
+            ),
+            form(
+                "choose-max",
+                "schema,fragment,extend,section",
+                "(choose-max id \"Label\" {options}? options...)",
+                "Selects the maximum applicable numeric option with :rule :max.",
+            ),
+            form(
                 "option",
-                "choice",
+                "choice,choose-min,choose-max",
                 "(option :key \"Label\" expression {options}?)",
                 "Declares an applicable choice option.",
             ),
@@ -87,6 +111,12 @@ object LanguageCatalog {
                 "Declares a statically compiled helper function.",
             ),
             form("inputs", "case", "(inputs {:id value ...})", "Supplies fact values."),
+            form(
+                "rows",
+                "inputs",
+                "(rows [:column ...] [literal ...]...)",
+                "Supplies a case input table with ordered keyword columns and literal cells.",
+            ),
             form("params", "case", "(params {:id value ...})", "Overrides schema and parameter-layer values."),
             form("bind", "case", "(bind formula-slot-id expression)", "Replaces a declared formula slot."),
             form("extend", "case", "(extend slot-id items...)", "Adds authored items to an extension point."),

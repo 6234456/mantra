@@ -1,0 +1,18 @@
+;; Project-authored fictional already-recognized balances; no IFRS example dataset.
+(case ias12-deferred-rate-change
+  {:schema "ifrs.ias12/deferred-tax-roll-forward" :schema-version "0.1.0"
+   :layout "ifrs.ias12/deferred-tax-paper" :title "Deferred tax: rate-change"
+   :subject "Fictional demonstration entity" :period "2026–2028"
+   :prepared-by "Mantra demonstration" :reference "Independent Decimal roll-forward fixtures"}
+  (inputs {
+    :tax-items [
+      {:id :Mixed :title "PL and OCI rate-change provenance" :opening-pl-difference 100.05 :opening-oci-difference 20.15 :opening-rate 0.25}]
+    :difference-movements []
+    :tax-rates [
+      {:period :P1 :rate 0.25}
+      {:period :P2 :rate 0.30}
+      {:period :P3 :rate 0.20}]
+    :reported-tax-closings [
+      {:period :P1 :signed-tax 30.05}
+      {:period :P2 :signed-tax 36.07}
+      {:period :P3 :signed-tax 24.04}]}))

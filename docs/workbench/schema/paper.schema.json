@@ -24,6 +24,22 @@
         "theme"
       ],
       "properties": {
+        "browsing": {
+          "type": "object",
+          "required": [
+            "includeZero",
+            "hideZero"
+          ],
+          "properties": {
+            "includeZero": {
+              "type": "boolean"
+            },
+            "hideZero": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
         "title": {
           "type": "string"
         },
@@ -238,6 +254,9 @@
                           },
                           "style": {
                             "$ref": "envelope.schema.json#/$defs/style"
+                          },
+                          "styleOverrides": {
+                            "$ref": "envelope.schema.json#/$defs/styleOverrides"
                           }
                         },
                         "additionalProperties": false

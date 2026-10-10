@@ -1,0 +1,6 @@
+(layout pattern/capped-paper
+  {:schema "pattern/capped-allocation" :schema-version "1.0.0"
+   :preset :ifrs-schedule :style-preset [:utilities :working-paper]
+   :title "Capacity and conservation" :precision 2 :hide-zero false}
+  (table allocation {:style :matrix} :label (members member) :cross-total :status)
+  (table controls {:style :tiered} :operator :label :main :status))

@@ -2,6 +2,7 @@ import { LiveData, WorkbenchReadError } from '../data'
 import { addressToPath } from '../address'
 import type {
   Address,
+  Compare,
   Diagnostics,
   EditOperation,
   EditResult,
@@ -14,6 +15,7 @@ import type {
   Parameters,
   Run,
   Structure,
+  SourceContext,
   Workspace,
 } from '../types'
 
@@ -38,6 +40,12 @@ export class PackageData extends LiveData {
   }
   canCompareParameters() {
     return false
+  }
+  canCompareScenarios() {
+    return true
+  }
+  parameterComparisonDateRequired() {
+    return true
   }
   private readonly editableCases = new Map<string, boolean>()
   canEditCase(id: string) {
@@ -107,7 +115,9 @@ export class PackageData extends LiveData {
           diagnostics: [],
         })),
       ),
-      parameters: [],
+      parameters: index.data.packages.flatMap((pkg) =>
+        (pkg.parameters ?? []).map((parameter) => ({ id: parameter.id, path: parameter.id })),
+      ),
       layouts: [],
     }
   }
@@ -117,16 +127,21 @@ export class PackageData extends LiveData {
   async run(id: string, signal?: AbortSignal) {
     return this.unwrap(await this.wrapper<Run>(id, 'run', signal))
   }
-  async paper(id: string, panel?: string, signal?: AbortSignal) {
-    return this.unwrap(
-      await this.wrapper<Paper>(id, `paper${panel ? `?panel=${encodeURIComponent(panel)}` : ''}`, signal),
-    )
+  async paper(id: string, panel?: string, signal?: AbortSignal, includeZero?: boolean) {
+    const query = new URLSearchParams()
+    if (panel) query.set('panel', panel)
+    if (includeZero !== undefined) query.set('includeZero', String(includeZero))
+    return this.unwrap(await this.wrapper<Paper>(id, `paper${query.size ? `?${query}` : ''}`, signal))
   }
   async parameters(id: string, signal?: AbortSignal) {
     return this.unwrap(await this.wrapper<Parameters>(id, 'parameters', signal))
   }
   async diagnostics(id: string, signal?: AbortSignal) {
     return this.unwrap(await this.wrapper<Diagnostics>(id, 'diagnostics', signal))
+  }
+  async sourceContext(id: string, diagnosticIndex: number, expectedRevision: string, signal?: AbortSignal) {
+    const query = new URLSearchParams({ diagnostic: String(diagnosticIndex), expectedRevision })
+    return this.unwrap(await this.wrapper<SourceContext>(id, `diagnostic-source?${query}`, signal))
   }
   async explain(
     id: string,
@@ -182,8 +197,23 @@ export class PackageData extends LiveData {
       }),
     )
   }
-  compare(): never {
-    throw new Error('Package parameter changes use an explicit reviewed migration')
+  async compare(
+    id: string,
+    parameterSets: string[],
+    signal?: AbortSignal,
+    effectiveDate?: string,
+  ): Promise<Envelope<Compare>> {
+    if (!effectiveDate || !/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate))
+      throw new Error('An explicit effective date is required for package scenarios')
+    const baseline = await this.wrapper<Run>(id, 'run', signal)
+    this.unwrap(baseline)
+    return this.unwrap(
+      await this.request<PackageDocument<Compare>>(
+        this.path(id, 'compare'),
+        { variantParameters: parameterSets, effectiveDate, expectedRevision: baseline.revision },
+        signal,
+      ),
+    )
   }
   authoring(): never {
     throw new Error('Formula authoring is unavailable for this read-only package view')

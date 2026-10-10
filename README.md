@@ -30,6 +30,33 @@ schema + case + parameters ─▶ mantra-core ─▶ calculation values and trac
 
 Requirements: JDK 21, Git, and Node.js 22.13+ (22.x) or 24+ for the workbench frontend and browser tests. Normein targets JVM 17; Mantra uses a JDK 21 toolchain.
 
+For live local development on macOS or Linux (Python 3.10+), run:
+
+```bash
+scripts/dev.sh
+```
+
+The launcher builds the CLI, installs frontend dependencies when needed, starts the backend and
+Vite, and opens `http://127.0.0.1:5173`. Frontend edits update through Vite. Editable case copies
+are kept in ignored `build/dev/cases`; captured schemas, layouts and parameter resources reload
+when the launcher restarts. Press Ctrl+C to stop its services. `scripts/dev.sh --check` runs
+repository checks, frontend tests and live HTTP checks. See [local development](CONTRIBUTING.md)
+for ports, prerequisites and browser tests.
+
+The workbench provides diagnostic source excerpts, zero-row browsing and table search, and
+parameter scenario comparisons. Package scenarios require an explicit effective date and keep
+the authored case unchanged. The [IAS12 demonstration](apps/ifrs-income-taxes/README.md) also
+includes an independently checked three-period deferred-tax roll-forward.
+
+For schema authoring, see the [calculation-pattern quick reference](docs/syntax-patterns.md)
+and [runnable templates](docs/templates/README.md). Compatible shorthand forms include `subtract`,
+`info`, `choose-min`, `choose-max` and compact case-input `rows` tables. The calculation library
+also provides strict exact-numeric `table/sum-where` and `table/count-where` helpers.
+The [shared pattern guide](docs/reusable-patterns.md) adds reusable formula fragments and
+[calculation workspaces](docs/patterns/README.md). Layouts can opt into `:utilities` and
+`:working-paper` style presets, define `style-class` declarations and compose them with `:use`.
+The existing item `:class` tags work across HTML, XLSX, PDF and Workbench.
+
 The default build resolves `com.xqiou:normein-dsl:0.3.0` from Maven Central. A Normein source
 checkout or private-repository credentials are not required.
 

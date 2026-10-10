@@ -449,6 +449,7 @@ public final class com/xqiou/mantra/excel/XKind : java/lang/Enum {
 	public static final field ANY Lcom/xqiou/mantra/excel/XKind;
 	public static final field BOOL Lcom/xqiou/mantra/excel/XKind;
 	public static final field DATE Lcom/xqiou/mantra/excel/XKind;
+	public static final field KEYWORD Lcom/xqiou/mantra/excel/XKind;
 	public static final field NUM Lcom/xqiou/mantra/excel/XKind;
 	public static final field TEXT Lcom/xqiou/mantra/excel/XKind;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;

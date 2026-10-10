@@ -7,6 +7,7 @@ import type {
   EnvelopeAggregate,
   EnvelopeLink,
   EnvelopeCaseGraph,
+  EnvelopeStyleOverrides,
   ExportPreview as WireExportPreview,
   Paper as WirePaper,
   Run as WireRun,
@@ -15,6 +16,7 @@ import type {
   Workspace as WireWorkspace,
   Parameters as WireParameters,
   Compare as WireCompare,
+  SourceContext as WireSourceContext,
 } from './generated/contract'
 
 export type Value = WireValue
@@ -125,6 +127,7 @@ export interface Cell {
   address?: Address | null
   editable?: boolean
   style?: { weight?: string; tone?: string; fill?: string }
+  styleOverrides?: EnvelopeStyleOverrides
 }
 export interface PaperColumn {
   id: string
@@ -164,6 +167,7 @@ export interface AuditEntry {
   aggregate?: Aggregate | null
 }
 export type Paper = Pick<WirePaper['data'], 'title' | 'header' | 'overview' | 'auxiliary' | 'legend'> & {
+  browsing?: WirePaper['data']['browsing']
   subtitle?: string | null
   headline?: { node: string; label: string; value: string } | null
   inputGroups?: Array<{ key: string; title: string; inputs: string[] }>
@@ -320,6 +324,7 @@ export interface FormulaEditResult {
 export interface Diagnostics {
   diagnostics: Diagnostic[]
 }
+export type SourceContext = WireSourceContext['data']
 export interface Workspace {
   cases: CaseSummary[]
   parameters?: Array<{ id: string; path: string }>

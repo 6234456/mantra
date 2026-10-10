@@ -34,6 +34,51 @@ Run the checks relevant to a change and the complete verification required by CI
 needs meaningful tests of its behavior, including independent acceptance values and formula coverage;
 small documentation corrections do not need new tests.
 
+## Local live development
+
+On macOS or Linux (including WSL), install a full JDK 21 with `java` and `javac`, Git,
+Node.js 22.13+ (22.x) or 24+, npm and Python 3.10+. Set `JAVA_HOME` to the JDK and put its
+`bin` directory on `PATH`. From the repository root, start the workbench with one command:
+
+```sh
+scripts/dev.sh
+```
+
+The launcher checks the tools, installs frontend dependencies with `npm ci` when needed,
+builds the CLI incrementally, starts the backend on `http://127.0.0.1:8080`, and starts live Vite
+on `http://127.0.0.1:5173`. It verifies an actual calculation through Vite's API proxy before
+opening your browser. Frontend changes use Vite hot reload; JVM changes require a restart.
+The Vite development integration obtains the backend session metadata and preserves the backend's
+Host and session-token checks. API writes carrying a foreign browser Origin are rejected.
+
+Package schemas, parameters and layouts are captured at startup and remain read-only. The launcher
+explicitly maps writable copies of demonstration cases under `build/dev/cases/`; input edits and
+undo/redo affect those local copies. Existing copies survive restarts and are never overwritten.
+Restart to reload changed package resources; changed manifest resources must also retain valid
+package checksums. To reset a case, stop the launcher and remove only its copy under
+`build/dev/cases/`, then restart. `--case-dir <directory>` selects a separate set of local case copies,
+and `--workspace <directory>` selects another directory of manifest packages.
+UI saves refresh the calculated documents automatically. If you edit a host-case copy with an
+external text editor, reload the browser to see its changes; package mode does not subscribe to
+the legacy workspace event stream.
+
+```sh
+scripts/dev.sh --no-browser        # start without opening a browser
+scripts/dev.sh --check             # Gradle check, frontend tests, live HTTP checks, then stop
+scripts/dev.sh --ui-port 5174      # use another Vite port; backend stays on 8080
+scripts/dev.sh --reinstall         # force a fresh npm ci
+scripts/dev.sh --skip-build        # reuse the installed CLI for frontend-only work
+```
+
+Press Ctrl+C to stop. On failures and cancellation, the launcher stops only its own services and
+Gradle session; it preserves pre-existing processes and refuses occupied ports. Session logs and
+generated configuration are kept under `build/dev/session-*/`. The session's isolated Gradle registry
+reuses existing dependency caches, wrapper downloads and configured init scripts. On a fresh machine,
+fallback caches persist under `build/dev/gradle-cache/`. The launcher never downloads a browser,
+changes browser profiles, or exposes the servers beyond loopback.
+`--check` does not run browser end-to-end tests; use the installed-browser command above when needed.
+The real startup and cleanup flow is verified on Linux; physical macOS execution remains to be verified.
+
 After a deliberate contract change, regenerate application papers and workbench fixtures with
 `MANTRA_UPDATE_GOLDEN=1 ./gradlew --no-daemon test`. Regenerate the Compare fixture through the
 CLI so its content revision stays authentic:

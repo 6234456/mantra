@@ -91,6 +91,10 @@ internal fun retainExcelEagerErrors(errors: X.Scalar, body: X): X {
         is X.MapX -> {
             if (body.keys.isEmpty()) throw Untranslatable("eager-error let cannot return an empty map")
             X.MapX(body.keys, body.values.map { retainExcelEagerErrors(errors, it) }, body.liveKeys)
+                .also {
+                    it.keywordKeys = body.keywordKeys
+                    it.implicitZeroColumns = body.implicitZeroColumns
+                }
         }
         is X.Range -> {
             if (body.keys.isEmpty()) throw Untranslatable("eager-error let cannot return an empty member map")

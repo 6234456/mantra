@@ -1,0 +1,134 @@
+.scenarios-picker > p {
+  max-width: 86ch;
+}
+.scenario-add {
+  display: grid;
+  gap: 8px;
+  max-width: 460px;
+}
+.scenario-date label {
+  display: grid;
+  gap: 8px;
+  max-width: 240px;
+}
+.scenario-date input {
+  min-height: 36px;
+  padding: 8px;
+}
+.scenario-date {
+  margin: 20px 0;
+}
+.scenario-add select {
+  min-width: 0;
+  max-width: 100%;
+}
+.scenario-selections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.scenario-selections button {
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.scenario-status-list {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.scenario-status-list > div {
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.scenario-status-list [role='alert'] {
+  color: var(--siena);
+}
+.scenario-table-scroll {
+  overflow-x: auto;
+}
+.scenario-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.scenario-table caption {
+  text-align: left;
+  margin: 0 0 12px;
+  color: var(--ink-3);
+}
+.scenario-table th,
+.scenario-table td {
+  vertical-align: top;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  min-width: 200px;
+}
+.scenario-table thead th {
+  max-width: 260px;
+  overflow-wrap: anywhere;
+}
+.scenario-table th small {
+  display: block;
+  margin-top: 6px;
+  font-weight: 400;
+}
+.scenario-values {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+.scenario-values > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.scenario-values dt {
+  color: var(--ink-3);
+  font-size: 0.8rem;
+}
+.scenario-values dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.scenario-values > div:last-child dd {
+  font-weight: 700;
+}
+.scenario-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.scenario-details {
+  margin-top: 18px;
+}
+.scenario-details summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.scenario-detail-rows > article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 320px);
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.scenario-detail-rows h3 {
+  margin: 8px 0;
+}
+.scenario-detail-rows code,
+.scenario-detail-rows p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .scenario-detail-rows > article {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

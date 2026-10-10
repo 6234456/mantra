@@ -1,0 +1,14 @@
+{
+  "name": "roll-forward-tax-rates",
+  "format": "csv",
+  "options": {
+    "input": "tax-rates",
+    "delimiter": ";",
+    "decimal": ".",
+    "path": "../data/roll-forward-tax-rates.csv",
+    "grouping": ""
+  },
+  "case": "roll-forward/case-demo.mantra",
+  "schema": "ifrs.ias12/deferred-tax-roll-forward",
+  "schema-version": "0.1.0"
+}

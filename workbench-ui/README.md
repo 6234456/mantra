@@ -60,12 +60,38 @@ For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` 
 - The Paper row JSON is expected to contain cell objects with `text`, `address`, `editable`, and controlled `style` as specified in contract §6.4. If WP3 serializes a wrapper around these rows, update only `src/data.ts` or an adapter normalization function.
 - Choice comparison uses Paper option rows when Explain is unavailable. The inspector reads member-specific Paper audit entries. Provenance requires Explain and exposes a continue control after depth five.
 - The UI deliberately has no local arithmetic or number formatting. It reads `display` and cell `text` from the engine.
-- The zero-row toggle requires a contract field or endpoint that exposes both shown and hidden rows. Current Paper reflects only the layout's visibility choice, so the toggle is deferred.
+- Live panel tables can reveal zero rows through `includeZero=true` on the Paper endpoint; unchecking restores the bound layout's visibility. The server renders these rows without changing inputs, calculation values, explicitly hidden rows or exports. Paper responses declare `browsing`; static fixture previews disable the toggle. Find in table highlights matching rows and moves between them with the arrow buttons or Enter/Shift+Enter, preserving all rows and their order.
 - Parameter layers, effective values and read-only parameter-set comparison use Parameters and Compare documents. `/cases/{case}/parameters?compare=<set-id>` is directly linkable and follows browser history. Comparison shows mainline, every changed panel/node, and effective parameter changes. The diagnostics page filters category and severity, shows source locations, row/column positions, and links input findings to their editor or calculated findings to their panel. Business errors set `validationPassed` to false while valid edits can still be saved; an unchanged implicit zero or false can be confirmed as an explicit required fact.
 - Weighted aggregates display engine-owned numerator/denominator totals, rounding, included members, fixed context, undefined reasons and truncation. They use `aggregate.<node>` addresses. Total parts and Paper audit fallback show the same evidence; the UI never computes a ratio or invents kernel steps.
 - The diagnostics response contains locations but no source text. The detail view shows line, column and offsets; a line-numbered source excerpt requires a later source-text API.
 - Export shows workbook sheets, a bounded cell preview, formulas, and the exporter fidelity report. Fixture mode uses tracked previews; live mode offers XLSX, HTML, text and PDF downloads. Live edits retain raw input text on rejection and refresh the server's calculated effects after saving.
 
 No browser binaries or test daemons are installed by this package. Fonts use local system fallbacks; the UI makes no remote font request and remains usable offline.
+
+## Parameter scenarios
+
+The Scenarios page compares up to eight named parameter sets against the current case. Each
+column uses the existing read-only Compare operation, replacing the case's bound parameter sets
+with one selected set while retaining case overrides. At most two comparisons run at a time;
+failed scenarios retain their own error while other results remain available. Reload scenarios
+repeats the comparison batch. Leaving the page cancels pending requests.
+
+Selections use `/cases/{case}/scenarios?scenario=<set-id>&scenario=<another-set-id>` and follow browser
+history. The navigation link retains the most recent selection for each case while the app stays
+open. Unknown ids are rejected locally, and an over-limit URL sends no comparisons. Tables show
+the engine's base, variant and delta display strings, including parameter provenance and changed
+nodes. Mainline rows and scenario details have 50-row pages; the UI computes no financial values.
+Each result retains its own comparison revision because the comparisons are independent snapshots.
+
+Captured package scenarios require an explicitly chosen effective date. The page sends no comparison
+until a valid ISO date is selected; the server checks parameter validity for that date and exact schema.
+Package resources keep their scoped ids (`<mount>/<parameter-path>`), and selections and the date
+remain together in the URL: `?scenario=<scoped-id>&effectiveDate=2026-07-01`. Choosing a different date
+cancels the previous batch and discards its late results. The ordinary Parameters page remains
+unavailable for package comparisons; the Scenarios page declares the separate capability.
+
+Live mode calculates the selected scenarios; fixture mode reads only available tracked Compare
+documents and reports missing combinations explicitly. Adapters without parameter comparison
+capability show an explanation instead of sending unsupported requests.
 
 Package mounts expose only their declared capabilities: captured sources/parameters are read-only, while explicitly mapped host cases can edit inputs, select eligible parameter layers and apply reviewed migrations with stale-revision checks and undo/redo. The UI persists system/light/dark appearance and uses the generated diagnostic catalogue for English/German messages; this does not claim every legacy page label is translated.

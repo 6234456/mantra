@@ -52,8 +52,15 @@ internal class PackageWorkbenchRoutes(
         val case = decode(match.groupValues[1])
         val action = match.groupValues[2]
         if (method == "GET" && action in setOf("run", "structure", "paper", "parameters", "diagnostics", "sources")) {
-            require(query.keys.all { it == "panel" } && (action == "paper" || query.isEmpty()))
-            return catalog.document(case, action, query["panel"])
+            require(query.keys.all { it in setOf("panel", "includeZero") } && (action == "paper" || query.isEmpty()))
+            require("includeZero" !in query || query["includeZero"] in setOf("true", "false")) {
+                "includeZero must be true or false"
+            }
+            return catalog.document(case, action, query["panel"], query["includeZero"] == "true")
+        }
+        if (method == "GET" && action == "diagnostic-source") {
+            val request = diagnosticSourceRequest(query)
+            return catalog.sourceContext(case, request.first, request.second)
         }
         if (method == "GET" && action == "export-preview") {
             require(query.keys.all { it == "sheet" })
@@ -102,6 +109,26 @@ internal class PackageWorkbenchRoutes(
             return root[name].textValue()
         }
         return when (action) {
+            "compare" -> {
+                fields("variantParameters", "effectiveDate", "expectedRevision")
+                val parameters = root["variantParameters"]
+                require(parameters.isArray && parameters.size() in 1..8 && parameters.all { it.isTextual }) {
+                    "Captured parameter resource IDs are required"
+                }
+                val date = text("effectiveDate")
+                require(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}").matches(date)) { "An explicit ISO date is required" }
+                val effectiveDate = try {
+                    java.time.LocalDate.parse(date)
+                } catch (_: java.time.DateTimeException) {
+                    throw WorkspaceException(WorkspaceProblem.REQUEST, "An explicit valid ISO date is required")
+                }
+                catalog.compare(
+                    case,
+                    parameters.map { it.textValue() },
+                    effectiveDate,
+                    text("expectedRevision"),
+                )
+            }
             "migration-preview" -> {
                 fields("baseRevision", "targetCase")
                 catalog.previewMigration(case, text("baseRevision"), text("targetCase"))

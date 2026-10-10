@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- Add opt-in utility and working-paper style class presets, local `style-class` declarations
+  and named declaration reuse with `:use`, retaining the existing per-property rule-order cascade.
+  Apply resolved cell styles in PDF as well as HTML, XLSX and Workbench without changing values.
+- Extract explicit-scale formula fragments and runnable actual/baseline, source-control,
+  capped-allocation and guarded-ratio patterns with independent arithmetic and reconciliation.
+- Add compatible host shorthand forms `subtract`, `info`, `choose-min` and `choose-max`,
+  compact case-input `rows` literals with original cell locations, and strict exact-numeric
+  `table/sum-where` / `table/count-where` functions. Preserve existing declaration meanings,
+  structured editing and formula-source positions; document missing/nil and empty-result behavior.
+- Add a calculation-pattern quick reference and runnable ratio, allocation, roll-forward and
+  conditional-rule templates with independently stated arithmetic expectations.
+- Add a single-command local workbench launcher with Vite preview, editable host case copies,
+  prerequisite checks, functional readiness and owned-process cleanup.
+- Show bounded diagnostic source excerpts with line numbers, highlights, stable finding selection and revision checks in
+  live and captured-package workspaces.
+- Add renderer-controlled zero-row browsing and table search navigation without changing exports.
+- Compare up to eight parameter scenarios using engine differences; captured packages require an
+  explicit effective date and scoped resources, with no authored-case writes.
+- Add a three-period IAS12 deferred-tax roll-forward demonstration with separate schema, import
+  samples, independent Decimal expectations and profit/loss, OCI and rate-change reconciliation.
 - Resolve the published `com.xqiou:normein-dsl:0.3.0` kernel from Maven Central by default;
   CI and isolated POM consumers no longer require a private checkout or deploy key.
   Source substitution remains an explicit pinned-development option.

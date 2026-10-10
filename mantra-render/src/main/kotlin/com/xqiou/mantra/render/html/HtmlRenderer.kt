@@ -208,7 +208,7 @@ object HtmlRenderer {
             }.orEmpty()
             appendLine("<tr class=\"${esc(classes.joinToString(" "))}\"$id$location>")
             table.columns.forEachIndexed { index, column ->
-                val cellStyle = styleAttribute(row.cellStyles.getOrNull(index) ?: row.style)
+                val cellStyle = styleAttribute(row.cellStyles.getOrNull(index)?.let(row.style::merge) ?: row.style)
                 val raw = row.cells[index]
                 val content = when {
                     column.content == ColumnContent.Label -> {

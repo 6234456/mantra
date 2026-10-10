@@ -13,6 +13,7 @@ const names = [
   'run',
   'paper',
   'diagnostics',
+  'source-context',
   'workspace',
   'compare',
   'parameters',

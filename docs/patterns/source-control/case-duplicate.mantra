@@ -1,0 +1,10 @@
+(case pattern/source-duplicate
+  {:schema "pattern/source-control" :schema-version "1.0.0"
+   :layout "pattern/source-paper" :title "Duplicate sources preserve a matching sum"}
+  (inputs {:buckets (rows [:id :title :reported]
+                      [:A "Bucket A" 40]
+                      [:B "Bucket B" 15])
+           :source-values (rows [:bucket :value]
+                            [:A 25]
+                            [:A 15]
+                            [:B 15])}))

@@ -1,0 +1,14 @@
+{
+  "name": "roll-forward-reported-tax-closings",
+  "format": "csv",
+  "options": {
+    "input": "reported-tax-closings",
+    "delimiter": ";",
+    "decimal": ".",
+    "path": "../data/roll-forward-reported-tax-closings.csv",
+    "grouping": ""
+  },
+  "case": "roll-forward/case-demo.mantra",
+  "schema": "ifrs.ias12/deferred-tax-roll-forward",
+  "schema-version": "0.1.0"
+}

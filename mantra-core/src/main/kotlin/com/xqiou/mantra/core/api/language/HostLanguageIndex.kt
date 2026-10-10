@@ -178,6 +178,8 @@ internal class HostLanguageIndex(private val plan: CalculationPlan, contexts: Li
                         } else {
                             setOf(LanguageSymbolKind.PARAMETER)
                         }
+                        // Input values include (rows ...) table literals. Only their owning input
+                        // keys are host references; headers and cells are data, never root uses.
                         list.values.drop(1).filterIsInstance<DslForm.Sequence>().forEach { map ->
                             map.values.chunked(2).filter { it.size == 2 }.forEach { use(it[0], expected) }
                         }

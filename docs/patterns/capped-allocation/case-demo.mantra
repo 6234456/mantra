@@ -1,0 +1,8 @@
+(case pattern/capped-demo
+  {:schema "pattern/capped-allocation" :schema-version "1.0.0"
+   :layout "pattern/capped-paper" :title "Request fits the combined capacities"}
+  (inputs {:requested-units 8 :unit-value 10
+           :entries (rows [:id :title :weight :capacity]
+                      [:A "Member A" 1 10]
+                      [:B "Member B" 2 30]
+                      [:C "Member C" 3 100])}))

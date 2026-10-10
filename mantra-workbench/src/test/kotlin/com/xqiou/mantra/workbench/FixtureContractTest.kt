@@ -46,7 +46,7 @@ class FixtureContractTest {
     private val golden = Path.of("mantra-workbench/src/test/resources/golden")
     private val schemaDirectory = Path.of("docs/workbench/schema")
 
-    private fun canonicalFixture(text: String): Value {
+    private fun canonicalFixture(text: String, indexedBytesVary: Boolean = false): Value {
         val stepsKey = Value.Kw("steps")
         val branchesKey = Value.Kw("branches")
         val eventKey = Value.Kw("eventId")
@@ -89,7 +89,69 @@ class FixtureContractTest {
             }
             else -> value
         }
-        return visit(Json.parse(text))
+        val parsed = Json.parse(text)
+        fun replace(value: Value, path: List<String>): Value {
+            if (path.isEmpty()) return Value.Text("0")
+            val map = value as Value.MapV
+            val key = Value.Kw(path.first())
+            return Value.MapV(map.entries + (key to replace(map.entries.getValue(key), path.drop(1))))
+        }
+        // Workspace indexing reads unrelated documents too; physical bytes vary as applications are added.
+        // Preserve every other usage field and compare all participating case evidence exactly.
+        val comparable = if (indexedBytesVary) {
+            replace(parsed, listOf("data", "usage", "counters", "participating-bytes"))
+        } else {
+            parsed
+        }
+        return visit(comparable)
+    }
+
+    private fun assertParticipatingBytesBounded(text: String): Long {
+        val document = Json.parse(text) as Value.MapV
+        val data = document.entries.getValue(Value.Kw("data")) as Value.MapV
+        val usage = data.entries.getValue(Value.Kw("usage")) as Value.MapV
+        fun bytes(field: String): Long {
+            val values = usage.entries.getValue(Value.Kw(field)) as Value.MapV
+            return (values.entries.getValue(Value.Kw("participating-bytes")) as Value.Text).value.toLong()
+        }
+        val actual = bytes("counters")
+        assertTrue(actual > 0, "Participating bytes must record captured source bytes")
+        assertTrue(actual <= bytes("limits"), "Participating bytes must remain within the declared budget")
+        return actual
+    }
+
+    @Test
+    fun `unrelated indexed documents add exact UTF8 bytes without changing case evidence`() {
+        val temp = Files.createTempDirectory("mantra-fixture-index-bytes-")
+        try {
+            Files.writeString(
+                temp.resolve("schema.mantra"),
+                """
+                (schema test/indexed {}
+                  (input principal :decimal)
+                  (section main "Main" (line result "Result" (+ principal 1))))
+                """.trimIndent(),
+            )
+            Files.writeString(
+                temp.resolve("case.mantra"),
+                "(case sample {:schema \"test/indexed\"} (inputs {:principal 12}))",
+            )
+            fun run(): String = WorkspaceCatalog(temp).use { catalog ->
+                catalog.envelope(catalog.document("case.mantra", "run"))
+            }
+            val before = run()
+            val unrelated = "(schema test/unrelated {:title \"未使用 λ🙂\"} (input unused :decimal))"
+            Files.writeString(temp.resolve("unrelated.mantra"), unrelated)
+            val after = run()
+            assertEquals(
+                unrelated.toByteArray(Charsets.UTF_8).size.toLong(),
+                assertParticipatingBytesBounded(after) - assertParticipatingBytesBounded(before),
+            )
+            assertNotEquals(canonicalFixture(before), canonicalFixture(after))
+            assertEquals(canonicalFixture(before, indexedBytesVary = true), canonicalFixture(after, true))
+        } finally {
+            Files.walk(temp).use { stream -> stream.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) }
+        }
     }
 
     @Test
@@ -324,9 +386,10 @@ class FixtureContractTest {
                     val name = key.substringBefore(':')
                     val relative = (url as String).removePrefix("/fixtures/")
                     val generated = Files.readString(temp.resolve(relative))
+                    if (name == "run") assertParticipatingBytesBounded(generated)
                     assertEquals(
-                        canonicalFixture(Files.readString(golden.resolve(relative))),
-                        canonicalFixture(generated),
+                        canonicalFixture(Files.readString(golden.resolve(relative)), indexedBytesVary = name == "run"),
+                        canonicalFixture(generated, indexedBytesVary = name == "run"),
                         "${entry.id}/$key changed",
                     )
                     val schema = registry.getSchema(

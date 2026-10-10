@@ -133,7 +133,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
         resolver.chargeScans()
         form.number?.let { return Ex.num(it) }
         form.string?.let { return Ex.text(it) }
-        form.keyword?.let { return Ex.text(it) }
+        form.keyword?.let { return Ex.keyword(it) }
         form.symbol?.let { return symbol(it, ctx) }
         return when (form) {
             is DslForm.Postfix -> {
@@ -155,7 +155,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
                                 ?: throw Untranslatable("map keys must be keywords")
                         },
                         pairs.map { (_, v) -> translate(v, ctx) },
-                    )
+                    ).also { it.keywordKeys = pairs.all { (key, _) -> key.keyword != null } }
                 }
                 DslFormSequenceKind.LIST -> call(form, ctx)
                 else -> throw Untranslatable("${form.kind.name.lowercase()} literal")
@@ -509,6 +509,16 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
             }
             "alloc/waterfall" -> waterfall(s(0), translate(args[1], ctx))
             "table/band" -> band(s(0), translate(args[1], ctx), args.getOrNull(2)?.let { scalar(it, ctx) })
+            "table/sum-where", "table/count-where" -> {
+                arity(if (head == "table/sum-where") 3 else 2)
+                val values = args.map { translate(it, ctx) }
+                val errors = excelOrderedErrors(values.map { eagerErrors(it) }, ::materialize)
+                val enabled = if (errors == Ex.ZERO) Ex.TRUE else not(Ex.fn("ISERROR", errors, kind = XKind.BOOL))
+                val selected = withLazyGuard(enabled) {
+                    tableQuery(values[0], values[1], values.getOrNull(2), ::materialize, resolver::chargeScans)
+                }
+                retainEagerErrors(errors, selected)
+            }
             "fin/npv" -> {
                 // Mapped lets retain construction errors before reaching this consumer. Keep
                 // those complete cash flows in live cells rather than duplicating their guards
@@ -574,7 +584,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     /** Clojure truthiness: only nil and false are falsey. */
     private fun isNil(x: X.Scalar): X.Scalar = when {
         Ex.isTextLiteral(x) -> Ex.FALSE
-        x.kind == XKind.DATE || x.numericOrNil -> Ex.cmp("=", x, Ex.EMPTY)
+        x.kind == XKind.DATE || x.kind == XKind.KEYWORD || x.numericOrNil -> Ex.cmp("=", x, Ex.EMPTY)
         x.booleanOrNil -> Ex.cmp("=", x, Ex.EMPTY)
         else -> throw Untranslatable("nil test cannot distinguish nullable text from empty text")
     }
@@ -582,7 +592,7 @@ class FormulaTranslator(private val resolver: ExcelResolver, functions: List<Fun
     fun truthy(x: X.Scalar): X.Scalar = when {
         Ex.isTextLiteral(x) -> Ex.TRUE
         x.booleanOrNil -> Ex.iff(Ex.cmp("=", x, Ex.EMPTY), Ex.FALSE, x)
-        x.numericOrNil || x.kind == XKind.DATE -> Ex.cmp("<>", x, Ex.EMPTY)
+        x.numericOrNil || x.kind == XKind.DATE || x.kind == XKind.KEYWORD -> Ex.cmp("<>", x, Ex.EMPTY)
         else -> throw Untranslatable("truthiness cannot distinguish nullable text from empty text")
     }
 

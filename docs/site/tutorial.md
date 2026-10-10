@@ -64,3 +64,15 @@ In the exported workbook, change the basis input from `1200` to `2000`. The char
 In the case, supply a negative basis to exercise its declared minimum and the nonnegative check. Business findings preserve calculation values: inspect `validationPassed` separately from technical `succeeded`. `/` by zero is a technical runtime error; `decimal/divide` by zero returns nil. Do not infer error behavior from the display of an empty cell.
 
 Use the [diagnostic directory](site:reference/diagnostics.html) to interpret codes, and the [embedding tutorial](site:embedding.html) to calculate and export through public APIs.
+
+## Reuse other calculation patterns
+
+The [syntax pattern guide](repo:docs/syntax-patterns.md) groups the DSL by facts, signed totals,
+choices, dimensions, table matching and period calculations. It explains `info`, `subtract`,
+`choose-min`, `choose-max` and compact case `rows` literals with their canonical equivalents.
+The [copyable templates](repo:docs/templates/README.md) provide runnable schema/case/layout sets
+for separately rounded ratios, exact rounded allocation, stock/flow roll-forwards and named rules.
+The [reusable pattern guide](repo:docs/reusable-patterns.md) adds shared typed formula fragments,
+source controls, actual/baseline comparisons and capped allocation. Its
+[pattern workspace](repo:docs/patterns/README.md) includes browser preview instructions and reusable
+presentation class presets.

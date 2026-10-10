@@ -36,6 +36,7 @@ import com.xqiou.mantra.render.pdf.PdfRenderException
 import com.xqiou.mantra.render.pdf.PdfRenderer
 import com.xqiou.mantra.render.text.TextRenderer
 import com.xqiou.mantra.workbench.CaseTextEditor
+import com.xqiou.mantra.workbench.DiagnosticSources
 import com.xqiou.mantra.workbench.EditorValueParser
 import com.xqiou.mantra.workbench.ExportBudget
 import com.xqiou.mantra.workbench.ExportDocuments
@@ -107,9 +108,10 @@ class PackageWorkspaceCatalog(
         candidates: Map<String, SourceText>,
         audit: Boolean = true,
         explain: CaseExplainAddress? = null,
+        comparisonChoices: Map<String, PackageParameterChoice> = emptyMap(),
     ): Execution {
         require(catalog.resolveCase(case).canonicalPath == case) { "A canonical mounted case key is required" }
-        val resolver = PackageHostResolver(catalog, policies, editable, candidates)
+        val resolver = PackageHostResolver(catalog, policies, editable, candidates, comparisonChoices)
         val graph = CaseGraphRunner(resolver).use {
             it.run(
                 CaseRunRequest(
@@ -137,6 +139,14 @@ class PackageWorkspaceCatalog(
                     "parameterSetCount" to snapshot.manifest.parameters.size,
                     "layoutCount" to snapshot.manifest.layouts.size,
                     "capturedBytes" to snapshot.totalByteLength.toString(),
+                    "parameters" to snapshot.manifest.parameters.map { parameter ->
+                        mapOf(
+                            "id" to "${mount.name}/${parameter.path}",
+                            "title" to parameter.id,
+                            "schema" to parameter.schema.identity.id,
+                            "schemaVersion" to parameter.schema.identity.version,
+                        )
+                    },
                     "cases" to snapshot.manifest.cases.map { case ->
                         val key = "${mount.name}/${case.path}"
                         linkedMapOf(
@@ -153,7 +163,11 @@ class PackageWorkspaceCatalog(
     )
 
     @Synchronized
-    fun document(case: String, name: String, panel: String? = null): Map<String, Any?> {
+    fun document(case: String, name: String, panel: String? = null): Map<String, Any?> =
+        document(case, name, panel, false)
+
+    @Synchronized
+    fun document(case: String, name: String, panel: String? = null, includeZero: Boolean): Map<String, Any?> {
         val execution = evaluate(case, audit = name == "paper")
         val graph = execution.graph
         val view = graph.result?.view
@@ -164,7 +178,7 @@ class PackageWorkspaceCatalog(
             when (name) {
                 "run" -> WorkbenchDocuments.run(view, layout, graph)
                 "structure" -> WorkbenchDocuments.structure(view)
-                "paper" -> WorkbenchDocuments.paper(view, layout, panel)
+                "paper" -> WorkbenchDocuments.paper(view, layout, panel, includeZero)
                 "parameters" -> WorkbenchDocuments.parameters(view)
                 "diagnostics" -> WorkbenchDocuments.diagnostics(ownedDiagnostics(graph))
                 "sources" -> mapOf(
@@ -196,6 +210,102 @@ class PackageWorkspaceCatalog(
                         WorkbenchJson.envelope(requireNotNull(execution.revision), mantraVersion, normeinVersion, it)
                     },
                 "diagnostics" to ownedDiagnostics(graph).map(WorkbenchDocuments::diagnostic),
+            ),
+        )
+    }
+
+    @Synchronized
+    fun compare(
+        case: String,
+        variantParameters: List<String>,
+        effectiveDate: java.time.LocalDate,
+        expectedRevision: String,
+    ): Map<String, Any?> {
+        require(Regex("[0-9a-f]{64}").matches(expectedRevision)) { "An exact baseline revision is required" }
+        require(variantParameters.size in 1..8 && variantParameters.distinct().size == variantParameters.size) {
+            "Choose between one and eight distinct captured parameter resources"
+        }
+        val base = evaluate(case, audit = false)
+        requireSuccess(base)
+        checkRevision(expectedRevision, checkNotNull(base.revision))
+        val key = checkNotNull(base.graph.root)
+        val binding = checkNotNull(base.bindings[key])
+        val resourceCase = binding.resourceCase
+        val mount = resourceCase.canonicalPath.removeSuffix("/${resourceCase.entry.path}")
+        val entries = resourceCase.snapshot.manifest.parameters.filter { it.schema == resourceCase.entry.schema }
+            .associateBy { "$mount/${it.path}" }
+        val selected = variantParameters.map { id ->
+            requireNotNull(entries[id]) { "Parameter resource does not belong to the selected mount and exact schema" }
+        }
+        val requiredKeys = selected.flatMap { resourceCase.snapshot.parameters(it.id).values.keys }.toSet()
+        val choice = PackageParameterChoice(
+            effectiveDate,
+            com.xqiou.mantra.packages.ParameterSelectionMode.WHAT_IF,
+            selected.map { it.id },
+            requiredKeys,
+        )
+        // Freeze every participating host source so both sides use the same facts, even during external edits.
+        val candidates = base.bindings.filterValues {
+            it.editable
+        }.mapKeys { it.key.value }.mapValues { it.value.source }
+        val variant = run(case, candidates, audit = false, comparisonChoices = mapOf(case to choice))
+        requireSuccess(variant)
+        val revision = hostFingerprint(listOf(base.revision, variant.revision))
+        val document = WorkbenchDocuments.compare(
+            checkNotNull(base.graph.result).view,
+            checkNotNull(variant.graph.result).view,
+            checkNotNull(base.layout),
+            variantParameters,
+        )
+        return envelope(
+            revision,
+            mapOf(
+                "case" to case,
+                "succeeded" to true,
+                "validationPassed" to (base.graph.validationPassed && variant.graph.validationPassed),
+                "binding" to PackageHostDocuments.binding(checkNotNull(variant.bindings[key])),
+                "parameterSources" to PackageHostDocuments.parameters(variant),
+                "document" to WorkbenchJson.envelope(revision, mantraVersion, normeinVersion, document),
+                "diagnostics" to ownedDiagnostics(variant.graph).map(WorkbenchDocuments::diagnostic),
+            ),
+        )
+    }
+
+    @Synchronized
+    fun sourceContext(case: String, diagnostic: Int, expectedRevision: String): Map<String, Any?> {
+        DiagnosticSources.checkRequest(diagnostic, expectedRevision)
+        val execution = evaluate(case, audit = false)
+        val revision = execution.revision ?: throw WorkspaceException(
+            WorkspaceProblem.INVALID,
+            "Diagnostic case could not be resolved",
+            ownedDiagnostics(execution.graph),
+        )
+        DiagnosticSources.checkRevision(expectedRevision, revision)
+        val finding = ownedDiagnostics(execution.graph).getOrNull(diagnostic)
+            ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Diagnostic was not found")
+        val location = finding.location
+            ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Diagnostic has no source location")
+        val key = finding.caseKey?.let(::CanonicalCaseKey) ?: checkNotNull(execution.graph.root)
+        val sourceCase = execution.graph.cases[key]
+            ?: throw WorkspaceException(
+                WorkspaceProblem.NOT_FOUND,
+                "Diagnostic case does not participate in this graph",
+            )
+        finding.caseRevision?.let { DiagnosticSources.checkRevision(it, sourceCase.revision) }
+        val binding = execution.bindings[key]
+            ?: throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Diagnostic source is unavailable")
+        val data = DiagnosticSources.excerpt(
+            binding.diagnosticSource(key.value, location),
+            location,
+            key.value,
+            sourceCase.revision,
+        )
+        return envelope(
+            revision,
+            mapOf(
+                "case" to case,
+                "succeeded" to execution.graph.succeeded,
+                "document" to WorkbenchJson.envelope(revision, mantraVersion, normeinVersion, data),
             ),
         )
     }

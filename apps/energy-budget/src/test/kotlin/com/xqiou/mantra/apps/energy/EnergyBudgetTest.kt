@@ -5,6 +5,8 @@ import com.xqiou.mantra.core.Mantra
 import com.xqiou.mantra.core.api.CalculationResult
 import com.xqiou.mantra.core.data.Json
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.core.read.SourceResolver
+import com.xqiou.mantra.core.read.SourceText
 import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Path
@@ -113,5 +115,48 @@ class EnergyBudgetTest {
             ).value
         }
         return node.value(if (suffix.isEmpty()) emptyList() else suffix.split('/'))
+    }
+
+    @Test
+    fun `conditional table helpers and signed aliases preserve independent energy scenarios`() {
+        var compact = Files.readString(directory.resolve("schema.mantra"))
+        val condition = "(and (= reading.site-id site.key) (= reading.month-id budget-month.key))"
+        for (column in listOf("generation", "demand", "reported-closing")) {
+            val original = "(or (sum (map (fn [reading] (if $condition reading.$column 0)) readings)) 0)"
+            assertTrue(compact.contains(original), column)
+            compact = compact.replace(
+                original,
+                "(table/sum-where readings {:site-id site.key :month-id budget-month.key} :$column)",
+            )
+        }
+        val count = "(or (sum (map (fn [reading] (if $condition 1 0)) readings)) 0)"
+        assertTrue(compact.contains(count))
+        compact = compact.replace(count, "(table/count-where readings {:site-id site.key :month-id budget-month.key})")
+            .replace("(line demand ", "(subtract demand ")
+            .replace("(line energy-export ", "(subtract energy-export ")
+            .replace("(line served-locally ", "(info served-locally ")
+        val shorthand = Mantra.loadSchema(SourceText("compact-energy.mantra", compact), SourceResolver { _, _ -> null })
+        for (name in listOf(
+            "demo",
+            "zero-capacity",
+            "single-site",
+            "all-zero-demand",
+            "fractional-measurements",
+            "unreconciled",
+        )) {
+            val actual = Mantra.calculateForAudit(
+                shorthand,
+                Mantra.loadCase(directory.resolve("case-$name.mantra")),
+                parameters,
+            )
+            assertTrue(actual.succeeded, "$name: ${actual.diagnostics}")
+            assertEquals(result(name).validationPassed, actual.validationPassed)
+            reference(name, "values").entries.forEach { (key, expected) ->
+                val address = (key as Value.Kw).name
+                val value = read(actual, address)
+                assertTrue(value is Value.Num, "$name/$address: $value")
+                assertEquals(0, (expected as Value.Text).value.toBigDecimal().compareTo(value.value), "$name/$address")
+            }
+        }
     }
 }

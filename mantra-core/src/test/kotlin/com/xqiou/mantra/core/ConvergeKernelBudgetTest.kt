@@ -166,6 +166,38 @@ class ConvergeKernelBudgetTest {
     }
 
     @Test
+    fun `table selection charges scanning numeric work and preserves runtime failures`() {
+        val small = "(table/sum-where [{:group :A :amount 2}] {:group :A} :amount)"
+        val large = "(table/sum-where [{:group :A :amount 2} {:group :A :amount 3}] {:group :A} :amount)"
+        val first = assertIs<DslEvaluationOutcome.Success<DslValue>>(full(small))
+        val second = assertIs<DslEvaluationOutcome.Success<DslValue>>(full(large))
+        val scans = second.receipt.budgetUsage[DslBudgetCounter.ITEMS_SCANNED]
+        assertTrue(scans > first.receipt.budgetUsage[DslBudgetCounter.ITEMS_SCANNED])
+        assertTrue(
+            second.receipt.budgetUsage[DslBudgetCounter.NUMERIC_OPERATIONS] >
+                first.receipt.budgetUsage[DslBudgetCounter.NUMERIC_OPERATIONS],
+        )
+        val exhausted = assertIs<DslEvaluationOutcome.Failure>(
+            full(
+                large,
+                limits(
+                    DslBudgetCounter.ITEMS_SCANNED,
+                    scans - 1,
+                ),
+            ),
+        )
+        assertTrue(exhausted.diagnostics.any { it.code == "DSL-LIMIT-ITEMS-SCANNED" })
+        assertTrue("DSL-LIMIT-ITEMS-SCANNED" in valueOnly(large, limits(DslBudgetCounter.ITEMS_SCANNED, 0)))
+        assertTrue("DSL-LIMIT-NUMERIC-OPERATIONS" in valueOnly(large, limits(DslBudgetCounter.NUMERIC_OPERATIONS, 0)))
+        val count = "(table/count-where [{:group :A}] {})"
+        assertTrue("DSL-LIMIT-NUMERIC-OPERATIONS" in valueOnly(count, limits(DslBudgetCounter.NUMERIC_OPERATIONS, 0)))
+        val cancelled = assertIs<DslEvaluationOutcome.Failure>(full(large, cancellation = DslCancellation { true }))
+        assertTrue(cancelled.diagnostics.any { it.code == "DSL-RUNTIME-CANCELLED" })
+        val deadline = assertIs<DslEvaluationOutcome.Failure>(full(count, deadline = Instant.EPOCH))
+        assertTrue(deadline.diagnostics.any { it.code == "DSL-RUNTIME-DEADLINE-EXCEEDED" })
+    }
+
+    @Test
     fun `original cancellation and deadline failures survive without a convergence error alias`() {
         val source = "(calc/converge (fn [x] x) 7 1 0)"
         val cancelled = assertIs<DslEvaluationOutcome.Failure>(full(source, cancellation = DslCancellation { true }))

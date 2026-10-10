@@ -1,0 +1,7 @@
+item;period;pl-change;oci-change
+Plant;P1;1000;0
+Plant;P2;-2000;3000
+Plant;P3;-3000;-1000
+Guarantee;P1;-1000;0
+Guarantee;P2;2000;0
+Guarantee;P3;3000;0

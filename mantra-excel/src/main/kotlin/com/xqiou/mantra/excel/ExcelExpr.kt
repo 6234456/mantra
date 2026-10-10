@@ -4,7 +4,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /** Value kind of a translated expression; used to choose boolean vs. value semantics. */
-enum class XKind { NUM, BOOL, TEXT, DATE, ANY }
+enum class XKind { NUM, BOOL, TEXT, DATE, ANY, KEYWORD }
 
 /**
  * Symbolic Excel expression produced while translating a Normein formula. Only [Scalar] can be
@@ -30,7 +30,11 @@ sealed interface X {
         internal val presence: List<Scalar>? = null,
     ) : X
 
-    data class MapX(val keys: List<String>, val values: List<X>, internal val liveKeys: List<Scalar>? = null) : X
+    data class MapX(val keys: List<String>, val values: List<X>, internal val liveKeys: List<Scalar>? = null) : X {
+        /** Unknown for third-party resolvers; table queries must not guess the original key type. */
+        internal var keywordKeys: Boolean? = null
+        internal var implicitZeroColumns: Set<String> = emptySet()
+    }
 
     /** A lexical closure inlined at its call sites; never written to a workbook cell. */
     class Callable private constructor(val invoke: (List<X>) -> X, internal val creationErrors: Scalar?) : X {
@@ -77,8 +81,10 @@ object Ex {
 
     fun text(value: String) = atom("\"" + value.replace("\"", "\"\"") + "\"", XKind.TEXT)
 
+    internal fun keyword(value: String) = text(value).copy(kind = XKind.KEYWORD)
+
     internal fun isTextLiteral(value: X.Scalar): Boolean =
-        value.kind == XKind.TEXT && quotedTextLiteral.matches(value.text)
+        value.kind in listOf(XKind.TEXT, XKind.KEYWORD) && quotedTextLiteral.matches(value.text)
 
     val TRUE = atom("TRUE", XKind.BOOL)
     val FALSE = atom("FALSE", XKind.BOOL)

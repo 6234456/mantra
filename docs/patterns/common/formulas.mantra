@@ -1,0 +1,7 @@
+; Pure helpers shared by the pattern workspace. Explicit scale; standard half-up operations.
+; Callers choose applicability, zero-denominator handling and whether a ratio is additive.
+(fragment
+  (defn pattern-rounded-product [^Decimal amount ^Decimal multiplier ^Integer scale]
+    (decimal/round (* amount multiplier) scale))
+  (defn pattern-rounded-ratio [^Decimal numerator ^Decimal denominator ^Integer scale]
+    (decimal/divide numerator denominator scale)))

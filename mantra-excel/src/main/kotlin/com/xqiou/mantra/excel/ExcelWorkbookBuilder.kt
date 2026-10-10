@@ -299,12 +299,14 @@ internal class ExcelWorkbookBuilder(
     internal fun kindOf(vertex: ViewNode): XKind = when {
         vertex.kind == NodeKind.PARAM -> when (vertex.parameterValue) {
             is Value.Bool -> XKind.BOOL
-            is Value.Kw, is Value.Text -> XKind.TEXT
+            is Value.Kw -> XKind.KEYWORD
+            is Value.Text -> XKind.TEXT
             is Value.Date -> XKind.DATE
             else -> XKind.NUM
         }
         vertex.type == ValueType.BOOLEAN -> XKind.BOOL
-        vertex.type == ValueType.KEYWORD || vertex.type == ValueType.TEXT -> XKind.TEXT
+        vertex.type == ValueType.KEYWORD -> XKind.KEYWORD
+        vertex.type == ValueType.TEXT -> XKind.TEXT
         vertex.type == ValueType.DATE -> XKind.DATE
         vertex.type.isNumeric -> XKind.NUM
         else -> XKind.ANY
@@ -313,7 +315,7 @@ internal class ExcelWorkbookBuilder(
     internal fun literal(value: Value): X = when (value) {
         is Value.Num -> Ex.num(value.value)
         is Value.Bool -> if (value.value) Ex.TRUE else Ex.FALSE
-        is Value.Kw -> Ex.text(value.name)
+        is Value.Kw -> Ex.keyword(value.name)
         is Value.Text -> Ex.text(value.value)
         Value.Nil -> X.Nil
         is Value.Vec -> X.Vec(value.items.map(::literal))
@@ -322,7 +324,7 @@ internal class ExcelWorkbookBuilder(
                 (it as? Value.Kw)?.name ?: (it as? Value.Text)?.value ?: it.toString()
             },
             value.entries.values.map(::literal),
-        )
+        ).also { it.keywordKeys = value.entries.keys.all { key -> key is Value.Kw } }
         is Value.Date -> excelDate(value.value)
     }
 
@@ -350,6 +352,12 @@ internal class ExcelWorkbookBuilder(
             dynamic?.tables?.get(nodeId)?.let { table ->
                 val rows = (0 until table.capacity).map { row ->
                     X.MapX(table.columns.map { it.name }, table.columns.map { dynamic!!.field(nodeId, row, it.name) })
+                        .also {
+                            it.keywordKeys = true
+                            it.implicitZeroColumns = table.columns.filter { column ->
+                                column.type.isNumeric && !column.optional
+                            }.map { column -> column.name }.toSet()
+                        }
                 }
                 return X.Vec(rows, presence = rows.indices.map { dynamic!!.rowPresent(nodeId, it) })
             }
@@ -372,12 +380,18 @@ internal class ExcelWorkbookBuilder(
                                     column.type.isNumeric -> XKind.NUM
                                     column.type == ValueType.DATE -> XKind.DATE
                                     column.type == ValueType.BOOLEAN -> XKind.BOOL
-                                    column.type == ValueType.TEXT || column.type == ValueType.KEYWORD -> XKind.TEXT
+                                    column.type == ValueType.KEYWORD -> XKind.KEYWORD
+                                    column.type == ValueType.TEXT -> XKind.TEXT
                                     else -> XKind.ANY
                                 },
                             )
                         },
-                    )
+                    ).also {
+                        it.keywordKeys = true
+                        it.implicitZeroColumns = vertex.input!!.columns.filter { column ->
+                            column.type.isNumeric && !column.optional
+                        }.map { column -> column.name }.toSet()
+                    }
                 },
             )
         }
@@ -458,14 +472,14 @@ internal class ExcelWorkbookBuilder(
                 it.key == key
             } ?: return null
             return when (field) {
-                "key" -> Ex.text(member.key)
+                "key" -> Ex.keyword(member.key)
                 "label" -> Ex.text(member.label)
                 "index" -> Ex.num(member.index.toLong())
                 else -> null
             }
         }
         val slot = recordSlots[Triple(dim, key, field)] ?: return when (field) {
-            "key" -> Ex.text(key)
+            "key" -> Ex.keyword(key)
             "label" -> members[dim]?.firstOrNull {
                 reader.chargeScans()
                 it.key == key
@@ -481,7 +495,8 @@ internal class ExcelWorkbookBuilder(
             when {
                 column?.type == ValueType.DATE -> XKind.DATE
                 column?.type == ValueType.BOOLEAN -> XKind.BOOL
-                column?.type == ValueType.TEXT || column?.type == ValueType.KEYWORD -> XKind.TEXT
+                column?.type == ValueType.KEYWORD -> XKind.KEYWORD
+                column?.type == ValueType.TEXT -> XKind.TEXT
                 column?.type?.isNumeric == true -> XKind.NUM
                 else -> XKind.ANY
             },

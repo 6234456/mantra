@@ -1,0 +1,26 @@
+; Reuse a named formula, select only applicable options, and keep contribution signs visible.
+(schema template/rules
+  {:title "Named rules and explicit choices" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [calculation] :headline net}
+  (input basis :decimal {:min 0})
+  (input requested-discount :decimal {:min 0})
+  (input alternative-enabled :boolean)
+  (param rate 0.125)
+  (param discount-cap 45)
+  (defn rounded-charge [^Decimal amount ^Decimal multiplier]
+    (decimal/round (* amount multiplier) 2))
+  (section calculation "Charge less an eligible deduction"
+    (info supplied-basis "Supplied basis" basis)
+    (line gross "Rounded charge" (rounded-charge basis rate))
+    (choose-min selected-discount "Smaller eligible deduction" {:op :info}
+      (option :requested "Requested deduction" requested-discount)
+      (option :cap "Declared cap" discount-cap)
+      (option :alternative "Optional alternative" 20 {:when alternative-enabled}))
+    (subtract applied-discount "Applied deduction" selected-discount)
+    (total net "Net charge")
+    (choose-max reference-value "Larger reference value" {:op :info}
+      (option :charge "Rounded charge" gross)
+      (option :floor "Reference floor" 100))
+    (check basis-valid "Basis is nonnegative" (>= basis 0))
+    (reconcile net-reconciles "Net equals charge less selected deduction"
+      net (- gross selected-discount) {:tolerance 0})))

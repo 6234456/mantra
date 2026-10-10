@@ -148,12 +148,12 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
         val r = FIRST_ROW + index
         columns.forEachIndexed { x, column ->
             val paperIndex = table.columns.indexOfFirst { it.content == column.content }
-            val rule = row.cellStyles.getOrNull(paperIndex) ?: row.cellContexts.firstOrNull()?.let { context ->
+            val overrides = row.cellStyles.getOrNull(paperIndex) ?: row.cellContexts.firstOrNull()?.let { context ->
                 layout.styleFor(
                     context.copy(columnId = column.content.styleRole(), columnRole = column.content.styleRole()),
                 )
             } ?: row.style
-            paperCellStyles[Slot(sheet, r, x)] = rule
+            paperCellStyles[Slot(sheet, r, x)] = row.style.merge(overrides)
         }
         while (headingStack.isNotEmpty() && headingStack.last().second >= row.depth) {
             val (start, _) = headingStack.removeLast()
@@ -198,7 +198,8 @@ internal fun ExcelWorkbookBuilder.layoutTable(table: PaperTable) {
                 )
             }
             if (column.content == ColumnContent.Status && row.kind == RowKind.OPTION) return@forEachIndexed
-            text(sheet, r, x, value, style.applyRule(row.cellStyles.getOrNull(paperIndex) ?: row.style))
+            val rule = row.cellStyles.getOrNull(paperIndex)?.let(row.style::merge) ?: row.style
+            text(sheet, r, x, value, style.applyRule(rule))
         }
         // Cross-reference links ("→ Tabelle n").
         Regex("\\(→ [^)]*? (\\S+)\\)$").find(

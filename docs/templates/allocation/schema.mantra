@@ -1,0 +1,17 @@
+; Allocation policy is explicit: pro rata, two decimal places, largest remainders.
+(schema template/allocation
+  {:title "Rounded allocation with a control total" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [allocation control] :headline allocation-total}
+  (input allocation-request :decimal {:min 0})
+  (input items :table {:columns {:id :keyword :title :text :weight :decimal} :min-rows 1})
+  (param currency-scale 2)
+  (dimension member {:from items :key :id :title :title :total-label "All members"})
+  (section allocation "Allocate to members" {:per member}
+    (info weight "Supplied weight" member.weight)
+    (line allocated "Allocated amount" (alloc/pro-rata allocation-request all.weight currency-scale)
+      {:spread true}))
+  (section control "Control total" {:op :info}
+    (info requested "Rounded amount to allocate" (decimal/round allocation-request currency-scale))
+    (line allocation-total "Sum of allocations" (dim/sum all.allocated))
+    (reconcile allocation-reconciles "Allocated total equals the rounded request"
+      allocation-total requested {:tolerance 0})))

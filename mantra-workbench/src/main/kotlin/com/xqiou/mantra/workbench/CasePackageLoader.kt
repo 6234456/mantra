@@ -50,6 +50,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
     private val buffers = linkedMapOf<Path, ByteArray>()
     private var index: List<Entry>? = null
     private val metadata = linkedMapOf<CanonicalCaseKey, Binding>()
+    private val capturedSources = linkedMapOf<CanonicalCaseKey, Map<String, SourceText>>()
     private data class Entry(val path: Path, val kind: String, val id: String?, val version: String?)
 
     data class Binding(
@@ -61,6 +62,9 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
 
     fun binding(key: CanonicalCaseKey): Binding = metadata.getValue(key)
 
+    /** Only parsed document buffers, never index-only reads or imported data. */
+    internal fun sourceTexts(key: CanonicalCaseKey): Map<String, SourceText> = capturedSources.getValue(key)
+
     override fun identify(reference: CaseReference, control: CaseLoadControl): CanonicalCaseKey {
         control.checkpoint()
         val base = reference.fromCase?.let { confined(root.resolve(it.value)).parent } ?: root
@@ -70,6 +74,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
     override fun load(key: CanonicalCaseKey, control: CaseLoadControl): PreparedCasePackage {
         val casePath = confined(root.resolve(key.value))
         val used = linkedMapOf<Path, SourceRole>()
+        val texts = linkedMapOf<String, SourceText>()
         val selected = overrides?.takeIf { it.rootCase == key.value }
         val explicitFiles = listOfNotNull(selected?.schemaPath, selected?.layoutPath) +
             selected?.parameterPaths.orEmpty()
@@ -98,7 +103,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             if (text.length > 65_536) {
                 throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Document exceeds reader limit")
             }
-            return SourceText(relative(actual), text, actual.parent.toString())
+            return SourceText(relative(actual), text, actual.parent.toString()).also { texts[it.name] = it }
         }
         val supplied = Mantra.loadCase(source(casePath, SourceRole.CASE))
         val schemaId = supplied.schemaId ?: invalid("MANTRA-WORKBENCH-CASE-SCHEMA", "Case does not declare :schema")
@@ -189,6 +194,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             revision(sources),
         )
         metadata[key] = Binding(prepared, layout, parameterIds.toList(), bound.overridden)
+        capturedSources[key] = texts.toMap()
         return prepared
     }
 

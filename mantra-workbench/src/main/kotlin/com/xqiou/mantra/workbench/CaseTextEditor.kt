@@ -116,7 +116,10 @@ object CaseTextEditor {
                 val old = existing.values.drop(2).filterIsInstance<DslForm.Sequence>()
                     .firstOrNull { it.values.getOrNull(1)?.symbol == op.id }
                     ?: error("Extension line was not found")
-                require(old.listHead == "line" && old.values.size in 4..5 && old.values[2].string != null) {
+                require(
+                    old.listHead in setOf("line", "subtract", "info") &&
+                        old.values.size in 4..5 && old.values[2].string != null,
+                ) {
                     "Only extension lines can be edited"
                 }
                 validFormula(op.formula)
@@ -387,6 +390,14 @@ object CaseTextEditor {
         requireId(column)
         val data = map(inputs?.values?.getOrNull(1)) ?: error("Inputs map was not found")
         val tableForm = pair(data, table)?.second as? DslForm.Sequence ?: error("Table was not found")
+        val compact = CaseRowsLiteral.read(doc, tableForm)
+        if (compact != null) {
+            if (value != null && column in compact.columns) {
+                return replace(doc, compact.cell(row, column, keyColumn), value)
+            }
+            val expanded = read(replace(doc, tableForm, literal(compact.value)))
+            return editCell(expanded, inputsForm(expanded), table, row, column, keyColumn, value)
+        }
         require(tableForm.kind == DslFormSequenceKind.VECTOR) { "Table must be a vector" }
         val selected = if (keyColumn == null) {
             tableForm.values.getOrNull(row.toIntOrNull() ?: -1)
@@ -419,6 +430,11 @@ object CaseTextEditor {
         if (pair == null) {
             require(edit is RowEdit.Insert && (edit.index == null || edit.index == 0)) { "Table was not found" }
             return putData(doc, root, inputs, "inputs", table, emptyList(), literal(Value.Vec(listOf(edit.row))))
+        }
+        val compact = (pair.second as? DslForm.Sequence)?.let { CaseRowsLiteral.read(doc, it) }
+        if (compact != null) {
+            val expanded = read(replace(doc, pair.second, literal(compact.value)))
+            return editRows(expanded, expanded.root as DslForm.Sequence, inputsForm(expanded), table, edit)
         }
         val vector = (pair.second as? DslForm.Sequence)?.takeIf { it.kind == DslFormSequenceKind.VECTOR }
             ?: error("Table value must be a vector")
@@ -480,4 +496,7 @@ object CaseTextEditor {
             }
         }
     }
+
+    private fun inputsForm(doc: Document): DslForm.Sequence? = (doc.root as DslForm.Sequence).values.drop(2)
+        .filterIsInstance<DslForm.Sequence>().firstOrNull { it.listHead == "inputs" }
 }

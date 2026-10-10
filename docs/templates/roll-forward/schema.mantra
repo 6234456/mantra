@@ -1,0 +1,32 @@
+; Stocks select period boundaries; movements sum. No domain policy is supplied by the engine.
+(schema template/roll-forward
+  {:title "Opening, movement and closing" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [balances] :headline closing}
+  (input entities :table
+    {:columns {:id :keyword :title :text :opening :decimal} :min-rows 1})
+  (input movements :table
+    {:columns {:entity :keyword :period :keyword :amount :decimal}
+     :references {:entity entity :period period}})
+  (input reported :table
+    {:columns {:entity :keyword :period :keyword :closing :decimal}
+     :references {:entity entity :period period}})
+  (dimension entity {:from entities :key :id :title :title :total-label "All entities"})
+  (dimension period
+    {:periods {:start "2026-01-01" :unit :year :count 3}
+     :total-label "First / last stock; total flow"})
+  (section balances "Named stock and flow nodes" {:per [entity period]}
+    (line opening "Opening stock" (prev closing entity.opening)
+      {:aggregate {:first period}})
+    (line movement "Supplied movement"
+      (table/sum-where movements {:entity entity.key :period period.key} :amount))
+    (total closing "Closing stock" {:aggregate {:last period}})
+    (info movement-count "Movement source rows"
+      (table/count-where movements {:entity entity.key :period period.key})
+      {:type :integer :format :integer})
+    (info reported-count "Reported closing source rows"
+      (table/count-where reported {:entity entity.key :period period.key})
+      {:type :integer :format :integer})
+    (check single-reported "Exactly one reported closing per coordinate" (= reported-count 1))
+    (reconcile closing-reconciles "Closing stock agrees with the supplied control"
+      closing (table/sum-where reported {:entity entity.key :period period.key} :closing)
+      {:tolerance 0})))

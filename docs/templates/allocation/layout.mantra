@@ -1,0 +1,5 @@
+(layout template/allocation-paper
+  {:schema "template/allocation" :schema-version "1.0.0"
+   :preset :ifrs-schedule :title "Allocation" :precision 2 :hide-zero false}
+  (table allocation {:style :matrix} :label (members member) :cross-total)
+  (table control {:style :tiered} :operator :label :main :status))

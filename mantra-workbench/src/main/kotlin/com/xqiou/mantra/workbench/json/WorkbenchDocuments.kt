@@ -358,6 +358,13 @@ object WorkbenchDocuments {
     fun paper(view: CalculationView, layout: LayoutSpec, panelId: String? = null): Map<String, Any?> =
         view.openReader().use { reader -> paper(view, layout, panelId, reader) }
 
+    /** Interactive visibility overrides stay in the renderer and never change the bound layout or exports. */
+    fun paper(view: CalculationView, layout: LayoutSpec, panelId: String?, includeZero: Boolean): Map<String, Any?> {
+        val effectiveLayout = if (includeZero) layout.copy(hideZero = false) else layout
+        return paper(view, effectiveLayout, panelId) +
+            ("browsing" to linkedMapOf("includeZero" to includeZero, "hideZero" to layout.hideZero))
+    }
+
     private fun paper(
         view: CalculationView,
         layout: LayoutSpec,
@@ -795,6 +802,7 @@ object WorkbenchDocuments {
                         numeric && hasExactCoord -> address(requireNotNull(node).id, coord)
                         else -> null
                     }
+                    val resolvedStyle = row.cellStyles.getOrNull(index)?.let(row.style::merge) ?: row.style
                     linkedMapOf(
                         "text" to cell,
                         "address" to cellAddress,
@@ -803,8 +811,11 @@ object WorkbenchDocuments {
                                 cellNode?.kind == NodeKind.INPUT &&
                                 view.structure.panelOf(cellNode.id)?.id == table.id
                             ),
-                        "style" to style(row.cellStyles.getOrNull(index) ?: row.style),
-                    )
+                        "style" to style(resolvedStyle),
+                    ).apply {
+                        val overrides = styleOverrides(resolvedStyle)
+                        if (overrides.isNotEmpty()) put("styleOverrides", overrides)
+                    }
                 },
             )
         },
@@ -815,4 +826,10 @@ object WorkbenchDocuments {
         "tone" to (style.tone?.name?.lowercase() ?: "default"),
         "fill" to (style.fill?.name?.lowercase() ?: "none"),
     )
+
+    private fun styleOverrides(style: StyleSpec): Map<String, String> = buildMap {
+        style.weight?.let { put("weight", it.name.lowercase()) }
+        style.tone?.let { put("tone", it.name.lowercase()) }
+        style.fill?.let { put("fill", it.name.lowercase()) }
+    }
 }

@@ -129,6 +129,12 @@
           "items": {
             "$ref": "#/$defs/package-case"
           }
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/package-parameter"
+          }
         }
       },
       "additionalProperties": false
@@ -601,6 +607,9 @@
               "$ref": "diagnostics.schema.json"
             },
             {
+              "$ref": "source-context.schema.json"
+            },
+            {
               "$ref": "explain.schema.json"
             },
             {
@@ -632,6 +641,9 @@
             },
             {
               "type": "null"
+            },
+            {
+              "$ref": "compare.schema.json"
             }
           ]
         },
@@ -640,6 +652,33 @@
           "items": {
             "$ref": "envelope.schema.json#/$defs/diagnostic"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "package-parameter": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "schema",
+        "schemaVersion"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "schemaVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "additionalProperties": false

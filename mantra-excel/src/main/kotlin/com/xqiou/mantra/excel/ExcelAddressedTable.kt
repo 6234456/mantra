@@ -30,7 +30,7 @@ internal fun ExcelWorkbookBuilder.layoutAddressedTable(table: PaperTable) {
         val r = FIRST_ROW + index
         table.columns.forEachIndexed { column, _ ->
             val slot = Slot(sheet, r, column)
-            val rule = row.cellStyles.getOrNull(column) ?: row.style
+            val rule = row.cellStyles.getOrNull(column)?.let(row.style::merge) ?: row.style
             paperCellStyles[slot] = rule
             val address = row.valueAddresses.getOrNull(column)
             if (address == null) {

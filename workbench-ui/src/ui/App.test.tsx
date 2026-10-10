@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { App } from './App'
+import { scenariosPath } from './ScenariosPage'
 import { addressToPath, casePath, provenancePath } from '../address'
 import type { Envelope, Explain, Paper, Run, Structure, Diagnostic, RatioAggregate } from '../types'
 
@@ -928,4 +929,29 @@ it('requires an explicit refresh before displaying the changed source calculatio
   expect(new URLSearchParams(location.search).get('case')).toBe(sourceCase)
   expect(new URLSearchParams(location.search).get('expectedRevision')).toBe('current-source')
   expect(screen.queryByRole('alert')).toBeNull()
+})
+
+it('preserves scoped scenario ids and the authored date when returning through the sidebar and browser history', async () => {
+  serve(docs())
+  const path = scenariosPath(caseId, ['mount/parameters/current.mantra', 'mount/parameters/next.mantra'], '2026-07-01')
+  history.replaceState(null, '', path)
+  render(<App />)
+  await screen.findByRole('heading', { name: 'Szenarien' })
+  fireEvent.click(screen.getByRole('link', { name: 'Parameter' }))
+  await screen.findByRole('heading', { name: 'Parameter', level: 1 })
+  const link = screen.getByRole('link', { name: 'Szenarien' })
+  expect(link.getAttribute('href')).toBe(path)
+  fireEvent.click(link)
+  await screen.findByRole('heading', { name: 'Szenarien' })
+  expect(new URLSearchParams(location.search).getAll('scenario')).toEqual([
+    'mount/parameters/current.mantra',
+    'mount/parameters/next.mantra',
+  ])
+  expect(new URLSearchParams(location.search).get('effectiveDate')).toBe('2026-07-01')
+  const earlier = scenariosPath(caseId, ['mount/parameters/current.mantra'], '2026-06-30')
+  await act(async () => {
+    history.replaceState(null, '', earlier)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  })
+  expect(screen.getByRole('link', { name: 'Szenarien' }).getAttribute('href')).toBe(earlier)
 })

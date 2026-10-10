@@ -1,0 +1,7 @@
+(layout pattern/actuals-paper
+  {:schema "pattern/actuals-vs-baseline" :schema-version "1.0.0"
+   :preset :ifrs-schedule :style-preset [:utilities :working-paper]
+   :title "Comparison measures" :precision 2 :hide-zero false}
+  (style-class :key-result {:weight :bold :tone :accent :fill :subtle})
+  (style {:class :result :column :cross-total} {:use [:strong :accent] :fill :subtle})
+  (table comparison {:style :matrix} :label (members member) :cross-total :status))

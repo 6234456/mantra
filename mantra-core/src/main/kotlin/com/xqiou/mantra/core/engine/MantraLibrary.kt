@@ -43,6 +43,7 @@ import java.security.MessageDigest
  * | `alloc/capped` | constrained allocation with per-member caps (IAS 36.105) |
  * | `alloc/waterfall` | allocation by priority (loss absorption order, caps) |
  * | `table/band` | banded lookup tables |
+ * | `table/sum-where`, `table/count-where` | exact typed selection over ordered records |
  * | `fin/pmt` | annuity payment (leases, loans) |
  * | `calc/stepwise` | banded rates (stufenweise Berechnung) |
  * | `calc/converge` | bounded adjacent-delta iteration with a pure Decimal callback |
@@ -59,9 +60,30 @@ internal object MantraLibrary {
     private val numberMap: DslType = DslTypes.map(DslType.Keyword, numberType)
     private val decimalMap: DslType = DslTypes.map(DslType.Keyword, DslType.Decimal)
 
+    // Table roots have schema-defined structural row types; their runtime shape is checked below.
+    private val recordsType: DslType = DslTypes.union(DslTypes.vector(DslType.Any), DslTypes.sequence(DslType.Any))
+
     val functions: List<DslFunctionSpec> = listOf(
         PrevLowering.selectHelperSpec(),
         convergeSpec(numberType, SEMANTICS_VERSION, PROVIDER_ID),
+        function(
+            "table/sum-where",
+            "Sums the numeric value column of records matching every typed scalar criterion. " +
+                "Missing criteria columns never match nil; matched missing or nonnumeric amounts fail. " +
+                "Duplicates contribute individually, no matches returns exact zero, and rounding is explicit.",
+            signature(
+                "records" to recordsType,
+                "criteria" to DslType.Any,
+                "value-column" to DslType.Keyword,
+                returns = DslType.Decimal,
+            ),
+        ) { args, work -> TableSelection.sum(args[0], args[1], args[2], work) },
+        function(
+            "table/count-where",
+            "Counts records matching every typed scalar criterion. Missing columns never match nil; " +
+                "an empty criterion map selects all records, including duplicates.",
+            signature("records" to recordsType, "criteria" to DslType.Any, returns = DslType.Integer),
+        ) { args, work -> TableSelection.count(args[0], args[1], work) },
         function(
             "alloc/pro-rata",
             "Allocates an amount over the keys of a weight map, rounded to a scale " +

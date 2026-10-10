@@ -357,10 +357,10 @@ internal fun ExcelWorkbookBuilder.inputValue(input: ViewNode, coord: Coord): Val
                 input.type == ValueType.BOOLEAN -> Value.Bool(false)
                 else -> Value.Nil
             }
-    return if (input.type == ValueType.DATE && value is Value.Text) {
-        Value.Date(java.time.LocalDate.parse(value.value))
-    } else {
-        value
+    return when {
+        input.type == ValueType.DATE && value is Value.Text -> Value.Date(java.time.LocalDate.parse(value.value))
+        input.type == ValueType.KEYWORD && value is Value.Text -> Value.Kw(value.value.removePrefix(":"))
+        else -> value
     }
 }
 

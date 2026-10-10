@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "Mixed",
+      "title": "PL and OCI rate-change provenance",
+      "opening-pl-difference": "100.05",
+      "opening-oci-difference": "20.15",
+      "opening-rate": "0.25"
+    }
+  ],
+  "rates": [
+    "0.25",
+    "0.30",
+    "0.20"
+  ],
+  "movements": {},
+  "reported": {
+    "P1": "30.05",
+    "P2": "36.07",
+    "P3": "24.04"
+  }
+}

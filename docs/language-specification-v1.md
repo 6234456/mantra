@@ -33,6 +33,13 @@ Booleans are not numeric coercions. Keywords, text and ISO dates remain distinct
 distinct from zero, false and blank text. Table records retain their authored order and cell identity.
 Nullable column kinds admit nil; incorrect kinds and unknown foreign keys are technical errors.
 
+**S1.4** Within a case's direct `inputs` value, `(rows [:column ...] [literal ...] ...)`
+is an opt-in table literal. Its nonempty header contains distinct namespace-free keywords; every
+row is a vector with exactly one literal cell per header column. It produces the same ordered
+records as an authored vector of maps. Empty tables are permitted. Explicit nil remains a present
+cell; columns absent from the header remain absent. Expressions and nested `rows` calls are not
+evaluated. Input-cell diagnostics retain the original cell locations, not generated map locations.
+
 ## S2. Binding and calculation items
 
 **S2.1** Parameter precedence is schema defaults, explicitly supplied parameter sets in their order,
@@ -44,6 +51,13 @@ The default contribution is plus; minus reverses its contribution and info contr
 A total checkpoints the preceding total plus subsequent signed contributions. A section with a
 total contributes its last total as one opaque result to its parent. Checks/reconciliations never
 become numeric contributions or ordinary numeric dependency roots.
+
+**S2.4** `subtract` and `info` are opt-in aliases for `line` with fixed minus and info contribution,
+respectively. `choose-min` and `choose-max` are aliases for `choice` with a fixed minimum or maximum
+rule. They retain the ordinary item IDs, formulas, options, dimensions, rounding, applicable options
+and selected-option evidence. A conflicting explicit `:op` or `:rule` is a structural error. Minus
+reverses the contribution, not the row value. Aliases do not alter formula evaluation or its authored
+source locations, and ordinary declaration forms retain their existing meanings.
 
 **S2.3** Cases may extend declared slots and bind declared formula slots. A formula binding preserves
 the schema's position, dimensions, type and rounding, and can access only its licensed `:uses` roots.
@@ -114,6 +128,23 @@ There is no implicit monetary rounding or retry. Explicit callback rounding, see
 part of the result: multiple rounded fixed points or a two-cycle need not converge to an initial-value
 independent closed form.
 
+**S5.5** `table/sum-where records criteria value-column` and `table/count-where records criteria`
+are additive calculation-library functions. Records are an ordered sequence of keyword-keyed
+records; criteria is a keyword-keyed map of scalar nil, Boolean, text, keyword or numeric values.
+A row matches when each criterion column is present and its value equals the criterion with typed
+equality and scale-independent exact numeric equality. An absent criterion column does not match
+nil. Empty criteria match every record. Duplicate matching records each participate. Count returns
+an exact integer. Sum adds exact numeric values in authored order without rounding and returns
+decimal zero when no row matches. A matched sum column that is absent, nil or nonnumeric is a
+technical failure; unmatched amount cells are not inspected. Invalid record, criteria or column
+shapes fail technically. These stricter functions do not change the kernel's permissive `sum`
+contract and are not an unconditional textual replacement for it.
+The functions inspect bound records after existing input conversion. Typed table inputs retain
+their established normalization: an omitted nullable column becomes nil, and an omitted or nil
+ordinary numeric column becomes its implicit zero. The functions cannot recover authored presence
+from those normalized values. Literal/parameter records preserve absent keys; completeness checks
+continue to use the original supplied facts separately.
+
 ## S6. Case links, packages and provenance
 
 **S6.1** A linked case runs under its own exact schema/version/parameters. Mappings name the source
@@ -162,6 +193,37 @@ and restoring the original facts restores its current status. Dynamic edits are 
 explicit capacity and supported formula/type shapes. An OOXML/POI round-trip does not establish
 native Excel GUI certification. Rendering must not compute new
 domain amounts or claim that cached audit was rerun by Excel.
+
+**S7.4** Presentation class tags belong to the item that declares them; a section's tags do not
+implicitly propagate to descendants. Layouts may opt into `:style-preset :utilities` or
+`:working-paper`, or an ordered vector of these presets. Preset class rules precede authored
+rules. Existing layouts without this option retain their preset and default rules. PDF now honors
+previously authored resolved styles as well as the new class declarations.
+
+`(style-class :name {declarations})` defines an output-neutral named declaration and emits a
+class selector rule at its authored position. Names use the same simple lowercase keyword grammar
+as item tags: `[a-z][a-z0-9-]*`.
+There may be at most 256 local definitions; duplicate local names are errors. A local definition
+may override a selected preset class. Definitions contain only `:weight`, `:tone` and `:fill`;
+there is no recursive inheritance. An unmatched calculation-item tag remains valid.
+
+`(style {selector} {:use [:name ...] ...declarations})` reuses selected preset or local class
+declarations. A single keyword is also accepted. References resolve independent of definition
+position and merge from left to right, followed by explicit properties. At most 64 references
+are allowed per rule. A local override merges with its preset declaration for reuse; its emitted
+class rule contains the authored properties. Unknown explicit references, invalid definitions
+and unknown or repeated presets report original source locations. Empty preset/use vectors are
+valid. Selector matching and per-property declaration-order precedence remain unchanged; no CSS
+specificity is introduced, and the order of an item's class tags does not change precedence.
+
+HTML, XLSX, PDF and Workbench apply the same resolved per-cell `weight`, `tone` and `fill`
+meanings over their existing presentation defaults. Explicit `:normal`, `:default` and `:none`
+override those defaults. Workbench JSON 4 retains `style` and may add a sparse per-cell
+`styleOverrides` object containing only explicitly resolved non-null properties, allowing clients
+to distinguish an authored reset from an unspecified default. Supported clients and schemas must
+accept this optional field; an older strict schema may require an update. Text retains the same
+amounts and ignores visual styling. Class names,
+including `control`, cannot change values, precision, aggregation, applicability or validation.
 
 ## Version correspondence
 

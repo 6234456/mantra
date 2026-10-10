@@ -1,0 +1,38 @@
+{
+  "notice": "Fictional project-authored facts and independent Python Decimal references locked before schema implementation. No copied IFRS text or example data.",
+  "conceptualSources": [
+    {
+      "url": "https://www.ifrs.org/issued-standards/list-of-standards/ias-12-income-taxes/",
+      "paragraphs": "IAS 12.47, 58, 61A, 79\u201380",
+      "scope": "Conceptual reference only: supplied recognized balances, supplied rates, and allocation between profit or loss and OCI. The existing README cites the official 2022 issued standard. This extension does not implement recognition or recoverability."
+    }
+  ],
+  "sha256": {
+    "verify_roll_forward.py": "e2a709267f9fbbdc1e1047b982093cc5d736101ef5f19631a45308d5e0290948",
+    "independent/roll-forward/fixtures/asset-liability.json": "9a550a47e9de76db06e99679291f447afc913d91be3f284409390b5be0882c92",
+    "independent/roll-forward/fixtures/demo.json": "bbcc2c6e7f5a6998606fbf401e51e2a57d6fab44ea325824ade1bc0a2b76288d",
+    "independent/roll-forward/fixtures/rate-change.json": "8e53e3435accab80b6eecd91bf6a0e03c1134afc85d5dac32c1c019b23ee79d4",
+    "independent/roll-forward/fixtures/unreconciled.json": "bae4153e845b8b6babf00998b5a98dd20226bc060e442037de86fed7d14bd262",
+    "independent/roll-forward/fixtures/zero.json": "481041d6792b73a3b579c90ccff69f5ecd5a91256df3be7f552e925f82857db0",
+    "independent/roll-forward/references/asset-liability-scale2-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/asset-liability-scale2-values.json": "9b76ae989bec72e0b38996a5326d81f3bcd815a6b624d2d8d2a638aeda8814bf",
+    "independent/roll-forward/references/asset-liability-scale4-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/asset-liability-scale4-values.json": "e44bba1dbcbe95d497550280514ec508e4bad86ec130476f14252966d6440a52",
+    "independent/roll-forward/references/demo-scale2-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/demo-scale2-values.json": "722409b7db8dc1abb96ffe2ea35dab279270455e12bcd9780bad09b951833189",
+    "independent/roll-forward/references/demo-scale4-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/demo-scale4-values.json": "59762c1e34beb116ced17bf0f32fb69400127eec762eba53f6eb0201d96a1c96",
+    "independent/roll-forward/references/rate-change-scale2-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/rate-change-scale2-values.json": "a8f08bf35b73fcd5e835439b5210386564cc36e726cc8e00b0c7a125f181b412",
+    "independent/roll-forward/references/rate-change-scale4-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/rate-change-scale4-values.json": "7e6ea516e87d5b588da6db62208f6c4a046d79b297a2f40804435353dc700169",
+    "independent/roll-forward/references/unreconciled-scale2-summary.json": "f7313caf41e13451016e676fab8a8d8e2132b242173920cda0715e2d5cad2fde",
+    "independent/roll-forward/references/unreconciled-scale2-values.json": "1800ae862f5680aea10be1b999ed81117c14b4f112f8852a412a1bc56f9ac7ea",
+    "independent/roll-forward/references/unreconciled-scale4-summary.json": "f7313caf41e13451016e676fab8a8d8e2132b242173920cda0715e2d5cad2fde",
+    "independent/roll-forward/references/unreconciled-scale4-values.json": "a0cf9fa55cac36e8d98b713718d9129655b5ca69b99e649c30f26bc65ea4d3c0",
+    "independent/roll-forward/references/zero-scale2-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/zero-scale2-values.json": "8baeb2cfc6675b50a0f3a542450ec76479f77763c7773c03d55733f91b38e270",
+    "independent/roll-forward/references/zero-scale4-summary.json": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b",
+    "independent/roll-forward/references/zero-scale4-values.json": "bfbc351b3638712edce606d637530e1cf33abd540d1344860cb89ced1622b3f1"
+  }
+}

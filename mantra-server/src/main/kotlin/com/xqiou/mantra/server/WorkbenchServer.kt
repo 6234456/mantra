@@ -220,15 +220,24 @@ class WorkbenchServer(
         }
         if (method == "GET" && document in setOf("structure", "run", "paper", "diagnostics", "parameters", "sources")) {
             val query = query(exchange.requestURI.rawQuery)
-            if (query.keys.any { it !in setOf("panel", "layout") } || (document != "paper" && query.isNotEmpty())) {
+            if (query.keys.any { it !in setOf("panel", "layout", "includeZero") } ||
+                (document != "paper" && query.isNotEmpty())
+            ) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            }
+            if ("includeZero" in query && query["includeZero"] !in setOf("true", "false")) {
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "includeZero must be true or false")
             }
             val result = if (document == "sources") {
                 catalog.sources(caseId)
             } else {
-                catalog.document(caseId, document, query["panel"], query["layout"])
+                catalog.document(caseId, document, query["panel"], query["layout"], query["includeZero"] == "true")
             }
             return json(exchange, 200, catalog.envelope(result))
+        }
+        if (method == "GET" && document == "diagnostic-source") {
+            val request = diagnosticSourceRequest(query(exchange.requestURI.rawQuery))
+            return json(exchange, 200, catalog.envelope(catalog.sourceContext(caseId, request.first, request.second)))
         }
         if (method == "GET" && document == "explain") {
             val query = query(exchange.requestURI.rawQuery)

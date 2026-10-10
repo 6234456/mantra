@@ -5,17 +5,20 @@ import { casePath } from '../address'
 import { diagnosticPath } from '../diagnostics'
 import { language, t } from '../i18n'
 import { diagnosticDetailsLabel, explainDiagnostic } from '../diagnosticMessages'
+import { DiagnosticSourceContext } from './DiagnosticSourceContext'
 
 const lang = language()
 
 function useDocument<T>(load: (signal: AbortSignal) => Promise<Envelope<T>>, keys: unknown[]) {
-  const [state, setState] = useState<{ data?: T; error?: Error; loading: boolean }>({ loading: true })
+  const [state, setState] = useState<{ data?: T; revision?: string; error?: Error; loading: boolean }>({
+    loading: true,
+  })
   useEffect(() => {
     const controller = new AbortController()
     setState({ loading: true })
     load(controller.signal)
       .then((result) => {
-        if (!controller.signal.aborted) setState({ data: result.data, loading: false })
+        if (!controller.signal.aborted) setState({ data: result.data, revision: result.revision, loading: false })
       })
       .catch((error) => {
         if (!controller.signal.aborted) setState({ error, loading: false })
@@ -395,14 +398,16 @@ export function DiagnosticsPage({
   caseId,
   structure,
   data,
+  refresh = 0,
   navigate,
 }: {
   caseId: string
   structure: Structure
   data: WorkbenchData
+  refresh?: number
   navigate: (path: string) => void
 }) {
-  const document = useDocument<Diagnostics>((signal) => data.diagnostics(caseId, signal), [data, caseId])
+  const document = useDocument<Diagnostics>((signal) => data.diagnostics(caseId, signal), [data, caseId, refresh])
   const [severity, setSeverity] = useState('all')
   const [category, setCategory] = useState('all')
   const [selected, setSelected] = useState(0)
@@ -416,8 +421,8 @@ export function DiagnosticsPage({
     .map((finding, index) => ({ finding, index }))
     .filter((item) => severity === 'all' || item.finding.severity === severity)
     .filter((item) => category === 'all' || item.finding.category === category)
-  const active =
-    findings[selected] && filtered.some((item) => item.index === selected) ? findings[selected] : filtered[0]?.finding
+  const activeEntry = filtered.find((item) => item.index === selected) ?? filtered[0]
+  const active = activeEntry?.finding
   const jumpPath = active ? diagnosticPath(caseId, structure, active) : undefined
   return (
     <>
@@ -530,6 +535,16 @@ export function DiagnosticsPage({
                       </small>
                     )}
                   </div>
+                )}
+                {activeEntry && (
+                  <DiagnosticSourceContext
+                    key={`${caseId}:${document.revision}:${activeEntry.index}`}
+                    caseId={caseId}
+                    data={data}
+                    finding={active}
+                    diagnosticIndex={activeEntry.index}
+                    expectedRevision={document.revision ?? ''}
+                  />
                 )}
                 {!!active.related.length && (
                   <div className="finding-related">

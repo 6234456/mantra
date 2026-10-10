@@ -7,8 +7,8 @@
     {
       "path": "README.md",
       "role": "documentation",
-      "byteLength": 3434,
-      "sha256": "972469e8431c5b6918ee62c9068d4a0589afe7c1e483eca2519d574ad3b359d7"
+      "byteLength": 8506,
+      "sha256": "2786e54a5449e5a291e5a142d0bcaecf36d59954763281f11af04a79d6ef8704"
     },
     {
       "path": "case-demo.mantra",
@@ -35,6 +35,30 @@
       "sha256": "2872f4e9b093c987b3ec2ce56b4941bf3b4a9cb051e5cd66ab4716f2d6f4104d"
     },
     {
+      "path": "data/roll-forward-difference-movements.csv",
+      "role": "data",
+      "byteLength": 158,
+      "sha256": "1a0af79f0a3ec5f1eb02fa90646ec76578d74904b755ec7eb97320beced48295"
+    },
+    {
+      "path": "data/roll-forward-reported-tax-closings.csv",
+      "role": "data",
+      "byteLength": 46,
+      "sha256": "3210dc5a9d2c0b19dd3780d15d24705b0313cc2950e8fc5ee1308f2ccac464fd"
+    },
+    {
+      "path": "data/roll-forward-tax-items.csv",
+      "role": "data",
+      "byteLength": 180,
+      "sha256": "b90261dec7f02b4a6f244a5428504c43d2e16e04a68fa310197a5ef8fe57401b"
+    },
+    {
+      "path": "data/roll-forward-tax-rates.csv",
+      "role": "data",
+      "byteLength": 40,
+      "sha256": "f7067b315b818ece8de4a79f8fdc37518e19e2438531fabd9075dd358d829bcf"
+    },
+    {
       "path": "data/tax-adjustments.csv",
       "role": "data",
       "byteLength": 378,
@@ -45,6 +69,30 @@
       "role": "data",
       "byteLength": 126,
       "sha256": "e2cb0441563c4c6d26e09b53031ed23a86428642fe8fd4a5d5edcc4972b34189"
+    },
+    {
+      "path": "import-templates/roll-forward-difference-movements.json",
+      "role": "import-template",
+      "byteLength": 372,
+      "sha256": "3dd954991a9816ca6685567c8c5cca2efc2ad9f5908d551d252ccd1fb64f56fb"
+    },
+    {
+      "path": "import-templates/roll-forward-reported-tax-closings.json",
+      "role": "import-template",
+      "byteLength": 375,
+      "sha256": "dc21b6b7f368edb4bd6a2bff171c660baf005a865aa9a7caad595e1e3a35e0d2"
+    },
+    {
+      "path": "import-templates/roll-forward-tax-items.json",
+      "role": "import-template",
+      "byteLength": 339,
+      "sha256": "6a1c35cb62e8b350562ecd8c29cb400e29e9759432d2cdeeaa558e03508147b3"
+    },
+    {
+      "path": "import-templates/roll-forward-tax-rates.json",
+      "role": "import-template",
+      "byteLength": 339,
+      "sha256": "c7c4668ceb68e15c3cd6bc77f218524bb77b502c24642846d8d3fc701b809613"
     },
     {
       "path": "import-templates/tax-adjustments.json",
@@ -59,6 +107,162 @@
       "sha256": "6daa925fd255eafb40a9cdfbb9c14856e4c7e0de94d9046f4e2cfe8f9c4893c3"
     },
     {
+      "path": "independent/roll-forward/fixtures/asset-liability.json",
+      "role": "documentation",
+      "byteLength": 531,
+      "sha256": "9a550a47e9de76db06e99679291f447afc913d91be3f284409390b5be0882c92"
+    },
+    {
+      "path": "independent/roll-forward/fixtures/demo.json",
+      "role": "documentation",
+      "byteLength": 918,
+      "sha256": "bbcc2c6e7f5a6998606fbf401e51e2a57d6fab44ea325824ade1bc0a2b76288d"
+    },
+    {
+      "path": "independent/roll-forward/fixtures/rate-change.json",
+      "role": "documentation",
+      "byteLength": 366,
+      "sha256": "8e53e3435accab80b6eecd91bf6a0e03c1134afc85d5dac32c1c019b23ee79d4"
+    },
+    {
+      "path": "independent/roll-forward/fixtures/unreconciled.json",
+      "role": "documentation",
+      "byteLength": 921,
+      "sha256": "bae4153e845b8b6babf00998b5a98dd20226bc060e442037de86fed7d14bd262"
+    },
+    {
+      "path": "independent/roll-forward/fixtures/zero.json",
+      "role": "documentation",
+      "byteLength": 334,
+      "sha256": "481041d6792b73a3b579c90ccff69f5ecd5a91256df3be7f552e925f82857db0"
+    },
+    {
+      "path": "independent/roll-forward/references/asset-liability-scale2-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/asset-liability-scale2-values.json",
+      "role": "documentation",
+      "byteLength": 12003,
+      "sha256": "9b76ae989bec72e0b38996a5326d81f3bcd815a6b624d2d8d2a638aeda8814bf"
+    },
+    {
+      "path": "independent/roll-forward/references/asset-liability-scale4-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/asset-liability-scale4-values.json",
+      "role": "documentation",
+      "byteLength": 12345,
+      "sha256": "e44bba1dbcbe95d497550280514ec508e4bad86ec130476f14252966d6440a52"
+    },
+    {
+      "path": "independent/roll-forward/references/demo-scale2-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/demo-scale2-values.json",
+      "role": "documentation",
+      "byteLength": 11917,
+      "sha256": "722409b7db8dc1abb96ffe2ea35dab279270455e12bcd9780bad09b951833189"
+    },
+    {
+      "path": "independent/roll-forward/references/demo-scale4-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/demo-scale4-values.json",
+      "role": "documentation",
+      "byteLength": 12247,
+      "sha256": "59762c1e34beb116ced17bf0f32fb69400127eec762eba53f6eb0201d96a1c96"
+    },
+    {
+      "path": "independent/roll-forward/references/rate-change-scale2-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/rate-change-scale2-values.json",
+      "role": "documentation",
+      "byteLength": 8103,
+      "sha256": "a8f08bf35b73fcd5e835439b5210386564cc36e726cc8e00b0c7a125f181b412"
+    },
+    {
+      "path": "independent/roll-forward/references/rate-change-scale4-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/rate-change-scale4-values.json",
+      "role": "documentation",
+      "byteLength": 8342,
+      "sha256": "7e6ea516e87d5b588da6db62208f6c4a046d79b297a2f40804435353dc700169"
+    },
+    {
+      "path": "independent/roll-forward/references/unreconciled-scale2-summary.json",
+      "role": "documentation",
+      "byteLength": 67,
+      "sha256": "f7313caf41e13451016e676fab8a8d8e2132b242173920cda0715e2d5cad2fde"
+    },
+    {
+      "path": "independent/roll-forward/references/unreconciled-scale2-values.json",
+      "role": "documentation",
+      "byteLength": 11921,
+      "sha256": "1800ae862f5680aea10be1b999ed81117c14b4f112f8852a412a1bc56f9ac7ea"
+    },
+    {
+      "path": "independent/roll-forward/references/unreconciled-scale4-summary.json",
+      "role": "documentation",
+      "byteLength": 67,
+      "sha256": "f7313caf41e13451016e676fab8a8d8e2132b242173920cda0715e2d5cad2fde"
+    },
+    {
+      "path": "independent/roll-forward/references/unreconciled-scale4-values.json",
+      "role": "documentation",
+      "byteLength": 12251,
+      "sha256": "a0cf9fa55cac36e8d98b713718d9129655b5ca69b99e649c30f26bc65ea4d3c0"
+    },
+    {
+      "path": "independent/roll-forward/references/zero-scale2-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/zero-scale2-values.json",
+      "role": "documentation",
+      "byteLength": 7718,
+      "sha256": "8baeb2cfc6675b50a0f3a542450ec76479f77763c7773c03d55733f91b38e270"
+    },
+    {
+      "path": "independent/roll-forward/references/zero-scale4-summary.json",
+      "role": "documentation",
+      "byteLength": 54,
+      "sha256": "36d3acfbca76a6ef0bff964514c55dd0cb9f8f3216d8b305a005040039cb7d4b"
+    },
+    {
+      "path": "independent/roll-forward/references/zero-scale4-values.json",
+      "role": "documentation",
+      "byteLength": 7932,
+      "sha256": "bfbc351b3638712edce606d637530e1cf33abd540d1344860cb89ced1622b3f1"
+    },
+    {
+      "path": "independent/roll-forward/source-manifest.json",
+      "role": "documentation",
+      "byteLength": 4170,
+      "sha256": "6055d394cfe37efd4d98ea20a27da0fed54b2a1b25c0ac65c106f5244ae6ff18"
+    },
+    {
       "path": "layout.mantra",
       "role": "layout",
       "byteLength": 752,
@@ -71,6 +275,60 @@
       "sha256": "4ee5d7511878170602c371a20fa0783dd82fdb4188027fecc4615fb4d77fcc75"
     },
     {
+      "path": "roll-forward/case-asset-liability.mantra",
+      "role": "case",
+      "byteLength": 1006,
+      "sha256": "fe0a0d9d98d082abbfe358109a366d6885210db0a271aafd1feeeebe642443b3"
+    },
+    {
+      "path": "roll-forward/case-demo.mantra",
+      "role": "case",
+      "byteLength": 1407,
+      "sha256": "6a4ae0046e48be74b09800ba5269be61815cf0f20dc957df5126cdbc1f9dc716"
+    },
+    {
+      "path": "roll-forward/case-rate-change-precision.mantra",
+      "role": "case",
+      "byteLength": 975,
+      "sha256": "81ad655fe1bc90c640c2087efc8e9266b5b247cd75b01b936d9a155d9794a343"
+    },
+    {
+      "path": "roll-forward/case-rate-change.mantra",
+      "role": "case",
+      "byteLength": 889,
+      "sha256": "3d3fd271d7ea5b822137f2146ba61467b9dc233e6dd61765c77dfec0243bf0c8"
+    },
+    {
+      "path": "roll-forward/case-unreconciled.mantra",
+      "role": "case",
+      "byteLength": 1533,
+      "sha256": "4850a79a3efe9d08cdf0fc42ffe0b080ceace5a3d751f82abbbc4f95579a94b0"
+    },
+    {
+      "path": "roll-forward/case-zero.mantra",
+      "role": "case",
+      "byteLength": 843,
+      "sha256": "3d1453773ff175b28344ff524e25601c453db1f16c092cd50c05740c4cab496b"
+    },
+    {
+      "path": "roll-forward/layout.mantra",
+      "role": "layout",
+      "byteLength": 1184,
+      "sha256": "0b86d8baa00d95ec110d85773aaf79898e9f8d3c15d9305b088c5ccd08901059"
+    },
+    {
+      "path": "roll-forward/params-precision.mantra",
+      "role": "parameters",
+      "byteLength": 255,
+      "sha256": "128dce319833c786cda1f57386864a6aee48823226150101622d53bf0b1c07d8"
+    },
+    {
+      "path": "roll-forward/schema.mantra",
+      "role": "schema",
+      "byteLength": 9111,
+      "sha256": "1f28dd8b528ea0c06c057f1ca4a6375419716bf1a19c5055ee08f883ac524fc4"
+    },
+    {
       "path": "schema.mantra",
       "role": "schema",
       "byteLength": 3901,
@@ -81,9 +339,23 @@
       "role": "documentation",
       "byteLength": 3542,
       "sha256": "2df04dc19ed8edb3900233be9519586745f5c07e112ddd94d9aaddf3f44fb401"
+    },
+    {
+      "path": "verify_roll_forward.py",
+      "role": "documentation",
+      "byteLength": 8148,
+      "sha256": "e2a709267f9fbbdc1e1047b982093cc5d736101ef5f19631a45308d5e0290948"
     }
   ],
   "schemas": [
+    {
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/schema.mantra"
+    },
     {
       "schema": {
         "id": "ifrs.ias12/rate-reconciliation",
@@ -102,6 +374,15 @@
         "versionMode": "legacy-exact"
       },
       "path": "params-precision.mantra"
+    },
+    {
+      "id": "ifrs.ias12/deferred-tax-precision",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/params-precision.mantra"
     }
   ],
   "layouts": [
@@ -113,6 +394,15 @@
         "versionMode": "legacy-exact"
       },
       "path": "layout.mantra"
+    },
+    {
+      "id": "ifrs.ias12/deferred-tax-paper",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/layout.mantra"
     }
   ],
   "cases": [
@@ -159,6 +449,74 @@
       "path": "case-zero-profit.mantra",
       "parameters": [],
       "layout": "ifrs.ias12/rate-reconciliation-paper"
+    },
+    {
+      "id": "ias12-deferred-asset-liability",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-asset-liability.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/deferred-tax-paper"
+    },
+    {
+      "id": "ias12-deferred-demo",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-demo.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/deferred-tax-paper"
+    },
+    {
+      "id": "ias12-deferred-rate-change-precision",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-rate-change-precision.mantra",
+      "parameters": [
+        "ifrs.ias12/deferred-tax-precision"
+      ],
+      "layout": "ifrs.ias12/deferred-tax-paper"
+    },
+    {
+      "id": "ias12-deferred-rate-change",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-rate-change.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/deferred-tax-paper"
+    },
+    {
+      "id": "ias12-deferred-unreconciled",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-unreconciled.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/deferred-tax-paper"
+    },
+    {
+      "id": "ias12-deferred-zero",
+      "schema": {
+        "id": "ifrs.ias12/deferred-tax-roll-forward",
+        "version": "0.1.0",
+        "versionMode": "semver"
+      },
+      "path": "roll-forward/case-zero.mantra",
+      "parameters": [],
+      "layout": "ifrs.ias12/deferred-tax-paper"
     }
   ],
   "dependencies": []

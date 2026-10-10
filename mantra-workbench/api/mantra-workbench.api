@@ -469,7 +469,9 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun commitEdits (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun compare (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun envelope (Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;)Ljava/lang/String;
 	public final fun explain (Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExplainAddress;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public static synthetic fun explain$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Lcom/xqiou/mantra/workbench/ExplainAddress;IILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
@@ -487,6 +489,7 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun redo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun removeSource (Ljava/lang/String;Ljava/lang/String;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun saveImportTemplate (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun sourceContext (Ljava/lang/String;ILjava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun sources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public final fun undo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
@@ -576,6 +579,7 @@ public final class com/xqiou/mantra/workbench/json/WorkbenchDocuments {
 	public final fun memberMap (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;)Ljava/util/Map;
 	public static synthetic fun memberMap$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Ljava/util/Map;Lcom/xqiou/mantra/core/api/CalculationReader;ILjava/lang/Object;)Ljava/util/Map;
 	public final fun paper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;)Ljava/util/Map;
+	public final fun paper (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;Z)Ljava/util/Map;
 	public final fun paper (Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/core/view/CalculationView;Ljava/lang/String;)Ljava/util/Map;
 	public static synthetic fun paper$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/render/layout/LayoutSpec;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
 	public static synthetic fun paper$default (Lcom/xqiou/mantra/workbench/json/WorkbenchDocuments;Lcom/xqiou/mantra/render/paper/WorkingPaper;Lcom/xqiou/mantra/core/view/CalculationView;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
@@ -635,8 +639,11 @@ public final class com/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog {
 	public fun <init> (Ljava/util/List;Ljava/util/Map;Ljava/util/List;Lcom/xqiou/mantra/core/api/CalculationOptions;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/util/List;Ljava/util/Map;Ljava/util/List;Lcom/xqiou/mantra/core/api/CalculationOptions;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun applyMigration (Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public final fun compare (Ljava/lang/String;Ljava/util/List;Ljava/time/LocalDate;Ljava/lang/String;)Ljava/util/Map;
 	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
+	public final fun document (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Ljava/util/Map;
 	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ljava/util/Map;
+	public static synthetic fun document$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ljava/util/Map;
 	public final fun edit (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Z)Ljava/util/Map;
 	public static synthetic fun edit$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZILjava/lang/Object;)Ljava/util/Map;
 	public final fun evaluate (Ljava/lang/String;ZLcom/xqiou/mantra/core/api/CaseExplainAddress;)Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog$Execution;
@@ -653,6 +660,7 @@ public final class com/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog {
 	public static synthetic fun parseEditText$default (Lcom/xqiou/mantra/workbench/packages/PackageWorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
 	public final fun previewMigration (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/Map;
 	public final fun restore (Ljava/lang/String;Ljava/lang/String;Z)Ljava/util/Map;
+	public final fun sourceContext (Ljava/lang/String;ILjava/lang/String;)Ljava/util/Map;
 	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public final fun workspace ()Ljava/util/Map;
 }

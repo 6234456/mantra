@@ -46,10 +46,10 @@ import java.math.RoundingMode
  * (fragment <decl>*)                     ; included document
  * decl := (include "path") | (param id literal {opts}?) | (input id :type {opts}?)
  *       | (dimension id {opts}) | (defn name [^Type arg ...] body) | item
- * item := (section id "Label" {opts}? item*) | (line id "Label" formula {opts}?)
+ * item := (section id "Label" {opts}? item*) | (line|subtract|info id "Label" formula {opts}?)
  *       | (formula-slot id "Label" default-formula {opts}?)
  *       | (field id "Label" {opts}?) | (total id "Label" {opts}?)
- *       | (choice id "Label" {opts}? (option :key "Label" formula {opts}?)+)
+ *       | (choice|choose-min|choose-max id "Label" {opts}? (option :key "Label" formula {opts}?)+)
  *       | (slot id "Label" {opts}?) | (note "Text" {opts}?)
  * ```
  */
@@ -196,6 +196,8 @@ internal class ItemReader(
             "section" -> section(list, slot = false)
             "slot" -> section(list, slot = true)
             "line" -> line(list, formulaSlot = false)
+            "subtract" -> line(list, formulaSlot = false, fixedOp = Op.MINUS)
+            "info" -> line(list, formulaSlot = false, fixedOp = Op.INFO)
             "formula-slot" -> if (userDefined) {
                 sink.error(
                     "MANTRA-FORMULA-SLOT-OWNER",
@@ -209,6 +211,8 @@ internal class ItemReader(
             "field" -> field(list)
             "total" -> total(list)
             "choice" -> choice(list)
+            "choose-min" -> choice(list, fixedRule = ChoiceRule.MIN)
+            "choose-max" -> choice(list, fixedRule = ChoiceRule.MAX)
             "check" -> validation(list, reconciliation = false)
             "reconcile" -> validation(list, reconciliation = true)
             "note" -> note(list)
@@ -300,8 +304,8 @@ internal class ItemReader(
         )
     }
 
-    private fun line(list: DslForm.Sequence, formulaSlot: Boolean): LineItem? {
-        val kind = if (formulaSlot) "formula-slot" else "line"
+    private fun line(list: DslForm.Sequence, formulaSlot: Boolean, fixedOp: Op? = null): LineItem? {
+        val kind = list.listHead ?: "line"
         val (id, label) = header(list, kind) ?: return null
         val formulaForm = list.values.getOrNull(3)
         if (formulaForm == null) {
@@ -313,6 +317,15 @@ internal class ItemReader(
             return null
         }
         val opts = document.options(list.values.getOrNull(4), sink, "$kind $id")
+        val operation = op(opts["op"], fixedOp ?: Op.PLUS, "$kind $id")
+        if (fixedOp != null && operation != fixedOp) {
+            sink.error(
+                "MANTRA-SCHEMA-OP",
+                "($kind $id ...) fixes :op to :${fixedOp.keyword}",
+                document.location(opts.getValue("op")),
+            )
+            return null
+        }
         if (!formulaSlot && "uses" in opts) {
             sink.error(
                 "MANTRA-FORMULA-SLOT-USES",
@@ -352,7 +365,7 @@ internal class ItemReader(
             id = id,
             label = label,
             formula = document.formula(formulaForm),
-            op = op(opts["op"], Op.PLUS, "line $id"),
+            op = operation,
             per = per(opts["per"], "line $id"),
             condition = opts["when"]?.let(document::formula),
             rounding = rounding(opts["round"], "line $id"),
@@ -500,19 +513,29 @@ internal class ItemReader(
         )
     }
 
-    private fun choice(list: DslForm.Sequence): ChoiceItem? {
-        val (id, label) = header(list, "choice") ?: return null
+    private fun choice(list: DslForm.Sequence, fixedRule: ChoiceRule? = null): ChoiceItem? {
+        val kind = list.listHead ?: "choice"
+        val (id, label) = header(list, kind) ?: return null
         var index = 3
         val optsForm = list.values.getOrNull(3)?.takeIf { it.isSequence(DslFormSequenceKind.MAP) }
         if (optsForm != null) index = 4
-        val opts = document.options(optsForm, sink, "choice $id")
-        val rule = when (val rule = opts["rule"]?.keyword) {
+        val opts = document.options(optsForm, sink, "$kind $id")
+        val requestedRule = opts["rule"]
+        if (fixedRule != null && requestedRule != null && requestedRule.keyword != fixedRule.name.lowercase()) {
+            sink.error(
+                "MANTRA-CHOICE-RULE",
+                "($kind $id ...) fixes :rule to :${fixedRule.name.lowercase()}",
+                document.location(requestedRule),
+            )
+            return null
+        }
+        val rule = fixedRule ?: when (val rule = requestedRule?.keyword) {
             "min" -> ChoiceRule.MIN
             "max" -> ChoiceRule.MAX
             else -> {
                 sink.error(
                     "MANTRA-CHOICE-RULE",
-                    "(choice $id ...) requires :rule :min or :rule :max (found ${rule ?: "nothing"})",
+                    "($kind $id ...) requires :rule :min or :rule :max (found ${rule ?: "nothing"})",
                     document.location(list),
                 )
                 ChoiceRule.MAX
@@ -523,7 +546,7 @@ internal class ItemReader(
             if (option?.listHead != "option") {
                 sink.error(
                     "MANTRA-CHOICE-OPTION",
-                    "(choice $id ...) may only contain (option :key \"Label\" formula)",
+                    "($kind $id ...) may only contain (option :key \"Label\" formula)",
                     document.location(form),
                 )
                 return@mapNotNull null
@@ -549,7 +572,7 @@ internal class ItemReader(
             )
         }
         if (options.size < 2) {
-            sink.error("MANTRA-CHOICE-OPTION", "(choice $id ...) needs at least two options", document.location(list))
+            sink.error("MANTRA-CHOICE-OPTION", "($kind $id ...) needs at least two options", document.location(list))
         }
         return ChoiceItem(
             id = id,

@@ -1,0 +1,131 @@
+;; Project-authored fictional deferred-tax movements; conceptual references IAS 12.47, 58, 61A, 79–80.
+;; Simplification: all differences are already recognized and rates are supplied; no recognition,
+;; recoverability, enactment, tax-law, discounting or legal offset eligibility is assessed.
+;; Positive signed differences/tax denote liabilities; negative values denote assets.
+;; PL and OCI provenance are supplied buckets, not an automated allocation decision.
+(schema ifrs.ias12/deferred-tax-roll-forward
+  {:title "IAS 12 – Deferred-tax roll-forward"
+   :subtitle "Recognized fictional temporary differences over three annual periods"
+   :version "0.1.0" :preset :ifrs-schedule :basis "IAS 12.47, 58, 61A, 79–80"
+   :mainline [difference-detail tax-measurement tax-bridge period-tax-summary]}
+
+  (input tax-items :table
+    {:label "Supplied recognized temporary differences" :min-rows 1
+     :columns {:id :keyword :title :text :opening-pl-difference :decimal
+               :opening-oci-difference :decimal :opening-rate :decimal}})
+  (input difference-movements :table
+    {:label "Supplied movements by recognition location"
+     :columns {:item :keyword :period :keyword :pl-change :decimal :oci-change :decimal}
+     :references {:item tax-item :period tax-year}})
+  (input tax-rates :table
+    {:label "Supplied closing rates" :min-rows 3
+     :columns {:period :keyword :rate :decimal} :references {:period tax-year}})
+  (input reported-tax-closings :table
+    {:label "Independently reported signed closing tax" :min-rows 3
+     :columns {:period :keyword :signed-tax :decimal} :references {:period tax-year}})
+  (param currency-scale 2 {:label "Explicit currency calculation precision"})
+  (dimension tax-item
+    {:label "Recognized difference" :from tax-items :key :id :title :title
+     :total-label "All supplied items"})
+  (dimension tax-year
+    {:label "Year" :periods {:start "2026-01-01" :unit :year :count 3}
+     :total-label "First / last stock or total flow"})
+
+  (section rate-facts "Supplied rates and source completeness" {:per tax-year :display :schedule}
+    (line closing-tax-rate "Supplied closing tax rate"
+      (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.rate 0)) tax-rates))
+      {:op :info :format :percent :precision 2 :aggregate false})
+    (line rate-source-count "Closing-rate source rows"
+      (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) tax-rates))
+      {:op :info :format :integer :aggregate false})
+    (line reported-source-count "Reported-closing source rows"
+      (sum (map (fn [entry] (if (= entry.period tax-year.key) 1 0)) reported-tax-closings))
+      {:op :info :format :integer :aggregate false})
+    (check closing-rate-valid "Closing rate lies between zero and one"
+      (and (>= closing-tax-rate 0) (<= closing-tax-rate 1)))
+    (check single-rate-source "Exactly one closing rate is supplied per period" (= rate-source-count 1))
+    (check single-reported-source "Exactly one reported closing is supplied per period" (= reported-source-count 1)))
+
+  (section difference-detail "Recognized temporary-difference stocks and movements"
+    {:per [tax-item tax-year] :display :schedule}
+    (line opening-pl-difference "Opening PL temporary difference"
+      (prev closing-pl-difference tax-item.opening-pl-difference) {:op :info :aggregate {:first tax-year}})
+    (line opening-oci-difference "Opening OCI temporary difference"
+      (prev closing-oci-difference tax-item.opening-oci-difference) {:op :info :aggregate {:first tax-year}})
+    (line pl-difference-movement "Supplied PL difference movement"
+      (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key))
+        entry.pl-change 0)) difference-movements)) {:op :info})
+    (line oci-difference-movement "Supplied OCI difference movement"
+      (sum (map (fn [entry] (if (and (= entry.item tax-item.key) (= entry.period tax-year.key))
+        entry.oci-change 0)) difference-movements)) {:op :info})
+    (line closing-pl-difference "Closing PL temporary difference"
+      (+ opening-pl-difference pl-difference-movement) {:op :info :aggregate {:last tax-year}})
+    (line closing-oci-difference "Closing OCI temporary difference"
+      (+ opening-oci-difference oci-difference-movement) {:op :info :aggregate {:last tax-year}})
+    (line closing-difference "Closing signed temporary difference"
+      (+ closing-pl-difference closing-oci-difference) {:op :info :aggregate {:last tax-year}}))
+
+  (section tax-measurement "Separate PL and OCI measurement"
+    {:per [tax-item tax-year] :display :schedule}
+    (line opening-tax-rate "Supplied opening tax rate"
+      (prev closing-tax-rate tax-item.opening-rate)
+      {:op :info :format :percent :precision 2 :aggregate false})
+    (check opening-rate-valid "Opening rate lies between zero and one"
+      (and (>= opening-tax-rate 0) (<= opening-tax-rate 1)))
+    (line opening-pl-tax "Opening recognized PL tax"
+      (prev measured-pl-tax (decimal/round (* opening-pl-difference opening-tax-rate) currency-scale))
+      {:op :info :aggregate {:first tax-year}})
+    (line opening-oci-tax "Opening recognized OCI tax"
+      (prev measured-oci-tax (decimal/round (* opening-oci-difference opening-tax-rate) currency-scale))
+      {:op :info :aggregate {:first tax-year}})
+    (line measured-pl-tax "Measured closing PL tax"
+      (decimal/round (* closing-pl-difference closing-tax-rate) currency-scale)
+      {:op :info :aggregate {:last tax-year}})
+    (line measured-oci-tax "Measured closing OCI tax"
+      (decimal/round (* closing-oci-difference closing-tax-rate) currency-scale)
+      {:op :info :aggregate {:last tax-year}}))
+
+  (section tax-bridge "Signed deferred-tax bridge by item"
+    {:per [tax-item tax-year] :display :schedule}
+    (line opening-deferred-tax "Opening signed deferred tax"
+      (+ opening-pl-tax opening-oci-tax) {:aggregate {:first tax-year}})
+    ;; Measure movements at the current rate; differences between rounded balances absorb
+    ;; currency residue in the same supplied PL/OCI bucket, rather than inventing a tax policy.
+    (line pl-tax-movement "PL tax effect of difference movements"
+      (- measured-pl-tax (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale)))
+    (line oci-tax-movement "OCI tax effect of difference movements"
+      (- measured-oci-tax (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale)))
+    (line pl-rate-effect "PL rate-change effect on the opening difference"
+      (- (decimal/round (* opening-pl-difference closing-tax-rate) currency-scale) opening-pl-tax))
+    (line oci-rate-effect "OCI rate-change effect on the opening difference"
+      (- (decimal/round (* opening-oci-difference closing-tax-rate) currency-scale) opening-oci-tax))
+    (total closing-deferred-tax "Closing signed deferred tax" {:aggregate {:last tax-year}})
+    ;; Compare the money crossfoot at its declared precision; XLSX addition can retain
+    ;; binary residue even though both decimal closing buckets reconcile exactly.
+    (reconcile measurement-crossfoot "Bridge agrees with separately measured closing buckets"
+      (decimal/round closing-deferred-tax currency-scale)
+      (decimal/round (+ measured-pl-tax measured-oci-tax) currency-scale) {:tolerance 0})
+    ;; Gross asset/liability display is descriptive, not a legal netting or recognition assessment.
+    (line closing-tax-asset "Recognized closing tax asset" (max 0 (- closing-deferred-tax))
+      {:op :info :aggregate {:last tax-year}})
+    (line closing-tax-liability "Recognized closing tax liability" (max 0 closing-deferred-tax)
+      {:op :info :aggregate {:last tax-year}}))
+
+  (section period-tax-summary "All-item signed control totals"
+    {:per tax-year :display :schedule}
+    (line period-opening-deferred-tax "Opening signed deferred tax"
+      (dim/sum opening-deferred-tax) {:aggregate {:first tax-year}})
+    (line period-pl-tax-movement "PL tax effect of difference movements" (dim/sum pl-tax-movement))
+    (line period-oci-tax-movement "OCI tax effect of difference movements" (dim/sum oci-tax-movement))
+    (line period-pl-rate-effect "PL rate-change effect" (dim/sum pl-rate-effect))
+    (line period-oci-rate-effect "OCI rate-change effect" (dim/sum oci-rate-effect))
+    (total period-closing-deferred-tax "Closing signed deferred tax" {:aggregate {:last tax-year}})
+    (line period-closing-tax-asset "Total recognized closing tax assets"
+      (dim/sum closing-tax-asset) {:op :info :aggregate {:last tax-year}})
+    (line period-closing-tax-liability "Total recognized closing tax liabilities"
+      (dim/sum closing-tax-liability) {:op :info :aggregate {:last tax-year}})
+    (line reported-deferred-tax "Independently reported signed closing tax"
+      (sum (map (fn [entry] (if (= entry.period tax-year.key) entry.signed-tax 0)) reported-tax-closings))
+      {:op :info :aggregate {:last tax-year}})
+    (reconcile deferred-tax-reconciliation "Computed less independently reported closing tax"
+      period-closing-deferred-tax reported-deferred-tax {:tolerance 0.01})))

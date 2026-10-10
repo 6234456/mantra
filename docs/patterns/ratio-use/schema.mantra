@@ -1,0 +1,17 @@
+; Reuse a pure formula while keeping caller nil policy and aggregate rounding explicit.
+(schema pattern/ratio-use
+  {:title "Shared ratio formula with caller policy" :version "1.0.0"
+   :preset :ifrs-schedule :mainline [ratios] :headline rate}
+  (include "../common/formulas.mantra")
+  (input entries :table
+    {:columns {:id :keyword :title :text :numerator :decimal :denominator :decimal} :min-rows 1})
+  (input member-scale :integer {:default 4 :label "Explicit member ratio rounding scale"})
+  (dimension member {:from entries :key :id :title :title :total-label "Combined components"})
+  (section ratios "Explicit caller and aggregate policies" {:per member :op :info :panel true}
+    (info numerator "Supplied numerator" member.numerator {:class :source})
+    (info denominator "Supplied denominator" member.denominator {:class :source})
+    (info rate "Rounded ratio"
+      (if (zero? denominator) nil (pattern-rounded-ratio numerator denominator member-scale))
+      {:format :number :precision 6 :class :result
+       :aggregate {:ratio [numerator denominator] :round [6 :half-up]}})
+    (note "A zero denominator is explicitly undefined at the caller." {:class :note})))

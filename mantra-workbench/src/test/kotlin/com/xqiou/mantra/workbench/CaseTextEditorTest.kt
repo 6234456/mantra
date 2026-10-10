@@ -197,4 +197,21 @@ class CaseTextEditorTest {
         )
         assertEquals(text.replace("12.50", "13.50"), changed)
     }
+
+    @Test
+    fun `extension alias editing preserves authored head and fixed contribution`() {
+        for (head in listOf("subtract", "info")) {
+            val original = """(case demo (extend custom
+              ($head example "Original" (+ 1 2) ; retain this note
+                {:round [2 :floor] :when true})))"""
+            val edited = CaseTextEditor.apply(
+                original,
+                listOf(CaseTextEditor.Operation.UpdateExtension("custom", "example", "Changed", "(+ 3 4)")),
+            )
+            assertEquals(original.replace("\"Original\"", "\"Changed\"").replace("(+ 1 2)", "(+ 3 4)"), edited)
+            val before = read(original).extensions.getValue("custom").single() as com.xqiou.mantra.core.model.LineItem
+            val after = read(edited).extensions.getValue("custom").single() as com.xqiou.mantra.core.model.LineItem
+            assertEquals(before.op, after.op)
+        }
+    }
 }

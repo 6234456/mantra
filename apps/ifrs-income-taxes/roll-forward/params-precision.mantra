@@ -1,0 +1,5 @@
+(parameters ifrs.ias12/deferred-tax-precision
+  {:for "ifrs.ias12/deferred-tax-roll-forward" :schema-version "0.1.0"
+   :label "Four-place deferred-tax currency precision"
+   :valid-from "2026-01-01" :valid-until "2029-01-01"}
+  (value currency-scale 4))

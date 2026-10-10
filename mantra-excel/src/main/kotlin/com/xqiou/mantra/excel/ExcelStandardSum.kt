@@ -53,7 +53,7 @@ internal fun standardSum(
         }
         val numeric = when (item) {
             is X.Scalar -> when {
-                item.kind == XKind.BOOL || item.kind == XKind.DATE -> null
+                item.kind == XKind.BOOL || item.kind == XKind.DATE || item.kind == XKind.KEYWORD -> null
                 item.kind == XKind.TEXT -> {
                     when {
                         literal?.keyword != null -> null

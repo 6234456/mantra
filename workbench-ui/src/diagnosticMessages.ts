@@ -63,6 +63,26 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
     en: 'A progressive band is not an upper-limit/rate pair.',
     de: 'Eine progressive Stufe besteht nicht aus einem Paar von Obergrenze und Satz.',
   },
+  'DSL-MANTRA-TABLE-CRITERIA': {
+    en: 'A condition-selection criterion is not a supported scalar value.',
+    de: 'Ein Auswahlkriterium ist kein unterstützter skalarer Wert.',
+  },
+  'DSL-MANTRA-TABLE-KEY': {
+    en: 'A record key or selected value column is not a keyword.',
+    de: 'Ein Datensatzschlüssel oder die ausgewählte Wertspalte ist kein Schlüsselwort.',
+  },
+  'DSL-MANTRA-TABLE-NUMBER': {
+    en: 'A matched record has an absent, nil or nonnumeric sum value.',
+    de: 'In einem passenden Datensatz fehlt der Summenwert, ist nil oder ist nicht numerisch.',
+  },
+  'DSL-MANTRA-TABLE-RECORD': {
+    en: 'A condition-selection record or criteria value is not a keyword-keyed map.',
+    de: 'Ein Datensatz oder die Auswahlkriterien sind keine Zuordnung mit Schlüsselwörtern als Schlüsseln.',
+  },
+  'DSL-MANTRA-TABLE-ROWS': {
+    en: 'A condition-selection input is not a concrete ordered vector or sequence.',
+    de: 'Die Eingabe für die bedingte Auswahl ist kein konkreter geordneter Vektor und keine solche Sequenz.',
+  },
   'MANTRA-AGGREGATE': {
     en: 'An aggregate declaration is malformed or has invalid ratio references.',
     de: 'Die Aggregationsdeklaration ist fehlerhaft oder enthält ungültige Verweise für eine Verhältniszahl.',
@@ -154,6 +174,18 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
   'MANTRA-CASE-ROOT': {
     en: 'The document is not a case document.',
     de: 'Das Dokument ist kein Falldokument.',
+  },
+  'MANTRA-CASE-ROWS-COLUMN': {
+    en: 'A compact table header contains a non-keyword or duplicate column.',
+    de: 'Der Kopf einer kompakten Tabelle enthält eine doppelte Spalte oder einen Eintrag, der kein Schlüsselwort ist.',
+  },
+  'MANTRA-CASE-ROWS-HEADER': {
+    en: 'A compact table lacks a nonempty keyword-vector header.',
+    de: 'Der kompakten Tabelle fehlt ein nicht leerer Vektor von Spaltenschlüsselwörtern.',
+  },
+  'MANTRA-CASE-ROWS-ROW': {
+    en: 'A compact table row is not a vector matching its header length.',
+    de: 'Eine Zeile der kompakten Tabelle ist kein Vektor mit genau so vielen Einträgen wie der Tabellenkopf.',
   },
   'MANTRA-CASE-SCHEMA-MISMATCH': {
     en: 'The case declares a different schema from the selected one.',
@@ -430,6 +462,18 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
   'MANTRA-LAYOUT-STYLE': {
     en: 'Style declarations contain unsupported values or properties.',
     de: 'Eine Stildeklaration enthält nicht unterstützte Werte oder Eigenschaften.',
+  },
+  'MANTRA-LAYOUT-STYLE-CLASS': {
+    en: 'A named style class is malformed, duplicated or exceeds the local definition limit.',
+    de: 'Eine benannte Stilklasse ist fehlerhaft, doppelt definiert oder überschreitet die Grenze für lokale Definitionen.',
+  },
+  'MANTRA-LAYOUT-STYLE-PRESET': {
+    en: 'A style preset selection is unknown, malformed or repeated.',
+    de: 'Eine ausgewählte Stilvorlage ist unbekannt, fehlerhaft angegeben oder mehrfach ausgewählt.',
+  },
+  'MANTRA-LAYOUT-STYLE-USE': {
+    en: 'A style declaration explicitly references an unavailable class or an invalid or excessive reference list.',
+    de: 'Eine Stildeklaration verweist ausdrücklich auf eine nicht verfügbare Klasse oder enthält eine ungültige oder zu lange Verweisliste.',
   },
   'MANTRA-LAYOUT-TABLE': {
     en: 'A layout table declaration is malformed.',

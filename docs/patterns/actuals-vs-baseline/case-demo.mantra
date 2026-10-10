@@ -1,0 +1,6 @@
+(case pattern/actuals-demo
+  {:schema "pattern/actuals-vs-baseline" :schema-version "1.0.0"
+   :layout "pattern/actuals-paper" :title "Fictional comparison inputs"}
+  (inputs {:entries (rows [:id :title :quantity :actual-price :baseline-price :allowance]
+                      [:A "Member A" 10 12 10 150]
+                      [:B "Member B" 8 10 11.25 100])}))

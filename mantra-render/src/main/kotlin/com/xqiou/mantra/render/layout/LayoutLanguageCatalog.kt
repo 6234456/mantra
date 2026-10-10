@@ -11,7 +11,7 @@ object LayoutLanguageCatalog {
                 "layout",
                 "document",
                 "(layout id {options}? declarations...)",
-                "Declares presentation without changing calculation values.",
+                "Declares presentation; :style-preset selects :utilities or :working-paper class rules.",
             ),
             form(
                 "operators",
@@ -26,7 +26,18 @@ object LayoutLanguageCatalog {
                 "(table section-id {options}? columns...)",
                 "Selects a section and generic table axes.",
             ),
-            form("style", "layout", "(style {selector} {declarations})", "Adds a presentation style rule."),
+            form(
+                "style",
+                "layout",
+                "(style {selector} {:use :name|[:name ...] ...declarations})",
+                "Merges named declarations left to right, then explicit weight, tone and fill.",
+            ),
+            form(
+                "style-class",
+                "layout",
+                "(style-class :name {:weight ... :tone ... :fill ...})",
+                "Defines a reusable class and emits its style rule at this declaration position.",
+            ),
             form("schedule", "layout", "(schedule section-id...)", "Renders selected sections as schedules."),
             form("inline", "layout", "(inline section-id...)", "Renders selected sections inline."),
             form("hide", "layout", "(hide item-id...)", "Hides selected presentation items."),

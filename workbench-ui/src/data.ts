@@ -22,6 +22,7 @@ import type {
   Sources,
   ImportInspection,
   ImportTemplate,
+  SourceContext,
 } from './types'
 import { addressToPath } from './address'
 
@@ -32,14 +33,28 @@ export interface WorkbenchData {
   canManageSources?(caseId: string): boolean
   canAuthorCase?(caseId: string): boolean
   canCompareParameters?(caseId: string): boolean
+  canCompareScenarios?(caseId: string): boolean
+  parameterComparisonDateRequired?(): boolean
   workspace(signal?: AbortSignal): Promise<Workspace>
   structure(caseId: string, signal?: AbortSignal): Promise<Envelope<Structure>>
   run(caseId: string, signal?: AbortSignal): Promise<Envelope<Run>>
-  paper(caseId: string, panelId?: string, signal?: AbortSignal): Promise<Envelope<Paper>>
+  paper(caseId: string, panelId?: string, signal?: AbortSignal, includeZero?: boolean): Promise<Envelope<Paper>>
   explain(caseId: string, address: Address, signal?: AbortSignal, expectedRevision?: string): Promise<Envelope<Explain>>
   parameters(caseId: string, signal?: AbortSignal): Promise<Envelope<Parameters>>
   diagnostics(caseId: string, signal?: AbortSignal): Promise<Envelope<Diagnostics>>
-  compare(caseId: string, parameterSets: string[], signal?: AbortSignal): Promise<Envelope<Compare>>
+  /** Source evidence is explicitly unavailable in static fixtures without captured source bytes. */
+  sourceContext?(
+    caseId: string,
+    diagnosticIndex: number,
+    expectedRevision: string,
+    signal?: AbortSignal,
+  ): Promise<Envelope<SourceContext>>
+  compare(
+    caseId: string,
+    parameterSets: string[],
+    signal?: AbortSignal,
+    effectiveDate?: string,
+  ): Promise<Envelope<Compare>>
   exportPreview(caseId: string, sheet?: string, layout?: string, signal?: AbortSignal): Promise<Envelope<ExportPreview>>
   exportUrl(caseId: string, format: 'xlsx' | 'html' | 'txt' | 'pdf', layout?: string): string | undefined
   edit(
@@ -226,9 +241,11 @@ export class LiveData implements WorkbenchData {
   run(id: string, signal?: AbortSignal) {
     return json<Envelope<Run>>(`${apiCase(id)}/run`, signal).then(contract)
   }
-  paper(id: string, panelId?: string, signal?: AbortSignal) {
-    const query = panelId ? `?panel=${encodeURIComponent(panelId)}` : ''
-    return json<Envelope<Paper>>(`${apiCase(id)}/paper${query}`, signal).then(contract)
+  paper(id: string, panelId?: string, signal?: AbortSignal, includeZero?: boolean) {
+    const query = new URLSearchParams()
+    if (panelId) query.set('panel', panelId)
+    if (includeZero !== undefined) query.set('includeZero', String(includeZero))
+    return json<Envelope<Paper>>(`${apiCase(id)}/paper${query.size ? `?${query}` : ''}`, signal).then(contract)
   }
   explain(id: string, address: Address, signal?: AbortSignal, expectedRevision?: string) {
     const query = new URLSearchParams({ address: addressToPath(address) })
@@ -241,6 +258,10 @@ export class LiveData implements WorkbenchData {
   }
   diagnostics(id: string, signal?: AbortSignal) {
     return json<Envelope<Diagnostics>>(`${apiCase(id)}/diagnostics`, signal).then(contract)
+  }
+  sourceContext(id: string, diagnosticIndex: number, expectedRevision: string, signal?: AbortSignal) {
+    const query = new URLSearchParams({ diagnostic: String(diagnosticIndex), expectedRevision })
+    return json<Envelope<SourceContext>>(`${apiCase(id)}/diagnostic-source?${query}`, signal).then(contract)
   }
   async compare(id: string, parameterSets: string[], signal?: AbortSignal) {
     const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
@@ -383,7 +404,8 @@ export class FixtureData implements WorkbenchData {
   async run(id: string, signal?: AbortSignal) {
     return contract(await json<Envelope<Run>>(await this.file(id, 'run'), signal))
   }
-  async paper(id: string, _panelId?: string, signal?: AbortSignal) {
+  async paper(id: string, _panelId?: string, signal?: AbortSignal, includeZero?: boolean) {
+    if (includeZero) throw new Error('Zero-row expansion requires a live workbench server')
     return contract(await json<Envelope<Paper>>(await this.file(id, 'paper'), signal))
   }
   async explain(id: string, address: Address, signal?: AbortSignal, expectedRevision?: string) {

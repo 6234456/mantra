@@ -1,0 +1,14 @@
+{
+  "name": "roll-forward-difference-movements",
+  "format": "csv",
+  "options": {
+    "input": "difference-movements",
+    "delimiter": ";",
+    "decimal": ".",
+    "path": "../data/roll-forward-difference-movements.csv",
+    "grouping": ""
+  },
+  "case": "roll-forward/case-demo.mantra",
+  "schema": "ifrs.ias12/deferred-tax-roll-forward",
+  "schema-version": "0.1.0"
+}

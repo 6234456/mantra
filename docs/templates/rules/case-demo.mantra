@@ -1,0 +1,4 @@
+(case template/rules-demo
+  {:schema "template/rules" :schema-version "1.0.0"
+   :layout "template/rules-paper" :title "Fictional rule inputs"}
+  (inputs {:basis 1000 :requested-discount 30 :alternative-enabled false}))

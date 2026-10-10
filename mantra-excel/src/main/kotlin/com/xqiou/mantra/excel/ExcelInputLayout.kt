@@ -123,10 +123,10 @@ internal fun ExcelWorkbookBuilder.layoutTableInput(sheet: XSSFSheet, start: Int,
             val slot = Slot(sheet, r, 1 + i)
             tableSlots[Triple(input.id, index, column.name)] = slot
             val raw = fields[column.name] ?: Value.Nil
-            val value = if (column.type == ValueType.DATE && raw is Value.Text) {
-                Value.Date(java.time.LocalDate.parse(raw.value))
-            } else {
-                raw
+            val value = when {
+                column.type == ValueType.DATE && raw is Value.Text -> Value.Date(java.time.LocalDate.parse(raw.value))
+                column.type == ValueType.KEYWORD && raw is Value.Text -> Value.Kw(raw.value.removePrefix(":"))
+                else -> raw
             }
             writeValue(slot, value)
             cell(sheet, r, 1 + i).cellStyle =
@@ -144,7 +144,11 @@ internal fun ExcelWorkbookBuilder.layoutTableInput(sheet: XSSFSheet, start: Int,
             dims.forEach { dim ->
                 val key = when (val k = fields[dim.keyColumn]) {
                     is Value.Kw -> k.name
-                    is Value.Text -> k.value
+                    is Value.Text -> if (columns.first { it.name == dim.keyColumn }.type == ValueType.KEYWORD) {
+                        k.value.removePrefix(":")
+                    } else {
+                        k.value
+                    }
                     is Value.Num -> k.value.toPlainString()
                     else -> null
                 }

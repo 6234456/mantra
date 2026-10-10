@@ -126,8 +126,8 @@ private fun ExcelWorkbookBuilder.reductionScope(axis: String, member: String, fi
             val wantedKey =
                 dynamic?.memberTokens(dimension)?.takeIf { wanted in it }?.let { dynamic!!.key(dimension, wanted) }
                     ?: Ex.text(wanted)
-            tests += if (key.kind == XKind.TEXT && key.text.startsWith('"')) {
-                if (key == wantedKey) Ex.TRUE else Ex.FALSE
+            tests += if (Ex.isTextLiteral(key)) {
+                if (key.text == wantedKey.text) Ex.TRUE else Ex.FALSE
             } else {
                 Ex.cmp("=", key, wantedKey)
             }
@@ -135,7 +135,7 @@ private fun ExcelWorkbookBuilder.reductionScope(axis: String, member: String, fi
         val declaration = view.dimensions[dimension] ?: break
         val parent = declaration.parentDimension ?: break
         val column = declaration.parentKeyColumn ?: "parent-key"
-        val literalKey = key.text.takeIf { key.kind == XKind.TEXT && it.startsWith('"') && it.endsWith('"') }
+        val literalKey = key.text.takeIf { Ex.isTextLiteral(key) }
             ?.removeSurrounding("\"")?.replace("\"\"", "\"")
         key = if (literalKey != null) {
             translator.toScalar(

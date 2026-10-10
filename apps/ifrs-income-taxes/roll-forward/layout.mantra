@@ -1,0 +1,16 @@
+;; Presentation only: existing generic two-dimensional matrices and stock/flow cross totals.
+(layout ifrs.ias12/deferred-tax-paper
+  {:schema "ifrs.ias12/deferred-tax-roll-forward" :schema-version "0.1.0"
+   :preset :ifrs-schedule :title "IAS 12 deferred-tax roll-forward"
+   :subtitle "Supplied recognized balances and rates – fictional demonstration only"
+   :header [:subject :period :schema :prepared-by :reference]}
+  (table period-tax-summary {:style :matrix :title "1 · All-item signed control bridge"}
+    :label (members tax-year) :cross-total :status)
+  (table tax-bridge {:style :matrix :row-dimension tax-item :title "2 · Deferred-tax bridge by item and year"}
+    :label (members tax-year) :cross-total :status)
+  (table difference-detail {:style :matrix :row-dimension tax-item :title "3 · Recognized temporary differences"}
+    :label (members tax-year) :cross-total)
+  (table tax-measurement {:style :matrix :row-dimension tax-item :title "4 · PL and OCI provenance measurement"}
+    :label (members tax-year) :cross-total :status)
+  (table rate-facts {:style :matrix :title "5 · Supplied rates and source completeness"}
+    :label (members tax-year) :status))

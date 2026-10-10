@@ -1,0 +1,6 @@
+(case template/ratio-demo
+  {:schema "template/ratio" :schema-version "1.0.0"
+   :layout "template/ratio-paper" :title "Fictional ratio inputs"}
+  (inputs {:items (rows [:id :title :charge :units]
+                   [:A "Member A" 1 3]
+                   [:B "Member B" 1 6])}))

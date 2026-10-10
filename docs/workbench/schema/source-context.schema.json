@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/source-context.schema.json",
+  "title": "SourceContext",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["case", "revision", "location", "lines", "truncated"],
+      "properties": {
+        "case": { "type": "string" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{16}([0-9a-f]{48})?$" },
+        "location": { "$ref": "envelope.schema.json#/$defs/location" },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "items": {
+            "type": "object",
+            "required": ["number", "text", "startColumn", "highlightStart", "highlightEnd"],
+            "properties": {
+              "number": { "type": "integer", "minimum": 1 },
+              "text": { "type": "string", "maxLength": 512 },
+              "startColumn": { "type": "integer", "minimum": 1 },
+              "highlightStart": { "type": ["integer", "null"], "minimum": 0, "maximum": 512 },
+              "highlightEnd": { "type": ["integer", "null"], "minimum": 0, "maximum": 512 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "truncated": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

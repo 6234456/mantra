@@ -1,0 +1,26 @@
+;; Project-authored fictional already-recognized balances; no IFRS example dataset.
+(case ias12-deferred-unreconciled
+  {:schema "ifrs.ias12/deferred-tax-roll-forward" :schema-version "0.1.0"
+   :expected-business [{:code "MANTRA-RECONCILE-FAILED" :node "deferred-tax-reconciliation" :coord [:P2]}]
+   :layout "ifrs.ias12/deferred-tax-paper" :title "Deferred tax: unreconciled"
+   :subject "Fictional demonstration entity" :period "2026–2028"
+   :prepared-by "Mantra demonstration" :reference "Independent Decimal roll-forward fixtures"}
+  (inputs {
+    :tax-items [
+      {:id :Plant :title "Taxable plant difference" :opening-pl-difference 10000 :opening-oci-difference 0 :opening-rate 0.25}
+      {:id :Guarantee :title "Recognized deductible guarantee difference" :opening-pl-difference -4000 :opening-oci-difference 0 :opening-rate 0.25}]
+    :difference-movements [
+      {:item :Plant :period :P1 :pl-change 1000 :oci-change 0}
+      {:item :Plant :period :P2 :pl-change -2000 :oci-change 3000}
+      {:item :Plant :period :P3 :pl-change -3000 :oci-change -1000}
+      {:item :Guarantee :period :P1 :pl-change -1000 :oci-change 0}
+      {:item :Guarantee :period :P2 :pl-change 2000 :oci-change 0}
+      {:item :Guarantee :period :P3 :pl-change 3000 :oci-change 0}]
+    :tax-rates [
+      {:period :P1 :rate 0.25}
+      {:period :P2 :rate 0.30}
+      {:period :P3 :rate 0.30}]
+    :reported-tax-closings [
+      {:period :P1 :signed-tax 1500}
+      {:period :P2 :signed-tax 2700.02}
+      {:period :P3 :signed-tax 2400}]}))

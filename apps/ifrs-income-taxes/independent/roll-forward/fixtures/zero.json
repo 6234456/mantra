@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "Zero",
+      "title": "Recognized zero balance",
+      "opening-pl-difference": "0",
+      "opening-oci-difference": "0",
+      "opening-rate": "0.25"
+    }
+  ],
+  "rates": [
+    "0.25",
+    "0.30",
+    "0.30"
+  ],
+  "movements": {},
+  "reported": {
+    "P1": "0",
+    "P2": "0",
+    "P3": "0"
+  }
+}

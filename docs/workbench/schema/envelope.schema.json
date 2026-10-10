@@ -223,6 +223,33 @@
       },
       "additionalProperties": false
     },
+    "styleOverrides": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "weight": {
+          "enum": [
+            "normal",
+            "bold"
+          ]
+        },
+        "tone": {
+          "enum": [
+            "default",
+            "muted",
+            "accent"
+          ]
+        },
+        "fill": {
+          "enum": [
+            "none",
+            "subtle",
+            "accent"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "validation": {
       "type": "object",
       "required": [

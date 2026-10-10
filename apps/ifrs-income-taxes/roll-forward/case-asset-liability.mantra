@@ -1,0 +1,19 @@
+;; Project-authored fictional already-recognized balances; no IFRS example dataset.
+(case ias12-deferred-asset-liability
+  {:schema "ifrs.ias12/deferred-tax-roll-forward" :schema-version "0.1.0"
+   :layout "ifrs.ias12/deferred-tax-paper" :title "Deferred tax: asset-liability"
+   :subject "Fictional demonstration entity" :period "2026–2028"
+   :prepared-by "Mantra demonstration" :reference "Independent Decimal roll-forward fixtures"}
+  (inputs {
+    :tax-items [
+      {:id :Taxable :title "Taxable difference" :opening-pl-difference 1000 :opening-oci-difference 0 :opening-rate 0.25}
+      {:id :Deductible :title "Recognized deductible difference" :opening-pl-difference 0 :opening-oci-difference -1000 :opening-rate 0.25}]
+    :difference-movements []
+    :tax-rates [
+      {:period :P1 :rate 0.25}
+      {:period :P2 :rate 0.25}
+      {:period :P3 :rate 0.25}]
+    :reported-tax-closings [
+      {:period :P1 :signed-tax 0}
+      {:period :P2 :signed-tax 0}
+      {:period :P3 :signed-tax 0}]}))
