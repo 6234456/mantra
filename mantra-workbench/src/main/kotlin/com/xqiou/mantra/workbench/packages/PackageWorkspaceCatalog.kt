@@ -412,7 +412,12 @@ class PackageWorkspaceCatalog(
                 is CaseTextEditor.Operation.ClearInput -> InputAddress(operation.id, operation.coord)
                 else -> null
             }
-            require(address == null || address !in linked) { "A linked input is source-owned" }
+            // Replacing or clearing an ancestor map also edits its linked coordinates.
+            require(
+                address == null || linked.none {
+                    it.nodeId == address.nodeId && it.coord.take(address.coord.size) == address.coord
+                },
+            ) { "A linked input is source-owned" }
         }
         val candidate = CaseTextEditor.apply(original.text, operations)
         var capturedAfter: Execution? = null
