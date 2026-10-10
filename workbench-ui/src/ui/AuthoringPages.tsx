@@ -70,7 +70,7 @@ export function FormulaSlotCard({
       </div>
       {editable ? (
         <FormulaEditor
-          key={`${slot.id}-${slot.binding ?? ''}`}
+          key={JSON.stringify([caseId, slot.id])}
           caseId={caseId}
           revision={revision}
           target={{ kind: 'formulaSlot', id: slot.id }}
