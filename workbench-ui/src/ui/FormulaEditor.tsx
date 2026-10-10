@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { EditorState } from '@codemirror/state'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView, keymap } from '@codemirror/view'
-import { autocompletion, completionKeymap } from '@codemirror/autocomplete'
+import { autocompletion, closeCompletion, completionKeymap } from '@codemirror/autocomplete'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { lintGutter, setDiagnostics, type Diagnostic as CodeDiagnostic } from '@codemirror/lint'
 import type { WorkbenchData } from '../data'
@@ -10,6 +10,28 @@ import { language } from '../i18n'
 
 const lang = language()
 const de = (text: string, english: string) => (lang === 'en' ? english : text)
+
+type FormulaSnapshot = {
+  editor: EditorView
+  epoch: number
+  contextVersion: number
+  caseId: string
+  revision: string
+  target: AuthoringTarget
+  source: string
+  data: WorkbenchData
+}
+
+function sameOwner(request: FormulaSnapshot, current: Pick<FormulaSnapshot, 'caseId' | 'target' | 'data'>) {
+  return (
+    request.caseId === current.caseId &&
+    request.data === current.data &&
+    request.target.kind === current.target.kind &&
+    request.target.id === current.target.id &&
+    (request.target.kind !== 'extension' ||
+      (current.target.kind === 'extension' && request.target.slot === current.target.slot))
+  )
+}
 
 export function FormulaEditor({
   caseId,
@@ -30,43 +52,129 @@ export function FormulaEditor({
 }) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
-  const targetRef = useRef(target)
-  targetRef.current = target
-  const [formula, setFormula] = useState(initialFormula)
+  const targetIdentity = JSON.stringify([target.kind, target.id, target.kind === 'extension' ? target.slot : null])
+  const targetKey = JSON.stringify([
+    target.kind,
+    target.id,
+    target.kind === 'extension' ? target.slot : null,
+    target.kind === 'extension' ? target.title : null,
+  ])
+  const context = useRef({ caseId, revision, target, targetKey, data, operation, onSaved })
+  const contextVersion = useRef(0)
+  const epoch = useRef(0)
+  const hoverSequence = useRef(0)
+  const source = useRef(initialFormula)
+  const loadedSource = useRef(initialFormula)
+  const loadedIdentity = useRef({ caseId, targetIdentity })
+  const editable = useRef(new Compartment())
+  const action = useRef<FormulaSnapshot | null>(null)
+  const pendingWrite = useRef<FormulaSnapshot | null>(null)
+  const composingRef = useRef(false)
+  const [composing, setComposing] = useState(false)
   const [findings, setFindings] = useState<AuthoringFinding[]>([])
   const [hover, setHover] = useState<AuthoringHover['hover']>(null)
   const [preview, setPreview] = useState<FormulaEditResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
+  const invalidate = useCallback(() => {
+    epoch.current += 1
+    hoverSequence.current += 1
+    setFindings([])
+    setPreview(null)
+    setHover(null)
+    setError('')
+  }, [])
+
+  const snapshot = useCallback((): FormulaSnapshot | null => {
+    const editor = view.current
+    if (!editor) return null
+    const current = context.current
+    return {
+      editor,
+      epoch: epoch.current,
+      contextVersion: contextVersion.current,
+      caseId: current.caseId,
+      revision: current.revision,
+      target: { ...current.target },
+      source: editor.state.doc.toString(),
+      data: current.data,
+    }
+  }, [])
+
+  const isCurrent = useCallback((request: FormulaSnapshot) => {
+    return (
+      view.current === request.editor &&
+      epoch.current === request.epoch &&
+      contextVersion.current === request.contextVersion &&
+      request.editor.state.doc.toString() === request.source
+    )
+  }, [])
+
+  useLayoutEffect(() => {
+    const previous = context.current
+    context.current = { caseId, revision, target, targetKey, data, operation, onSaved }
+    if (
+      previous.caseId !== caseId ||
+      previous.revision !== revision ||
+      previous.targetKey !== targetKey ||
+      previous.data !== data
+    ) {
+      contextVersion.current += 1
+      if (view.current) closeCompletion(view.current)
+      invalidate()
+    }
+  }, [caseId, revision, target, targetKey, data, operation, onSaved, invalidate])
+
   useEffect(() => {
     if (!host.current) return
-    setFormula(initialFormula)
+    const previous = loadedIdentity.current
+    const keepDraft =
+      previous.caseId === caseId &&
+      previous.targetIdentity === targetIdentity &&
+      source.current !== loadedSource.current
+    const documentSource = keepDraft ? source.current : initialFormula
+    source.current = documentSource
+    loadedSource.current = initialFormula
+    loadedIdentity.current = { caseId, targetIdentity }
+    composingRef.current = false
+    setComposing(false)
+    invalidate()
+    const readOnly = !!pendingWrite.current && sameOwner(pendingWrite.current, context.current)
     let hoverTimer: ReturnType<typeof setTimeout> | undefined
     const styleNonce = document.querySelector<HTMLMetaElement>('meta[name="mantra-style-nonce"]')?.content
     const editor = new EditorView({
       parent: host.current,
       state: EditorState.create({
-        doc: initialFormula,
+        doc: documentSource,
         extensions: [
           ...(styleNonce ? [EditorView.cspNonce.of(styleNonce)] : []),
           history(),
+          editable.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
           keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap]),
           EditorView.lineWrapping,
           lintGutter(),
           autocompletion({
             override: [
               async (context) => {
+                const request = snapshot()
+                if (
+                  !request ||
+                  request.source !== context.state.doc.toString() ||
+                  composingRef.current ||
+                  request.editor.composing
+                )
+                  return null
                 try {
-                  const result = (
-                    await data.authoring(
-                      caseId,
-                      'complete',
-                      targetRef.current,
-                      context.state.doc.toString(),
-                      context.pos,
-                    )
-                  ).data
+                  const response = await request.data.authoring(
+                    request.caseId,
+                    'complete',
+                    request.target,
+                    request.source,
+                    context.pos,
+                  )
+                  if (!isCurrent(request) || context.aborted || response.revision !== request.revision) return null
+                  const result = response.data
                   if (!result.items.length) return null
                   return {
                     from: result.replacementRange.startOffset,
@@ -85,26 +193,42 @@ export function FormulaEditor({
               },
             ],
           }),
+          EditorView.domEventHandlers({
+            compositionstart() {
+              composingRef.current = true
+              setComposing(true)
+              invalidate()
+            },
+            compositionend() {
+              composingRef.current = false
+              setComposing(false)
+            },
+          }),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
-              setFormula(update.state.doc.toString())
-              setFindings([])
-              setPreview(null)
-              setError('')
+              source.current = update.state.doc.toString()
+              invalidate()
             }
-            if (update.selectionSet) {
+            if (update.selectionSet || update.docChanged) {
               if (hoverTimer) clearTimeout(hoverTimer)
+              const sequence = ++hoverSequence.current
+              setHover(null)
+              if (composingRef.current || update.view.composing) return
+              const request = snapshot()
+              if (!request) return
+              const cursor = update.state.selection.main.head
               hoverTimer = setTimeout(() => {
-                void data
-                  .authoring(
-                    caseId,
-                    'hover',
-                    targetRef.current,
-                    update.state.doc.toString(),
-                    update.state.selection.main.head,
-                  )
-                  .then((result) => setHover(result.data.hover))
-                  .catch(() => setHover(null))
+                if (!isCurrent(request) || hoverSequence.current !== sequence) return
+                void request.data
+                  .authoring(request.caseId, 'hover', request.target, request.source, cursor)
+                  .then((result) => {
+                    if (isCurrent(request) && hoverSequence.current === sequence) {
+                      setHover(result.revision === request.revision ? result.data.hover : null)
+                    }
+                  })
+                  .catch(() => {
+                    if (isCurrent(request) && hoverSequence.current === sequence) setHover(null)
+                  })
               }, 250)
             }
           }),
@@ -124,10 +248,12 @@ export function FormulaEditor({
     view.current = editor
     return () => {
       if (hoverTimer) clearTimeout(hoverTimer)
+      epoch.current += 1
+      hoverSequence.current += 1
       editor.destroy()
       view.current = null
     }
-  }, [caseId, data, initialFormula])
+  }, [caseId, data, initialFormula, targetIdentity, invalidate, snapshot, isCurrent])
 
   useEffect(() => {
     const editor = view.current
@@ -143,43 +269,92 @@ export function FormulaEditor({
     editor.dispatch(setDiagnostics(editor.state, diagnostics))
   }, [findings])
 
-  async function check(): Promise<boolean> {
+  function beginAction() {
+    if (action.current || composingRef.current || view.current?.composing) return null
+    const request = snapshot()
+    if (!request) return null
+    action.current = request
     setBusy(true)
     setError('')
+    return request
+  }
+
+  function finishAction(request: FormulaSnapshot) {
+    if (action.current !== request) return
+    action.current = null
+    if (view.current) setBusy(false)
+  }
+
+  function checkRevision(request: FormulaSnapshot, actual: string) {
+    if (actual === request.revision) return true
+    setError(de('Die Quelldokumente wurden geändert. Bitte neu laden.', 'Source documents changed. Please reload.'))
+    return false
+  }
+
+  async function checkSnapshot(request: FormulaSnapshot): Promise<boolean> {
+    const result = await request.data.authoring(request.caseId, 'check', request.target, request.source)
+    if (!isCurrent(request) || composingRef.current || request.editor.composing) return false
+    if (!checkRevision(request, result.revision)) return false
+    setFindings(result.data.diagnostics)
+    return result.data.valid
+  }
+
+  async function check(): Promise<void> {
+    const request = beginAction()
+    if (!request) return
     try {
-      const result = (await data.authoring(caseId, 'check', targetRef.current, formula)).data
-      setFindings(result.diagnostics)
-      return result.valid
+      await checkSnapshot(request)
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure))
-      return false
+      if (isCurrent(request)) setError(failure instanceof Error ? failure.message : String(failure))
     } finally {
-      setBusy(false)
+      finishAction(request)
     }
   }
   async function calculate() {
-    setBusy(true)
-    setError('')
+    const request = beginAction()
+    if (!request) return
     setPreview(null)
     try {
-      const result = await data.formulaEdit(caseId, revision, operation(formula), true)
-      setPreview(result.data)
+      const edit = context.current.operation(request.source)
+      const result = await request.data.formulaEdit(request.caseId, request.revision, edit, true)
+      if (isCurrent(request) && checkRevision(request, result.revision)) setPreview(result.data)
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure))
+      if (isCurrent(request)) setError(failure instanceof Error ? failure.message : String(failure))
     } finally {
-      setBusy(false)
+      finishAction(request)
     }
   }
   async function save() {
-    if (!(await check())) return
-    setBusy(true)
+    const request = beginAction()
+    if (!request) return
     try {
-      await data.formulaEdit(caseId, revision, operation(formula), false)
-      onSaved()
+      const edit = context.current.operation(request.source)
+      if (!(await checkSnapshot(request))) return
+      if (!isCurrent(request)) return
+      // A dispatched write cannot be cancelled by ignoring its response. Keep this draft fixed until it settles.
+      pendingWrite.current = request
+      request.editor.dispatch({
+        effects: editable.current.reconfigure([EditorState.readOnly.of(true), EditorView.editable.of(false)]),
+      })
+      await request.data.formulaEdit(request.caseId, request.revision, edit, false)
+      // Metadata or revision changes cannot undo that write. Notify the current callback for the same owner.
+      if (view.current && sameOwner(request, context.current)) context.current.onSaved()
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : String(failure))
+      if (
+        isCurrent(request) ||
+        (pendingWrite.current === request && view.current && sameOwner(request, context.current))
+      )
+        setError(failure instanceof Error ? failure.message : String(failure))
     } finally {
-      setBusy(false)
+      if (pendingWrite.current === request) {
+        pendingWrite.current = null
+        if (view.current && sameOwner(request, context.current)) {
+          view.current.dispatch({
+            effects: editable.current.reconfigure([EditorState.readOnly.of(false), EditorView.editable.of(true)]),
+          })
+        }
+      }
+      finishAction(request)
     }
   }
   const values = preview?.run.values[target.id]
@@ -187,13 +362,13 @@ export function FormulaEditor({
     <div className="formula-editor">
       <div className="formula-source" ref={host} aria-label={de('Formel', 'Formula')} />
       <div className="formula-actions">
-        <button type="button" disabled={busy} onClick={() => void check()}>
+        <button type="button" disabled={busy || composing} onClick={() => void check()}>
           {de('Prüfen', 'Check')}
         </button>
-        <button type="button" disabled={busy} onClick={() => void calculate()}>
+        <button type="button" disabled={busy || composing} onClick={() => void calculate()}>
           {de('Vorschau', 'Preview')}
         </button>
-        <button type="button" className="primary-button" disabled={busy} onClick={() => void save()}>
+        <button type="button" className="primary-button" disabled={busy || composing} onClick={() => void save()}>
           {de('Speichern', 'Save')}
         </button>
       </div>
