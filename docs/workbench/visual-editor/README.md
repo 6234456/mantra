@@ -57,7 +57,7 @@
   操作脚本、截图清单与复核清单。维护者 2026-10-10 决定由 Codex 编码、Claude 复核。
 - [ ] 原型代码：`workbench-ui/src/authoring/`、录制脚本、测试与截图，待 Codex 按 prototype.md 实施后由 Claude 复核。
 - [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
-  任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5`，由基线 `6443c688` 的树以临时 index 与
-  `commit-tree` 生成，只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
+  任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
+  `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
   Draft PR：[6234456/paramita-v2#1](https://github.com/6234456/paramita-v2/pull/1)。
 - [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
