@@ -1,9 +1,10 @@
 # 可视化 DSL 编辑器设计交付：进度与恢复记录
 
-> 状态：**设计交付完成，录制引擎原型已实现，待 Claude 按提交复核（2026-10-10）**。
+> 状态：**设计交付与首轮复核完成，Codex 已修正 F1–F18／S1，待 Claude 按最新已推送 HEAD 再次复查（2026-10-10）**。
 > 原型入口为 fixture 模式的 `/authoring`；保存、fork、owner 与源修订冲突均为模拟，未写入模板文件。
 > 当前实现、启动步骤与证据见 [实施记录](implementation-progress.md)，复核任务见
-> [继续提示词](resume-prompt.md)。正式模板 API 与发布能力仍属于接口缺口。
+> [继续提示词](resume-prompt.md)。首轮结论见 [复核记录](prototype-review.md)，修正对应见
+> [prototype-fixes.md](prototype-fixes.md)。正式模板 API 与发布能力仍属于接口缺口。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
 > 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
@@ -28,6 +29,13 @@
 [Mantra Draft PR #15](https://github.com/6234456/mantra/pull/15)，
 当前集成检查结果见 [实施记录的验证部分](implementation-progress.md#validation)。
 本次未修改 Template Engine 源码或其另一会话工作区。
+
+**首轮复核后修正（2026-10-10）**：Claude 在 `92664ae` 记录对 `69ab8ff` 的复核；门禁、32 状态
+独立重录真实性与状态逻辑通过。Codex 随后完成 F1–F18 和 S1 修正，重点包括固定公式栏、独立 Split
+滚动与 owner 高亮、layout 派生 class 词汇与芯片、真实分离差异、窄屏覆盖层，以及恢复运行时失败草稿。
+代码检查点 `dc01609` 已正常推送；347 项测试、28 个浏览器流程、fixture／live 构建、边界与 32 状态漂移检查通过。
+检查与 13 张更新截图见 [修正记录](prototype-fixes.md)。复查仍以随后文档提交在内的 PR 最新 HEAD 为准，
+本记录不代替 Claude 再次复查或真实拼音输入法验证。
 
 本机工具链：Zulu JDK 21.0.12、Node 25.2.1、npm 11.6.2。
 `./gradlew --no-daemon --offline :mantra-cli:installDist` 在任务分支上构建成功。
@@ -67,9 +75,10 @@
 - [x] [prototype.md](prototype.md)：录制数据原型的实施说明（录制脚本、模拟服务、状态模型、键盘、测试）、
   操作脚本、截图清单与复核清单。维护者 2026-10-10 决定由 Codex 编码、Claude 复核。
 - [x] 原型代码：`workbench-ui/src/authoring/`、32 状态录制脚本、状态／服务／恢复／组件测试、Chrome CDP
-  操作脚本及 11 张截图。入口、能力边界与实际结果见 [implementation-progress.md](implementation-progress.md)。
+  操作脚本及 13 张更新截图。入口、能力边界与实际结果见 [implementation-progress.md](implementation-progress.md)。
 - [x] Claude 复核 `69ab8ff`：[prototype-review.md](prototype-review.md)。门禁与录制真实性通过；交互布局与样式面板的
-  F1–F18 待 Codex 修正后再次复核；真实中文拼音输入法仍需人工操作。
+  F1–F18 与 S1 已由 Codex 修正，见 [prototype-fixes.md](prototype-fixes.md)。
+- [ ] Claude 对 PR 最新已推送 HEAD 再次复查；真实中文拼音输入法仍需人工操作。
 - [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
   任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
   `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。

@@ -1,6 +1,8 @@
 # 录制数据原型：Codex 实施说明、操作脚本与复核清单
 
-> 状态：**录制引擎原型已实现；Claude 已复核 `69ab8ff`，需修正项见 [复核记录](prototype-review.md)（2026-10-10）**。维护者决定：Claude 负责文档与意图，
+> 状态：**录制引擎原型已实现，Claude 首轮复核完成；Codex 已修正 F1–F18／S1，待 Claude 再次复查（2026-10-10）**。
+> 首轮评估对象为 `69ab8ff`，见 [复核记录](prototype-review.md)；本轮修正见 [prototype-fixes.md](prototype-fixes.md)。
+> 维护者决定：Claude 负责文档与意图，
 > Codex 编码，Claude 复核。启动、实际验证与截图见 [实施记录](implementation-progress.md)。
 > 本文同时保留实施要求和复核脚本；实现的是 [设计规范](design-spec.md) 的 S1 交互，状态与权限遵循
 > [状态矩阵](state-matrix.md)，缺口编号见 [实施计划 §4](implementation-plan.md#4-接口缺口)。
@@ -38,6 +40,9 @@
 | `workbench-ui/scripts/record-authoring-prototype.mjs` | 录制脚本（§4），Node 内置模块，无新依赖 |
 | `workbench-ui/src/authoring/recording/recording.json` | 录制结果，提交到仓库 |
 | `workbench-ui/src/authoring/AuthoringPrototype.tsx` | 外壳：身份栏、Outline、网格／源码、Inspector、Drawer、状态栏、原型控制 |
+| `workbench-ui/src/authoring/AuthoringInspector.tsx`、`AuthoringDrawer.tsx`、`AuthoringOutline.tsx` | 从外壳分离的 Inspector、Drawer 与按面板分组的 Outline |
+| `workbench-ui/src/authoring/AuthoringStylePanel.tsx`、`styleVocabulary.ts`、`stylePresets.json` | class 芯片、layout 声明词汇与带出处的完整预设表；最终样式读取 Paper |
+| `workbench-ui/src/authoring/sourceDiff.ts` | 保留源行结束符的多 hunk 差异及可达历史的操作来源 |
 | `workbench-ui/src/authoring/model.ts` | 纯 reducer：草稿序号、源历史、预览与保存状态（§6） |
 | `workbench-ui/src/authoring/recovery.ts` | 校验浏览器恢复记录、基准文档摘要、修订与可重放历史；不恢复预览证据 |
 | `workbench-ui/src/authoring/service.ts` | `AuthoringService` 接口，按未来契约形状定义 |
@@ -210,8 +215,8 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
   否则显示 `Combined template and example-input preview needs contract G-A4`。
   `"9"` 显示录制的候选 Run、差异与 Paper；`"nine"` 在字段下显示录制的 422 消息并保留原文；其他输入显示未录制。
 - Build 标签只显示 `base` 录制的 `export-preview` 报告（公式单元格、输入单元格、命名区域、fallback、求值错误），
-  标题 `Report of the existing ExcelExport path for the saved example case (recorded)`。
-  Build、Publish 与 `Open in Template Engine` 均禁用并显示原因。
+  标题 `ExcelExport report for the recorded base state`，明确不属于当前模拟保存修订。
+  Build、Publish 与 `Open in Template Engine` 均禁用，并用 `aria-describedby` 分别关联不可用原因。
 
 ## 6. 状态模型要求
 
@@ -222,16 +227,23 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 - 无效草稿保留上一有效预览并标为过期；修复后新的有效响应恢复为当前。
 - 撤销与重做恢复逐字节文本，并产生新的草稿序号。
 - 冲突保留完整草稿与历史；丢弃后回到新基准。
+- 冲突期间真实旧预览标为 previous，状态栏明确基于旧源修订；匹配旧基准的响应也不能标为当前。
 - 恢复的草稿在首个技术有效（`valid` 或 `runtimeFailure`）的当前预览前标为未校验。
 
 ## 7. 界面与键盘
 
 - 区域、文案与窄屏行为按设计规范 §2.3、§3.3–§3.13；token 按实施计划 §3.2，深色主题沿用 `data-theme`。
 - 作者网格为 HTML `table`，`role="grid"`，roving tabindex，所有渲染单元格可选中，单元格外观复用 `cellAppearance`。
+- 公式栏固定在中栏顶部，默认紧凑、聚焦展开；Grid／Source 分别限定高度并独立滚动。
+  源码的主／次 owner 使用独立 decoration，网格保持焦点时仍可看见；定位只滚动源码编辑器。
+- Style 按当前 layout 的 `:style-preset` 与本地 `style-class` 提供带出处的完整词汇；芯片保留源顺序，
+  删除／添加后显式 Apply，最终 Weight／Tone／Fill 只读取 Paper，不在前端求值样式选择器。
 - 键盘按设计规范 §4.2–§4.4：浏览态 Enter／F2 进入编辑；单行 Enter 提交，成功下移、失败保留焦点；
   Shift+Enter 成功上移；多行 Enter 换行、Ctrl/Cmd+Enter 提交；补全菜单先消费 Enter；IME 组合期间
   （`isComposing` 或 `keyCode === 229`）不提交、不导航、不发预览；浏览态 Tab 离开网格；Escape 分层取消。
 - 原型可在 keydown 时把焦点移入单元格编辑框（设计规范 §4.3 的原型说明）。
+- 浏览态首个 keyCode 229 同步打开并聚焦编辑器，让浏览器将后续组合输入交给字段；不提交或导航。
+  真实系统输入法候选确认仍需人工验证。
 - 公式字段为多行 CodeMirror。补全来源：录制 Structure 的节点 id、标签与类型，以及 `common/formulas.mantra` 中的
   `defn` 名称；界面注明 `Completions from recorded structure (simulated language service)`。
 - 源码视图：schema 与 layout 可编辑，空闲 500 ms 合并为一个源事务；fragment 与 case 只读。
@@ -239,6 +251,8 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 - Problems 用 `explainDiagnostic` 显示说明与原始消息，按 owner 聚合，F8／Shift+F8 导航。
 - Source changes 显示相对已保存基准的逐行差异，每个 hunk 标注来源操作。
 - 身份栏前固定显示 `Prototype · recorded engine data`；原型控制面板集中放置模拟控件。
+- 窄屏 Outline 为可关闭覆盖层，Inspector 为全屏覆盖层，Grid／Source 分段切换；关闭 Inspector 返回原单元格。
+  窄屏 Split 暂退为 Grid，扩大视口后恢复原选择；公式编辑在窄屏 Inspector 中保持单个实例。
 
 ## 8. 测试要求
 
@@ -252,47 +266,66 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 
 ## 9. 操作脚本（Claude 已复核，见复核记录）
 
+以下脚本已按 F1–F18／S1 修正更新；原版本的首轮复核见 `69ab8ff`，当前版本待 Claude 按 PR 最新已推送 HEAD 再次复查。
+
 1. `npm --prefix workbench-ui ci`，然后 `npm --prefix workbench-ui run dev`，打开 `http://localhost:5173/authoring`。
 2. 入口页 `Start from a pattern` 列出四个 pattern，只有 Capped allocation 已录制。`Create editable copy` 打开模拟 fork
    对话框，列出依赖闭包与 SHA-256，确认后进入 `Allocation conservation` 面板。
 3. 方向键选中 `Request not allocated`，Enter，输入 `Unallocated request`，Enter：焦点下移；状态从
    `Calculating draft #1…` 变为当前；Source changes 显示 schema 中一行差异。
-4. 选中 `Capacity not consumed`，Style 标签把 `subtotal` 换成 `result`：行样式变化，数值不变。
+4. 选中 `Capacity not consumed`，Style 标签点击 `Remove class subtotal`，再 `Add class` → `Add class result` →
+   `Apply classes`：行样式变化，数值不变。最终 Weight／Tone／Fill 来自所选 Paper 单元格；词汇按 layout preset 分组，注明出处。
 5. 选中 `Unallocated request` 的金额单元格，F2，把公式改为 `(- request allocated-totl)`，Ctrl/Cmd+Enter：编辑器保持打开，
    Problems 显示两条同 owner 诊断，`allocated-totl` 被标出；网格显示 `Previous valid preview (draft #2)`；Save 禁用并写原因。
 6. 改为 `(- request total-capacity)`，Ctrl/Cmd+Enter：`unallocated` 为 `(60.00)`，`conserved` 为 `✗`，Findings 计数 1，Save 可用。
 7. Ctrl/Cmd+Z 两次回到步骤 4 的状态，Ctrl/Cmd+Shift+Z 两次回到步骤 6 的状态；每一步都显示录制结果。
 8. 打开原型控制 `Delay next preview by 2 s`，再做一次编辑并立即撤销：迟到的响应被丢弃，状态栏显示被忽略的序号。
 9. 原型控制 `Simulate external edit to layout.mantra`：出现冲突横幅，草稿保留；Save 打开冲突对话框，
-   显示外部标题差异；`Re-preview on the new base` 后 Paper 标题为 `Capacity, allocation and residue`；
+   显示外部标题 hunk 而非全文；网格与状态栏注明预览基于旧源修订。
+   `Re-preview on the new base` 后 Paper 标题为 `Capacity, allocation and residue`；
    再 Save 显示 `Saved in this prototype session — no file was written`。
 10. 把公式改为 `(/ request 0)`：显示 `Calculated with a runtime failure`，`unallocated` 显示引擎文本 `undefined` 与失败标记；
-    Build 不显示成功。
-11. 有未保存草稿时刷新页面：显示恢复横幅；Restore 后为 `Restored · not validated`，收到有效预览后恢复正常。
+    Problems／Errors 包含运行时诊断，Runtime failures 单独计数；标记说明数值属于当前预览。Build 不显示成功。
+11. 保持步骤 10 的未保存草稿刷新页面：显示本地化日期时间的恢复横幅；Restore 后为 `Restored · not validated`。
+    首个匹配的 valid 或 runtimeFailure 预览到达后标记解除，恢复出的运行时失败草稿也可模拟保存。
 12. 用中文拼音输入法编辑标签：组合期间 Enter 只确认候选，第二次 Enter 才提交。
 13. 使用原型控制 **Reset prototype to recorded base**，再打开 Example input。步骤 9 的模拟保存已改变保存基准，
     仅撤销草稿不能重新启用仅针对初始 `base` 录制的示例预览。输入 `9` 并应用：显示录制的候选 Paper
     （`requested-value` 为 `90.00`）；
     输入 `nine`：字段下显示错误并保留原文。
 14. Build 标签显示录制的导出报告；Build、Publish、`Open in Template Engine` 均为禁用并写明原因。
-15. 浏览器宽度 390 px：单列布局，页面无横向滚动；深色主题可读。
+15. 浏览器宽度 390 px：网格在首屏，无横向滚动；Outline 默认关闭，通过 `Open outline` 打开再关闭。
+    `Open inspector` 使用全屏覆盖层，关闭返回原单元格。窄屏选择 Grid／Source；Split 从桌面切入时退为 Grid，
+    恢复宽屏后回到 Split。金额单元格 F2 在全屏 Inspector 中打开唯一的公式编辑器，Escape 取消并返回网格；深色主题可读。
+16. 在 1440×900 选择 Split，点选不同网格 owner：两窗格保持并排，网格不被滚走；源码主／次高亮可见且不抢焦点。
+    源码与网格可分别滚动，固定公式栏始终可访问，聚焦时展开。
+17. 检查 Style 的 Add class：`:utilities` 包含 normal／subtle／highlight，`:working-paper` 包含 variance；
+    若 layout 有本地 `style-class`，应显示源位置；未声明规则的已用标签有无视觉规则说明。多行分配仍标为后续正式实现。
+18. 重置后提交未录制标签（如 `Draft label`）：文字操作与导航完成，源草稿保留，并说明没有引擎预览、Save 禁用。
+    再在不同声明上编辑文字，Source changes 分成多个 hunk，中间未变声明不列为删除／新增；每个 hunk 有操作来源。
+    选中单个网格单元格按 Escape，Drawer 保持原状。
 
 ## 10. 截图清单
 
 已保存在 `docs/workbench/visual-editor/screenshots/`。本会话内置 Browser 不可用，改用已安装 Chrome 与 CDP，
 专属临时 profile，1440×900 与 390×844；脚本退出时验证浏览器、Vite 与 profile 已清理：
 `entry.png`、`label-edit.png`、`class-style.png`、`invalid-draft.png`、`business-finding.png`、
-`runtime-failure.png`、`conflict.png`、`recovery.png`、`build-panel.png`、`narrow-390.png`、`dark.png`。
+`runtime-failure.png`、`conflict.png`、`recovery.png`、`build-panel.png`、`narrow-390.png`、`dark.png`，
+以及本轮新增的 `split-independent.png`、`narrow-inspector.png`，共 13 张。
 
 ## 11. Claude 复核清单
 
 **Claude 已于 2026-10-10 按 `69ab8ff` 复核，结果、需修正项 F1–F18 与设计澄清 S1–S3 见
-[复核记录](prototype-review.md)。修正后需按该记录再次复核；真实拼音输入法仍待人工操作。**
+[复核记录](prototype-review.md)。Codex 修正完成，逐项映射见 [修正记录](prototype-fixes.md)；
+当前仍待 Claude 再次复查，真实拼音输入法仍待人工操作。**
 
 1. 以已提交的 HEAD 为准复核，不以工作区为准。
-2. 在仓库根目录重新运行 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`；抽查 `blobs` 与实际服务响应一致，确认没有手改或删减字段。
+2. 在仓库根目录重新运行 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`；确认本轮 `recording.json`、
+   pattern 和 JVM 引擎未改。初次独立重录的真实性结论见复核记录；未变化的数据不必为本轮布局修正重新生成。
 3. 搜索原型源码中的数值字面量与格式化逻辑，确认没有合成金融值、汇总或 Paper。
 4. 模拟能力在界面与代码注释中都有标注；导出、发布、构建没有成功路径。
 5. §2 的四项检查全部通过，现有测试数不减少；`App.tsx` 与现有页面行为不变。
 6. §8 的测试真实断言状态转换，不只断言渲染不报错。
 7. 按 §9 在浏览器逐步操作，截图与描述一致后再把本节改为实际结果。
+8. 按 [F1–F18／S1 修正对应表](prototype-fixes.md#1-修正对应表) 逐项填写复现结果，明确区分自动检查、
+   人工设计复查与真实输入法验证；保留初次复核结论作为历史记录。

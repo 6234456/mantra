@@ -1,12 +1,15 @@
 # 录制引擎原型：实施与复核记录
 
 > 2026-10-10：Codex 已实现 fixture 作者原型；Claude 已复核 `69ab8ff`，见 [复核记录](prototype-review.md)。
+> **F1–F18 与 S1 已修正，待 Claude 按最新已推送 HEAD 再次复查**；逐项说明见 [修正记录](prototype-fixes.md)。
 > 任务分支 `codex/mantra-design-handoff-20261010`，沿用
 > [Mantra Draft PR #15](https://github.com/6234456/mantra/pull/15)。
 > 设计要求与人工复核脚本见 [prototype.md](prototype.md)，历史状态见 [README](README.md)。
 
 代码检查点：`9155663`（录制器、源服务、状态与恢复），`aa5e14a`（作者界面、组件测试与截图）。
-两个检查点均在同一任务分支，后续复核请读取 PR 最新 HEAD。
+首轮完整实现为 `69ab8ff`，Claude 复核文档为 `92664ae`。这些是历史定位信息；后续复核请读取 PR 最新已推送 HEAD。
+F1–F18／S1 修正代码检查点 **`dc01609` 已提交并正常推送**；本轮以下门禁与浏览器验证对应该代码。
+本说明随后作为文档提交交付，Claude 再次复查仍以 PR 最新已推送 HEAD 为准。
 
 ## 1. 启动与入口
 
@@ -30,12 +33,14 @@ npm --prefix workbench-ui run dev -- --host 0.0.0.0
 | 内容 | 已实现行为 | 实际边界 |
 | --- | --- | --- |
 | 入口与作者界面 | 模式身份、模拟 fork、Outline、Grid／Source／Split、Property／Style／Explain／Example input、Problems／Changes／Build | fixture 原型，不是正式可写模板工作区 |
+| 修正后的布局 | 公式栏固定且聚焦展开、Grid 与 Source 独立滚动、失焦 owner 高亮、按面板分组的 Outline、窄屏覆盖层 | 不声明已完成人工设计签收；窄屏 Split 暂退为 Grid |
+| class 选择 | 从 layout 的 preset／本地声明读取词汇，带出处的完整预设、源顺序芯片、Paper 的 Weight／Tone／Fill | 不在前端求值样式规则；多行分配延后，来源链仍需正式接口 |
 | 编辑与源历史 | 数据驱动 owner 扫描，最小源补丁与逆补丁，精确字节撤销／重做，schema／layout 源视图 | owner、补丁与语言服务均为模拟；只覆盖原型声明形式 |
 | 源编辑缓冲 | 500 ms 空闲合并事务；提交后清除缓冲，避免覆盖后续语义编辑 | 未提交源码期间同文档语义操作需先完成当前编辑 |
 | 预览 | SHA-256 文档集摘要查找完整录制响应，序号与全量基准修订校验，上一有效预览 | 未录制的草稿明确无预览；不计算或拼造 Paper |
 | 诊断与 Explain | 真实 422 源范围、同 owner 诊断、业务 finding、运行时失败与录制步骤 | 无正式草稿 Explain 或 owner API；过期范围不当成当前定位 |
 | 保存与冲突 | 模拟 CAS，外部 layout 事件，保留草稿与历史，重新预览／丢弃，迟到保存回执保护 | 仅更新内存的已保存文档集；不写文件、不证明 D-A1 的文件事务策略 |
-| 浏览器恢复 | 保存实际模拟基准与草稿、源历史和未提交输入；校验摘要／修订／补丁；重验后才恢复当前状态 | 不恢复可信预览／校验结果，不跨设备；旧异步写入不能复活已丢弃记录 |
+| 浏览器恢复 | 保存实际模拟基准与草稿、源历史和未提交输入；校验摘要／修订／补丁；匹配的 valid／runtimeFailure 首次预览解除恢复未校验标记 | 不恢复可信预览／校验结果，不跨设备；旧异步写入不能复活已丢弃记录 |
 | 示例输入 | 初始录制基准的 `9` 候选 Paper 与 `nine` 的真实 422；迟到响应不覆盖变更后的模板或输入 | 只在无草稿且保存基准为原始 `base` 时启用；组合预览等待 G-A4 |
 | 构建与下游 | 展示原始案例的录制 ExcelExport 报告，明确禁用构建／发布／Template Engine 跳转 | 没有新产物，没有登记发布，也未证明 Template Engine 运行兼容性 |
 
@@ -51,6 +56,10 @@ npm --prefix workbench-ui run dev -- --host 0.0.0.0
 当前 `recording.json` 为 **1,619,324 字节、277 个按响应原文 SHA-256 去重的完整 blob**。
 录制元数据记录源提交 `b27e2f5`、干净 pattern、Mantra `1.0.0-rc.1`、Normein `0.3.0` 与
 `mantra.workbench/4`。该元数据指录制时的源，而不是 PR 当前 HEAD；后续前端提交不改变录制源。
+
+Claude 在 `69ab8ff` 上独立重录 32 个状态：307 个响应中 163 个逐字节相同，其余 144 个仅含契约允许的
+执行间内核 `eventId` 差异，详见 [真实性复核](prototype-review.md#2-录制数据真实性)。本轮没有修改录制数据、
+pattern 或 JVM 引擎；重新进行源摘要漂移检查，独立重录结论保留为历史证据。
 
 脚本检查契约／同状态修订一致性、公式原文切片、422 诊断范围、finding／runtime 身份及示例输入结果，
 全部通过后原子写录制文件，逐状态清理服务与临时目录。生成过程没有改动原始 `docs/patterns`。
@@ -76,22 +85,25 @@ npm --prefix workbench-ui run authoring:record
 
 ## 4. 验证与待复核项
 
+以下为 `dc01609` 修正代码的本轮实测检查；不沿用 `69ab8ff` 的旧检查代替本轮结果。
+
 | 检查 | 当前记录 |
 | --- | --- |
 | `npm --prefix workbench-ui run check` | 格式、ESLint 与 TypeScript 通过 |
-| `npm --prefix workbench-ui test` | 36 个文件、305 项通过；保留原有 204 项，新增 101 项模型／服务／恢复／录制／组件回归 |
-| fixture 与 live 构建 | 均通过；live 构建确认无作者原型 chunk 与录制数据 |
+| `npm --prefix workbench-ui test` | 40 个文件、347 项通过；保留原有 204 项，新增 143 项模型／服务／恢复／录制／组件回归 |
+| fixture 与 live 构建 | 均通过；fixture 97 modules，live 77 modules／5 个产物文件；断言无 AuthoringPrototype chunk、录制标识或 fixtures 目录 |
 | `python3 scripts/check-boundaries.py` | 通过，无 schema／node id 业务分支 |
-| 录制 `--check` | 32 状态摘要漂移检查通过 |
-| 作者浏览器脚本 | 12 个真实 Chrome CDP 场景通过，11 张截图；无未捕获浏览器异常 |
+| 录制 `--check` | 32 个状态与当前 pattern 源摘要一致 |
+| 作者浏览器脚本 | 15 个真实 Chrome CDP 流程通过，13 张截图；无未捕获浏览器异常 |
 | 原工作台浏览器脚本 | 13 个既有流程通过 |
 | 浏览器资源清理 | 两套浏览器检查均确认任务进程退出、临时 profile 删除 |
-| Claude 设计与操作复核 | 已复核 `69ab8ff`：门禁与录制真实性通过；需修正项 F1–F18 见 [复核记录](prototype-review.md) |
+| Claude 设计与操作复核 | 已复核 `69ab8ff`：门禁与录制真实性通过；F1–F18／S1 已修正，待按最新已推送 HEAD 再次复查 |
 | 真实中文拼音 IME | 待人工操作；自动脚本仅验证合成 composition／keyCode 229 守卫 |
 
-新增 101 项分布：模型 22、模拟源服务 17、恢复 20、录制 6、CodeMirror 12、网格 12、原型组件 12。
-回归包括同文档源码缓冲与语义操作、有限布局输入类型、迟到保存回执、示例输入与模板草稿竞态、
-多行 note 与编辑态 Tab。此轮未改 JVM 引擎或公共服务器契约，不将历史 JVM 检查冒充本轮重跑。
+首轮新增 101 项，修正后累计新增 143 项。回归包括同文档源码缓冲与语义操作、有限布局输入类型、
+迟到保存回执、示例输入与模板草稿竞态、多行 note 与编辑态 Tab，以及恢复运行时预览、冲突旧修订说明、
+独立源码定位、class 词汇／芯片、源差异来源、窄屏覆盖层和 StrictMode 对话框焦点。
+此轮未改 JVM 引擎或公共服务器契约，不将历史 JVM 检查冒充本轮重跑。
 
 浏览器脚本使用已安装 Chrome，无新浏览器 bundle：
 
@@ -101,7 +113,10 @@ MANTRA_TEST_CHROME=/path/to/installed/chrome npm --prefix workbench-ui run test:
 
 本会话内置 Browser 不可用，因此通过 Chrome CDP 操作真实 DOM、输入、CodeMirror 与键盘。
 作者脚本覆盖入口／模拟 fork、F2／Enter／Tab 与 IME 守卫、label、class、不合法公式与精确范围、finding、
-Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、恢复、示例输入、禁用发布与窄屏／深色主题，共 12 场景。
+Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、恢复、示例输入、禁用发布与窄屏／深色主题。
+本轮扩展检查包括首屏网格与固定公式栏、独立 Split 和失焦 owner 高亮、分离差异、未录制文字导航、
+恢复运行时草稿、窄屏 Outline／Inspector 及单实例公式编辑。
+最终作者脚本 15 个、原工作台 13 个流程均通过，共 28 个。
 真实输入法的候选确认、系统剪贴板与完整人工交互仍按 [复核清单](prototype.md#11-claude-复核清单) 检查。
 
 ## 5. 实测截图
@@ -113,6 +128,7 @@ Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、�
 | 入口 | [entry.png](screenshots/entry.png) |
 | 标签编辑 | [label-edit.png](screenshots/label-edit.png) |
 | class 样式 | [class-style.png](screenshots/class-style.png) |
+| 独立 Split 与失焦 owner 高亮 | [split-independent.png](screenshots/split-independent.png) |
 | 无效草稿 | [invalid-draft.png](screenshots/invalid-draft.png) |
 | 业务 finding | [business-finding.png](screenshots/business-finding.png) |
 | 运行时失败 | [runtime-failure.png](screenshots/runtime-failure.png) |
@@ -120,6 +136,7 @@ Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、�
 | 恢复草稿 | [recovery.png](screenshots/recovery.png) |
 | 构建报告 | [build-panel.png](screenshots/build-panel.png) |
 | 390 px 窄屏 | [narrow-390.png](screenshots/narrow-390.png) |
+| 窄屏全屏 Inspector | [narrow-inspector.png](screenshots/narrow-inspector.png) |
 | 深色主题 | [dark.png](screenshots/dark.png) |
 
 ## 6. 后续合同与交付
@@ -128,6 +145,7 @@ Undo／Redo、迟到预览、runtime／冲突／重新预览／模拟保存、�
 `mantra.workbench/4` 公共合同。D-A1 的多文档文件提交原子性尚未决定，不影响本轮仅内存保存的原型。
 首版继续采用 ui-spec 键位、浏览器恢复、只读共享 defn 与 Mantra DOM 网格；Template Engine 模块提取等待其维护者确认。
 
-下一步由 Claude 对 Mantra PR #15 的已提交最新 HEAD 进行复核。Template Engine
+下一步由 Claude 对 Mantra PR #15 的最新已推送 HEAD 进行再次复查，按 [F1–F18／S1 对应表](prototype-fixes.md) 复现修正。
+Template Engine
 [Draft PR #1](https://github.com/6234456/paramita-v2/pull/1) 仍为并行使用设计文档，本轮没有追加其源码变更。
 两个 Draft PR 均不因原型通过而自动合并。
