@@ -1,6 +1,6 @@
 # 录制引擎原型：实施与复核记录
 
-> 2026-10-10：Codex 已实现 fixture 作者原型，Claude 的设计复核仍待进行。
+> 2026-10-10：Codex 已实现 fixture 作者原型；Claude 已复核 `69ab8ff`，见 [复核记录](prototype-review.md)。
 > 任务分支 `codex/mantra-design-handoff-20261010`，沿用
 > [Mantra Draft PR #15](https://github.com/6234456/mantra/pull/15)。
 > 设计要求与人工复核脚本见 [prototype.md](prototype.md)，历史状态见 [README](README.md)。
@@ -22,7 +22,7 @@ npm --prefix workbench-ui run dev -- --host 0.0.0.0
 `/` 仍为原有工作台。入口只存在于 fixture 模式，`VITE_WORKBENCH_MODE=live` 构建不带作者原型。
 
 进入 Capped allocation 的 `Create editable copy`，确认模拟依赖闭包，即可执行
-[prototype.md §9](prototype.md#9-操作脚本原型可运行待-claude-人工复核)。只有该 pattern 录制可用；其他入口显示原因。
+[prototype.md §9](prototype.md#9-操作脚本claude-已复核见复核记录)。只有该 pattern 录制可用；其他入口显示原因。
 原型控制提供延迟下一预览、模拟外部 layout 修改及恢复初始录制基准。正式模板文件不会被此界面写入。
 
 ## 2. 实现内容与边界
@@ -86,7 +86,7 @@ npm --prefix workbench-ui run authoring:record
 | 作者浏览器脚本 | 12 个真实 Chrome CDP 场景通过，11 张截图；无未捕获浏览器异常 |
 | 原工作台浏览器脚本 | 13 个既有流程通过 |
 | 浏览器资源清理 | 两套浏览器检查均确认任务进程退出、临时 profile 删除 |
-| Claude 设计与操作复核 | 待进行，不替其签收 |
+| Claude 设计与操作复核 | 已复核 `69ab8ff`：门禁与录制真实性通过；需修正项 F1–F18 见 [复核记录](prototype-review.md) |
 | 真实中文拼音 IME | 待人工操作；自动脚本仅验证合成 composition／keyCode 229 守卫 |
 
 新增 101 项分布：模型 22、模拟源服务 17、恢复 20、录制 6、CodeMirror 12、网格 12、原型组件 12。

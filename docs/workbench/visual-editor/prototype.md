@@ -1,6 +1,6 @@
 # 录制数据原型：Codex 实施说明、操作脚本与复核清单
 
-> 状态：**录制引擎原型已实现，待 Claude 按提交复核（2026-10-10）**。维护者决定：Claude 负责文档与意图，
+> 状态：**录制引擎原型已实现；Claude 已复核 `69ab8ff`，需修正项见 [复核记录](prototype-review.md)（2026-10-10）**。维护者决定：Claude 负责文档与意图，
 > Codex 编码，Claude 复核。启动、实际验证与截图见 [实施记录](implementation-progress.md)。
 > 本文同时保留实施要求和复核脚本；实现的是 [设计规范](design-spec.md) 的 S1 交互，状态与权限遵循
 > [状态矩阵](state-matrix.md)，缺口编号见 [实施计划 §4](implementation-plan.md#4-接口缺口)。
@@ -198,7 +198,8 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
   通过句柄重新解析后重放；触及变化文档的事务标为冲突（脚本不覆盖此情形）。
 - 成功保存显示 `Saved in this prototype session — no file was written`。
 - 恢复草稿存于 `localStorage` 键 `mantra.authoring.prototype.<case>.<base digest>`，内容为基准摘要、源事务与未提交输入。
-  再次打开时显示设计规范的恢复横幅；恢复后状态为 `Restored · not validated`，直到收到有效预览。
+  再次打开时显示设计规范的恢复横幅；恢复后状态为 `Restored · not validated`，直到收到与当前草稿匹配、技术有效
+  （`valid` 或 `runtimeFailure`）的预览。
 - 恢复记录保存实际的模拟已保存文档集与修订，不固定假设初始 `base`；读取时校验四个参与文档、摘要、
   补丁与逆补丁，以及当前可撤销／重做的历史。冲突阻断的旧历史保留证据但不允许越过该边界重放。
   丢弃或更新恢复记录后，迟到的异步写入不能复活旧草稿。
@@ -221,7 +222,7 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 - 无效草稿保留上一有效预览并标为过期；修复后新的有效响应恢复为当前。
 - 撤销与重做恢复逐字节文本，并产生新的草稿序号。
 - 冲突保留完整草稿与历史；丢弃后回到新基准。
-- 恢复的草稿在首次有效预览前标为未校验。
+- 恢复的草稿在首个技术有效（`valid` 或 `runtimeFailure`）的当前预览前标为未校验。
 
 ## 7. 界面与键盘
 
@@ -249,7 +250,7 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 | 录制漂移 | `?raw` 原文摘要与 `recording.json` 一致 |
 | 组件 | 标签编辑后网格显示录制状态的新标签；无效草稿显示上一有效预览；导出与发布不出现成功文案 |
 
-## 9. 操作脚本（原型可运行，待 Claude 人工复核）
+## 9. 操作脚本（Claude 已复核，见复核记录）
 
 1. `npm --prefix workbench-ui ci`，然后 `npm --prefix workbench-ui run dev`，打开 `http://localhost:5173/authoring`。
 2. 入口页 `Start from a pattern` 列出四个 pattern，只有 Capped allocation 已录制。`Create editable copy` 打开模拟 fork
@@ -285,7 +286,8 @@ note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补�
 
 ## 11. Claude 复核清单
 
-**本节尚未由 Claude 复核，不因 Codex 自动检查通过而标为完成。**
+**Claude 已于 2026-10-10 按 `69ab8ff` 复核，结果、需修正项 F1–F18 与设计澄清 S1–S3 见
+[复核记录](prototype-review.md)。修正后需按该记录再次复核；真实拼音输入法仍待人工操作。**
 
 1. 以已提交的 HEAD 为准复核，不以工作区为准。
 2. 在仓库根目录重新运行 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`；抽查 `blobs` 与实际服务响应一致，确认没有手改或删减字段。

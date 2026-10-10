@@ -68,7 +68,8 @@
   操作脚本、截图清单与复核清单。维护者 2026-10-10 决定由 Codex 编码、Claude 复核。
 - [x] 原型代码：`workbench-ui/src/authoring/`、32 状态录制脚本、状态／服务／恢复／组件测试、Chrome CDP
   操作脚本及 11 张截图。入口、能力边界与实际结果见 [implementation-progress.md](implementation-progress.md)。
-- [ ] Claude 提交复核：[prototype.md §11](prototype.md#11-claude-复核清单)；真实中文输入法仍需人工操作。
+- [x] Claude 复核 `69ab8ff`：[prototype-review.md](prototype-review.md)。门禁与录制真实性通过；交互布局与样式面板的
+  F1–F18 待 Codex 修正后再次复核；真实中文拼音输入法仍需人工操作。
 - [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
   任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
   `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
