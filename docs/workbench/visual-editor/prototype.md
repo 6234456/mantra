@@ -1,7 +1,8 @@
 # 录制数据原型：Codex 实施说明、操作脚本与复核清单
 
-> 状态：**待实施**。维护者 2026-10-10 决定：Claude 负责文档与意图，Codex 按本文编码，Claude 复核。
-> 本文不声明原型已经存在。原型实现的是 [设计规范](design-spec.md) 的 S1 交互，状态与权限遵循
+> 状态：**录制引擎原型已实现，待 Claude 按提交复核（2026-10-10）**。维护者决定：Claude 负责文档与意图，
+> Codex 编码，Claude 复核。启动、实际验证与截图见 [实施记录](implementation-progress.md)。
+> 本文同时保留实施要求和复核脚本；实现的是 [设计规范](design-spec.md) 的 S1 交互，状态与权限遵循
 > [状态矩阵](state-matrix.md)，缺口编号见 [实施计划 §4](implementation-plan.md#4-接口缺口)。
 > 下文的引擎行为都已在 `682bd2c` 的安装版 CLI 上实测；如果实施时结果不同，以实测为准并更新本文。
 
@@ -13,6 +14,7 @@
 - 所有数值、诊断、Explain 与 Paper 都来自录制的真实 `mantra serve` 响应。未录制的草稿显示
   `No engine preview for this draft (not recorded in this prototype)`，绝不合成数值或 Paper。
 - owner 句柄、源补丁、保存、冲突与 fork 是前端模拟，界面与代码注释都必须标明 `simulated`。
+- 模拟源集合按修订进行比较后整体更新，不是文件系统事务。D-A1 的正式多文档原子性策略仍未确定。
 - 录制的 422 诊断范围证明现有引擎能给出精确范围；不代表模板 owner、源补丁或模板 draft Paper 接口已存在。
 - 导出、构建、发布与 Template Engine 跳转按钮永不显示成功。
 
@@ -37,6 +39,7 @@
 | `workbench-ui/src/authoring/recording/recording.json` | 录制结果，提交到仓库 |
 | `workbench-ui/src/authoring/AuthoringPrototype.tsx` | 外壳：身份栏、Outline、网格／源码、Inspector、Drawer、状态栏、原型控制 |
 | `workbench-ui/src/authoring/model.ts` | 纯 reducer：草稿序号、源历史、预览与保存状态（§6） |
+| `workbench-ui/src/authoring/recovery.ts` | 校验浏览器恢复记录、基准文档摘要、修订与可重放历史；不恢复预览证据 |
 | `workbench-ui/src/authoring/service.ts` | `AuthoringService` 接口，按未来契约形状定义 |
 | `workbench-ui/src/authoring/simulated/recordedService.ts` | 由录制数据驱动的实现，模拟句柄、补丁、保存与冲突（§5） |
 | `workbench-ui/src/authoring/simulated/sourceOwners.ts` | 模拟 owner 扫描器（§5.2） |
@@ -45,6 +48,7 @@
 | `workbench-ui/src/ui/PaperTable.tsx` | 只导出现有 `cellAppearance`，供作者网格复用；行为不变 |
 | `workbench-ui/README.md` | 英文 `Authoring prototype` 小节：启动、录制、限制 |
 | `docs/workbench/visual-editor/screenshots/` | §9 的截图 |
+| `workbench-ui/scripts/authoring-browser-e2e.mjs` | 已安装 Chrome 的 CDP 操作脚本、截图与任务进程清理 |
 
 ## 4. 录制脚本
 
@@ -123,6 +127,9 @@
 - 响应体完整保存，只按原始文本摘要去重，不删减字段。生成后报告文件大小；超过 3 MB 时先删减状态组合并在本文记录，
   不能删减响应字段。
 
+当前提交数据包含 **32 个状态、277 个完整响应 blob，1,619,324 字节**，未删减状态或响应字段。
+录制元数据的源提交为 `b27e2f5`（pattern 干净），引擎为 Mantra `1.0.0-rc.1`／Normein `0.3.0`。
+
 ### 4.6 录制时的一致性检查（任一失败则不写文件）
 
 1. 所有 200 响应的 `contract` 为 `mantra.workbench/4`。
@@ -135,7 +142,7 @@
 
 ### 4.7 漂移检查
 
-- `node scripts/record-authoring-prototype.mjs --check`：确认 `base` 的摘要等于当前 `docs/patterns` 原文，
+- 仓库根目录 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`：确认 `base` 的摘要等于当前 `docs/patterns` 原文，
   并且对当前原文施加各状态的编辑后摘要不变。
 - Vitest 测试用 `?raw` 读取四个参与文档，以 WebCrypto 计算摘要并与 `recording.json` 的 `base` 比较，
   让 `npm test` 在没有 JVM 的情况下发现 pattern 已改而录制未更新。
@@ -168,6 +175,8 @@
 
 ### 5.3 补丁与历史
 
+note 的多行文本会转义换行、回车与 tab，并保留逐字节逆补丁；单行标签仍拒绝换行。
+
 - 文字：按 Normein 字符串规则转义 `\` 与 `"`；单行属性含换行时拒绝；空标签拒绝。
 - class：单个时写 `:x`，多个时写 `[:a :b]`；名称必须匹配 `[a-z][a-z0-9-]*`。
 - 公式：原文写入，不翻译。layout 选项：`:precision` 为非负整数，`:hide-zero` 为布尔，`:title` 为字符串。
@@ -190,6 +199,9 @@
 - 成功保存显示 `Saved in this prototype session — no file was written`。
 - 恢复草稿存于 `localStorage` 键 `mantra.authoring.prototype.<case>.<base digest>`，内容为基准摘要、源事务与未提交输入。
   再次打开时显示设计规范的恢复横幅；恢复后状态为 `Restored · not validated`，直到收到有效预览。
+- 恢复记录保存实际的模拟已保存文档集与修订，不固定假设初始 `base`；读取时校验四个参与文档、摘要、
+  补丁与逆补丁，以及当前可撤销／重做的历史。冲突阻断的旧历史保留证据但不允许越过该边界重放。
+  丢弃或更新恢复记录后，迟到的异步写入不能复活旧草稿。
 
 ### 5.6 示例输入与构建面板
 
@@ -222,6 +234,7 @@
 - 公式字段为多行 CodeMirror。补全来源：录制 Structure 的节点 id、标签与类型，以及 `common/formulas.mantra` 中的
   `defn` 名称；界面注明 `Completions from recorded structure (simulated language service)`。
 - 源码视图：schema 与 layout 可编辑，空闲 500 ms 合并为一个源事务；fragment 与 case 只读。
+  此 500 ms 为原型的源事务合并时间；收到事务后才安排预览，不把原文编辑缓冲当成已提交语义操作。
 - Problems 用 `explainDiagnostic` 显示说明与原始消息，按 owner 聚合，F8／Shift+F8 导航。
 - Source changes 显示相对已保存基准的逐行差异，每个 hunk 标注来源操作。
 - 身份栏前固定显示 `Prototype · recorded engine data`；原型控制面板集中放置模拟控件。
@@ -236,7 +249,7 @@
 | 录制漂移 | `?raw` 原文摘要与 `recording.json` 一致 |
 | 组件 | 标签编辑后网格显示录制状态的新标签；无效草稿显示上一有效预览；导出与发布不出现成功文案 |
 
-## 9. 操作脚本（实施后由 Claude 复核并更新为实际结果）
+## 9. 操作脚本（原型可运行，待 Claude 人工复核）
 
 1. `npm --prefix workbench-ui ci`，然后 `npm --prefix workbench-ui run dev`，打开 `http://localhost:5173/authoring`。
 2. 入口页 `Start from a pattern` 列出四个 pattern，只有 Capped allocation 已录制。`Create editable copy` 打开模拟 fork
@@ -256,21 +269,26 @@
     Build 不显示成功。
 11. 有未保存草稿时刷新页面：显示恢复横幅；Restore 后为 `Restored · not validated`，收到有效预览后恢复正常。
 12. 用中文拼音输入法编辑标签：组合期间 Enter 只确认候选，第二次 Enter 才提交。
-13. 撤销到干净状态，Example input 标签输入 `9` 并应用：显示录制的候选 Paper（`requested-value` 为 `90.00`）；
+13. 使用原型控制 **Reset prototype to recorded base**，再打开 Example input。步骤 9 的模拟保存已改变保存基准，
+    仅撤销草稿不能重新启用仅针对初始 `base` 录制的示例预览。输入 `9` 并应用：显示录制的候选 Paper
+    （`requested-value` 为 `90.00`）；
     输入 `nine`：字段下显示错误并保留原文。
 14. Build 标签显示录制的导出报告；Build、Publish、`Open in Template Engine` 均为禁用并写明原因。
 15. 浏览器宽度 390 px：单列布局，页面无横向滚动；深色主题可读。
 
 ## 10. 截图清单
 
-保存在 `docs/workbench/visual-editor/screenshots/`，使用内置浏览器，1440×900 与 390×844：
+已保存在 `docs/workbench/visual-editor/screenshots/`。本会话内置 Browser 不可用，改用已安装 Chrome 与 CDP，
+专属临时 profile，1440×900 与 390×844；脚本退出时验证浏览器、Vite 与 profile 已清理：
 `entry.png`、`label-edit.png`、`class-style.png`、`invalid-draft.png`、`business-finding.png`、
 `runtime-failure.png`、`conflict.png`、`recovery.png`、`build-panel.png`、`narrow-390.png`、`dark.png`。
 
 ## 11. Claude 复核清单
 
+**本节尚未由 Claude 复核，不因 Codex 自动检查通过而标为完成。**
+
 1. 以已提交的 HEAD 为准复核，不以工作区为准。
-2. 重新运行 `node scripts/record-authoring-prototype.mjs --check`；抽查 `blobs` 与实际服务响应一致，确认没有手改或删减字段。
+2. 在仓库根目录重新运行 `node workbench-ui/scripts/record-authoring-prototype.mjs --check`；抽查 `blobs` 与实际服务响应一致，确认没有手改或删减字段。
 3. 搜索原型源码中的数值字面量与格式化逻辑，确认没有合成金融值、汇总或 Paper。
 4. 模拟能力在界面与代码注释中都有标注；导出、发布、构建没有成功路径。
 5. §2 的四项检查全部通过，现有测试数不减少；`App.tsx` 与现有页面行为不变。
