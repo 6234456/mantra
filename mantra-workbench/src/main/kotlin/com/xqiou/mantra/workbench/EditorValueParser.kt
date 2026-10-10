@@ -42,47 +42,50 @@ object EditorValueParser {
             }
         }
         if (!parameter && column != null && text.isBlank()) return Value.Nil
-        return try {
-            when (type) {
-                ValueType.DECIMAL, ValueType.INTEGER -> {
-                    val raw = text.trim()
-                    val symbols = DecimalFormatSymbols.getInstance(layout.number.locale)
-                    val group = symbols.groupingSeparator
-                    val decimal = symbols.decimalSeparator
-                    val pattern =
-                        Regex(
-                            "-?(?:\\d{1,3}(?:${Regex.escape(
-                                group.toString(),
-                            )}\\d{3})+|\\d+)(?:${Regex.escape(decimal.toString())}\\d+)?",
-                        )
-                    require(pattern.matches(raw)) { "Invalid decimal text" }
-                    val number = BigDecimal(raw.replace(group.toString(), "").replace(decimal, '.'))
-                    require(type != ValueType.INTEGER || number.stripTrailingZeros().scale() <= 0) {
-                        "Expected an integer"
-                    }
-                    Value.Num(number)
+        return parseScalar(type, layout, text)
+    }
+
+    /** Template candidates parse against their declared type and layout before old case values are validated. */
+    fun parseScalar(type: ValueType, layout: LayoutSpec, text: String): Value = try {
+        when (type) {
+            ValueType.DECIMAL, ValueType.INTEGER -> {
+                val raw = text.trim()
+                val symbols = DecimalFormatSymbols.getInstance(layout.number.locale)
+                val group = symbols.groupingSeparator
+                val decimal = symbols.decimalSeparator
+                val pattern =
+                    Regex(
+                        "-?(?:\\d{1,3}(?:${Regex.escape(
+                            group.toString(),
+                        )}\\d{3})+|\\d+)(?:${Regex.escape(decimal.toString())}\\d+)?",
+                    )
+                require(pattern.matches(raw)) { "Invalid decimal text" }
+                val number = BigDecimal(raw.replace(group.toString(), "").replace(decimal, '.'))
+                require(type != ValueType.INTEGER || number.stripTrailingZeros().scale() <= 0) {
+                    "Expected an integer"
                 }
-                ValueType.BOOLEAN -> when (text.trim().lowercase()) {
-                    "true", "ja" -> Value.Bool(true)
-                    "false", "nein" -> Value.Bool(false)
-                    else -> throw IllegalArgumentException("Expected a boolean")
-                }
-                ValueType.KEYWORD -> Value.Kw(text.trim().removePrefix(":"))
-                ValueType.DATE -> Value.Date(
-                    LocalDate.parse(
-                        text.trim(),
-                        DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT),
-                    ),
-                )
-                ValueType.TEXT, ValueType.ANY -> Value.Text(text)
-                ValueType.TABLE -> throw IllegalArgumentException("Table input requires encoded rows")
+                Value.Num(number)
             }
-        } catch (error: RuntimeException) {
-            throw WorkspaceException(
-                WorkspaceProblem.INVALID,
-                "Input text was rejected: ${error.message}",
-                listOf(Diagnostic(Severity.ERROR, "MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
+            ValueType.BOOLEAN -> when (text.trim().lowercase()) {
+                "true", "ja" -> Value.Bool(true)
+                "false", "nein" -> Value.Bool(false)
+                else -> throw IllegalArgumentException("Expected a boolean")
+            }
+            ValueType.KEYWORD -> Value.Kw(text.trim().removePrefix(":"))
+            ValueType.DATE -> Value.Date(
+                LocalDate.parse(
+                    text.trim(),
+                    DateTimeFormatter.ofPattern("dd.MM.uuuu").withResolverStyle(ResolverStyle.STRICT),
+                ),
             )
+            ValueType.TEXT, ValueType.ANY -> Value.Text(text)
+            ValueType.TABLE -> throw IllegalArgumentException("Table input requires encoded rows")
         }
+    } catch (error: RuntimeException) {
+        throw WorkspaceException(
+            WorkspaceProblem.INVALID,
+            "Input text was rejected: ${error.message}",
+            listOf(Diagnostic(Severity.ERROR, "MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
+        )
     }
 }

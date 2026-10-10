@@ -1,0 +1,59 @@
+.template-preview-page {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.template-preview-header,
+.template-preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.template-preview-header > div {
+  flex: 1;
+}
+.template-preview-header h1 {
+  margin: 6px 0;
+}
+.template-preview-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.template-preview-page .sheet {
+  min-width: 0;
+  margin-bottom: 20px;
+}
+.template-preview-page label,
+.template-preview-inputs {
+  display: grid;
+  gap: 8px;
+}
+.template-preview-inputs label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.template-preview-source textarea {
+  width: 100%;
+  min-height: 440px;
+  margin-top: 16px;
+  padding: 12px;
+  font: 13px/1.5 monospace;
+  resize: vertical;
+  color: inherit;
+  background: var(--surface, transparent);
+}
+.template-preview-page code {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 800px) {
+  .template-preview-page {
+    padding: 12px;
+  }
+  .template-preview-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

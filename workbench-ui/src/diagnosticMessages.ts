@@ -272,20 +272,28 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
     de: 'Die Arbeitsmappenquelle enthält keine erkannten benannten Eingabezellen.',
   },
   'MANTRA-DATA-XLSX-CELL': {
-    en: 'An input workbook cell contains an Excel error, an invalid date serial or an unsupported value; import fails without a nil or zero substitute.',
-    de: 'Eine Eingabezelle der Arbeitsmappe enthält einen Excel-Fehler, eine ungültige Datumsseriennummer oder einen nicht unterstützten Wert. Der Import schlägt fehl; der Wert wird nicht durch nil oder null ersetzt.',
+    en: 'An input workbook cell contains an Excel error, an invalid date serial, an unsupported value or a formula without a stored result; import fails without a nil or zero substitute.',
+    de: 'Eine Eingabezelle enthält einen Excel-Fehler, eine ungültige Datumsseriennummer, einen nicht unterstützten Wert oder eine Formel ohne gespeichertes Ergebnis. Der Import schlägt fehl; der Wert wird nicht durch nil oder null ersetzt.',
+  },
+  'MANTRA-DATA-XLSX-COLUMN': {
+    en: 'An unmapped XLSX region header does not match a declared table column; it is skipped with a warning.',
+    de: 'Eine nicht zugeordnete Überschrift des XLSX-Bereichs entspricht keiner deklarierten Tabellenspalte und wird mit einer Warnung übersprungen.',
   },
   'MANTRA-DATA-XLSX-CONTAINER': {
     en: 'The workbook ZIP is malformed, duplicates entries, lacks required OOXML parts or has inconsistent local and central contents.',
     de: 'Das ZIP der Arbeitsmappe ist fehlerhaft, enthält doppelte Einträge, hat fehlende OOXML-Bestandteile oder widersprüchliche lokale und zentrale Inhalte.',
   },
   'MANTRA-DATA-XLSX-LIMIT': {
-    en: 'A workbook import exceeds its compressed-byte, entry-count, per-entry expanded-byte or total expanded-byte limit.',
-    de: 'Der Arbeitsmappenimport überschreitet die Grenze für komprimierte Bytes, die Anzahl der Einträge, die entpackten Bytes je Eintrag oder die insgesamt entpackten Bytes.',
+    en: 'A workbook import exceeds its compressed-byte, entry-count, per-entry expanded-byte, total expanded-byte or 50,000 region-cell limit.',
+    de: 'Der Arbeitsmappenimport überschreitet eine Byte- oder Eintragsgrenze oder die Grenze von 50.000 Zellen pro Bereich.',
   },
   'MANTRA-DATA-XLSX-NAME': {
     en: 'A named input cell has an unknown, incomplete or ambiguous coordinate, a conflicting sanitized name or an invalid cell reference.',
     de: 'Eine benannte Eingabezelle hat unbekannte, unvollständige oder mehrdeutige Koordinaten, einen widersprüchlichen bereinigten Namen oder einen ungültigen Zellverweis.',
+  },
+  'MANTRA-DATA-XLSX-REGION': {
+    en: 'Invalid local rectangle, missing sheet/table target, ambiguous headers or merged geometry, or invalid/repeated column mapping rejects region import.',
+    de: 'Ein ungültiger lokaler Bereich, ein fehlendes Blatt oder Tabellenziel, mehrdeutige Überschriften, verbundene Zellen oder eine ungültige bzw. doppelte Spaltenzuordnung verhindern den Bereichsimport.',
   },
   'MANTRA-DEFN': {
     en: 'A schema or case function declaration is malformed.',
@@ -410,6 +418,10 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
   'MANTRA-INPUT-TYPE': {
     en: 'A supplied input or table-cell value does not match its declared type.',
     de: 'Eine Eingabe oder ein Tabellenzellenwert entspricht nicht dem deklarierten Typ.',
+  },
+  'MANTRA-INPUT-UNKNOWN': {
+    en: 'A template candidate requests an input not declared in its candidate schema.',
+    de: 'Der Vorlagenentwurf fordert eine Eingabe an, die in seinem Schema nicht deklariert ist.',
   },
   'MANTRA-LAYOUT-AXES': {
     en: 'Row, column or fixed axes/members are unknown, overlap, or select an incompatible node',
@@ -842,6 +854,18 @@ const catalog: Record<string, Readonly<Record<Language, string>>> = {
   'MANTRA-SPREAD-DIMS': {
     en: 'An allocation-spread line has an invalid dimension context.',
     de: 'Eine Verteilungszeile hat einen ungültigen Dimensionskontext.',
+  },
+  'MANTRA-TEMPLATE-DEPENDENCY': {
+    en: 'A template candidate changes include paths or introduces a participating source outside its captured dependency closure.',
+    de: 'Der Vorlagenentwurf ändert Include-Pfade oder fügt eine Quelle außerhalb seiner erfassten Abhängigkeiten hinzu.',
+  },
+  'MANTRA-TEMPLATE-IDENTITY': {
+    en: 'A template candidate changes its root declaration kind, schema id/version or layout id.',
+    de: 'Der Vorlagenentwurf ändert die Art der Wurzeldeklaration, die Schemakennung oder -version oder die Layoutkennung.',
+  },
+  'MANTRA-TEMPLATE-INPUT': {
+    en: 'A template candidate tries to replace a table or dimensioned input through the scalar-text interface.',
+    de: 'Der Vorlagenentwurf versucht, eine Tabellen- oder dimensionierte Eingabe über die Schnittstelle für skalaren Text zu ersetzen.',
   },
   'MANTRA-TOTAL-DIMS': {
     en: 'A total combines incompatible dimension contexts.',

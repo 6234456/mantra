@@ -257,6 +257,13 @@ export interface ImportInspection {
   decimal?: string
   grouping?: string
   numericAmbiguous?: boolean
+  xlsxSheets?: Array<{
+    name: string
+    rows: number
+    columns: number
+    headers: Array<{ column: number; title: string }>
+    suggestedRange?: string
+  }>
 }
 export interface ImportTemplate {
   name: string

@@ -40,6 +40,13 @@ data class CasePackageOverrides(
     val includeLayout: Boolean = true,
 )
 
+/** Disposable draft state stays separate from the published override constructor and copy ABI. */
+internal data class TemplateCandidateOverrides(
+    val sourceTexts: Map<String, String>,
+    val inputTexts: List<TemplateInputText>,
+    val allowedSources: Set<String>?,
+)
+
 /**
  * One-request, confined loader shared by CLI, workbench and application acceptance.
  * Captured buffers are reused for parsing, importing and hashing. Construct a fresh loader per run.
@@ -53,6 +60,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
     private var index: List<Entry>? = null
     private val metadata = linkedMapOf<CanonicalCaseKey, Binding>()
     private val capturedSources = linkedMapOf<CanonicalCaseKey, Map<String, SourceText>>()
+    private var templateCandidate: TemplateCandidateOverrides? = null
     private data class Entry(val path: Path, val kind: String, val id: String?, val version: String?)
 
     data class Binding(
@@ -76,6 +84,9 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
         it.index = index
     }
 
+    internal fun fork(overrides: CasePackageOverrides, candidate: TemplateCandidateOverrides?): CasePackageLoader =
+        fork(overrides).also { it.templateCandidate = candidate }
+
     override fun identify(reference: CaseReference, control: CaseLoadControl): CanonicalCaseKey {
         control.checkpoint()
         val base = reference.fromCase?.let { confined(root.resolve(it.value)).parent } ?: root
@@ -87,10 +98,17 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
         val used = linkedMapOf<Path, SourceRole>()
         val texts = linkedMapOf<String, SourceText>()
         val selected = overrides?.takeIf { it.rootCase == key.value }
+        val selectedTemplate = templateCandidate.takeIf { selected != null }
         val explicitFiles = listOfNotNull(selected?.schemaPath, selected?.layoutPath) +
             selected?.parameterPaths.orEmpty()
         val authorized = explicitFiles.mapTo(mutableSetOf(), ::canonical)
         val schemaIncludeRoot = selected?.schemaPath?.let(::canonical)?.parent
+        var candidateCaseText: String? = selected?.text
+        fun checkCaptured(path: Path) {
+            if (templateCandidate?.allowedSources?.let { relative(path) !in it } == true) {
+                invalid("MANTRA-TEMPLATE-DEPENDENCY", "Template preview cannot introduce a new participating source")
+            }
+        }
         fun source(path: Path, role: SourceRole): SourceText {
             val candidate = path.toAbsolutePath().normalize()
             val explicit = canonicalPaths[candidate] ?: candidate.takeIf { Files.isRegularFile(it) }?.let(::canonical)
@@ -101,10 +119,18 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             } else {
                 confined(path)
             }
+            checkCaptured(actual)
             used.putIfAbsent(actual, role)
             val bytes = capture(actual, control, 1_048_576)
-            val text = if (actual == casePath && selected?.text != null) {
-                selected.text.also {
+            val replacement = if (actual ==
+                casePath
+            ) {
+                candidateCaseText
+            } else {
+                selectedTemplate?.sourceTexts?.get(relative(actual))
+            }
+            val text = if (replacement != null) {
+                replacement.also {
                     require(it.length <= 65_536) { "Case exceeds reader limit" }
                     control.chargeParticipatingBytes(it.toByteArray(Charsets.UTF_8).size.toLong())
                 }
@@ -116,7 +142,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             }
             return SourceText(relative(actual), text, actual.parent.toString()).also { texts[it.name] = it }
         }
-        val supplied = Mantra.loadCase(source(casePath, SourceRole.CASE))
+        var supplied = Mantra.loadCase(source(casePath, SourceRole.CASE))
         val schemaId = supplied.schemaId ?: invalid("MANTRA-WORKBENCH-CASE-SCHEMA", "Case does not declare :schema")
         val documents = documents(control)
         val candidates = documents.filter { it.kind == "schema" && it.id == schemaId }
@@ -173,6 +199,42 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
                 }
                     ?.let { LayoutReader.read(source(it.path, SourceRole.LAYOUT)) }
         }
+        if (selectedTemplate?.inputTexts?.isNotEmpty() == true) {
+            val operations = selectedTemplate.inputTexts.map { input ->
+                // Field declarations may repeat an input; the planner uses its first declaration.
+                val declaration = schema.inputs.firstOrNull { it.id == input.node }
+                    ?: invalid("MANTRA-INPUT-UNKNOWN", "Unknown candidate input ${input.node}")
+                if (declaration.type == com.xqiou.mantra.core.model.ValueType.TABLE ||
+                    declaration.per?.isNotEmpty() == true
+                ) {
+                    invalid("MANTRA-TEMPLATE-INPUT", "Template preview accepts only scalar inputs")
+                }
+                CaseTextEditor.Operation.SetInput(
+                    input.node,
+                    EditorValueParser.parseScalar(
+                        declaration.type,
+                        layout ?: (schema.meta.attributes["preset"] as? Value.Kw)?.name
+                            ?.let(com.xqiou.mantra.render.layout.Presets::of)
+                            ?: com.xqiou.mantra.render.layout.Presets.DE_STAFFEL_4,
+                        input.text,
+                    ),
+                )
+            }
+            candidateCaseText = try {
+                CaseTextEditor.apply(texts.getValue(key.value).text, operations)
+            } catch (error: IllegalArgumentException) {
+                invalid("MANTRA-TEMPLATE-INPUT", error.message ?: "Candidate input cannot be encoded in a case")
+            } catch (error: IllegalStateException) {
+                invalid("MANTRA-TEMPLATE-INPUT", error.message ?: "Candidate input cannot be encoded in a case")
+            }
+            if (candidateCaseText.length > 65_536) {
+                throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Candidate case exceeds reader limit")
+            }
+            control.chargeParticipatingBytes(candidateCaseText.toByteArray(Charsets.UTF_8).size.toLong())
+            val candidateSource = SourceText(key.value, candidateCaseText, casePath.parent.toString())
+            texts[key.value] = candidateSource
+            supplied = Mantra.loadCase(candidateSource)
+        }
         val bound = BoundSources.load(
             supplied,
             schema,
@@ -180,6 +242,7 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             root,
             capturedRead = { path ->
                 val actual = confined(path)
+                checkCaptured(actual)
                 used.putIfAbsent(actual, SourceRole.DATA)
                 capture(actual, control, ImportFiles.MAX_BYTES)
             },
@@ -187,8 +250,15 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
             checkpoint = control::checkpoint,
         )
         val sources = used.map { (path, role) ->
-            val bytes = if (path == casePath && selected?.text != null) {
-                selected.text.toByteArray(Charsets.UTF_8)
+            val replacement = if (path ==
+                casePath
+            ) {
+                candidateCaseText
+            } else {
+                selectedTemplate?.sourceTexts?.get(relative(path))
+            }
+            val bytes = if (replacement != null) {
+                replacement.toByteArray(Charsets.UTF_8)
             } else {
                 buffers.getValue(path)
             }
