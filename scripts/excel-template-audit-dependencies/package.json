@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "esbuild": "0.25.12",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.1",
+    "saxes": "6.0.0"
+  }
+}

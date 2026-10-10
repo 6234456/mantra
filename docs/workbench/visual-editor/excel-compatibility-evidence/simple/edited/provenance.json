@@ -1,0 +1,97 @@
+{
+  "format": "mantra.excel-template-audit-provenance/1",
+  "schema": {
+    "id": "audit/simple",
+    "version": "1.0.0"
+  },
+  "case": "audit/simple-edited",
+  "succeeded": true,
+  "validationPassed": true,
+  "sourceDocuments": {
+    "scripts/fixtures/excel-template-audit/simple/schema.mantra": {
+      "sha256": "8bcd89f0f64d8da3c71d97ddddc462cf9071aed0b4e6bb24c93ebcafdcded169",
+      "text": "; Fictional scalar arithmetic for downstream import and recalculation verification.\n(schema audit/simple\n  {:title \"Scalar compatibility proof\" :version \"1.0.0\"}\n  (input quantity :decimal)\n  (section calculation \"Calculation\" {:panel true :op :info}\n    (info doubled \"Quantity times two\" (* quantity 2))\n    (info increased \"Quantity plus five\" (+ quantity 5))))\n"
+    },
+    "scripts/fixtures/excel-template-audit/simple/case-edited.mantra": {
+      "sha256": "21cbb276fa09be5b804745d894c7e6f775dc56dd6df159af1aa967477cc3b4db",
+      "text": "(case audit/simple-edited\n  {:schema \"audit/simple\" :schema-version \"1.0.0\" :title \"Changed fictional quantity\"}\n  (inputs {:quantity 13}))\n"
+    }
+  },
+  "xlsxSHA256": "80154881f31680cfbbc24e6e476dc08726c70eafd63187738af2ab519a41eb01",
+  "mappings": [
+    {
+      "kind": "node",
+      "node": "doubled",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Scalar compatibility proof'!$C$6",
+      "value": {
+        "type": "decimal",
+        "text": "26"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 5,
+        "startOffset": 255,
+        "endOffset": 305
+      }
+    },
+    {
+      "kind": "node",
+      "node": "increased",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Scalar compatibility proof'!$C$7",
+      "value": {
+        "type": "decimal",
+        "text": "18"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 7,
+        "column": 5,
+        "startOffset": 310,
+        "endOffset": 362
+      }
+    },
+    {
+      "kind": "node",
+      "node": "quantity",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": true,
+      "address": "'Eingaben'!$C$4",
+      "value": {
+        "type": "decimal",
+        "text": "13"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 4,
+        "column": 3,
+        "startOffset": 164,
+        "endOffset": 189
+      }
+    }
+  ],
+  "diagnostics": [],
+  "exportReport": {
+    "sheets": [
+      "Übersicht",
+      "1 Scalar compatibility proof",
+      "Eingaben",
+      "Parameter",
+      "Hilfsrechnungen",
+      "Audit-Snapshot"
+    ],
+    "formulaCells": 5,
+    "inputCells": 1,
+    "names": 4,
+    "fallbacks": [],
+    "evaluationErrors": []
+  },
+  "sourceIdentitySHA256": "6d4cd25ba0a90f8c94f3f0eacb675d000484b43ecb628845cb628620fefe96d1"
+}
