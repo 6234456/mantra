@@ -240,6 +240,9 @@ Browser tests use an installed Chrome-compatible executable with a task-specific
 - [Performance baseline](docs/performance-baseline.md), [M3 measurements](docs/performance-m3.md), [public-kernel measurements](docs/performance-public-kernel.md) and [kernel integration](docs/normein-publication.md)
 - [DSL reference](docs/dsl-reference.md) and [Normein RFCs](docs/rfc/)
 - [Workbench contract](docs/workbench/contract.md), [UI specification](docs/workbench/ui-spec.md) and [work packages](docs/workbench/work-packages.md)
+- [Visual template authoring proposal](docs/workbench/visual-template-authoring.md) (planned)
+- [Mantra DSL authoring and Mantra/Excel delivery targets](docs/template-directions.md)
+- [Claude Code UI/UX design handoff](docs/workbench/claude-code-design-prompt.md)
 - [Long-term roadmap and R1–R10 decisions](docs/roadmap.md)
 - [Contributing](CONTRIBUTING.md), [support](SUPPORT.md) and [security policy](SECURITY.md)
 
