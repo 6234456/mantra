@@ -22,17 +22,19 @@ internal fun WorkspaceCatalog.resolve(
     explain: ExplainAddress? = null,
     audit: Boolean = false,
     freshDiagnostics: Boolean = false,
+    capturedLoader: CasePackageLoader? = null,
 ): Resolved {
-    val casePath = path(caseId).toRealPath()
-    if (snapshot.kind("case").none { it.path.toRealPath() == casePath }) {
+    val casePath = capturedLoader?.capturedCasePath(path(caseId)) ?: path(caseId).toRealPath()
+    if (snapshot.kind("case").none {
+            (capturedLoader?.capturedCasePath(it.path) ?: it.path.toRealPath()) == casePath
+        }
+    ) {
         throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Case was not found")
     }
     val key = CanonicalCaseKey(relative(casePath))
-    val loader =
-        CasePackageLoader(
-            root,
-            CasePackageOverrides(key.value, caseText, parameterOverride, layoutOverride, includeLayout = includeLayout),
-        )
+    val overrides =
+        CasePackageOverrides(key.value, caseText, parameterOverride, layoutOverride, includeLayout = includeLayout)
+    val loader = capturedLoader?.fork(overrides) ?: CasePackageLoader(root, overrides)
     val graph = try {
         sessions.graph(
             loader,
@@ -74,5 +76,6 @@ internal fun WorkspaceCatalog.resolve(
         binding.packageData.schema, binding.packageData.parameters, binding.sourceOverrides, graph,
         graph.cases.mapValues { (case, run) -> loader.binding(case).layout ?: Render.defaultLayout(run.view) },
         graph.cases.keys.associateWith(loader::sourceTexts),
+        loader,
     )
 }

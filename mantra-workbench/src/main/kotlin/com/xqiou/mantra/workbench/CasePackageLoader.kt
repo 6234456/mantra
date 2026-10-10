@@ -48,6 +48,8 @@ data class CasePackageOverrides(
 class CasePackageLoader(directory: Path, private val overrides: CasePackageOverrides? = null) : CasePackageResolver {
     val root: Path = directory.toRealPath().also { require(Files.isDirectory(it)) }
     private val buffers = linkedMapOf<Path, ByteArray>()
+    private val canonicalPaths = linkedMapOf<Path, Path>()
+    private var capturedBuffers: Map<Path, ByteArray> = emptyMap()
     private var index: List<Entry>? = null
     private val metadata = linkedMapOf<CanonicalCaseKey, Binding>()
     private val capturedSources = linkedMapOf<CanonicalCaseKey, Map<String, SourceText>>()
@@ -65,6 +67,15 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
     /** Only parsed document buffers, never index-only reads or imported data. */
     internal fun sourceTexts(key: CanonicalCaseKey): Map<String, SourceText> = capturedSources.getValue(key)
 
+    internal fun capturedCasePath(path: Path): Path = confined(path)
+
+    /** Reuse immutable captured documents, data and index; a fresh run still charges its own budget. */
+    internal fun fork(overrides: CasePackageOverrides): CasePackageLoader = CasePackageLoader(root, overrides).also {
+        it.capturedBuffers = capturedBuffers + buffers
+        it.canonicalPaths.putAll(canonicalPaths)
+        it.index = index
+    }
+
     override fun identify(reference: CaseReference, control: CaseLoadControl): CanonicalCaseKey {
         control.checkpoint()
         val base = reference.fromCase?.let { confined(root.resolve(it.value)).parent } ?: root
@@ -78,11 +89,11 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
         val selected = overrides?.takeIf { it.rootCase == key.value }
         val explicitFiles = listOfNotNull(selected?.schemaPath, selected?.layoutPath) +
             selected?.parameterPaths.orEmpty()
-        val authorized = explicitFiles.mapTo(mutableSetOf()) { it.toRealPath() }
-        val schemaIncludeRoot = selected?.schemaPath?.toRealPath()?.parent
+        val authorized = explicitFiles.mapTo(mutableSetOf(), ::canonical)
+        val schemaIncludeRoot = selected?.schemaPath?.let(::canonical)?.parent
         fun source(path: Path, role: SourceRole): SourceText {
             val candidate = path.toAbsolutePath().normalize()
-            val explicit = candidate.takeIf { Files.isRegularFile(it) }?.toRealPath()
+            val explicit = canonicalPaths[candidate] ?: candidate.takeIf { Files.isRegularFile(it) }?.let(::canonical)
             val allowedInclude = role == SourceRole.INCLUDED && schemaIncludeRoot != null &&
                 explicit != null && explicit.startsWith(schemaIncludeRoot)
             val actual = if (explicit != null && (explicit in authorized || allowedInclude)) {
@@ -224,6 +235,14 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
     private fun capture(file: Path, control: CaseLoadControl, maxBytes: Int): ByteArray {
         buffers[file]?.let { return it }
         control.checkpoint()
+        capturedBuffers[file]?.let { bytes ->
+            if (bytes.size > maxBytes) {
+                throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "Captured file exceeds permitted size")
+            }
+            control.chargeParticipatingBytes(bytes.size.toLong())
+            buffers[file] = bytes
+            return bytes
+        }
         if (Files.size(file) > maxBytes) {
             throw WorkspaceException(WorkspaceProblem.TOO_LARGE, "File exceeds permitted size")
         }
@@ -248,14 +267,19 @@ class CasePackageLoader(directory: Path, private val overrides: CasePackageOverr
 
     private fun confined(candidate: Path): Path {
         val normalized = candidate.toAbsolutePath().normalize()
-        if (!normalized.startsWith(root) || !Files.isRegularFile(normalized)) {
+        if (!normalized.startsWith(root) || (normalized !in canonicalPaths && !Files.isRegularFile(normalized))) {
             throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Linked source is missing or outside the workspace")
         }
-        return normalized.toRealPath().also {
+        return canonical(normalized).also {
             if (!it.startsWith(root)) {
                 throw WorkspaceException(WorkspaceProblem.NOT_FOUND, "Linked source is outside the workspace")
             }
         }
+    }
+
+    private fun canonical(candidate: Path): Path {
+        val normalized = candidate.toAbsolutePath().normalize()
+        return canonicalPaths.getOrPut(normalized) { normalized.toRealPath() }
     }
 
     private fun relative(path: Path): String {

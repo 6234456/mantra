@@ -280,6 +280,105 @@ export type SourceContext = Omit<Envelope, 'data'> & {
   }
 }
 
+export type PreviewPaper = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    preview: true
+    draftSequence: number
+    proposedRevision: string
+    succeeded: boolean
+    validationPassed: boolean
+    diagnostics: Array<EnvelopeDiagnostic>
+    run: {
+      succeeded: boolean
+      members: Record<string, Array<{ key: string; label: string }>>
+      values: Record<
+        string,
+        Record<
+          string,
+          {
+            value: Value
+            display: string
+            active: boolean
+            origin?: string
+            source?: string
+            validation?: EnvelopeValidation | null
+            link: EnvelopeLink | null
+          }
+        >
+      >
+      diagnostics: Array<EnvelopeDiagnostic>
+      validationPassed: boolean
+      aggregates?: Record<string, EnvelopeAggregate>
+      caseGraph: EnvelopeCaseGraph | null
+      usage: EnvelopeUsage | null
+      failure: EnvelopeFailure | null
+    }
+    difference: {
+      variant: { parameters: Array<string>; case?: string }
+      mainline: Array<CompareChange & { step: number; panel: string }>
+      changes: Array<{ step: number | null; panel: string | null; items: Array<CompareChange> }>
+      parameterChanges: Array<CompareChange & { baseSource: string; variantSource: string }>
+    }
+    paper: {
+      browsing?: { includeZero: boolean; hideZero: boolean }
+      title: string
+      subtitle: string | null
+      headline: null | { node: string; label: string; value: string }
+      inputGroups: Array<{ key: string; title: string; inputs: Array<string> }>
+      header: Array<PaperTextPair>
+      overview: Array<Record<string, unknown>>
+      auxiliary: Array<Record<string, unknown>>
+      tables: Array<{
+        id: string
+        ref: string
+        title: string
+        breadcrumb: string | null
+        style: 'tiered' | 'matrix' | 'transpose'
+        columns: Array<Record<string, unknown>>
+        rows: Array<{
+          kind: string
+          depth: number
+          node: string | null
+          flags: Array<string>
+          anchor: string | null
+          lead: boolean
+          optionKey: string | null
+          section: string | null
+          classes: Array<string>
+          cells: Array<{
+            text: string
+            address: EnvelopeAddress | null
+            editable: boolean
+            style: EnvelopeStyle
+            styleOverrides?: EnvelopeStyleOverrides
+          }>
+        }>
+      }>
+      audit: Array<{
+        anchor: string
+        citation: string
+        label: string
+        member: string | null
+        formula: string
+        working: string
+        result: string
+        reference: string | null
+        address: EnvelopeAddress | null
+        explanation: {
+          steps: Array<{ text: string; value: Value; rendered: string | null; location: EnvelopeLocation }>
+          branches: Array<{ text: string; selected: boolean; location: EnvelopeLocation }>
+          truncated: boolean
+        } | null
+        aggregate: EnvelopeAggregate | null
+      }>
+      legend: Array<PaperTextPair>
+      diagnostics: Array<EnvelopeDiagnostic>
+      theme: string
+    }
+  }
+}
+
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
     cases: Array<{

@@ -19,6 +19,8 @@ import type {
   AuthoringHover,
   FormulaOperation,
   FormulaEditResult,
+  PreviewPaper,
+  PreviewPaperOptions,
   Sources,
   ImportInspection,
   ImportTemplate,
@@ -84,6 +86,14 @@ export interface WorkbenchData {
     operation: FormulaOperation,
     preview: boolean,
   ): Promise<Envelope<FormulaEditResult>>
+  /** Candidate Paper is an explicit live-file capability; packages and fixtures do not fall back. */
+  previewPaper?(
+    caseId: string,
+    baseRevision: string,
+    operations: Array<EditOperation | FormulaOperation>,
+    options: PreviewPaperOptions,
+    signal?: AbortSignal,
+  ): Promise<Envelope<PreviewPaper>>
   sources(caseId: string, signal?: AbortSignal): Promise<Envelope<Sources>>
   removeSource(caseId: string, baseRevision: string, index: number): Promise<Envelope<Sources>>
   importInspect(
@@ -104,7 +114,7 @@ export interface WorkbenchData {
   saveImportTemplate(template: ImportTemplate): Promise<Envelope<{ templates: ImportTemplate[] }>>
 }
 
-export class WorkbenchReadError extends Error {
+export class WorkbenchRequestError extends Error {
   constructor(
     public readonly status: number,
     message: string,
@@ -113,6 +123,8 @@ export class WorkbenchReadError extends Error {
     super(message)
   }
 }
+
+export class WorkbenchReadError extends WorkbenchRequestError {}
 
 async function json<T>(url: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(url, { signal })
@@ -140,21 +152,31 @@ function contract<T>(raw: Envelope<T>): Envelope<T> {
 const apiCase = (id: string) => `/api/v1/cases/${encodeURIComponent(id)}`
 
 export class LiveData implements WorkbenchData {
-  private async post<T>(url: string, body: unknown): Promise<Envelope<T>> {
+  private async post<T>(url: string, body: unknown, signal?: AbortSignal): Promise<Envelope<T>> {
     const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
     if (!token) throw new Error('A workbench server session is required')
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Mantra-Token': token },
       body: JSON.stringify(body),
+      ...(signal ? { signal } : {}),
     })
-    const payload = await response.json()
-    if (!response.ok)
-      throw new Error(
+    if (!response.ok) {
+      let payload
+      try {
+        payload = await response.json()
+      } catch {
+        // Retain the HTTP status when a proxy or transport failure is not JSON.
+      }
+      throw new WorkbenchRequestError(
+        response.status,
         payload?.error?.diagnostics?.[0]?.message ??
           payload?.error?.message ??
           `${response.status} ${response.statusText}`,
+        payload?.error?.currentRevision,
       )
+    }
+    const payload = await response.json()
     return contract(payload as Envelope<T>)
   }
   sources(id: string, signal?: AbortSignal) {
@@ -231,6 +253,26 @@ export class LiveData implements WorkbenchData {
       baseRevision,
       operations: [operation],
     })
+  }
+  previewPaper: WorkbenchData['previewPaper'] = async (
+    id: string,
+    baseRevision: string,
+    operations: Array<EditOperation | FormulaOperation>,
+    options: PreviewPaperOptions,
+    signal?: AbortSignal,
+  ): Promise<Envelope<PreviewPaper>> => {
+    if (!Number.isSafeInteger(options.draftSequence) || options.draftSequence < 0) {
+      throw new RangeError('draftSequence must be a safe nonnegative integer')
+    }
+    const response = await this.post<PreviewPaper>(
+      `${apiCase(id)}/preview-paper`,
+      { baseRevision, operations, ...options },
+      signal,
+    )
+    if (response.revision !== baseRevision || response.data.draftSequence !== options.draftSequence) {
+      throw new Error('Preview response does not match the requested draft and baseline')
+    }
+    return response
   }
   workspace(signal?: AbortSignal) {
     return json<Envelope<Workspace>>('/api/v1/workspace', signal).then((response) => contract(response).data)

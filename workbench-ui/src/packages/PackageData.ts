@@ -32,6 +32,8 @@ import type { MountedPackage, MigrationPreview, PackageDocument, PackageEnvelope
 
 /** Adapter to the existing UI and strict workbench/4 projections. No fallback to workspace files. */
 export class PackageData extends LiveData {
+  override previewPaper = undefined
+
   canManageSources() {
     return false
   }

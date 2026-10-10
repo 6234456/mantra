@@ -11,6 +11,7 @@
 - Mantra：`/Users/qiouyang/Documents/Claude/Codes/mantra`；任务分支 `codex/mantra-design-handoff-20261010`；已推送的进度提交为 `d091674`。先检查是否有更新，用正常 fast-forward 同步干净分支；保留所有已有修改，不 reset、clean、强推。
 - Template Engine：`/Users/qiouyang/Documents/Claude/Codes/template_engine`；上次基线为 `6443c688`，主工作区有另一会话的 markdown-editor 改动。重新核对并保留这些文件、暂存内容、分支和 HEAD。
 - 阅读 Mantra `CLAUDE.md`、`docs/workbench/claude-code-design-prompt.md`、`docs/workbench/visual-editor/README.md` 及 Template Engine 的 `.agentdocs/index.md`。只补读变动或当前阶段需要的代码，不重复整轮勘察。上次 CLI 构建、边界检查、158 项前端测试通过是历史基线；新变更运行相应检查。
+- 额度暂停期间的逻辑工作见同目录 `interaction-progress.md`。已有 case 操作现在可用独立 `POST /cases/{case}/preview-paper` 获取真实候选 Run/差异/Paper，带基准修订、草稿序号和缓存隔离；旧公式响应未扩展，包/fixture 不继承该能力。这不覆盖模板标签、class、schema/layout 声明编辑，原型录制策略仍适用于这些编辑。
 
 保留已确定架构：Mantra 独立编辑器和源码视图编辑同一份原始 DSL；共享作者、编译、预览与构建流程，之后才分叉为 Mantra 原生和派生 Excel 两种交付。Template Engine 历史纯 Excel 作者路径独立。保持 DSL 公式、精确 Decimal、源 owner/修订、业务 finding 与技术失败、只读 package 和显式 writable fork 的边界。
 

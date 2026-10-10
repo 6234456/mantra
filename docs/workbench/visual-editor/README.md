@@ -1,7 +1,8 @@
 # 可视化 DSL 编辑器设计交付：进度与恢复记录
 
 > 状态：**进行中（阶段 0 完成）**。本文只记录可复现基线、已确认的设计决定和未完成项，
-> 不声明任何编辑器、owner 句柄、draft Paper 或发布能力已经实现。任务来源见
+> 不声明可视化模板编辑器、owner 句柄、模板源 draft Paper 或发布能力已经实现。已有案例操作的
+> 候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。任务来源见
 > [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
 ## 1. 可复现基线（2026-10-10）

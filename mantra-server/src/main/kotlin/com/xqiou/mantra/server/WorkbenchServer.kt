@@ -309,6 +309,21 @@ class WorkbenchServer(
             }
             return json(exchange, 200, catalog.envelope(result))
         }
+        if (method == "POST" && document == "preview-paper") {
+            if (exchange.requestURI.rawQuery != null) {
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            }
+            val request = requests.parsePaperPreview(caseId, body)
+            val result = catalog.previewPaper(
+                caseId,
+                request.revision,
+                request.operations,
+                request.draftSequence,
+                request.panel,
+                request.includeZero,
+            )
+            return json(exchange, 200, catalog.envelope(result))
+        }
         if (method == "POST" && document in setOf("preview", "edits", "undo", "redo")) {
             if (exchange.requestURI.rawQuery != null) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
@@ -342,7 +357,7 @@ class WorkbenchServer(
             )
         }
         if (document in setOf(
-                "explain", "compare", "preview", "edits", "undo", "redo",
+                "explain", "compare", "preview", "preview-paper", "edits", "undo", "redo",
                 "authoring/complete", "authoring/hover", "authoring/check",
             )
         ) {

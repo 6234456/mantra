@@ -18,6 +18,10 @@ bindings and extension rows. [WorkspaceAuthoring](../../mantra-workbench/src/mai
 provides case-formula assistance;
 [WorkspaceEditing](../../mantra-workbench/src/main/kotlin/com/xqiou/mantra/workbench/WorkspaceEditing.kt)
 previews and commits validated case edits. Reusable schema/layout editing requires new work.
+The explicit file-workspace `POST /cases/{case}/preview-paper` capability now returns
+the candidate Run, difference and Paper from one isolated engine calculation. It accepts
+existing case operations, a base revision and a draft sequence; package and fixture hosts
+do not inherit this capability. See the [candidate preview contract](contract.md#71-操作).
 
 [WorkingPaper](../../mantra-render/src/main/kotlin/com/xqiou/mantra/render/paper/WorkingPaper.kt)
 and its [JSON projection](schema/paper.schema.json) provide the preview foundation.
@@ -202,8 +206,10 @@ only after owner metadata, lossless source patches and draft-Paper responses are
 The editor can use the existing Mantra presentation components. An Office rendering proof
 is needed only if those modules are selected for reuse, and does not gate the independent
 authoring workflow.
-The current formula preview returns Run/differences, not a draft Paper; adding a grid
-does not by itself implement immediate template feedback.
+The existing formula preview retains its Run/difference response. The separate candidate
+Paper endpoint supports case inputs, formula-slot bindings and extension operations;
+it does not accept template labels, classes, schema declarations or layout source. Those
+edits still need the planned owner and source-patch contract before live template feedback.
 
 Future acceptance must demonstrate:
 

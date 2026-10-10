@@ -14,6 +14,7 @@ const names = [
   'paper',
   'diagnostics',
   'source-context',
+  'preview-paper',
   'workspace',
   'compare',
   'parameters',

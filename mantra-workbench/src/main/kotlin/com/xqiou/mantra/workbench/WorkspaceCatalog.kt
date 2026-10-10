@@ -71,6 +71,9 @@ class WorkspaceCatalog(
 
     /** Test seam for an external file change after calculation and before the final write check. */
     internal var beforeWriteCheck: (() -> Unit)? = null
+
+    /** Test seam for a dependency change before the final preview revision check. */
+    internal var beforePreviewCheck: (() -> Unit)? = null
     internal data class EditHistory(
         val undo: ArrayDeque<String> = ArrayDeque(),
         val redo: ArrayDeque<String> = ArrayDeque(),
@@ -336,17 +339,17 @@ class WorkspaceCatalog(
 
     /** Calculates an edited in-memory case, including the same semantic checks as a committed edit. */
     fun previewEdits(caseId: String, baseRevision: String, operations: List<CaseTextEditor.Operation>): DocumentResult =
-        synchronized(histories.computeIfAbsent(caseId) { EditHistory() }) {
-            val snapshot = scan()
-            val base = resolve(caseId, snapshot)
-            checkRevision(baseRevision, base.revision)
-            rejectLinkedEdits(base, operations)
-            val candidate = editCandidate(caseId, operations)
-            val variant = resolve(caseId, snapshot, caseText = candidate)
-            checkEditDiagnostics(variant)
-            validateFinalCoordinates(variant, operations)
-            DocumentResult(base.revision, editData(base, variant, caseId, true))
-        }
+        previewCaseEdits(caseId, baseRevision, operations)
+
+    /** Previews existing case operations with a Paper from the same isolated candidate calculation. */
+    fun previewPaper(
+        caseId: String,
+        baseRevision: String,
+        operations: List<CaseTextEditor.Operation>,
+        draftSequence: Long,
+        panel: String? = null,
+        includeZero: Boolean = false,
+    ): DocumentResult = previewCaseEdits(caseId, baseRevision, operations, draftSequence, panel, includeZero)
 
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
@@ -366,7 +369,7 @@ class WorkspaceCatalog(
 
     /** Parses text using the input or parameter's declared type and the active layout's locale. */
     fun parseEditText(caseId: String, id: String, parameter: Boolean, text: String, column: String? = null): Value =
-        parseEditText(resolve(caseId, scan()), id, parameter, text, column)
+        parseEditText(resolve(caseId, scan(), freshDiagnostics = true), id, parameter, text, column)
 
     fun parseEditRowText(caseId: String, table: String, columns: Map<String, String>): Value.MapV =
         parseEditorRowText(caseId, table, columns)
@@ -398,6 +401,7 @@ class WorkspaceCatalog(
         val caseSources:
         Map<com.xqiou.mantra.core.api.CanonicalCaseKey, Map<String, com.xqiou.mantra.core.read.SourceText>> =
             emptyMap(),
+        val loader: CasePackageLoader? = null,
     )
 
     internal fun diagnostic(code: String, message: String) = Diagnostic(Severity.ERROR, code, message)

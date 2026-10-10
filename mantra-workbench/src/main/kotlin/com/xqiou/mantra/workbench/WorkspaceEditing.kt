@@ -52,7 +52,7 @@ internal fun WorkspaceCatalog.parseEditorRowText(
     table: String,
     columns: Map<String, String>,
 ): Value.MapV {
-    val resolved = resolve(caseId, scan())
+    val resolved = resolve(caseId, scan(), freshDiagnostics = true)
     val input = resolved.view.nodes[table]?.input
     if (input?.type != ValueType.TABLE) throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table input $table")
     return Value.MapV(
@@ -72,7 +72,7 @@ internal fun WorkspaceCatalog.parseEditText(
 
 /** A table-backed dimension supplies the stable row key; other tables use revision-local indexes. */
 internal fun WorkspaceCatalog.inputTableKeyColumn(caseId: String, table: String): String? {
-    val view = resolve(caseId, scan()).view
+    val view = resolve(caseId, scan(), freshDiagnostics = true).view
     if (view.nodes[table]?.input?.type != ValueType.TABLE) {
         throw WorkspaceException(WorkspaceProblem.INVALID, "Unknown table input $table")
     }
@@ -105,29 +105,33 @@ internal fun WorkspaceCatalog.restore(caseId: String, baseRevision: String, undo
     }
 }
 
-internal fun WorkspaceCatalog.editCandidate(caseId: String, operations: List<CaseTextEditor.Operation>): String = try {
-    require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
-    var candidate = source(path(caseId)).text
-    operations.forEach { operation ->
-        candidate = CaseTextEditor.apply(candidate, listOf(operation))
-        require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
-            "Edited document exceeds reader limit"
+internal fun WorkspaceCatalog.editCandidate(caseId: String, operations: List<CaseTextEditor.Operation>): String =
+    applyCaseOperations(source(path(caseId)).text, operations)
+
+internal fun WorkspaceCatalog.applyCaseOperations(source: String, operations: List<CaseTextEditor.Operation>): String =
+    try {
+        require(operations.isNotEmpty() && operations.size <= 100) { "Expected 1–100 edit operations" }
+        var candidate = source
+        operations.forEach { operation ->
+            candidate = CaseTextEditor.apply(candidate, listOf(operation))
+            require(candidate.length <= 65_536 && candidate.toByteArray(Charsets.UTF_8).size <= 1_048_576) {
+                "Edited document exceeds reader limit"
+            }
         }
+        candidate
+    } catch (error: IllegalArgumentException) {
+        throw WorkspaceException(
+            WorkspaceProblem.INVALID,
+            "Edit was rejected",
+            listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
+        )
+    } catch (error: IllegalStateException) {
+        throw WorkspaceException(
+            WorkspaceProblem.INVALID,
+            "Edit was rejected",
+            listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
+        )
     }
-    candidate
-} catch (error: IllegalArgumentException) {
-    throw WorkspaceException(
-        WorkspaceProblem.INVALID,
-        "Edit was rejected",
-        listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
-    )
-} catch (error: IllegalStateException) {
-    throw WorkspaceException(
-        WorkspaceProblem.INVALID,
-        "Edit was rejected",
-        listOf(diagnostic("MANTRA-WORKBENCH-EDIT", error.message.orEmpty())),
-    )
-}
 
 internal fun WorkspaceCatalog.editData(
     base: Resolved,

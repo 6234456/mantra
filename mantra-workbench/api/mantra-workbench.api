@@ -486,6 +486,8 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun parseEditText (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/core/model/Value;
 	public static synthetic fun parseEditText$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/xqiou/mantra/core/model/Value;
 	public final fun previewEdits (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun previewPaper (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;Z)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public static synthetic fun previewPaper$default (Lcom/xqiou/mantra/workbench/WorkspaceCatalog;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;JLjava/lang/String;ZILjava/lang/Object;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun redo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun removeSource (Ljava/lang/String;Ljava/lang/String;I)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun saveImportTemplate (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;

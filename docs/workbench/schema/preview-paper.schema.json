@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/preview-paper.schema.json",
+  "title": "Candidate working-paper preview",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["document", "preview", "draftSequence", "proposedRevision", "succeeded", "validationPassed", "diagnostics", "run", "difference", "paper"],
+      "properties": {
+        "document": { "type": "string" },
+        "preview": { "const": true },
+        "draftSequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "proposedRevision": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "succeeded": { "type": "boolean" },
+        "validationPassed": { "type": "boolean" },
+        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } },
+        "run": { "$ref": "run.schema.json#/properties/data" },
+        "difference": { "$ref": "compare.schema.json#/properties/data" },
+        "paper": { "$ref": "paper.schema.json#/properties/data" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

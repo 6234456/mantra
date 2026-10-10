@@ -17,6 +17,7 @@ import type {
   Parameters as WireParameters,
   Compare as WireCompare,
   SourceContext as WireSourceContext,
+  PreviewPaper as WirePreviewPaper,
 } from './generated/contract'
 
 export type Value = WireValue
@@ -320,6 +321,16 @@ export interface FormulaEditResult {
   diagnostics: Diagnostic[]
   run: Run
   difference: Compare
+}
+export type PreviewPaper = Omit<WirePreviewPaper['data'], 'run' | 'difference' | 'paper'> & {
+  run: Run
+  difference: Compare
+  paper: Paper
+}
+export interface PreviewPaperOptions {
+  draftSequence: number
+  panel?: string
+  includeZero?: boolean
 }
 export interface Diagnostics {
   diagnostics: Diagnostic[]

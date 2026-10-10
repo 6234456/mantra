@@ -428,6 +428,25 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 写请求的 JSON 外层为 `{"baseRevision":"案例的 64 位十六进制修订（旧工作区修订兼容 16 位）","operations":[…]}`，`operations` 为 1–100 个操作，顺序执行。撤销、重做只提交 `{"baseRevision":"…"}`。响应使用 §6 的统一外层；预演的外层 `revision` 是基准修订，`data.proposedRevision` 是候选修订；提交、撤销、重做的外层 `revision` 是写入后的修订。`data` 还包含 `document`、`preview`、`diagnostics`、`run` 和 `difference`。
 
+**候选工作表预演（文件工作区）**：`POST …/preview-paper` 使用相同的操作、权限、令牌和读取预算，
+额外要求 `draftSequence` 为 0–9007199254740991 的 JSON 整数；可选 `panel` 是非空板块 id，
+`includeZero` 是布尔值，默认 false。请求只允许 `baseRevision`、`operations`、`draftSequence`、
+`panel`、`includeZero`，不接受查询参数、任意源文件路径、源偏移或 schema/layout 原文。
+该端点采用独立计算会话，在已捕获的基准文档、数据与路径绑定上执行已有案例操作；同一次 FULL-audit
+候选计算生成 `run`、`difference` 与 `paper`，不通过读取已保存案例获得候选工作表。
+响应外层 `revision` 仍是基准修订；`data` 包含 `document`、`preview: true`、
+`draftSequence`、`proposedRevision`、`succeeded`、`validationPassed`、`diagnostics`、
+`run`、`difference`、`paper`，形状见 [preview-paper.schema.json](schema/preview-paper.schema.json)。
+返回前再次检查当前完整基准图；修订不一致返回 409，不写案例、不推进 undo/redo、
+不将候选写入正式计算缓存。业务 finding 仍返回 200 和计算结果；运行时部分失败保留
+`succeeded: false`，不能当成有效预览。不存在的板块返回 404；技术无效仍返回 422。
+调用方必须同时核对草稿序号、基准修订及当前编辑上下文，取消请求不替代这些检查。
+旧 `/preview`、`/edits`、undo/redo 响应保持原形，显式新增端点沿用 v4 envelope。
+包宿主和静态 fixture 不隐式回退到文件接口。此能力预演已有案例输入和公式操作，
+不提供模板声明 owner、schema/layout 原文编辑、多文档提交或模板发布能力。
+操作新引入的依赖按首次读取捕获并计入候选修订；预演不锁定这些依赖。后续提交重新解析
+操作和当前依赖，不接受候选修订前置条件，不能保证新增依赖变化后仍等于此前预演结果。
+
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
 | `op` | JSON 字段 |
@@ -542,6 +561,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | GET | `/cases/{case}/parameters` | 参数分层（§6.8） |
 | POST | `/cases/{case}/compare` | Compare（§6.7） |
 | POST | `/cases/{case}/preview` | 预演编辑，不写入（§7.1） |
+| POST | `/cases/{case}/preview-paper` | 预演案例操作并返回同一候选的工作表（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |
