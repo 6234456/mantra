@@ -50,9 +50,9 @@
 - [x] [design-spec.md](design-spec.md)：页面流程、双视图、属性／公式／样式面板、Explain 与示例输入、源差异、
   保存与构建反馈、首次使用、窄屏、键盘／IME／剪贴板／撤销／焦点返回、可访问性，以及与 Template Engine
   并行使用的约定。
-- [ ] `state-matrix.md`：生命周期状态、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
-- [ ] `implementation-plan.md`：组件复用清单、设计 token、接口缺口（owner 句柄、源补丁、draft Paper、
-  样式来源、构建记录、发布）和分步实施计划。
+- [x] [state-matrix.md](state-matrix.md)：状态维度、生命周期与转换、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
+- [x] [implementation-plan.md](implementation-plan.md)：能力现状、组件复用清单与前置条件、设计 token、接口缺口
+  G-A1–G-A15、分步实施与待决策项。
 - [ ] 原型：`workbench-ui/src/authoring/`、生成脚本、测试、启动步骤、操作脚本和截图；
   导出／发布按钮不得假成功。
 - [ ] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 及索引条目
