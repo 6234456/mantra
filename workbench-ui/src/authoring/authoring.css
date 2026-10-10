@@ -277,6 +277,19 @@
   padding: 10px 0;
   border-top: 1px solid var(--line-soft);
 }
+.author-controls[open] {
+  max-height: min(180px, 20dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block-start: 28px;
+}
+.author-controls > summary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 4px 0;
+  background: var(--sheet);
+}
 .author-reference {
   color: var(--ink-3);
   font-size: 11px;
@@ -533,6 +546,9 @@
     margin-top: 4px;
     padding: 4px 0;
     font-size: 11px;
+  }
+  .author-controls[open] {
+    max-height: min(88px, 12dvh);
   }
   .author-modal {
     padding: 16px;

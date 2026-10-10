@@ -378,7 +378,7 @@ describe('recorded authoring service', () => {
     await service.simulateExternalChange()
     expect(await service.previewExampleInput('9')).toMatchObject({
       kind: 'unrecorded',
-      reason: 'Combined template and example-input preview needs contract G-A4',
+      reason: 'Combined template and example-input preview is not connected in this recorded prototype',
     })
   })
 

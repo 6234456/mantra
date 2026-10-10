@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { useState } from 'react'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { EditorState } from '@codemirror/state'
+import { EditorSelection, EditorState } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { completionStatus, currentCompletions, startCompletion } from '@codemirror/autocomplete'
 import { forEachDiagnostic } from '@codemirror/lint'
@@ -321,6 +321,75 @@ it('handles source navigation inside the editor scroller without scrolling ances
   expect(cursor.setStart).toHaveBeenCalledOnce()
   expect(cursor.collapse).toHaveBeenCalledWith(true)
   expect(document.activeElement).not.toBe(mounted.contentDOM)
+})
+
+it('centers an owner clipped by the lower pane edge while preserving grid focus and the source cursor', () => {
+  const onChange = vi.fn()
+  const onSelection = vi.fn()
+  const props = { value: 'abc def ghi', onChange, onSelection, ariaLabel: 'Source' }
+  const { container, rerender } = render(
+    <>
+      <button>Grid cell</button>
+      <AuthoringCodeEditor {...props} />
+    </>,
+  )
+  const mounted = editor()
+  act(() => mounted.dispatch({ selection: { anchor: 2 } }))
+  onSelection.mockClear()
+  const grid = screen.getByRole('button', { name: 'Grid cell' })
+  grid.focus()
+  const navigation = vi.spyOn(EditorView, 'scrollIntoView')
+  rerender(
+    <>
+      <button>Grid cell</button>
+      <AuthoringCodeEditor {...props} ownerHighlights={[{ from: 4, to: 7, primary: true }]} />
+    </>,
+  )
+  const [position, options] = navigation.mock.calls.at(-1)!
+  const target = typeof position === 'number' ? EditorSelection.cursor(position) : position
+  const scroller = mounted.scrollDOM
+  container.scrollTop = 73
+  scroller.scrollTop = 40
+  Object.defineProperties(scroller, { clientHeight: { value: 100 }, clientWidth: { value: 100 } })
+  vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue({
+    top: 100,
+    bottom: 200,
+    left: 0,
+    right: 100,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 100,
+    toJSON: () => ({}),
+  })
+  vi.spyOn(mounted, 'coordsAtPos').mockImplementation(() => {
+    throw new Error('CodeMirror forbids layout reads during its write phase')
+  })
+  const cursor = {
+    setStart: vi.fn(),
+    collapse: vi.fn(),
+    getBoundingClientRect: () => ({ top: 192, bottom: 222, left: 20, right: 25 }),
+  }
+  vi.spyOn(document, 'createRange').mockReturnValue(cursor as unknown as Range)
+  const handler = mounted.state.facet(EditorView.scrollHandler)[0]
+  expect(
+    handler(mounted, target, {
+      x: options?.x ?? 'nearest',
+      y: options?.y ?? 'nearest',
+      xMargin: options?.xMargin ?? 5,
+      yMargin: options?.yMargin ?? 5,
+    }),
+  ).toBe(true)
+  // A 57 px inner scroll moves the previously clipped 192–222 px target to 135–165 px.
+  expect(scroller.scrollTop).toBe(97)
+  expect(scroller.scrollLeft).toBe(0)
+  expect(container.scrollTop).toBe(73)
+  expect(document.querySelector('.cm-owner-primary')?.textContent).toBe('def')
+  expect(document.activeElement).toBe(grid)
+  expect(mounted.state.selection.main.from).toBe(2)
+  expect(mounted.state.selection.main.to).toBe(2)
+  expect(onSelection).not.toHaveBeenCalled()
+  expect(onChange).not.toHaveBeenCalled()
 })
 
 it('uses the configured CSP nonce and destroys the old view when editor identity changes', () => {

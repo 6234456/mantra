@@ -169,15 +169,22 @@ it('hands the first IME key to its owner without cancelling composition or submi
   expect(onEdit).toHaveBeenLastCalledWith(formulaOwner, undefined, true)
 })
 
-it('allows synchronous IME focus transfer to an input without preventing the native event', () => {
-  const onEdit = vi.fn(() => screen.getByRole('textbox').focus())
+it('allows synchronous IME focus and replacement selection without preventing the native event', () => {
+  const onEdit = vi.fn(() => {
+    const field = screen.getByRole('textbox') as HTMLInputElement
+    field.focus()
+    field.select()
+  })
   mount({ selected: { row: 1, column: 0 }, onEdit })
   render(<input aria-label="Template property editor" defaultValue="Existing definition" />)
   cell(1, 0).focus()
   expect(fireEvent.keyDown(cell(1, 0), { key: 'Process', keyCode: 229 })).toBe(true)
   expect(document.activeElement).toBe(screen.getByRole('textbox'))
   expect(onEdit).toHaveBeenCalledExactlyOnceWith(labelOwner, undefined, true)
-  expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('Existing definition')
+  const field = screen.getByRole('textbox') as HTMLInputElement
+  expect(field.value).toBe('Existing definition')
+  expect(field.selectionStart).toBe(0)
+  expect(field.selectionEnd).toBe(field.value.length)
 })
 
 it('explains why an IME key cannot edit a read-only definition', () => {

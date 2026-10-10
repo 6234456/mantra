@@ -282,6 +282,88 @@ async function desktopLayout() {
   })()`)
 }
 
+async function sourceOwnerLayout() {
+  return evaluate(`(() => {
+    const owners = [...document.querySelectorAll('.author-source-pane .cm-owner-primary')];
+    const scroller = document.querySelector('.author-source-pane .cm-scroller');
+    if (!owners.length || !scroller) return null;
+    const box = scroller.getBoundingClientRect();
+    const top = box.top + scroller.clientTop;
+    const bottom = top + scroller.clientHeight;
+    const fragments = owners.flatMap(owner => [...owner.getClientRects()]).filter(rect => rect.height > 0)
+      .map(rect => ({ top: rect.top, bottom: rect.bottom }));
+    const ownerTop = Math.min(...fragments.map(rect => rect.top));
+    const ownerBottom = Math.max(...fragments.map(rect => rect.bottom));
+    return {
+      top, bottom, height: scroller.clientHeight, fragments,
+      centerOffset: Math.abs((ownerTop + ownerBottom) / 2 - (top + bottom) / 2),
+      painted: owners.every(owner => getComputedStyle(owner).backgroundColor !== 'rgba(0, 0, 0, 0)'),
+    };
+  })()`)
+}
+
+async function mobileControlsLayout() {
+  return evaluate(`(() => {
+    const controls = document.querySelector('.author-controls');
+    const scroller = document.querySelector('.authoring-grid-scroll');
+    if (!controls || !scroller) return null;
+    const box = scroller.getBoundingClientRect();
+    const controlBox = controls.getBoundingClientRect();
+    const top = box.top + scroller.clientTop;
+    const bottom = top + scroller.clientHeight;
+    const rows = [...scroller.querySelectorAll('tr')].filter(row => row.querySelector('[role="gridcell"]'));
+    return {
+      gridHeight: scroller.clientHeight, gridTop: top, gridBottom: bottom,
+      visibleRows: rows.filter(row => {
+        const rect = row.getBoundingClientRect();
+        return rect.top >= top - 1 && rect.bottom <= bottom + 1;
+      }).length,
+      controlTop: controlBox.top, controlBottom: controlBox.bottom,
+      controlClientHeight: controls.clientHeight, controlScrollHeight: controls.scrollHeight,
+      controlOverflow: getComputedStyle(controls).overflowY,
+      statusBottom: document.querySelector('.author-status').getBoundingClientRect().bottom,
+      viewportHeight: innerHeight,
+    };
+  })()`)
+}
+
+async function assertMobileGridScroll() {
+  const before = await evaluate(`(() => {
+    const scroller = document.querySelector('.authoring-grid-scroll');
+    const box = scroller.getBoundingClientRect();
+    return {
+      top: box.top, bottom: box.bottom, left: box.left, right: box.right,
+      scrollTop: scroller.scrollTop, clientHeight: scroller.clientHeight, scrollHeight: scroller.scrollHeight,
+    };
+  })()`)
+  assert.ok(before.scrollHeight > before.clientHeight, 'The visible narrow table contains more rows to scroll')
+  await session.send('Input.dispatchMouseEvent', {
+    type: 'mouseWheel',
+    x: (before.left + before.right) / 2,
+    y: (before.top + before.bottom) / 2,
+    deltaX: 0,
+    deltaY: 120,
+  })
+  await until(
+    () => evaluate(`document.querySelector('.authoring-grid-scroll').scrollTop > ${before.scrollTop}`),
+    'real wheel scroll advances rows inside the narrow table',
+  )
+  assert.deepEqual(
+    await evaluate(`(() => {
+      const box = document.querySelector('.authoring-grid-scroll').getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right };
+    })()`),
+    { top: before.top, bottom: before.bottom, left: before.left, right: before.right },
+    'Table scrolling preserves the grid viewport geometry',
+  )
+  assert.equal(await evaluate('scrollY'), 0, 'Table wheel scroll never moves the page shell')
+  await evaluate(`document.querySelector('.authoring-grid-scroll').scrollTop = ${before.scrollTop}`)
+  await until(
+    () => evaluate(`document.querySelector('.authoring-grid-scroll').scrollTop === ${before.scrollTop}`),
+    'table scroll position restored after the usability check',
+  )
+}
+
 async function assertDefaultLayout() {
   const layout = await desktopLayout()
   assert.ok(layout.formula && layout.firstRow && layout.center && layout.grid, 'Bounded formula and grid panes')
@@ -414,15 +496,28 @@ try {
     true,
     'Source location keeps grid focus',
   )
+  const locatedOwner = await until(async () => {
+    const location = await sourceOwnerLayout()
+    return location?.fragments.length &&
+      location.fragments.every((rect) => rect.top >= location.top - 1 && rect.bottom <= location.bottom + 1) &&
+      location.centerOffset <= location.height * 0.2
+      ? location
+      : false
+  }, 'complete source owner decoration centered in its own scroller')
+  assert.equal(locatedOwner.painted, true, 'Blurred source owner has a painted decoration')
+  assert.ok(
+    locatedOwner.fragments.every((rect) => rect.top >= locatedOwner.top - 1 && rect.bottom <= locatedOwner.bottom + 1),
+    `Every primary owner fragment is fully visible: ${JSON.stringify(locatedOwner)}`,
+  )
+  assert.ok(
+    locatedOwner.centerOffset <= locatedOwner.height * 0.2,
+    'Owner is near the vertical center of its own CodeMirror scroller',
+  )
+  console.log(`R2 source owner geometry: ${JSON.stringify(locatedOwner)}`)
   assert.equal(
-    await evaluate(`(() => {
-      const owner = document.querySelector('.author-source-pane .cm-owner-primary');
-      const rect = owner.getBoundingClientRect();
-      const source = document.querySelector('.author-source-pane').getBoundingClientRect();
-      return rect.height > 0 && rect.bottom > source.top && rect.top < source.bottom && getComputedStyle(owner).backgroundColor !== 'rgba(0, 0, 0, 0)';
-    })()`),
+    await evaluate(`!!document.activeElement?.closest('[role="grid"]')`),
     true,
-    'Blurred source owner has a visible painted decoration',
+    'Centered source navigation retains grid focus after scrolling settles',
   )
   await screenshot('split-independent')
   await click('Grid')
@@ -430,13 +525,30 @@ try {
   pass('compact formula, visible grid and independent Split source highlighting')
 
   await selectRow('Request not allocated', 0)
-  await evaluate(
-    `document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Process', code: 'Process', keyCode: 229, bubbles: true }))`,
-  )
+  const beforeImeTransfer = await sequence()
+  const imeTransfer = await evaluate(`(() => {
+    const event = new KeyboardEvent('keydown', { key: 'Process', code: 'Process', keyCode: 229, bubbles: true, cancelable: true });
+    const accepted = document.activeElement.dispatchEvent(event);
+    const field = document.activeElement;
+    return { accepted, prevented: event.defaultPrevented, value: field.value,
+      selectionStart: field.selectionStart, selectionEnd: field.selectionEnd };
+  })()`)
   assert.equal(
     await evaluate('document.activeElement?.getAttribute("aria-label")'),
     'Property text',
     'Browsing IME key opens an editor synchronously for composition',
+  )
+  assert.equal(imeTransfer.accepted, true, 'Native IME handoff event remains accepted')
+  assert.equal(imeTransfer.prevented, false, 'IME handoff does not prevent the native composition event')
+  assert.equal(imeTransfer.value, 'Request not allocated', 'IME handoff preserves the original source text')
+  assert.equal(imeTransfer.selectionStart, 0, 'IME handoff starts the selection at the original text beginning')
+  assert.equal(imeTransfer.selectionEnd, imeTransfer.value.length, 'IME handoff selects the entire original text')
+  assert.equal(await sequence(), beforeImeTransfer, 'Starting IME composition does not create a source transaction')
+  await delay(100)
+  assert.deepEqual(
+    await evaluate(`({ start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd })`),
+    { start: 0, end: imeTransfer.value.length },
+    'The original selection survives the editor focus effects',
   )
   await key('Escape')
   await selectRow('Request not allocated', 0)
@@ -832,6 +944,74 @@ try {
     ),
     'Narrow grid appears in first viewport',
   )
+  await evaluate(`document.querySelector('.author-controls summary').click()`)
+  await screenshot('narrow-controls-open', 390, 844)
+  const openControls = await until(async () => {
+    const layout = await mobileControlsLayout()
+    return layout?.gridHeight >= 72 && layout.visibleRows >= 1 ? layout : false
+  }, 'usable narrow table viewport with prototype controls expanded').catch(async (error) => {
+    error.message += `\nNarrow controls layout: ${JSON.stringify(await mobileControlsLayout())}`
+    throw error
+  })
+  assert.ok(
+    openControls.gridHeight >= 72,
+    `Expanded controls preserve table scrolling: ${JSON.stringify(openControls)}`,
+  )
+  assert.ok(openControls.visibleRows >= 1, 'At least one complete table row remains visible with controls open')
+  assert.ok(openControls.controlBottom <= openControls.viewportHeight, 'Expanded controls stay within the viewport')
+  assert.ok(openControls.statusBottom <= openControls.controlTop, 'Preview status remains visible above controls')
+  assert.equal(openControls.controlOverflow, 'auto', 'Expanded prototype controls own their scrolling')
+  assert.ok(
+    openControls.controlScrollHeight > openControls.controlClientHeight,
+    'Expanded prototype controls have a bounded internal viewport',
+  )
+  console.log(`R2 narrow controls geometry: ${JSON.stringify(openControls)}`)
+  await assertMobileGridScroll()
+  await evaluate(
+    `[...document.querySelectorAll('details')].find(item => item.querySelector('summary')?.textContent.trim() === 'Draft recovery and JSON backup').open = true`,
+  )
+  const beforeControlsFocus = await mobileControlsLayout()
+  await fill('Backup JSON', '{}')
+  await until(
+    () => evaluate(`!${buttonExpression('Validate backup JSON')}.disabled`),
+    'backup footer action enabled after entering JSON text',
+  )
+  await evaluate(`${buttonExpression('Validate backup JSON')}.focus()`)
+  await until(
+    () =>
+      evaluate(`(() => {
+        const controls = document.querySelector('.author-controls');
+        const button = ${buttonExpression('Validate backup JSON')};
+        const viewport = controls.getBoundingClientRect();
+        const rect = button.getBoundingClientRect();
+        return document.activeElement === button && controls.scrollTop > 0 &&
+          rect.top >= viewport.top && rect.bottom <= viewport.bottom && rect.bottom <= innerHeight;
+      })()`),
+    'backup footer button reachable through the controls inner scroller',
+  )
+  const afterControlsFocus = await mobileControlsLayout()
+  assert.ok(afterControlsFocus.gridHeight >= 72, 'Expanding backup details does not collapse the table viewport')
+  assert.equal(
+    afterControlsFocus.gridTop,
+    beforeControlsFocus.gridTop,
+    'Reaching footer controls keeps the table in place',
+  )
+  assert.equal(await evaluate('scrollY'), 0, 'Reaching footer controls never scrolls the page shell')
+  assert.equal(
+    await evaluate(`(() => {
+      const controls = document.querySelector('.author-controls');
+      const summary = controls.querySelector(':scope > summary');
+      const viewport = controls.getBoundingClientRect();
+      const rect = summary.getBoundingClientRect();
+      return rect.top >= viewport.top && rect.bottom <= viewport.bottom &&
+        document.elementFromPoint((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2)?.closest('summary') === summary;
+    })()`),
+    true,
+    'Sticky controls summary remains visible and reachable after scrolling to footer actions',
+  )
+  await screenshot('narrow-controls-open', 390, 844)
+  await evaluate(`document.querySelector('.author-controls').open = false`)
+  pass('390 px expanded controls retain a scrollable table and reachable backup footer')
   await click('Open outline')
   await until(
     () => evaluate(`!!document.querySelector('[role="dialog"][aria-label="Outline"]')`),

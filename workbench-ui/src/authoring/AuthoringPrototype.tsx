@@ -8,6 +8,7 @@ import { AuthoringInspector } from './AuthoringInspector'
 import { AuthoringDrawer } from './AuthoringDrawer'
 import { AuthoringOutline } from './AuthoringOutline'
 import { flushSync } from 'react-dom'
+import { EditorView } from '@codemirror/view'
 import { PrototypeDialog, SourceDocumentDiff, SourcePane, originalDocuments, ownerText } from './AuthoringPanels'
 import {
   authoringReducer,
@@ -691,11 +692,17 @@ function AuthoringEditor({
           }
           if (composition) {
             flushSync(begin)
-            if (owner.property === 'formula')
-              element.current?.querySelector<HTMLElement>('[aria-label="Mantra DSL formula"]')?.focus()
-            else if (owner.property === 'note')
-              element.current?.querySelector<HTMLElement>('[aria-label="Property text"]')?.focus()
-            else propertyField.current?.focus()
+            const field = element.current?.querySelector<HTMLElement>(
+              `[aria-label="${owner.property === 'formula' ? 'Mantra DSL formula' : 'Property text'}"]`,
+            )
+            if (field instanceof HTMLInputElement) {
+              field.focus()
+              field.select()
+            } else if (field) {
+              const editor = EditorView.findFromDOM(field)
+              editor?.dispatch({ selection: { anchor: 0, head: editor.state.doc.length } })
+              editor?.focus()
+            }
           } else begin()
         }}
         showFormulas={showFormulas}

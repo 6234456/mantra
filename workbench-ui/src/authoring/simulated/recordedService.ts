@@ -265,7 +265,10 @@ export function createRecordedService(
     async previewExampleInput(text: string): Promise<ExampleInputResult> {
       await initialized
       if ((await sourceDigest(savedDocuments)) !== base.digest) {
-        return { kind: 'unrecorded', reason: 'Combined template and example-input preview needs contract G-A4' }
+        return {
+          kind: 'unrecorded',
+          reason: 'Combined template and example-input preview is not connected in this recorded prototype',
+        }
       }
       const exchange = base.exchanges.find((candidate) => {
         const body = candidate.request.body as { operations?: Array<{ text?: string }> } | undefined

@@ -239,7 +239,9 @@ export function AuthoringInspector(props: AuthoringInspectorProps) {
           <button disabled={!exampleEnabled || composing} onClick={onPreviewExample}>
             Preview example input
           </button>
-          {!exampleEnabled && <p>Combined template and example-input preview needs contract G-A4.</p>}
+          {!exampleEnabled && (
+            <p>Combined template and example-input preview is not connected in this recorded prototype.</p>
+          )}
           {example?.kind === 'invalid' && (
             <p role="alert">{responseMessages(example) ?? 'Recorded engine input validation failed.'}</p>
           )}

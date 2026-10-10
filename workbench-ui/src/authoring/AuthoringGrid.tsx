@@ -115,7 +115,7 @@ export function AuthoringGrid({
     if (event.nativeEvent.keyCode === 229) {
       if (!compositionTransfer.current) {
         compositionTransfer.current = true
-        // The parent must focus an editor synchronously, before the IME delivers its composition.
+        // The parent must focus and select the original text synchronously, before IME composition.
         // Keep the native event untouched so the browser can place that composition in the editor.
         edit(position, undefined, true)
       }

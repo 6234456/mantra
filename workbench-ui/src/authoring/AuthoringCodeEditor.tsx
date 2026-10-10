@@ -252,7 +252,11 @@ export function AuthoringCodeEditor(props: AuthoringCodeEditorProps) {
       effects: [
         setOwnerHighlights.of(highlights),
         ...(navigate
-          ? [EditorView.scrollIntoView(Math.max(0, Math.min(Math.trunc(primary.from), editor.state.doc.length)))]
+          ? [
+              EditorView.scrollIntoView(Math.max(0, Math.min(Math.trunc(primary.from), editor.state.doc.length)), {
+                y: 'center',
+              }),
+            ]
           : []),
       ],
       annotations: externalUpdate.of(true),
