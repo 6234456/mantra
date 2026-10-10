@@ -316,6 +316,22 @@ describe('external source changes and recovery', () => {
     expect(isDirty(undone)).toBe(false)
   })
 
+  it('stores conflict data without its event type so a UI can spread it into a rebase event', () => {
+    const edited = edit(initial())
+    const conflict = authoringReducer(edited, { type: 'externalChanged', ...external })
+    expect(conflict.conflict).not.toHaveProperty('type')
+    const rebased = authoringReducer(conflict, { type: 'rebase', ...conflict.conflict! })
+    expect(rebased.conflict).toBeUndefined()
+    expect(rebased.baseRevisions).toEqual(external.baseRevisions)
+    expect(rebased.documents['source.mantra']).toBe(edited.documents['source.mantra'])
+    expect(rebased.documents['layout.mantra']).toBe(external.documents['layout.mantra'])
+
+    const overlapping = edit(initial(), 'Initial title', 'My title', 'layout.mantra')
+    const blocked = authoringReducer(overlapping, { type: 'rebase', ...external })
+    expect(blocked.conflict).not.toHaveProperty('type')
+    expect(blocked.conflict?.overlapping).toEqual(['layout.mantra'])
+  })
+
   it('preserves overlapping source edits instead of silently replacing them on rebase', () => {
     const edited = edit(initial(), 'Initial title', 'My title', 'layout.mantra')
     const conflict = authoringReducer(edited, { type: 'externalChanged', ...external })

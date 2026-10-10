@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { applySourcePatches, authoringReducer, createAuthoringState } from './model'
+import { applySourcePatches, authoringReducer, canRedo, canUndo, createAuthoringState } from './model'
 import type { AuthoringState, SourceTransaction } from './model'
 import { clearRecovery, readRecovery, writeRecovery } from './recovery'
 import type { AuthoringRecording, DocumentTexts, SourcePatch } from './service'
@@ -161,6 +161,68 @@ describe('browser-only authoring recovery', () => {
   it('keeps unsubmitted input on a clean saved source baseline', async () => {
     await writeRecovery(recording, await initial(saved), { label: 'Not submitted' })
     expect((await readRecovery(recording))?.inputs).toEqual({ label: 'Not submitted' })
+  })
+
+  it('retains pending source input after a clean external refresh archives blocked redo history', async () => {
+    let state = authoringReducer(await initial(), {
+      type: 'transaction',
+      label: 'Layout title',
+      patches: [sourcePatch(original, 'layout.mantra', 'Working paper', 'My title')],
+    })
+    state = authoringReducer(state, { type: 'undo' })
+    state = authoringReducer(state, {
+      type: 'externalChanged',
+      documents: external,
+      baseRevisions: await sourceRevisions(external),
+      changed: ['layout.mantra'],
+    })
+    expect(state.history.future[0].blockedReason).toContain('source changed outside')
+    expect(canRedo(state)).toBe(false)
+    await writeRecovery(recording, state, { schemaSource: 'An unsubmitted source draft' })
+    const recovered = await readRecovery(recording)
+    expect(recovered?.baseDocuments).toEqual(external)
+    expect(recovered?.inputs.schemaSource).toBe('An unsubmitted source draft')
+    expect(recovered?.history).toEqual(state.history)
+    const reopened = createAuthoringState({
+      documents: recovered!.baseDocuments,
+      baseRevisions: recovered!.baseRevisions,
+    })
+    const restored = authoringReducer(reopened, {
+      type: 'restore',
+      documents: recovered!.documents,
+      history: recovered!.history,
+    })
+    expect(canRedo(restored)).toBe(false)
+    expect(authoringReducer(restored, { type: 'redo' })).toBe(restored)
+    expect(restored.restored).toBe(true)
+  })
+
+  it('preserves archived blocked past entries while validating and replaying the current source draft', async () => {
+    const archived = sourceTransaction(original, sourcePatch(original, 'layout.mantra', 'Working paper', 'My title'))
+    archived.blockedReason = 'Cannot undo: source changed outside this editor'
+    const active = sourceTransaction(external, sourcePatch(external, 'schema.mantra', '"Result"', '"Remaining"'))
+    const state: AuthoringState = {
+      ...(await initial(external)),
+      documents: active.after,
+      history: { past: [archived, active], future: [] },
+    }
+    await writeRecovery(recording, state, {})
+    const recovered = await readRecovery(recording)
+    expect(recovered?.history.past).toEqual([archived, active])
+    const restored = authoringReducer(await initial(external), {
+      type: 'restore',
+      documents: recovered!.documents,
+      history: recovered!.history,
+    })
+    const undone = authoringReducer(restored, { type: 'undo' })
+    expect(undone.documents).toEqual(external)
+    expect(canUndo(undone)).toBe(false)
+    expect(authoringReducer(undone, { type: 'undo' })).toBe(undone)
+    const { key, value } = stored()
+    const history = value.history as AuthoringState['history']
+    history.past[0].patches[0].inverse = 'Tampered archived patch'
+    localStorage.setItem(key, JSON.stringify(value))
+    expect(await readRecovery(recording)).toBeUndefined()
   })
 
   it('ignores a malformed sibling record and selects the newest valid saved baseline', async () => {

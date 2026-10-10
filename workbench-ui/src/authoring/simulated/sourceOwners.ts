@@ -191,7 +191,21 @@ export function createSourceOwnerScanner() {
       }
       for (const expression of expressions) visit(expression)
     }
-    return owners
+    const identities = new Map<string, Set<number>>()
+    const identityKey = (owner: SourceOwner) =>
+      JSON.stringify([owner.document, owner.panelId, owner.kind, owner.nodeId])
+    for (const owner of owners) {
+      if (!owner.nodeId) continue
+      const key = identityKey(owner)
+      const declarations = identities.get(key) ?? new Set<number>()
+      declarations.add(owner.declarationRange.start)
+      identities.set(key, declarations)
+    }
+    return owners.map((owner) =>
+      owner.nodeId && (identities.get(identityKey(owner))?.size ?? 0) > 1
+        ? { ...owner, editable: false, reason: 'Owner unavailable: duplicate declaration identity' }
+        : owner,
+    )
   }
   return { scan }
 }
@@ -238,7 +252,12 @@ export function sourceOutline(owners: SourceOwner[]): SourceOutline[] {
 }
 
 function quoted(value: string) {
-  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+  return `"${value
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r')
+    .replace(/\t/g, '\\t')}"`
 }
 
 /** Semantic operations resolve current ranges from handles; supplied offsets are always rejected. */
@@ -256,7 +275,13 @@ export function applySemanticOperation(
   const value = operation.value
   let text: string
   if (operation.op === 'setText' && ['label', 'section-title', 'note', 'title'].includes(owner.property)) {
-    if (typeof value !== 'string' || /[\r\n]/.test(value) || !value.trim()) {
+    if (typeof value !== 'string' || !value.trim()) {
+      return {
+        ok: false,
+        reason: owner.property === 'note' ? 'Note text must not be empty' : 'Text must be a nonempty single line',
+      }
+    }
+    if (owner.property !== 'note' && /[\r\n]/.test(value)) {
       return { ok: false, reason: 'Text must be a nonempty single line' }
     }
     text = quoted(value)

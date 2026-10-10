@@ -102,6 +102,49 @@ describe('simulated source owners', () => {
     expect(owner(owners, 'conserved', 'classes').editable).toBe(true)
   })
 
+  it('rejects ambiguous named declaration owners rather than trusting their positional ordinal', () => {
+    const scanner = createSourceOwnerScanner()
+    const documents = {
+      'schema.mantra': '(schema example (info repeated "First" 1) (info repeated "Second" 2))',
+    }
+    const owners = scanner.scan(documents)
+    expect(owners).toHaveLength(4)
+    expect(new Set(owners.map((candidate) => candidate.handle)).size).toBe(4)
+    for (const candidate of owners) {
+      expect(candidate.editable).toBe(false)
+      expect(candidate.reason).toBe('Owner unavailable: duplicate declaration identity')
+    }
+    const service = serviceForTests()
+    const target = service.owners(documents).find((candidate) => candidate.property === 'label')!
+    expect(service.apply({ handle: target.handle, op: 'setText', value: 'New label' }, documents)).toEqual({
+      ok: false,
+      reason: 'Owner unavailable: duplicate declaration identity',
+    })
+  })
+
+  it('round-trips multiline note text with exact escapes and inverses while other text remains single-line', () => {
+    const service = serviceForTests()
+    const documents = baseline()
+    const owners = service.owners(documents)
+    const note = owners.find((candidate) => candidate.property === 'note')!
+    const value = 'First "quoted" line\nSecond \\ line\r\nIndented\ttext'
+    const result = service.apply({ handle: note.handle, op: 'setText', value }, documents)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.patches[0].text).toBe(String.raw`"First \"quoted\" line\nSecond \\ line\r\nIndented\ttext"`)
+    const edited = applySourcePatches(documents, result.patches)
+    expect(service.owners(edited).find((candidate) => candidate.handle === note.handle)?.value).toBe(value)
+    expect(applySourcePatches(edited, invertSourcePatches(result.patches))).toEqual(documents)
+    expect(service.apply({ handle: note.handle, op: 'setText', value: '\n\t ' }, documents).ok).toBe(false)
+    for (const property of ['label', 'section-title', 'title']) {
+      const target = owners.find((candidate) => candidate.property === property)!
+      expect(service.apply({ handle: target.handle, op: 'setText', value: 'First\nSecond' }, documents)).toEqual({
+        ok: false,
+        reason: 'Text must be a nonempty single line',
+      })
+    }
+  })
+
   it('produces byte-exact recorded edits and byte-exact inverse patches', () => {
     const operations = [
       { edit: 'label', nodeId: 'unallocated', property: 'label', op: 'setText', value: 'Unallocated request' },

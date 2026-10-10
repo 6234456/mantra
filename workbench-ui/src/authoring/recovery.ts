@@ -86,7 +86,7 @@ function transaction(value: unknown, recording: AuthoringRecording): value is So
   return sameDocuments(applySourcePatches(value.before, value.patches), value.after)
 }
 
-/** Saved history may begin before its saved baseline; future entries replay from the end of the stack. */
+/** Blocked entries retain their byte evidence but form barriers beyond which undo or redo cannot replay. */
 function history(
   value: unknown,
   recording: AuthoringRecording,
@@ -97,8 +97,13 @@ function history(
   if (!Array.isArray(value.future) || ![...value.past, ...value.future].every((item) => transaction(item, recording))) {
     return false
   }
-  const past = value.past as SourceTransaction[]
-  const future = value.future as SourceTransaction[]
+  const allPast = value.past as SourceTransaction[]
+  const allFuture = value.future as SourceTransaction[]
+  const pastBarrier = allPast.findLastIndex((item) => !!item.blockedReason)
+  const futureInReplayOrder = [...allFuture].reverse()
+  const futureBarrier = futureInReplayOrder.findIndex((item) => !!item.blockedReason)
+  const past = allPast.slice(pastBarrier + 1)
+  const future = futureBarrier < 0 ? futureInReplayOrder : futureInReplayOrder.slice(0, futureBarrier)
   let previous = past[0]?.before ?? current
   let includesBaseline = sameDocuments(previous, baseline)
   for (const item of past) {
@@ -107,12 +112,14 @@ function history(
     includesBaseline ||= sameDocuments(previous, baseline)
   }
   if (!sameDocuments(previous, current)) return false
-  for (const item of [...future].reverse()) {
+  for (const item of future) {
     if (!sameDocuments(previous, item.before)) return false
     previous = item.after
     includesBaseline ||= sameDocuments(previous, baseline)
   }
-  return includesBaseline
+  // An external revision can disconnect archived history from the new saved baseline. Its source hash is
+  // checked separately; only the reachable history must connect to the unvalidated current draft.
+  return includesBaseline || pastBarrier >= 0 || futureBarrier >= 0
 }
 
 async function validate(

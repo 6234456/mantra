@@ -243,6 +243,16 @@ function matches(state: AuthoringState, sequence: number, revisions: SourceRevis
   return sequence === state.draftSequence && sameRevisions(revisions, state.baseRevisions)
 }
 
+/** Store conflict data independently of the reducer event that carried it. */
+function conflictSnapshot(external: SourceConflict): SourceConflict {
+  return {
+    documents: { ...external.documents },
+    baseRevisions: { ...external.baseRevisions },
+    changed: [...external.changed],
+    ...(external.overlapping ? { overlapping: [...external.overlapping] } : {}),
+  }
+}
+
 function receivePreview(state: AuthoringState, result: PreviewResult): AuthoringState {
   if (!matches(state, result.draftSequence, result.baseRevisions)) return state
   const valid = result.kind === 'valid'
@@ -283,7 +293,9 @@ function rebaseHistory(history: SourceHistory, external: SourceConflict): Source
 
 function rebase(state: AuthoringState, external: SourceConflict): AuthoringState {
   const overlapping = external.changed.filter((document) => state.documents[document] !== state.baseDocuments[document])
-  if (overlapping.length) return { ...state, conflict: { ...external, overlapping }, saving: undefined }
+  if (overlapping.length) {
+    return { ...state, conflict: { ...conflictSnapshot(external), overlapping }, saving: undefined }
+  }
   const documents = { ...external.documents }
   for (const document of Object.keys(state.documents)) {
     if (state.documents[document] !== state.baseDocuments[document]) documents[document] = state.documents[document]
@@ -371,7 +383,8 @@ export function authoringReducer(state: AuthoringState, event: AuthoringEvent): 
     case 'saveFailed': {
       if (!state.saving || event.draftSequence !== state.saving.draftSequence) return state
       const next: AuthoringState = { ...state, saving: undefined, saved: false }
-      if (event.kind === 'conflict') return { ...next, conflict: event.conflict ?? state.conflict }
+      if (event.kind === 'conflict')
+        return { ...next, conflict: event.conflict ? conflictSnapshot(event.conflict) : state.conflict }
       if (event.kind === 'offline') return { ...next, connection: 'offline' }
       return {
         ...next,
@@ -383,7 +396,9 @@ export function authoringReducer(state: AuthoringState, event: AuthoringEvent): 
     }
     case 'externalChanged':
       if (sameRevisions(state.baseRevisions, event.baseRevisions)) return state
-      return isDirty(state) || state.saving ? { ...state, conflict: event, saving: undefined } : rebase(state, event)
+      return isDirty(state) || state.saving
+        ? { ...state, conflict: conflictSnapshot(event), saving: undefined }
+        : rebase(state, event)
     case 'rebase':
       return state.saving ? state : rebase(state, event)
     case 'discard': {
