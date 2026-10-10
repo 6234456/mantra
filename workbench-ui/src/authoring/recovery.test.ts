@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { applySourcePatches, authoringReducer, canRedo, canUndo, createAuthoringState } from './model'
 import type { AuthoringState, SourceTransaction } from './model'
-import { clearRecovery, readRecovery, writeRecovery } from './recovery'
+import {
+  clearRecovery,
+  createRecoveryBackup,
+  importRecoveryBackup,
+  readRecovery,
+  recoveryByteLimit,
+  writeRecovery,
+} from './recovery'
 import type { AuthoringRecording, DocumentTexts, SourcePatch } from './service'
 import { sourceDigest, sourceRevisions } from './simulated/recordedService'
 
@@ -317,9 +324,9 @@ describe('browser-only authoring recovery', () => {
     })
     try {
       const older = writeRecovery(recording, state, { label: 'Older input' })
-      await writeRecovery(recording, state, { label: 'Newest input' })
+      expect((await writeRecovery(recording, state, { label: 'Newest input' })).status).toBe('written')
       releaseFirst()
-      await older
+      expect((await older).status).toBe('superseded')
       expect((await readRecovery(recording))?.inputs.label).toBe('Newest input')
     } finally {
       releaseFirst()
@@ -331,7 +338,7 @@ describe('browser-only authoring recovery', () => {
     localStorage.setItem('mantra.authoring.prototype.other.example', 'Keep another template')
     const pending = writeRecovery(recording, edit(await initial()), { label: 'Pending' })
     clearRecovery(recording)
-    await pending
+    expect((await pending).status).toBe('superseded')
     expect(await readRecovery(recording)).toBeUndefined()
     expect(localStorage.getItem('mantra.authoring.prototype.other.example')).toBe('Keep another template')
   })
@@ -355,8 +362,165 @@ describe('browser-only authoring recovery', () => {
       setItem: fail,
       removeItem: fail,
     })
-    await expect(writeRecovery(recording, edit(await initial()), {})).resolves.toBeUndefined()
+    await expect(writeRecovery(recording, edit(await initial()), {})).resolves.toMatchObject({
+      status: 'unavailable',
+      reason: 'Browser storage is unavailable; this draft was not backed up in this browser.',
+    })
     await expect(readRecovery(recording)).resolves.toBeUndefined()
     expect(() => clearRecovery(recording)).not.toThrow()
+  })
+
+  it('confirms a browser write only after reading back the same complete recovery payload', async () => {
+    const state = edit(await initial())
+    const result = await writeRecovery(recording, state, { label: 'Pending value' })
+    expect(result).toMatchObject({ status: 'written', draftSequence: state.draftSequence })
+    if (result.status !== 'written') throw new Error('Recovery should be confirmed')
+    const raw = JSON.parse(localStorage.getItem(result.key)!)
+    expect(raw.savedAt).toBe(result.savedAt)
+    expect(raw.documents).toEqual(state.documents)
+    expect(raw.inputs).toEqual({ label: 'Pending value' })
+
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {})
+    const failed = await writeRecovery(recording, state, { label: 'Newest value' })
+    expect(failed).toMatchObject({ status: 'unavailable', reason: 'Browser storage did not retain this draft backup.' })
+    expect((await readRecovery(recording))?.inputs.label).toBe('Pending value')
+  })
+
+  it('reports a full browser quota without claiming the current draft can be recovered', async () => {
+    const state = edit(await initial())
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('No space', 'QuotaExceededError')
+    })
+    expect(await writeRecovery(recording, state, { label: 'Unsaved input' })).toEqual({
+      status: 'unavailable',
+      draftSequence: state.draftSequence,
+      reason: 'Browser storage is full; this draft was not backed up in this browser.',
+    })
+    expect(localStorage.length).toBe(0)
+  })
+
+  it('reports unavailable WebCrypto instead of an apparently successful recovery write', async () => {
+    const state = edit(await initial())
+    const digest = vi.spyOn(crypto.subtle, 'digest').mockRejectedValue(new Error('Crypto disabled'))
+    try {
+      expect(await writeRecovery(recording, state, {})).toEqual({
+        status: 'unavailable',
+        draftSequence: state.draftSequence,
+        reason: 'WebCrypto is unavailable; this draft backup could not be verified.',
+      })
+      expect(localStorage.length).toBe(0)
+    } finally {
+      digest.mockRestore()
+    }
+  })
+})
+
+describe('portable source draft backups', () => {
+  it('round-trips exact source, undo and redo history and pending buffers without browser storage or preview evidence', async () => {
+    let state = edit(await initial())
+    state = edit(state, '"Remaining"', '"Further label"')
+    state = authoringReducer(state, { type: 'undo' })
+    const inputs = { 'source:schema.mantra': state.documents['schema.mantra'] + '; 未提交\r\n', label: '未提交文本' }
+    vi.stubGlobal('localStorage', undefined)
+    const backup = await createRecoveryBackup(recording, state, inputs)
+    expect(backup.status).toBe('ready')
+    if (backup.status !== 'ready') throw new Error('Backup should be ready')
+    expect(backup.draftSequence).toBe(state.draftSequence)
+    expect(backup.bytes).toBe(new TextEncoder().encode(backup.json).byteLength)
+    expect(JSON.parse(backup.json)).not.toHaveProperty('preview')
+    expect(JSON.parse(backup.json)).not.toHaveProperty('diagnostics')
+    expect(JSON.parse(backup.json)).not.toHaveProperty('validity')
+    const imported = await importRecoveryBackup(recording, backup.json)
+    expect(imported).toEqual({ status: 'ready', draft: backup.draft })
+    if (imported.status !== 'ready') throw new Error('Import should be ready')
+    expect(imported.draft.documents).toEqual(state.documents)
+    expect(imported.draft.history).toEqual(state.history)
+    expect(imported.draft.inputs).toEqual(inputs)
+    const restored = authoringReducer(await initial(), {
+      type: 'restore',
+      documents: imported.draft.documents,
+      history: imported.draft.history,
+    })
+    expect(restored.validity).toBe('unchecked')
+    expect(restored.preview.current).toBeUndefined()
+    expect(authoringReducer(restored, { type: 'redo' }).documents['schema.mantra']).toContain('"Further label"')
+  })
+
+  it('snapshots source and pending buffers before asynchronous hashing so the download belongs to its requested draft', async () => {
+    const state = edit(await initial())
+    const inputs = { label: 'Requested buffer' }
+    const pending = createRecoveryBackup(recording, state, inputs)
+    const originalSequence = state.draftSequence
+    state.draftSequence += 100
+    state.documents['schema.mantra'] += '; Later source'
+    inputs.label = 'Later buffer'
+    const backup = await pending
+    if (backup.status !== 'ready') throw new Error('Requested snapshot should remain valid')
+    expect(backup.draftSequence).toBe(originalSequence)
+    expect(backup.draft.documents['schema.mantra']).not.toContain('Later source')
+    expect(backup.draft.inputs.label).toBe('Requested buffer')
+  })
+
+  it('rejects malformed JSON, a different template and injected validation fields without restoring source', async () => {
+    expect(await importRecoveryBackup(recording, '{broken')).toMatchObject({
+      status: 'invalid',
+      reason: 'The draft backup is not valid JSON.',
+    })
+    const backup = await createRecoveryBackup(recording, edit(await initial()), {})
+    if (backup.status !== 'ready') throw new Error('Backup should be ready')
+    const value = JSON.parse(backup.json)
+    expect(await importRecoveryBackup(recording, JSON.stringify({ ...value, case: 'another.mantra' }))).toMatchObject({
+      status: 'invalid',
+    })
+    expect(
+      await importRecoveryBackup(
+        recording,
+        JSON.stringify({ ...value, preview: { status: 'current', kind: 'valid' } }),
+      ),
+    ).toMatchObject({ status: 'invalid' })
+    expect(await importRecoveryBackup(recording, JSON.stringify({ ...value, validity: 'valid' }))).toMatchObject({
+      status: 'invalid',
+    })
+  })
+
+  it('uses the same patch and revision proofs for imported files as for browser recovery', async () => {
+    const backup = await createRecoveryBackup(recording, edit(await initial()), {})
+    if (backup.status !== 'ready') throw new Error('Backup should be ready')
+    const value = JSON.parse(backup.json)
+    value.history.past[0].patches[0].inverse = 'Tampered original source'
+    expect(await importRecoveryBackup(recording, JSON.stringify(value))).toMatchObject({ status: 'invalid' })
+    const wrongRevision = JSON.parse(backup.json)
+    wrongRevision.baseRevisions['schema.mantra'] = 'a'.repeat(64)
+    expect(await importRecoveryBackup(recording, JSON.stringify(wrongRevision))).toMatchObject({ status: 'invalid' })
+  })
+
+  it('enforces the UTF-8 budget before crypto and never truncates a source draft to fit', async () => {
+    const state = edit(await initial())
+    const tooLarge = '未'.repeat(Math.ceil(recoveryByteLimit / 3))
+    const digest = vi.spyOn(crypto.subtle, 'digest')
+    try {
+      expect(await createRecoveryBackup(recording, state, { label: tooLarge })).toMatchObject({ status: 'invalid' })
+      expect(await writeRecovery(recording, state, { label: tooLarge })).toMatchObject({ status: 'invalid' })
+      expect(await importRecoveryBackup(recording, JSON.stringify({ label: tooLarge }))).toMatchObject({
+        status: 'invalid',
+      })
+      expect(digest).not.toHaveBeenCalled()
+      expect(localStorage.length).toBe(0)
+      expect(state.documents['schema.mantra']).toContain('"Remaining"')
+    } finally {
+      digest.mockRestore()
+    }
+  })
+
+  it('identifies unavailable import verification separately from malformed JSON', async () => {
+    const backup = await createRecoveryBackup(recording, edit(await initial()), {})
+    if (backup.status !== 'ready') throw new Error('Backup should be ready')
+    const digest = vi.spyOn(crypto.subtle, 'digest').mockRejectedValue(new Error('Crypto unavailable'))
+    try {
+      expect(await importRecoveryBackup(recording, backup.json)).toMatchObject({ status: 'unavailable' })
+      expect(await importRecoveryBackup(recording, '{bad')).toMatchObject({ status: 'invalid' })
+    } finally {
+      digest.mockRestore()
+    }
   })
 })

@@ -24,7 +24,9 @@ import {
   saveCapsule,
   saveReason,
 } from './model'
-import { clearRecovery, readRecovery, writeRecovery, type RecoveryDraft } from './recovery'
+import { clearRecovery, readRecovery, type RecoveryDraft } from './recovery'
+import { useDraftRecovery } from './useDraftRecovery'
+import { AuthoringBackupPanel, recoveryStatusMessage } from './AuthoringBackupPanel'
 import type {
   AuthoringRecording,
   AuthoringService,
@@ -394,9 +396,7 @@ function AuthoringEditor({
     // The table is display evidence; it does not identify a request or trigger a preview.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service, state.draftSequence, state.baseRevisions, state.documents, state.conflict])
-  useEffect(() => {
-    if (editedOnce.current && !recovery) void writeRecovery(recording, state, inputs)
-  }, [state, inputs, recovery])
+  const recoveryStatus = useDraftRecovery({ recording, state, inputs, enabled: editedOnce.current && !recovery })
   useEffect(() => {
     function leaving(event: BeforeUnloadEvent) {
       if (isDirty(current.current) || pending) {
@@ -867,6 +867,7 @@ function AuthoringEditor({
       data-preview-kind={state.validity}
       data-author-stage="editor"
       onKeyDownCapture={(event) => {
+        if ((event.target as HTMLElement).closest('[data-author-region="backup"]') && event.key !== 'F6') return
         if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || composing) return
         const modifier = event.ctrlKey || event.metaKey
         if (modifier && event.key.toLowerCase() === 's') {
@@ -987,6 +988,7 @@ function AuthoringEditor({
           Mantra {String(recording.engine.mantra)} · Normein {String(recording.engine.normein)}
         </span>
         {notice && <span>{notice}</span>}
+        {recoveryStatus.status !== 'idle' && <span>{recoveryStatusMessage(recoveryStatus)}</span>}
       </footer>
       <details className="author-controls">
         <summary>Prototype controls (simulated)</summary>
@@ -1015,6 +1017,13 @@ function AuthoringEditor({
           <button onClick={onReset}>Reset prototype to recorded base</button>
         </div>
         <p>These controls simulate timing and external events. No source file is written.</p>
+        <AuthoringBackupPanel
+          recording={recording}
+          state={state}
+          inputs={inputs}
+          recoveryStatus={recoveryStatus}
+          onImport={onRestore}
+        />
       </details>
       {outlineOverlay && outlineOpen && (
         <div className="author-outline-overlay">

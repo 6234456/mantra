@@ -13,6 +13,28 @@ export interface RecoveryDraft {
   baseDigest: string
 }
 
+export type RecoveryState = Pick<
+  AuthoringState,
+  'baseDocuments' | 'baseRevisions' | 'documents' | 'history' | 'draftSequence'
+>
+
+export const recoveryByteLimit = 2 * 1024 * 1024
+
+export type RecoveryFailure = {
+  status: 'unavailable' | 'invalid'
+  reason: string
+}
+
+export type RecoveryBackupResult =
+  { status: 'ready'; draft: RecoveryDraft; json: string; bytes: number; draftSequence: number } | RecoveryFailure
+
+export type RecoveryImportResult = { status: 'ready'; draft: RecoveryDraft } | RecoveryFailure
+
+export type RecoveryWriteResult =
+  | { status: 'written'; draftSequence: number; savedAt: string; key: string }
+  | { status: 'superseded'; draftSequence: number }
+  | (RecoveryFailure & { draftSequence: number })
+
 const format = 'mantra.authoring-recovery/1'
 const pendingWrites = new Map<string, number>()
 
@@ -83,7 +105,11 @@ function transaction(value: unknown, recording: AuthoringRecording): value is So
   ) {
     return false
   }
-  return sameDocuments(applySourcePatches(value.before, value.patches), value.after)
+  try {
+    return sameDocuments(applySourcePatches(value.before, value.patches), value.after)
+  } catch {
+    return false
+  }
 }
 
 /** Blocked entries retain their byte evidence but form barriers beyond which undo or redo cannot replay. */
@@ -156,7 +182,12 @@ async function validate(
     return undefined
   }
   const recorded = recording.states.find((state) => state.digest === value.baseDigest)
-  if (!recorded || !sameDocuments(documentsForState(recording, recorded), value.baseDocuments)) return undefined
+  if (
+    !recorded ||
+    recorded.exchanges.some((exchange) => exchange.request.method === 'GET' && exchange.response.status === 422) ||
+    !sameDocuments(documentsForState(recording, recorded), value.baseDocuments)
+  )
+    return undefined
   if ((await sourceDigest(value.baseDocuments)) !== value.baseDigest) return undefined
   if (!sameDocuments(await sourceRevisions(value.baseDocuments), value.baseRevisions)) return undefined
   if (!history(value.history, recording, value.documents, value.baseDocuments)) return undefined
@@ -171,6 +202,87 @@ async function validate(
   }
 }
 
+function byteLength(text: string): number {
+  return new TextEncoder().encode(text).byteLength
+}
+
+function budgetFailure(): RecoveryFailure {
+  return { status: 'invalid', reason: 'Draft backup exceeds the 2 MiB limit; no source or history was truncated.' }
+}
+
+function cryptoFailure(): RecoveryFailure {
+  return { status: 'unavailable', reason: 'WebCrypto is unavailable; this draft backup could not be verified.' }
+}
+
+/** A portable backup uses the same source and history proof as browser recovery, with no preview evidence. */
+export async function createRecoveryBackup(
+  recording: AuthoringRecording,
+  state: RecoveryState,
+  inputs: Record<string, string>,
+): Promise<RecoveryBackupResult> {
+  const draftSequence = state.draftSequence
+  let snapshot: Record<string, unknown>
+  try {
+    const serialized = JSON.stringify({
+      format,
+      case: recording.case,
+      baseDocuments: state.baseDocuments,
+      baseRevisions: state.baseRevisions,
+      documents: state.documents,
+      history: state.history,
+      inputs,
+      savedAt: new Date().toISOString(),
+      baseDigest: '0'.repeat(64),
+    })
+    if (byteLength(serialized) > recoveryByteLimit) return budgetFailure()
+    snapshot = JSON.parse(serialized)
+    if (
+      !documents(snapshot.baseDocuments, recording) ||
+      !documents(snapshot.baseRevisions, recording) ||
+      !documents(snapshot.documents, recording) ||
+      !strings(snapshot.inputs) ||
+      !history(snapshot.history, recording, snapshot.documents, snapshot.baseDocuments)
+    )
+      return { status: 'invalid', reason: 'The source draft, saved baseline or source history is invalid.' }
+  } catch {
+    return { status: 'invalid', reason: 'The source draft could not be serialized as a complete JSON backup.' }
+  }
+  let draft: RecoveryDraft | undefined
+  try {
+    snapshot.baseDigest = await sourceDigest(snapshot.baseDocuments as DocumentTexts)
+    draft = await validate(recording, prefix(recording) + snapshot.baseDigest, snapshot)
+  } catch {
+    return cryptoFailure()
+  }
+  if (!draft) return { status: 'invalid', reason: 'The source draft, saved baseline or source history is invalid.' }
+  const json = JSON.stringify(snapshot)
+  return { status: 'ready', draft, json, bytes: byteLength(json), draftSequence }
+}
+
+/** Importing never restores a trusted engine preview or technical validity. */
+export async function importRecoveryBackup(recording: AuthoringRecording, json: string): Promise<RecoveryImportResult> {
+  if (byteLength(json) > recoveryByteLimit) return budgetFailure()
+  let value: unknown
+  try {
+    value = JSON.parse(json)
+  } catch {
+    return { status: 'invalid', reason: 'The draft backup is not valid JSON.' }
+  }
+  let draft: RecoveryDraft | undefined
+  try {
+    const digest = isRecord(value) && typeof value.baseDigest === 'string' ? value.baseDigest : ''
+    draft = await validate(recording, prefix(recording) + digest, value)
+  } catch {
+    return cryptoFailure()
+  }
+  return draft
+    ? { status: 'ready', draft }
+    : {
+        status: 'invalid',
+        reason: 'The backup does not match this template or contains invalid source, revisions or history.',
+      }
+}
+
 /** Browser-only recovery is untrusted source data, never recovered validation or preview evidence. */
 export async function readRecovery(recording: AuthoringRecording): Promise<RecoveryDraft | undefined> {
   let latest: RecoveryDraft | undefined
@@ -180,7 +292,7 @@ export async function readRecovery(recording: AuthoringRecording): Promise<Recov
       if (!key?.startsWith(prefix(recording))) continue
       try {
         const raw = localStorage.getItem(key)
-        if (raw === null) continue
+        if (raw === null || byteLength(raw) > recoveryByteLimit) continue
         const candidate = await validate(recording, key, JSON.parse(raw))
         if (candidate && localStorage.getItem(key) === raw && (!latest || candidate.savedAt > latest.savedAt)) {
           latest = candidate
@@ -198,31 +310,33 @@ export async function readRecovery(recording: AuthoringRecording): Promise<Recov
 /** Only active user drafts call this helper; opening a clean editor must not erase an existing recovery. */
 export async function writeRecovery(
   recording: AuthoringRecording,
-  state: AuthoringState,
+  state: RecoveryState,
   inputs: Record<string, string>,
-): Promise<void> {
+): Promise<RecoveryWriteResult> {
   const scope = prefix(recording)
   const generation = (pendingWrites.get(scope) ?? 0) + 1
   pendingWrites.set(scope, generation)
+  const draftSequence = state.draftSequence
+  const superseded = (): RecoveryWriteResult => ({ status: 'superseded', draftSequence })
+  const backup = await createRecoveryBackup(recording, state, inputs)
+  if (pendingWrites.get(scope) !== generation) return superseded()
+  if (backup.status !== 'ready') return { ...backup, draftSequence }
+  const key = scope + backup.draft.baseDigest
   try {
-    const snapshot = JSON.parse(
-      JSON.stringify({
-        format,
-        case: recording.case,
-        baseDocuments: state.baseDocuments,
-        baseRevisions: state.baseRevisions,
-        documents: state.documents,
-        history: state.history,
-        inputs,
-        savedAt: new Date().toISOString(),
-      }),
-    )
-    snapshot.baseDigest = await sourceDigest(snapshot.baseDocuments)
-    const key = scope + snapshot.baseDigest
-    if (!(await validate(recording, key, snapshot)) || pendingWrites.get(scope) !== generation) return
-    localStorage.setItem(key, JSON.stringify(snapshot))
-  } catch {
-    // Recovery persistence is optional; no successful file save or validation is implied.
+    localStorage.setItem(key, backup.json)
+    if (localStorage.getItem(key) !== backup.json)
+      return { status: 'unavailable', draftSequence, reason: 'Browser storage did not retain this draft backup.' }
+    return { status: 'written', draftSequence, savedAt: backup.draft.savedAt, key }
+  } catch (failure) {
+    if (pendingWrites.get(scope) !== generation) return superseded()
+    return {
+      status: 'unavailable',
+      draftSequence,
+      reason:
+        failure instanceof DOMException && failure.name === 'QuotaExceededError'
+          ? 'Browser storage is full; this draft was not backed up in this browser.'
+          : 'Browser storage is unavailable; this draft was not backed up in this browser.',
+    }
   }
 }
 

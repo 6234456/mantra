@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -10,7 +10,9 @@ import { fileURLToPath } from 'node:url'
 
 // Uses an installed browser and a task-only profile. Real Chinese IME remains a manual check.
 const uiRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const screenshots = resolve(uiRoot, '../docs/workbench/visual-editor/screenshots')
+const screenshots = process.env.MANTRA_AUTHORING_SCREENSHOTS
+  ? resolve(process.env.MANTRA_AUTHORING_SCREENSHOTS)
+  : resolve(uiRoot, '../docs/workbench/visual-editor/screenshots')
 const chrome = process.env.MANTRA_TEST_CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 if (!existsSync(chrome))
   throw new Error(`System Chrome not found: ${chrome}. Set MANTRA_TEST_CHROME to an installed browser executable.`)
@@ -215,9 +217,12 @@ async function key(keyName, modifiers = 0, code = keyName) {
 
 const command = process.platform === 'darwin' ? 4 : 2
 
+const fieldExpression = (label) =>
+  `document.querySelector('[aria-label=' + CSS.escape(${JSON.stringify(label)}) + ']') ?? [...document.querySelectorAll('label')].find(label => [...label.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() === ${JSON.stringify(label)})?.querySelector('input,textarea,select')`
+
 async function fill(label, text) {
   const focused = await evaluate(
-    `(() => { const input = document.querySelector('[aria-label=' + CSS.escape(${JSON.stringify(label)}) + ']'); input?.focus(); return !!input })()`,
+    `(() => { const input = ${fieldExpression(label)}; input?.focus(); return !!input })()`,
   )
   assert.equal(focused, true, `Editable field: ${label}`)
   await key('a', command, 'KeyA')
@@ -659,6 +664,100 @@ try {
     )
   await screenshot('build-panel')
   pass('build report is recorded; build, publish and Template Engine actions are disabled')
+
+  await resetCopy(port)
+  await evaluate(`(() => {
+    window.mantraOriginalStorageWrite = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith('mantra.authoring.prototype.')) throw new DOMException('Quota exhausted', 'QuotaExceededError');
+      return window.mantraOriginalStorageWrite.call(this, key, value);
+    };
+  })()`)
+  await selectRow('Request not allocated', 0)
+  await key('F2')
+  await fill('Property text', 'Unallocated request')
+  await key('Enter')
+  await current()
+  await hasText('Browser storage is full; this draft was not backed up in this browser.')
+  await selectRow('Unallocated request', 0)
+  await key('F2')
+  await fill('Property text', 'Buffered backup label')
+  await hasText('Browser storage is full; this draft was not backed up in this browser.')
+  await evaluate(`document.querySelector('.author-controls').open = true`)
+  await evaluate(
+    `[...document.querySelectorAll('details')].find(item => item.querySelector('summary')?.textContent.trim() === 'Draft recovery and JSON backup').open = true`,
+  )
+  const downloads = join(directory, 'downloads')
+  await mkdir(downloads, { recursive: true })
+  await session.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads })
+  await click('Download draft backup JSON')
+  await hasText('Backup JSON prepared from draft #1; engine revalidation is required after import.')
+  const backupName = await until(
+    async () => (await readdir(downloads)).find((name) => name.endsWith('.draft-backup.json')),
+    'downloaded source backup JSON',
+  )
+  const backupFile = join(downloads, backupName)
+  const backupText = await readFile(backupFile, 'utf8')
+  const backup = JSON.parse(backupText)
+  assert.equal(backup.format, 'mantra.authoring-recovery/1')
+  assert.equal(Object.keys(backup.documents).length, 4, 'Downloaded backup contains the complete source closure')
+  assert.ok(
+    Object.values(backup.inputs).includes('Buffered backup label'),
+    'Downloaded backup preserves an unsubmitted field',
+  )
+  assert.equal(
+    Object.hasOwn(backup, 'preview') || Object.hasOwn(backup, 'validity'),
+    false,
+    'Source backup contains no engine validation evidence',
+  )
+  assert.equal(
+    await evaluate(`(${fieldExpression('Backup JSON')}).value`),
+    backupText,
+    'Text fallback contains the same downloadable bytes',
+  )
+  await fill('Backup JSON', JSON.stringify({ ...backup, preview: { kind: 'valid' } }))
+  await click('Validate backup JSON')
+  await until(
+    () => evaluate(`!!document.querySelector('.author-controls [role="alert"]')`),
+    'fabricated backup evidence rejected',
+  )
+  assert.equal(
+    await evaluate(`!!document.querySelector('[aria-label="Imported draft review"]')`),
+    false,
+    'Rejected backup cannot replace the current draft',
+  )
+  await evaluate(
+    `Storage.prototype.setItem = window.mantraOriginalStorageWrite; delete window.mantraOriginalStorageWrite`,
+  )
+  await resetCopy(port)
+  await evaluate(`document.querySelector('.author-controls').open = true`)
+  await evaluate(
+    `[...document.querySelectorAll('details')].find(item => item.querySelector('summary')?.textContent.trim() === 'Draft recovery and JSON backup').open = true`,
+  )
+  const fileInput = await session.send('Runtime.evaluate', {
+    expression: fieldExpression('Import draft backup JSON file'),
+    returnByValue: false,
+  })
+  assert.ok(fileInput.result.objectId, 'Backup file picker exists')
+  await session.send('DOM.setFileInputFiles', { objectId: fileInput.result.objectId, files: [backupFile] })
+  await hasText('Review imported draft')
+  assert.equal(await sequence(), 0, 'Import validation alone does not replace the editor draft')
+  await click('Restore imported draft')
+  await current()
+  await selectRow('Unallocated request', 0)
+  await click('Property')
+  assert.equal(
+    await evaluate(`(${fieldExpression('Property text')}).value`),
+    'Buffered backup label',
+    'Explicit restore preserves the unsubmitted owner buffer',
+  )
+  await disabled('Save')
+  assert.equal(
+    await textIncludes('Saved in this prototype session'),
+    false,
+    'Backup restore does not claim a template save',
+  )
+  pass('storage quota feedback, real JSON download, rejected evidence and explicit file backup restore')
 
   await resetCopy(port)
   await selectRow('Rounded request to allocate', 0)

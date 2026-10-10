@@ -51,6 +51,22 @@ function previewRoot() {
   return element
 }
 
+it('keeps backup JSON undo and save shortcuts separate from the template history', async () => {
+  const { service } = await open()
+  await renameLabel()
+  const before = previewRoot().getAttribute('data-draft-sequence')
+  const commit = vi.spyOn(service, 'commit')
+  document.querySelector<HTMLDetailsElement>('.author-controls')!.open = true
+  document.querySelector<HTMLDetailsElement>('[data-author-region="backup"]')!.open = true
+  const field = screen.getByRole('textbox', { name: 'Backup JSON' })
+  fireEvent.change(field, { target: { value: '{"untrusted":"draft"}' } })
+  fireEvent.keyDown(field, { key: 'z', ctrlKey: true })
+  fireEvent.keyDown(field, { key: 's', ctrlKey: true })
+  expect(previewRoot().getAttribute('data-draft-sequence')).toBe(before)
+  expect(screen.getByRole('gridcell', { name: 'Description: Unallocated request' })).toBeTruthy()
+  expect(commit).not.toHaveBeenCalled()
+})
+
 async function open(service: AuthoringService = createRecordedService(recording, { delays: [0] })) {
   const mounted = render(<AuthoringPrototype service={service} />)
   const fork = await screen.findByRole('button', { name: 'Create editable copy…' })
