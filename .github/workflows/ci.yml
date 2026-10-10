@@ -178,6 +178,11 @@ jobs:
       - name: Fresh live build excludes prototype and recorded payloads
         working-directory: workbench-ui
         run: npm run check:live-isolation
+      - name: Real template draft preview using the installed CLI and Chrome
+        working-directory: workbench-ui
+        env:
+          MANTRA_TEST_CHROME: /usr/bin/google-chrome
+        run: npm run test:template-preview:e2e
       - name: Verified documentation and examples for GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-pages-artifact@v4

@@ -194,6 +194,12 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
               <select
                 value={caseId}
                 onChange={(event) => {
+                  if (
+                    changed &&
+                    event.target.value !== caseId &&
+                    !window.confirm('Discard this in-memory draft and switch example cases?')
+                  )
+                    return
                   invalidate()
                   setCaseId(event.target.value)
                 }}

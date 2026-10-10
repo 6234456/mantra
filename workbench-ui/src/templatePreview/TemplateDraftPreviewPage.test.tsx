@@ -118,6 +118,32 @@ it('rejects late source captures and previews from an earlier case context even 
   expect(screen.queryByText('b'.repeat(64))).toBeNull()
 })
 
+it('keeps edited source and a pending preview when a case switch is canceled, and discards the reply after an accepted switch', async () => {
+  const client = fakeClient()
+  const { source } = await open(client)
+  const changed = source.value + '; Unsaved source\n'
+  fireEvent.change(source, { target: { value: changed } })
+  const pending = deferred<Envelope<TemplatePreview>>()
+  client.preview.mockReturnValueOnce(pending.promise)
+  fireEvent.click(screen.getByRole('button', { name: 'Preview draft' }))
+  const request = client.preview.mock.lastCall![1]
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+  fireEvent.change(screen.getByLabelText('Example case'), { target: { value: secondCase } })
+  expect(source.value).toBe(changed)
+  expect((screen.getByLabelText('Example case') as HTMLSelectElement).value).toBe(firstCase)
+  expect(client.sources).toHaveBeenCalledOnce()
+  fireEvent.change(screen.getByLabelText('Example case'), { target: { value: secondCase } })
+  await waitFor(() => expect(client.sources).toHaveBeenCalledTimes(2))
+  await act(async () => {
+    pending.resolve(templatePreview(firstCase, request))
+    await pending.promise
+  })
+  expect(confirm).toHaveBeenCalledTimes(2)
+  expect((screen.getByLabelText('Example case') as HTMLSelectElement).value).toBe(secondCase)
+  expect(screen.getByTestId('template-preview-status').textContent).toContain('Preview a draft')
+  expect(screen.queryByRole('table')).toBeNull()
+})
+
 it('discards a pending preview on reload and respects the confirmation before replacing changed source', async () => {
   const client = fakeClient()
   const pending = deferred<Envelope<TemplatePreview>>()
