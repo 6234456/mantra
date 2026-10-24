@@ -27,7 +27,10 @@ const schema = `(schema browser/preview {:version "1" :mainline [main]}
   (section main "Main" {:panel true}
     (field base-amount "Amount" {:op :info})
     (info answer "Answer" (* base-amount 2))
-    (check positive "Nonnegative" (>= base-amount 0))))`
+    (check positive "Nonnegative" (>= base-amount 0)))
+  (section details "Details" {:panel true :display :schedule}
+    (info detail "Detail value" (+ base-amount 5))
+    (info zero-marker "Zero marker" 0)))`
 const layout = '(layout browser/layout {:title "Saved title" :locale "de-DE"})'
 const originals = new Map([
   ['schema.mantra', Buffer.from(schema)],
@@ -41,13 +44,18 @@ const originals = new Map([
 const candidateSchema = schema.replace('(* base-amount 2)', '(* base-amount 3)')
 const candidateLayout = layout.replace('Saved title', 'Draft title').replace('de-DE', 'en-US')
 const invalidSchema = candidateSchema.replace('(* base-amount 3)', 'missing-symbol')
+const runtimeSchema = candidateSchema.replace('(* base-amount 3)', '(/ base-amount 0)')
+const emptyLayout = '(layout browser/layout {:title "Empty draft" :locale "en-US"} (hide main details))'
 const expectedFiles = new Map(originals)
 const owned = []
 const failures = []
 const passed = []
 const responses = []
+const screenshots = []
 const browserErrors = []
 const network = new Map()
+const pausedResponses = []
+const cancelledRequests = []
 const externalChanges = []
 let directory, workspace, service, browser, session, baseUrl
 let interrupted = false
@@ -182,12 +190,25 @@ async function connect(url) {
         if (!closing) failures.push(error)
       })
     }
-    if (response.method === 'Network.requestWillBeSent' && params.request.url.endsWith('/template-preview')) {
+    if (
+      response.method === 'Network.requestWillBeSent' &&
+      params.request.method === 'POST' &&
+      params.request.url.endsWith('/template-preview')
+    ) {
       // Keep only JSON body evidence, never session-token request headers.
       network.set(params.requestId, { request: JSON.parse(params.request.postData) })
     }
     if (response.method === 'Network.responseReceived' && network.has(params.requestId)) {
       network.get(params.requestId).status = params.response.status
+    }
+    if (response.method === 'Network.loadingFailed' && network.has(params.requestId)) {
+      const captured = network.get(params.requestId)
+      network.delete(params.requestId)
+      cancelledRequests.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
+      if (!params.canceled && !closing) failures.push(new Error(`Preview HTTP request failed: ${params.errorText}`))
+    }
+    if (response.method === 'Fetch.requestPaused') {
+      pausedResponses.push({ requestId: params.requestId, status: params.responseStatusCode })
     }
     if (response.method === 'Network.loadingFinished' && network.has(params.requestId)) {
       const captured = network.get(params.requestId)
@@ -267,6 +288,13 @@ async function fill(label, value) {
 }
 
 async function source(name) {
+  await until(
+    () =>
+      evaluate(
+        `[...document.querySelectorAll('.template-preview-source option')].some(item => item.textContent.startsWith(${JSON.stringify(`${name} ·`)}))`,
+      ),
+    `captured source ${name}`,
+  )
   await evaluate(`(() => {
     const select = document.querySelector('.template-preview-source select');
     const option = [...select.options].find(item => item.textContent.startsWith(${JSON.stringify(`${name} ·`)}));
@@ -275,6 +303,28 @@ async function source(name) {
     select.dispatchEvent(new Event('change', { bubbles: true }));
   })()`)
   await until(() => evaluate(`!!${field(`Draft source ${name}`)}`), `selected source ${name}`)
+}
+
+const control = (label, selector) =>
+  `(() => { const settings = document.querySelector('[aria-label="Preview settings"]'); const label = [...settings.querySelectorAll('label')].find(item => [...item.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() === ${JSON.stringify(label)})); return label?.querySelector(${JSON.stringify(selector)}); })()`
+
+async function select(label, value) {
+  const element = control(label, 'select')
+  await until(() => evaluate(`!!${element} && !${element}.disabled`), `enabled ${label}`)
+  await evaluate(`(() => {
+    const select = ${element};
+    if (![...select.options].some(option => option.value === ${JSON.stringify(value)})) throw new Error('Missing preview panel option');
+    select.value = ${JSON.stringify(value)};
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  assert.equal(await evaluate(`${element}.value`), value)
+}
+
+async function toggle(label, checked) {
+  const element = control(label, 'input[type="checkbox"]')
+  await until(() => evaluate(`!!${element} && !${element}.disabled`), `enabled ${label}`)
+  await evaluate(`(() => { const checkbox = ${element}; if (checkbox.checked !== ${checked}) checkbox.click(); })()`)
+  assert.equal(await evaluate(`${element}.checked`), checked)
 }
 
 async function preview(status) {
@@ -307,14 +357,64 @@ async function preview(status) {
 
 const answer = (response) => response.data.run.values.answer[''].value.n
 
-async function paperAnswer(expected) {
+async function paperValue(label, expected, region = 'Draft preview') {
   await until(
     () =>
       evaluate(`(() => {
-      const row = [...document.querySelectorAll('.paper-table tbody tr')].find(item => item.textContent.includes('Answer'));
+      const section = document.querySelector('[aria-label=${JSON.stringify(region)}]');
+      const row = [...section.querySelectorAll('.paper-table tbody tr')].find(item => item.textContent.includes(${JSON.stringify(label)}));
       return row && [...row.querySelectorAll('td')].some(cell => cell.textContent.trim() === ${JSON.stringify(expected)});
     })()`),
-    `engine Paper Answer ${expected}`,
+    `${region} engine Paper ${label} ${expected}`,
+  )
+}
+
+const paperAnswer = (expected) => paperValue('Answer', expected)
+
+async function baselineResponse(index, panel = '', includeZero = false) {
+  const captured = await until(
+    () => responses.slice(index).find(({ request }) => request.inputs.length === 0 && (request.panel ?? '') === panel),
+    'real independent saved-template HTTP response',
+  )
+  assert.equal(captured.status, 200, JSON.stringify(captured.body))
+  assert.equal(captured.request.includeZero, includeZero)
+  assert.equal(captured.request.explain, undefined, 'Saved template never takes the draft Explain address')
+  assert.deepEqual(
+    captured.request.documents.map((document) => document.text).sort(),
+    ['schema.mantra', 'layout.mantra'].map((name) => expectedFiles.get(name).toString('utf8')).sort(),
+    'Saved template uses the captured original sources rather than edited text',
+  )
+  assert.equal(answer(captured.body), '20', 'Saved template uses saved input 10 and original formula ×2')
+  assert.equal(captured.body.data.paper.title, 'Saved title')
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[data-testid="template-baseline-status"]').textContent.startsWith('Saved-template preview')`,
+      ),
+    'saved-template preview UI',
+  )
+  assert.equal(
+    await evaluate(`document.querySelectorAll('[aria-label="Saved template"] button').length`),
+    0,
+    'Saved Paper cells are read-only evidence and cannot select the draft Explain address',
+  )
+  return captured
+}
+
+async function differenceAnswer(captured) {
+  const change = captured.body.data.difference.changes
+    .flatMap((group) => group.items)
+    .find((item) => item.node === 'answer')
+  assert.ok(change, 'The actual engine Difference contains the changed answer')
+  const displayed = await evaluate(`(() => {
+    const table = document.querySelector('[aria-label="Changes from saved template"]');
+    const code = [...table.querySelectorAll('code')].find(item => item.textContent === 'answer');
+    return [...code.closest('tr').querySelectorAll('td')].map(cell => cell.textContent.trim());
+  })()`)
+  assert.deepEqual(
+    displayed.slice(0, 3),
+    [change.display.base, change.display.variant, change.display.delta ?? change.delta?.n ?? '—'],
+    'Saved/draft/delta text comes directly from the engine Difference response',
   )
 }
 
@@ -337,8 +437,17 @@ async function savedAnswer(expected) {
 
 async function screenshot(name) {
   await evaluate('scrollTo(0, 0)')
-  const result = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
+  const metrics = await session.send('Page.getLayoutMetrics')
+  const size = metrics.cssContentSize ?? metrics.contentSize
+  const clip = { x: 0, y: 0, width: Math.ceil(size.width), height: Math.min(4000, Math.ceil(size.height)), scale: 1 }
+  const result = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip })
   await writeFile(join(artifacts, `${name}.png`), Buffer.from(result.data, 'base64'))
+  screenshots.push({
+    file: `${name}.png`,
+    width: clip.width,
+    height: clip.height,
+    completePage: clip.height >= size.height,
+  })
 }
 
 function pass(name) {
@@ -433,6 +542,13 @@ try {
   const initial = await preview(200)
   assert.equal(answer(initial.body), '20')
   await paperAnswer('20,00')
+  assert.deepEqual(
+    await evaluate(
+      `${control('Preview panel', 'select')} ? [...${control('Preview panel', 'select')}.options].map(option => option.value).sort() : []`,
+    ),
+    ['', 'details', 'main'],
+    'Panel choices come from the real candidate Structure',
+  )
   await unchangedFiles()
   await savedAnswer('20')
   await screenshot('initial')
@@ -459,8 +575,40 @@ try {
   await screenshot('candidate')
   pass('schema formula, candidate locale and raw scalar input produce one real candidate')
 
+  const comparisonStart = responses.length
+  await toggle('Compare with saved template', true)
+  const baseline = await baselineResponse(comparisonStart)
+  assert.equal(baseline.body.revision, candidate.body.revision)
+  await paperValue('Answer', '20,00', 'Saved template')
+  await differenceAnswer(candidate)
+  await paperAnswer('3.75')
+  await unchangedFiles()
+  await screenshot('saved-versus-draft')
+  pass('comparison renders original sources and saved inputs beside exact engine Difference values')
+
+  const beforeInputEdit = responses.length
+  await fill('Example input base-amount', '2')
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[aria-label="Draft comparison"]').textContent.includes('Previous draft comparison')`,
+      ),
+    'input edit marks the old comparison previous',
+  )
+  await paperValue('Answer', '20,00', 'Saved template')
+  assert.equal(responses.length, beforeInputEdit, 'Editing a draft input does not rebind or recalculate saved inputs')
+  const changedInput = await preview(200)
+  assert.equal(answer(changedInput.body), '6')
+  await paperAnswer('6.00')
+  await differenceAnswer(changedInput)
+  await paperValue('Answer', '20,00', 'Saved template')
+  await fill('Example input base-amount', '1.25')
+  await preview(200)
+  await paperAnswer('3.75')
+  pass('changing candidate input preserves the independent saved-template preview and marks old differences previous')
+
   await evaluate(`(() => {
-    const row = [...document.querySelectorAll('.paper-table tbody tr')].find(item => item.textContent.includes('Answer'));
+    const row = [...document.querySelectorAll('[aria-label="Draft preview"] .paper-table tbody tr')].find(item => item.textContent.includes('Answer'));
     const cell = [...row.querySelectorAll('button')].find(item => item.textContent.trim() === '3.75');
     if (!cell) throw new Error('Missing real Answer cell');
     cell.click();
@@ -481,6 +629,148 @@ try {
   await unchangedFiles()
   pass('selected Paper cell requests Explain from the same candidate revision')
 
+  await toggle('Compare with saved template', false)
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-preview', requestStage: 'Response' }],
+  })
+  await click('Preview draft')
+  const held = await until(() => pausedResponses.shift(), 'real engine response held at the browser network boundary')
+  assert.equal(held.status, 200, 'The held response was actually calculated by the server')
+  await select('Preview panel', 'details')
+  await session.send('Fetch.continueResponse', { requestId: held.requestId }).catch((error) => {
+    if (!/interception|not found/i.test(error.message)) throw error
+  })
+  await session.send('Fetch.disable')
+  await delay(150)
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid="template-preview-status"]').textContent.startsWith('Previous engine preview')`,
+    ),
+    true,
+    'A held older-panel response cannot become the current preview after a context change',
+  )
+  const details = await preview(200)
+  assert.equal(details.request.panel, 'details')
+  assert.equal(details.request.explain, undefined, 'Panel changes clear the old draft Explain target')
+  assert.equal(details.body.data.explain, null)
+  assert.equal(details.body.data.run.values.detail[''].value.n, '6.25')
+  assert.deepEqual(
+    details.body.data.paper.tables.map((table) => table.id),
+    ['details'],
+  )
+  await paperValue('Detail value', '6.25')
+  assert.equal(
+    await evaluate(`document.querySelector('[aria-label="Draft preview"]').textContent.includes('Answer')`),
+    false,
+    'Panel Paper shows no fallback rows from the previous main panel',
+  )
+  assert.equal(
+    details.body.data.paper.tables
+      .flatMap((table) => table.rows)
+      .some((row) => row.cells.some((cell) => cell.text === 'Zero marker')),
+    false,
+  )
+  await unchangedFiles()
+  pass('panel selection cancels a real delayed response, clears Explain and renders only the requested panel')
+
+  const detailsBaselineStart = responses.length
+  await toggle('Compare with saved template', true)
+  await baselineResponse(detailsBaselineStart, 'details')
+  await paperValue('Detail value', '15,00', 'Saved template')
+  const visibleZeroStart = responses.length
+  await toggle('Show zero rows', true)
+  await baselineResponse(visibleZeroStart, 'details', true)
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid="template-preview-status"]').textContent.startsWith('Previous engine preview')`,
+    ),
+    true,
+    'Changing includeZero invalidates the previous candidate context',
+  )
+  const withZero = await preview(200)
+  assert.equal(withZero.request.panel, 'details')
+  assert.equal(withZero.request.includeZero, true)
+  assert.equal(withZero.request.explain, undefined)
+  assert.ok(
+    withZero.body.data.paper.tables
+      .flatMap((table) => table.rows)
+      .some((row) => row.cells.some((cell) => cell.text === 'Zero marker')),
+  )
+  await paperValue('Zero marker', '0.00')
+  await paperValue('Zero marker', '0,00', 'Saved template')
+  await unchangedFiles()
+  await screenshot('panel-with-zero-rows')
+  pass('panel and zero-row controls use matching independent real preview contexts without changing numeric values')
+
+  let baselineStart = responses.length
+  await select('Preview panel', 'main')
+  await baselineResponse(baselineStart, 'main', true)
+  baselineStart = responses.length
+  await toggle('Show zero rows', false)
+  await baselineResponse(baselineStart, 'main')
+  await source('schema.mantra')
+  await fill('Draft source schema.mantra', runtimeSchema)
+  const runtime = await preview(200)
+  assert.equal(runtime.body.data.succeeded, false)
+  assert.ok(runtime.body.data.diagnostics.some((item) => item.category === 'evaluation'))
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid="template-preview-status"]').textContent.includes('runtime failure')`,
+    ),
+    true,
+  )
+  const runtimeRow = runtime.body.data.paper.tables
+    .flatMap((table) => table.rows)
+    .find((row) => row.cells.some((cell) => cell.text === 'Answer'))
+  assert.ok(runtimeRow, 'A runtime-failure Paper retains the failed source row')
+  assert.deepEqual(
+    await evaluate(
+      `(() => { const row = [...document.querySelectorAll('[aria-label="Draft preview"] tbody tr')].find(item => item.textContent.includes('Answer')); return [...row.querySelectorAll('td')].map(cell => cell.textContent.trim()); })()`,
+    ),
+    runtimeRow.cells.map((cell) => cell.text),
+    'The current runtime-failure Paper retains actual engine text rather than saved values',
+  )
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  await screenshot('runtime-with-saved-template')
+  pass('runtime failures retain current engine failure text while the saved template remains independent')
+
+  baselineStart = responses.length
+  await select('Preview panel', '')
+  await baselineResponse(baselineStart)
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid="template-preview-status"]').textContent.startsWith('Previous engine preview')`,
+    ),
+    true,
+    'A runtime result becomes previous when its panel context changes',
+  )
+  await fill('Draft source schema.mantra', candidateSchema)
+  await source('layout.mantra')
+  await fill('Draft source layout.mantra', emptyLayout)
+  const empty = await preview(200)
+  assert.equal(empty.body.data.succeeded, true)
+  assert.equal(empty.body.data.paper.tables.flatMap((table) => table.rows).length, 0)
+  assert.equal(
+    await evaluate(`document.querySelectorAll('[aria-label="Draft preview"] .paper-table tbody tr').length`),
+    0,
+    'An empty engine Paper stays empty instead of copying saved or previous rows',
+  )
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[aria-label="Draft preview"]').textContent.includes('No visible rows in this preview.')`,
+    ),
+    true,
+    'An empty result has an explicit explanation without substituting saved rows',
+  )
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  await screenshot('empty-draft-with-saved-template')
+  pass('an empty candidate Paper does not fall back to the saved template or a previous nonempty result')
+
+  await fill('Draft source layout.mantra', candidateLayout)
+  await preview(200)
+  await paperAnswer('3.75')
   await source('schema.mantra')
   await fill('Draft source schema.mantra', invalidSchema)
   const rejected = await preview(422)
@@ -497,6 +787,7 @@ try {
   await paperAnswer('3.75')
   await unchangedFiles()
   await savedAnswer('20')
+  await paperValue('Answer', '20,00', 'Saved template')
   await screenshot('invalid-retains-paper')
   pass('HTTP 422 retains invalid source, raw input and the previous real Paper')
 
@@ -520,6 +811,7 @@ try {
   pass('HTTP 409 retains both source drafts, raw input and Paper without writing files')
 
   await click('Reload saved source')
+  await source('layout.mantra')
   await until(
     () =>
       evaluate(
@@ -529,6 +821,13 @@ try {
   )
   await source('schema.mantra')
   assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), schema)
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[data-testid="template-baseline-status"]').textContent.startsWith('Saved-template preview')`,
+      ),
+    'independent saved-template preview after source reload',
+  )
   const reloaded = await preview(200)
   assert.notEqual(reloaded.body.revision, initial.body.revision)
   assert.equal(answer(reloaded.body), '20')
@@ -536,8 +835,31 @@ try {
   assert.deepEqual(reloaded.request.inputs, [])
   await paperAnswer('20,00')
   await unchangedFiles()
-  assert.deepEqual(browserErrors, [], 'No uncaught browser exceptions')
   pass('explicit reload discards the in-memory draft and captures the external revision')
+
+  await source('layout.mantra')
+  await fill('Draft source layout.mantra', layout.replace('Saved title', 'Title only draft'))
+  const titleOnly = await preview(200)
+  assert.equal(answer(titleOnly.body), '20')
+  assert.notEqual(titleOnly.body.data.proposedRevision, titleOnly.body.revision)
+  assert.equal(titleOnly.body.data.paper.title, 'Title only draft')
+  assert.deepEqual(titleOnly.body.data.difference.mainline, [])
+  assert.deepEqual(titleOnly.body.data.difference.changes, [])
+  assert.deepEqual(titleOnly.body.data.difference.parameterChanges, [])
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[aria-label="Draft comparison"]').textContent.includes('No value changes reported for this draft.')`,
+      ),
+    'source-only edit reported as no value changes',
+  )
+  await paperValue('Answer', '20,00', 'Saved template')
+  await paperAnswer('20,00')
+  await unchangedFiles()
+  await savedAnswer('20')
+  await screenshot('source-only-change')
+  assert.deepEqual(browserErrors, [], 'No uncaught browser exceptions')
+  pass('a source-only title change reports no value changes while keeping distinct draft and saved titles')
 } catch (error) {
   failures.push(error)
 } finally {
@@ -562,16 +884,20 @@ try {
         format: 'mantra.template-preview-browser/1',
         status: failures.length ? 'FAILED' : 'VERIFIED',
         scenarios: passed,
+        screenshots,
         responses: responses.map(({ status, request, body }) => ({
           status,
           draftSequence: request.draftSequence,
           documents: request.documents.length,
           inputs: request.inputs,
+          panel: request.panel ?? null,
+          includeZero: request.includeZero,
           explain: request.explain ?? null,
           baseRevision: request.baseRevision,
           proposedRevision: body.data?.proposedRevision ?? null,
         })),
         sourceByteChecks: filesVerified,
+        cancelledPreviewRequests: cancelledRequests,
         originalSources: Object.fromEntries([...originals].map(([name, bytes]) => [name, sha256(bytes)])),
         authorizedExternalChanges: externalChanges,
         temporaryDirectoryRemoved: !directory || !existsSync(directory),
