@@ -8,6 +8,8 @@
 > [prototype-fixes.md](prototype-fixes.md)。真实模板草稿预览与其余工程扩展见
 > [extension-progress.md](extension-progress.md)；录制原型尚未切换到真实模板 API，保存与发布仍有接口缺口。
 > 第二轮残留 R2-1–R2-3 的实现、浏览器证据与 CI 文档失败修复见 [prototype-r2-fixes.md](prototype-r2-fixes.md)。
+> 2026-10-24：[Invoice Template Builder 对照](invoice-builder-gaps.md) 新增 G-A16–G-A21 与高级设置规划，
+> 同步设计规范、状态矩阵与实施次序；本轮没有实现高级设置表单或修改引擎。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
 > 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
@@ -91,3 +93,6 @@
 - [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
 - [x] [六项工程扩展与边界](extension-progress.md)：草稿备份与 CI、真实模板草稿预览、完整 Excel
   清单、Template Engine 实际执行证明、普通 XLSX 区域导入、SQLite 可重放快照。
+- [x] [Invoice Builder 功能对照与高级设置规格](invoice-builder-gaps.md)：参考提交、已实现能力／作者入口缺口、
+  G-A16–G-A21、设置来源与继承、草稿／版本区别、分阶段验收；这是规划交付，不是实现或人工验收。
+- [ ] G-A16–G-A21 的正式合同与实现；不得因此启用原型保存、构建或发布。

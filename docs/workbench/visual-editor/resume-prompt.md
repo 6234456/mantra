@@ -6,6 +6,13 @@
 第二轮残留修正见 [prototype-r2-fixes.md](prototype-r2-fixes.md)，首轮修正映射见
 [prototype-fixes.md](prototype-fixes.md)，启动与检查证据见 [实施记录](implementation-progress.md)。
 
+2026-10-24 新增独立规划任务：[Invoice Builder 对照与高级设置](invoice-builder-gaps.md)。
+参考 `6234456/invoice-parser@1cbf0efa78556d2aa4b1db23552176ce91b13b99` 的实际实现，
+补入 G-A16–G-A21、设计规范 §3.14 与状态矩阵 §8；本轮仅文档，没有新增高级表单或运行时 API。
+可单独复核该规划，不把参考项目的版本、Save draft／Activate、模板标签投影或自由打印布局当作
+Mantra 已实现能力；参考项目本轮未运行。若接续编码，从 A0 合同与既有 DSL 的高级呈现入口开始，
+保留同源最小补丁、精确值、业务 finding 非阻断及 D-A1 待定边界。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，
