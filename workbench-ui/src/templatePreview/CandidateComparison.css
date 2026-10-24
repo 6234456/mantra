@@ -1,0 +1,34 @@
+.template-candidate-comparison {
+  display: grid;
+  gap: 16px;
+}
+.template-change-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.template-change-table th,
+.template-change-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  vertical-align: top;
+}
+.template-change-table thead th,
+.template-change-table th[scope='rowgroup'] {
+  background: var(--rail);
+}
+.template-change-table th[scope='row'] {
+  font-weight: 500;
+}
+.template-change-table code,
+.template-change-table small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.template-candidate-comparison .paper-table caption {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+}

@@ -31,6 +31,20 @@
   display: grid;
   gap: 8px;
 }
+.template-preview-toolbar > label {
+  min-width: 0;
+  max-width: 100%;
+}
+.template-preview-page select {
+  max-width: 100%;
+}
+.template-preview-toolbar label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: center;
+}
+.template-preview-page [role='alert'] {
+  overflow-wrap: anywhere;
+}
 .template-preview-inputs label {
   display: flex;
   align-items: center;

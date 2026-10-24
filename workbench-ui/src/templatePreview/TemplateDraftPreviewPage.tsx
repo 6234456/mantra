@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Address, CaseSummary, Diagnostic, Envelope } from '../types'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { Address, CaseSummary, Diagnostic, Envelope, Panel } from '../types'
+import { addressKey } from '../address'
 import { ExplainDetails } from '../ui/ExplainDetails'
 import { PaperTable } from '../ui/PaperTable'
 import { ThemeControl } from '../ui/ThemeControl'
 import { explainDiagnostic } from '../diagnosticMessages'
+import { CandidateComparison } from './CandidateComparison'
 import {
   LiveTemplatePreviewClient,
   TemplatePreviewError,
@@ -30,13 +32,42 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
   const [loading, setLoading] = useState(false)
   const [reload, setReload] = useState(0)
   const [includeZero, setIncludeZero] = useState(false)
+  const [panels, setPanels] = useState<Panel[]>([])
+  const [panel, setPanel] = useState('')
+  const [compareSaved, setCompareSaved] = useState(false)
+  const [baseline, setBaseline] = useState<Envelope<TemplatePreview>>()
+  const [baselineBusy, setBaselineBusy] = useState(false)
+  const [baselineError, setBaselineError] = useState('')
+  const [baselineRetry, setBaselineRetry] = useState(0)
   const [selected, setSelected] = useState<Address>()
   const [sequence, setSequence] = useState(0)
   const context = useRef(0)
   const draftSequence = useRef(0)
   const pending = useRef<AbortController | null>(null)
+  const baselineContext = useRef(0)
+  const baselineSequence = useRef(0)
+  const baselinePending = useRef<AbortController | null>(null)
+  const candidatePanelsReceived = useRef(false)
   const available = !!supplied || !!document.querySelector('meta[name="mantra-session-token"]')
   const packageHost = !!document.querySelector('meta[name="mantra-package-workspace"][content="on"]')
+
+  const invalidateBaseline = useCallback(() => {
+    baselineContext.current++
+    baselinePending.current?.abort()
+    setBaseline(undefined)
+    setBaselineBusy(false)
+    setBaselineError('')
+  }, [])
+
+  const markConflict = useCallback(() => {
+    context.current++
+    pending.current?.abort()
+    setBusy(false)
+    baselineContext.current++
+    baselinePending.current?.abort()
+    setBaselineBusy(false)
+    setConflict(true)
+  }, [])
 
   function invalidate() {
     context.current++
@@ -69,12 +100,16 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
     const controller = new AbortController()
     const generation = ++context.current
     pending.current?.abort()
+    invalidateBaseline()
     setLoading(true)
     setBusy(false)
     setSnapshot(undefined)
     setResult(undefined)
     setDiagnostics([])
     setSelected(undefined)
+    setPanels([])
+    candidatePanelsReceived.current = false
+    setPanel('')
     setError('')
     setConflict(false)
     setInputs({})
@@ -96,12 +131,67 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
         setLoading(false)
       })
     return () => controller.abort()
-  }, [client, caseId, reload, available, packageHost])
+  }, [client, caseId, reload, available, packageHost, invalidateBaseline])
+
+  useEffect(() => {
+    if (!compareSaved || !snapshot || snapshot.data.document !== caseId || conflict || !available || packageHost) return
+    const controller = new AbortController()
+    baselinePending.current = controller
+    const generation = ++baselineContext.current
+    const nextSequence = ++baselineSequence.current
+    setBaseline(undefined)
+    setBaselineBusy(true)
+    setBaselineError('')
+    void client
+      .preview(
+        caseId,
+        {
+          baseRevision: snapshot.revision,
+          baseRevisions: snapshot.data.baseRevisions,
+          draftSequence: nextSequence,
+          documents: snapshot.data.documents
+            .filter((item) => item.editable)
+            .map((item) => ({ handle: item.handle, text: item.text })),
+          inputs: [],
+          includeZero,
+          ...(panel ? { panel } : {}),
+        },
+        controller.signal,
+      )
+      .then((next) => {
+        if (controller.signal.aborted || baselineContext.current !== generation) return
+        setBaseline(next)
+        setPanels((previous) => (candidatePanelsReceived.current ? previous : next.data.structure.panels))
+      })
+      .catch((failure: unknown) => {
+        if (controller.signal.aborted || baselineContext.current !== generation) return
+        setBaselineError(failure instanceof Error ? failure.message : String(failure))
+        if (failure instanceof TemplatePreviewError && failure.status === 409) markConflict()
+      })
+      .finally(() => {
+        if (!controller.signal.aborted && baselineContext.current === generation) setBaselineBusy(false)
+      })
+    return () => controller.abort()
+  }, [
+    client,
+    caseId,
+    snapshot,
+    panel,
+    includeZero,
+    compareSaved,
+    baselineRetry,
+    conflict,
+    available,
+    packageHost,
+    markConflict,
+  ])
 
   useEffect(
     () => () => {
       context.current++
       pending.current?.abort()
+      baselineContext.current++
+      baselinePending.current?.abort()
     },
     [],
   )
@@ -142,6 +232,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
             .map((item) => ({ handle: item.handle, text: documents[item.handle] ?? item.text })),
           inputs: Object.entries(inputs).map(([node, text]) => ({ node, text })),
           includeZero,
+          ...(panel ? { panel } : {}),
           ...(selected?.node
             ? { explain: { node: selected.node, ...(selected.coord ? { coord: selected.coord } : {}) } }
             : {}),
@@ -150,13 +241,15 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
       )
       if (controller.signal.aborted || context.current !== generation) return
       setResult(next)
+      candidatePanelsReceived.current = true
+      setPanels(next.data.structure.panels)
       setDiagnostics(next.data.diagnostics)
     } catch (failure) {
       if (controller.signal.aborted || context.current !== generation) return
       setError(failure instanceof Error ? failure.message : String(failure))
       if (failure instanceof TemplatePreviewError) {
         setDiagnostics(failure.diagnostics)
-        setConflict(failure.status === 409)
+        if (failure.status === 409) markConflict()
       }
     } finally {
       if (!controller.signal.aborted && context.current === generation) setBusy(false)
@@ -165,6 +258,10 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
 
   const source = snapshot?.data.documents.find((item) => item.handle === sourceHandle)
   const current = result?.data.draftSequence === sequence && !conflict
+  const explain =
+    selected && result?.data.explain && addressKey(selected) === addressKey(result.data.explain.address)
+      ? result.data.explain
+      : undefined
   const scalarInputs = Object.entries(result?.data.structure.nodes ?? {}).filter(
     ([, node]) => ['input', 'field'].includes(node.kind) && !node.dims?.length && node.type !== 'table',
   )
@@ -188,7 +285,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
         </p>
       ) : (
         <>
-          <div className="template-preview-toolbar">
+          <div className="template-preview-toolbar" role="group" aria-label="Preview settings">
             <label>
               Example case
               <select
@@ -201,6 +298,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                   )
                     return
                   invalidate()
+                  invalidateBaseline()
                   setCaseId(event.target.value)
                 }}
               >
@@ -220,21 +318,54 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                 if (changed && !window.confirm('Discard this in-memory draft and capture the current saved source?'))
                   return
                 invalidate()
+                invalidateBaseline()
                 setReload((value) => value + 1)
               }}
             >
               Reload saved source
             </button>
             <label>
+              Preview panel
+              <select
+                value={panel}
+                disabled={!panels.length}
+                onChange={(event) => {
+                  invalidate()
+                  invalidateBaseline()
+                  setSelected(undefined)
+                  setPanel(event.target.value)
+                }}
+              >
+                <option value="">All panels</option>
+                {panels.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.title || item.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               <input
                 type="checkbox"
                 checked={includeZero}
                 onChange={(event) => {
                   invalidate()
+                  invalidateBaseline()
                   setIncludeZero(event.target.checked)
                 }}
               />
               Show zero rows
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={compareSaved}
+                onChange={(event) => {
+                  invalidateBaseline()
+                  setCompareSaved(event.target.checked)
+                }}
+              />
+              Compare with saved template
             </label>
           </div>
           {loading && <p role="status">Capturing template sources…</p>}
@@ -278,7 +409,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                 </>
               )}
             </section>
-            <section className="sheet">
+            <section className="sheet" aria-label="Draft preview">
               <h2>Engine preview</h2>
               <p role="status" data-testid="template-preview-status">
                 {busy
@@ -287,6 +418,11 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                     ? `${current ? 'Current' : 'Previous'} engine preview · draft #${result.data.draftSequence}${result.data.succeeded ? '' : ' · runtime failure'}`
                     : 'Preview a draft to see its tables and input fields.'}
               </p>
+              {result && !result.data.paper.tables.some((table) => table.rows.length > 0) && (
+                <p data-testid="template-empty-preview">
+                  No visible rows in this preview. Review layout visibility, the selected panel or the zero-row setting.
+                </p>
+              )}
               {result?.data.paper.tables.map((table) => (
                 <div key={table.id}>
                   <h3>{table.title}</h3>
@@ -296,6 +432,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                     selected={selected}
                     onIncludeZero={(value) => {
                       invalidate()
+                      invalidateBaseline()
                       setIncludeZero(value)
                     }}
                     onSelect={(address) => {
@@ -307,6 +444,23 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
               ))}
             </section>
           </div>
+          {compareSaved && (
+            <section className="sheet template-preview-comparison" aria-label="Saved-template comparison">
+              <h2>Compare with saved template</h2>
+              <p role="status" data-testid="template-baseline-status">
+                {baselineBusy
+                  ? 'Calculating saved-template preview…'
+                  : baseline
+                    ? `${conflict ? 'Previous saved-template' : 'Saved-template'} preview · captured source and saved example inputs`
+                    : 'No saved-template preview for this context.'}
+              </p>
+              {baselineError && <p role="alert">{baselineError}</p>}
+              {baselineError && !conflict && (
+                <button onClick={() => setBaselineRetry((value) => value + 1)}>Retry saved-template preview</button>
+              )}
+              <CandidateComparison candidate={result?.data} baseline={baseline?.data} current={current} />
+            </section>
+          )}
           {scalarInputs.length > 0 && (
             <section className="sheet template-preview-inputs">
               <h2>Example input overrides</h2>
@@ -362,10 +516,10 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
               </ul>
             </section>
           )}
-          {result?.data.explain && (
+          {explain && (
             <section className="sheet">
               <h2>Draft Explain {current ? '' : '(previous preview)'}</h2>
-              <ExplainDetails explain={result.data.explain} />
+              <ExplainDetails explain={explain} />
             </section>
           )}
         </>
