@@ -147,3 +147,78 @@ it('rejects successful preview bodies that would fail when rendering columns, ro
     await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow()
   }
 })
+
+it('rejects malformed engine comparisons before exposing them to the preview renderer', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const original = [
+    ...valid.data.difference.mainline,
+    ...valid.data.difference.changes.flatMap((group) => group.items),
+  ][0]
+  expect(original).toBeDefined()
+  const malformed = [
+    { ...valid.data.difference, mainline: null },
+    { ...valid.data.difference, changes: [{ panel: null, items: [null] }] },
+    { ...valid.data.difference, parameterChanges: [null] },
+    ...[
+      { coord: null },
+      { display: null },
+      { display: { ...original.display, base: {} } },
+      { basePresent: null },
+      { base: 0 },
+      { variant: { map: [[null]] } },
+      { delta: { n: 1 } },
+      { baseSource: {} },
+    ].map((fields) => ({ ...valid.data.difference, mainline: [{ ...original, ...fields }] })),
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const difference of malformed) {
+    fetch.mockResolvedValueOnce(reply({ ...valid, data: { ...valid.data, difference } }))
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow(
+      'does not match this draft',
+    )
+  }
+})
+
+it('rejects malformed panel and source-node metadata used by preview navigation', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const fields of [
+    { panels: [null] },
+    { panels: [{ id: 'panel', title: {} }] },
+    { nodes: { broken: null } },
+    { nodes: { broken: { label: {}, dims: [] } } },
+  ]) {
+    fetch.mockResolvedValueOnce(
+      reply({ ...valid, data: { ...valid.data, structure: { ...valid.data.structure, ...fields } } }),
+    )
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow()
+  }
+})
+
+it('preserves exact comparison values, empty display text, zero and false with explicit presence flags', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const original = [
+    ...valid.data.difference.mainline,
+    ...valid.data.difference.changes.flatMap((group) => group.items),
+  ][0]
+  const changes = [
+    {
+      ...original,
+      base: { n: '0.000' },
+      variant: false,
+      display: { base: '', variant: null, delta: null },
+      delta: null,
+    },
+    { ...original, base: null, variant: { map: [[{ kw: 'member' }, { n: '9007199254740993.0001' }]] }, delta: null },
+  ]
+  const expected = { ...valid, data: { ...valid.data, difference: { ...valid.data.difference, mainline: changes } } }
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply(expected)))
+  expect((await new LiveTemplatePreviewClient().preview(firstCase, request)).data.difference).toEqual(
+    expected.data.difference,
+  )
+})

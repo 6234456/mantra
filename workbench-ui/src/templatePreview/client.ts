@@ -66,6 +66,53 @@ function revisions(value: unknown): value is Record<string, string> {
   )
 }
 
+function wireValue(value: unknown): boolean {
+  if (value === null || typeof value === 'boolean' || typeof value === 'string') return true
+  if (Array.isArray(value)) return value.every(wireValue)
+  if (!object(value) || Object.keys(value).length !== 1) return false
+  if ('map' in value)
+    return (
+      Array.isArray(value.map) &&
+      value.map.every((pair) => Array.isArray(pair) && pair.length === 2 && pair.every(wireValue))
+    )
+  return ['n', 'kw', 'date'].some((key) => typeof value[key] === 'string')
+}
+
+function comparisonChange(value: unknown): boolean {
+  if (!object(value) || !object(value.display)) return false
+  const display = value.display
+  return (
+    typeof value.node === 'string' &&
+    Array.isArray(value.coord) &&
+    value.coord.every((coordinate) => typeof coordinate === 'string') &&
+    wireValue(value.base) &&
+    wireValue(value.variant) &&
+    typeof value.basePresent === 'boolean' &&
+    typeof value.variantPresent === 'boolean' &&
+    (value.delta === null || (object(value.delta) && typeof value.delta.n === 'string')) &&
+    ['base', 'variant', 'delta'].every((key) => display[key] === null || typeof display[key] === 'string') &&
+    ['baseSource', 'variantSource'].every((key) => value[key] === undefined || typeof value[key] === 'string')
+  )
+}
+
+function comparison(value: unknown): boolean {
+  return (
+    object(value) &&
+    Array.isArray(value.mainline) &&
+    value.mainline.every(comparisonChange) &&
+    Array.isArray(value.parameterChanges) &&
+    value.parameterChanges.every(comparisonChange) &&
+    Array.isArray(value.changes) &&
+    value.changes.every(
+      (group) =>
+        object(group) &&
+        (group.panel === null || typeof group.panel === 'string') &&
+        Array.isArray(group.items) &&
+        group.items.every(comparisonChange),
+    )
+  )
+}
+
 function renderable(preview: TemplatePreview) {
   return (
     typeof preview.succeeded === 'boolean' &&
@@ -77,10 +124,21 @@ function renderable(preview: TemplatePreview) {
     ) &&
     object(preview.structure) &&
     Array.isArray(preview.structure.panels) &&
+    preview.structure.panels.every(
+      (panel) => object(panel) && typeof panel.id === 'string' && typeof panel.title === 'string',
+    ) &&
+    object(preview.structure.nodes) &&
+    Object.values(preview.structure.nodes).every(
+      (node) =>
+        object(node) &&
+        (node.label === undefined || node.label === null || typeof node.label === 'string') &&
+        (node.dims === undefined || Array.isArray(node.dims)),
+    ) &&
     object(preview.run) &&
     object(preview.run.values) &&
-    object(preview.difference) &&
+    comparison(preview.difference) &&
     object(preview.paper) &&
+    typeof preview.paper.title === 'string' &&
     Array.isArray(preview.paper.tables) &&
     preview.paper.tables.every(
       (table) =>
