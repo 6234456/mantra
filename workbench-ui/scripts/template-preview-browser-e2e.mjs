@@ -843,6 +843,11 @@ try {
   assert.equal(answer(titleOnly.body), '20')
   assert.notEqual(titleOnly.body.data.proposedRevision, titleOnly.body.revision)
   assert.equal(titleOnly.body.data.paper.title, 'Title only draft')
+  assert.equal(
+    await evaluate(`document.querySelector('[aria-label="Draft preview"]').innerText.includes('Title only draft')`),
+    true,
+    'The preview renders the candidate Paper title, not just the title text in the source editor',
+  )
   assert.deepEqual(titleOnly.body.data.difference.mainline, [])
   assert.deepEqual(titleOnly.body.data.difference.changes, [])
   assert.deepEqual(titleOnly.body.data.difference.parameterChanges, [])

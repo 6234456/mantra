@@ -418,6 +418,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                     ? `${current ? 'Current' : 'Previous'} engine preview · draft #${result.data.draftSequence}${result.data.succeeded ? '' : ' · runtime failure'}`
                     : 'Preview a draft to see its tables and input fields.'}
               </p>
+              {result && <h3>{result.data.paper.title}</h3>}
               {result && !result.data.paper.tables.some((table) => table.rows.length > 0) && (
                 <p data-testid="template-empty-preview">
                   No visible rows in this preview. Review layout visibility, the selected panel or the zero-row setting.
