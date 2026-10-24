@@ -10,6 +10,8 @@
 > 第二轮残留 R2-1–R2-3 的实现、浏览器证据与 CI 文档失败修复见 [prototype-r2-fixes.md](prototype-r2-fixes.md)。
 > 2026-10-24：[Invoice Template Builder 对照](invoice-builder-gaps.md) 新增 G-A16–G-A21 与高级设置规划，
 > 同步设计规范、状态矩阵与实施次序；本轮没有实现高级设置表单或修改引擎。
+> 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
+> [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
 > 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
@@ -96,3 +98,5 @@
 - [x] [Invoice Builder 功能对照与高级设置规格](invoice-builder-gaps.md)：参考提交、已实现能力／作者入口缺口、
   G-A16–G-A21、设置来源与继承、草稿／版本区别、分阶段验收；这是规划交付，不是实现或人工验收。
 - [ ] G-A16–G-A21 的正式合同与实现；不得因此启用原型保存、构建或发布。
+- [x] [真实模板预览增强](template-preview-enhancements.md)：面板／零值上下文、独立保存基准、精确差异、
+  空候选与过期／冲突证据，真实 CLI／Chrome 验证；正式多案例验收和高级设置表单尚未实现。

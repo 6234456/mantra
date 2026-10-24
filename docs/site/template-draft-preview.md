@@ -50,11 +50,21 @@ does not add new server endpoints.
 2. Click **Preview draft** once to render the engine tables and eligible scalar input fields.
    Edit labels, formulas, classes or supported layout text, then preview again. Source changes
    stay in this browser page; there is no template-file Save or Publish operation.
-3. In **Example input overrides**, check a field and enter its raw text. Unchecked fields retain
+3. After the first preview, use **Preview panel** to request one panel or return to **All panels**.
+   The list comes from the engine's Structure. Changing the panel clears the previous Explain
+   selection and marks the existing candidate as previous until you preview again. **Show zero rows**
+   changes the preview context; it does not edit the layout's visibility settings.
+4. Enable **Compare with saved template** to calculate the captured original schema/layout with
+   saved example inputs. This independent baseline excludes all draft text and input overrides.
+   **Changes from saved template** displays the engine's exact before, after and delta text,
+   including added/removed values, member coordinates and parameter changes. The saved Paper is
+   read-only; its cells cannot change the draft's Explain selection.
+   A source-only formatting or title change can correctly report no value changes.
+5. In **Example input overrides**, check a field and enter its raw text. Unchecked fields retain
    the saved case value. A checked empty field is a submitted override, subject to candidate
    parsing and validation. The candidate schema and layout locale determine how input text is
    parsed. This page exposes scalar fields; table or dimensioned overrides are outside this slice.
-4. Select an addressable value cell, then click **Preview draft** again to obtain **Draft Explain**
+6. Select an addressable value cell, then click **Preview draft** again to obtain **Draft Explain**
    for that address from the same candidate. **Show zero rows** affects presentation and requires
    another preview.
 
@@ -65,6 +75,21 @@ revisions and editing context. Editing or changing a preview option marks the ex
 A business validation finding can return values and a failed check. A runtime failure can return
 partial tables and is labeled **runtime failure**. These results retain the engine's own status;
 the browser does not calculate replacement values or treat a failed run as successful.
+
+The comparison baseline follows the same captured source revision, panel and zero-row option.
+Editing the draft or its temporary inputs keeps that baseline independent. Changing the panel,
+zero-row option, case or source snapshot refreshes the baseline and discards obsolete replies.
+Baseline errors have their own retry action; a missing panel in the saved template does not
+replace a valid draft with guessed rows. A baseline `409` invalidates the shared captured revision
+and blocks further previews until a new source snapshot is captured.
+
+An empty candidate Paper stays empty and explains that no rows are visible. It never copies rows
+from the saved template or an earlier nonempty preview. A stale comparison is explicitly labeled
+**Previous draft comparison**, including while an invalid source draft retains the earlier Paper.
+
+Comparison is optional and performs an additional isolated calculation. The ordinary draft
+preview does not make this extra request when comparison is off. Preview remains explicit through
+**Preview draft**; this slice does not add automatic typing previews or multi-case batch acceptance.
 
 ## Invalid drafts and source conflicts
 
