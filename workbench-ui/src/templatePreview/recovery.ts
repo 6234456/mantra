@@ -6,6 +6,8 @@ import { parseRecoveryJson } from './recoveryJson'
 
 export const recoveryFormat = 'mantra.template-preview-recovery/1'
 export const recoveryByteLimit = 2 * 1024 * 1024
+const recoveryIdentityRequired =
+  'A usable recovery workspace identity is unavailable. Reload or update the live server before protecting this draft.'
 
 export interface RecoveryPending {
   layoutSettings: LayoutSettingOperation[]
@@ -233,6 +235,7 @@ export function createBackup(
   state: RecoveryDraftState,
   savedAt = new Date().toISOString(),
 ): RecoveryBackupResult {
+  if (!hash(snapshot.data.workspaceId)) return { status: 'invalid', reason: recoveryIdentityRequired }
   try {
     const sourceHandles = new Set(snapshot.data.documents.map((entry) => entry.handle))
     if (
@@ -290,9 +293,9 @@ export function matchBackup(
   snapshot: Envelope<TemplateSources>,
   mode: 'local' | 'import' = 'local',
 ): RecoveryMatch {
-  const foreignWorkspace = draft.workspaceId !== snapshot.data.workspaceId
+  const foreignWorkspace = hash(snapshot.data.workspaceId) && draft.workspaceId !== snapshot.data.workspaceId
   const fail = (reason: string): RecoveryMatch => ({ compatible: false, foreignWorkspace, reason })
-  if (!hash(snapshot.data.workspaceId)) return fail('The server did not supply a valid workspace identity.')
+  if (!hash(snapshot.data.workspaceId)) return fail(recoveryIdentityRequired)
   if (draft.caseId !== snapshot.data.document) return fail('The backup belongs to a different example case.')
   if (foreignWorkspace && mode !== 'import') return fail('The automatic copy belongs to a different workspace.')
   if (draft.baseRevision !== snapshot.revision || !sameRevisions(draft.baseRevisions, snapshot.data.baseRevisions))

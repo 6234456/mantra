@@ -17,10 +17,6 @@
         "diagnostics"
       ],
       "properties": {
-        "workspaceId": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
         "cases": {
           "type": "array",
           "items": {

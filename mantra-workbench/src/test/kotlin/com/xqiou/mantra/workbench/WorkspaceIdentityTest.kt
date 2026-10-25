@@ -36,28 +36,32 @@ class WorkspaceIdentityTest : WorkspaceCatalogTestOwner() {
 
     private fun workspaceId(result: WorkspaceCatalog.DocumentResult): String = result.data["workspaceId"] as String
 
-    @Test fun `workspace and snapshot share stable canonical identity across catalog restarts`() {
+    @Test fun `separate recovery context has stable canonical identity across catalog restarts`() {
         val root = createWorkspace("stable")
         val before = files.keys.associateWith { Files.readAllBytes(root.resolve(it)) }
         val first = workspaceCatalog(root)
         val workspace = first.workspace()
         val snapshot = first.templateSources("case.mantra")
-        val identity = workspaceId(workspace)
+        val context = first.templateRecoveryContext()
+        val identity = workspaceId(context)
         assertTrue(identity.matches(Regex("[0-9a-f]{64}")))
-        assertEquals(identity, workspaceId(snapshot))
+        assertEquals(identity, context.revision)
+        assertEquals(setOf("workspaceId"), context.data.keys)
+        assertEquals(setOf("cases", "schemas", "parameters", "layouts", "diagnostics"), workspace.data.keys)
+        assertEquals(setOf("document", "baseRevisions", "documents"), snapshot.data.keys)
         val expected = MessageDigest.getInstance("SHA-256")
             .digest(("mantra.workspace/1" + '\u0000' + root.toRealPath()).toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }
         assertEquals(expected, identity)
         first.close()
         val reopened = workspaceCatalog(root.resolve("."))
-        assertEquals(identity, workspaceId(reopened.workspace()))
-        assertEquals(identity, workspaceId(reopened.templateSources("case.mantra")))
+        assertEquals(identity, workspaceId(reopened.templateRecoveryContext()))
         val afterNames = Files.list(root).use { paths -> paths.map { it.fileName.toString() }.toList().toSet() }
         assertEquals(before.keys, afterNames)
         before.forEach { (name, bytes) -> assertContentEquals(bytes, Files.readAllBytes(root.resolve(name))) }
         assertFalse(first.envelope(snapshot).contains(root.toString()))
         assertFalse(first.envelope(workspace).contains(root.toString()))
+        assertFalse(first.envelope(context).contains(root.toString()))
     }
 
     @Test fun `identical copied graphs keep source identities but have distinct workspace identities`() {
@@ -68,8 +72,7 @@ class WorkspaceIdentityTest : WorkspaceCatalogTestOwner() {
         assertEquals(firstSnapshot.revision, secondSnapshot.revision)
         assertEquals(firstSnapshot.data["baseRevisions"], secondSnapshot.data["baseRevisions"])
         assertEquals(firstSnapshot.data["documents"], secondSnapshot.data["documents"])
-        assertNotEquals(workspaceId(firstSnapshot), workspaceId(secondSnapshot))
-        assertNotEquals(workspaceId(first.workspace()), workspaceId(second.workspace()))
+        assertNotEquals(workspaceId(first.templateRecoveryContext()), workspaceId(second.templateRecoveryContext()))
     }
 
     @Test fun `symlink aliases resolve to the same workspace identity`() {
@@ -77,20 +80,23 @@ class WorkspaceIdentityTest : WorkspaceCatalogTestOwner() {
         val alias = Files.createSymbolicLink(temporary.resolve("alias"), root)
         val canonical = workspaceCatalog(root)
         val throughAlias = workspaceCatalog(alias)
-        assertEquals(workspaceId(canonical.workspace()), workspaceId(throughAlias.workspace()))
         assertEquals(
-            workspaceId(canonical.templateSources("case.mantra")),
-            workspaceId(throughAlias.templateSources("case.mantra")),
+            workspaceId(canonical.templateRecoveryContext()),
+            workspaceId(throughAlias.templateRecoveryContext()),
         )
     }
 
-    @Test fun `identity-bearing workspace and source envelopes conform to their response schemas`() {
+    @Test fun `legacy source wire and new recovery context conform to separate response schemas`() {
         val catalog = workspaceCatalog(createWorkspace("schema"))
         val schemas = Files.list(Path.of("docs/workbench/schema")).use { paths ->
             paths.filter { it.fileName.toString().endsWith(".schema.json") }.toList()
         }.associate { "https://mantra.local/workbench/schema/${it.fileName}" to Files.readString(it) }
         val registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2020_12) { it.schemas(schemas) }
-        listOf("workspace" to catalog.workspace(), "template-sources" to catalog.templateSources("case.mantra"))
+        listOf(
+            "workspace" to catalog.workspace(),
+            "template-sources" to catalog.templateSources("case.mantra"),
+            "template-recovery-context" to catalog.templateRecoveryContext(),
+        )
             .forEach { (name, result) ->
                 val location = SchemaLocation.of("https://mantra.local/workbench/schema/$name.schema.json")
                 val schema = registry.getSchema(location)

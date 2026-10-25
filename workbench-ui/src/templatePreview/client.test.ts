@@ -27,15 +27,79 @@ function reply(value: unknown, status = 200) {
   return new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
 }
 
+function recoveryContext(identity = 'e'.repeat(64)) {
+  return {
+    contract: 'mantra.workbench/4',
+    revision: identity,
+    engine: templateSources().engine,
+    data: { workspaceId: identity },
+  }
+}
+
+function wireSources() {
+  const source = templateSources()
+  delete source.data.workspaceId
+  return source
+}
+
 it('captures opaque source handles and the full revision map, including dependencies not represented by editable DSL', async () => {
   const source = templateSources()
-  const fetch = vi.fn().mockResolvedValue(reply(source))
+  const fetch = vi.fn().mockResolvedValueOnce(reply(wireSources())).mockResolvedValueOnce(reply(recoveryContext()))
   vi.stubGlobal('fetch', fetch)
   expect(await new LiveTemplatePreviewClient().sources(firstCase)).toEqual(source)
   expect(fetch.mock.calls[0][0]).toBe('/api/v1/cases/' + encodeURIComponent(firstCase) + '/template-sources')
   expect(source.data.baseRevisions['data/example.csv']).toBe('a'.repeat(64))
   expect(source.data.documents.some((document) => !document.editable)).toBe(true)
   expect(source.data.workspaceId).toMatch(/^[a-f0-9]{64}$/)
+  expect(fetch.mock.calls[1][0]).toBe('/api/v1/template-recovery-context')
+  expect(fetch.mock.calls[1][1].headers['X-Mantra-Token']).toBe('test-preview-session')
+})
+
+it('keeps capture and real preview transport usable when an older server lacks recovery context', async () => {
+  const source = wireSources()
+  const request = templateRequest()
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(reply(source))
+    .mockResolvedValueOnce(reply({ error: { message: 'Not found' } }, 404))
+    .mockResolvedValueOnce(reply(templatePreview(firstCase, request)))
+  vi.stubGlobal('fetch', fetch)
+  const client = new LiveTemplatePreviewClient()
+  expect(await client.sources(firstCase)).toEqual(source)
+  expect((await client.preview(firstCase, request)).data.draftSequence).toBe(request.draftSequence)
+  expect(fetch.mock.calls[2][0]).toContain('/template-preview')
+})
+
+it('disables recovery for malformed optional context without trusting a workspace field on the old wire', async () => {
+  const valid = recoveryContext()
+  const malformed = [
+    { ...valid, contract: 'unknown/1' },
+    { ...valid, revision: 'f'.repeat(64) },
+    { ...valid, data: {} },
+    { ...valid, data: { workspaceId: ['e'.repeat(64)] } },
+    { ...valid, data: { workspaceId: 'E'.repeat(64) } },
+    { ...valid, data: { ...valid.data, path: '/private/workspace' } },
+    { ...valid, engine: {} },
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const context of malformed) {
+    fetch.mockResolvedValueOnce(reply(templateSources())).mockResolvedValueOnce(reply(context))
+    const captured = await new LiveTemplatePreviewClient().sources(firstCase)
+    expect(captured.data.workspaceId).toBeUndefined()
+    expect(captured.data.documents).toEqual(templateSources().data.documents)
+  }
+})
+
+it('normalizes optional recovery identity for workspace discovery without altering its established wire data', async () => {
+  const workspace = { cases: [{ id: firstCase, title: 'Example' }] }
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(reply({ contract: 'mantra.workbench/4', revision: 'a'.repeat(64), data: workspace }))
+    .mockResolvedValueOnce(reply(recoveryContext()))
+  vi.stubGlobal('fetch', fetch)
+  expect(await new LiveTemplatePreviewClient().workspace()).toEqual({ ...workspace, workspaceId: 'e'.repeat(64) })
+  expect(fetch.mock.calls[0][0]).toBe('/api/v1/workspace')
 })
 
 it('refuses to submit a draft without a live session token', async () => {
@@ -108,10 +172,6 @@ it('rejects unsupported envelopes and source snapshots with missing identities o
   const source = templateSources()
   const malformed = [
     { ...source, contract: 'unrecognized/1' },
-    { ...source, data: { ...source.data, workspaceId: undefined } },
-    { ...source, data: { ...source.data, workspaceId: 'a local directory path' } },
-    { ...source, data: { ...source.data, workspaceId: 'F'.repeat(64) } },
-    { ...source, data: { ...source.data, workspaceId: ['e'.repeat(64)] } },
     {
       ...source,
       data: { ...source.data, documents: [{ handle: 'opaque', text: '(source)' }] },

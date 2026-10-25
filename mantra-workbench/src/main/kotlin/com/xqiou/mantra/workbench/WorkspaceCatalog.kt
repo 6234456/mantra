@@ -178,7 +178,6 @@ class WorkspaceCatalog(
             )
         }
         val data = linkedMapOf<String, Any?>(
-            "workspaceId" to workspaceIdentity(),
             "cases" to cases,
             "schemas" to schemas.map { linkedMapOf("id" to it.name, "path" to it.id, "version" to it.version) },
             "parameters" to params.map { linkedMapOf("id" to it.name, "path" to it.id) },
@@ -353,6 +352,12 @@ class WorkspaceCatalog(
     ): DocumentResult = previewCaseEdits(caseId, baseRevision, operations, draftSequence, panel, includeZero)
 
     fun templateSources(caseId: String): DocumentResult = readTemplateSources(caseId)
+
+    /** Stable recovery namespace, exposed independently from established workspace/source response shapes. */
+    fun templateRecoveryContext(): DocumentResult {
+        val identity = workspaceIdentity()
+        return DocumentResult(identity, linkedMapOf("workspaceId" to identity))
+    }
 
     fun templatePreview(caseId: String, request: TemplatePreviewRequest): DocumentResult =
         previewTemplate(caseId, request)

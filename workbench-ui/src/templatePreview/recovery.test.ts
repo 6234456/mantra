@@ -342,3 +342,32 @@ it('supports schema-only cases and does not restore read-only documents from a b
   expect(result.draft.format).toBe(recoveryFormat)
   expect(restoreDocuments(result.draft, source)?.['3'.repeat(64)]).toBe('(case untouched)')
 })
+
+it('requires recovery capability without changing a legacy source snapshot or its raw editing state', () => {
+  const original = draft()
+  for (const identity of [undefined, 'not-a-hash']) {
+    const legacy = snapshot()
+    if (identity === undefined) delete legacy.data.workspaceId
+    else legacy.data.workspaceId = identity
+    const active = state(legacy)
+    active.inputs = { amount: 'nine' }
+    active.pending.layoutSettings = [{ op: 'set', property: 'precision', text: '-' }]
+    const before = structuredClone(active)
+    const sourceBefore = structuredClone(legacy)
+    expect(createBackup(legacy, active)).toMatchObject({
+      status: 'invalid',
+      reason: expect.stringContaining('identity is unavailable'),
+    })
+    for (const mode of ['local', 'import'] as const) {
+      expect(matchBackup(original, legacy, mode)).toMatchObject({
+        compatible: false,
+        foreignWorkspace: false,
+        reason: expect.stringContaining('Reload or update'),
+      })
+      expect(restoreDocuments(original, legacy, mode)).toBeUndefined()
+    }
+    expect(active).toEqual(before)
+    expect(legacy).toEqual(sourceBefore)
+    expect(original.workspaceId).toBe('b'.repeat(64))
+  }
+})

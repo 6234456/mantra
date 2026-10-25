@@ -652,10 +652,16 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字段。恢复副本不是模板文件保存、
 服务端草稿、源历史或可信校验结果；不关闭 G-A7、服务端 G-A12 或 D-A1。
 
-- `workspace` 和 `template-sources` 的 data 增加 `workspaceId`：64 位小写十六进制，值为
+- 身份由独立、可选的 `GET /api/v1/template-recovery-context` 提供；原 `workspace` 和
+  `template-sources` 的 v4 wire 字段保持原形，不给旧的严格 schema 增加字段。
+  新端点使用 v4 envelope，data 必须且仅含 `{workspaceId}`；外层 revision 等于该身份，只标识恢复上下文，
+  不能作为案例／源图 baseRevision。workspaceId 为 64 位小写十六进制，值为
   SHA-256(UTF-8(`"mantra.workspace/1" + NUL + canonicalRootPath`))。同一规范根路径跨服务重启稳定，
-  不同目录即使源图完全相同也不同；不返回路径，不使用会话令牌，也不将该摘要当作文件权限。
-  `template-sources` 的字段是必需的；普通工作台 fixture 可缺此字段，但真实恢复入口必须取得有效身份。
+  不同目录即使源图完全相同也不同；不返回路径、不复用会话令牌，不将该摘要当作文件权限。
+  GET 必须携带当前 `X-Mantra-Token`，以绑定当前页面所在服务实例；无查询参数，其他方法 405，包宿主 404。
+  前端在取得普通源快照后读取此身份，只有合法响应才补入其客户端恢复上下文，不伪装为旧源响应字段。
+  旧服务器不提供该端点，或身份不可用时，基础预览继续可用，仅自动恢复／备份能力禁用；不能用 origin、
+  路径猜测或会话令牌代替身份。旧的源快照和 workspace schema 不需要为基础预览升级。
 - 备份是独立的 `mantra.template-preview-recovery/1` JSON，必须且仅含
   `{format,savedAt,workspaceId,caseId,baseRevision,baseRevisions,documents,inputs,pending}`。
   savedAt 为规范 ISO UTC 时间，仅供显示；修订和身份是 64 位摘要，baseRevisions 是完整非空参与源映射。
@@ -697,6 +703,7 @@ schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字
 
 格式定义见 [template-recovery.schema.json](schema/template-recovery.schema.json)。它与录制作者原型的
 `mantra.authoring-recovery/1` 分离，真实 live 页面不运行时导入 `src/authoring`。
+身份响应见 [template-recovery-context.schema.json](schema/template-recovery-context.schema.json)。
 
 ## 8. 数据接入与公式编辑
 
@@ -782,6 +789,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
 | POST | `/cases/{case}/template-layout-settings` | 根版式属性目录与内存源码补丁，不写文件（§7.1） |
 | POST | `/cases/{case}/template-style-classes` | 根版式 class 目录、布局引用与内存源码补丁，不写文件（§7.1） |
+| GET | `/template-recovery-context` | 可选浏览器恢复身份；需当前会话令牌，旧 v4 端点保持原形（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |

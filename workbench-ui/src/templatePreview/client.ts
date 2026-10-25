@@ -5,7 +5,7 @@ import type {
 } from '../generated/contract'
 import type { Compare, Diagnostic, Envelope, Explain, Paper, Run, Structure } from '../types'
 
-export type TemplateSources = WireTemplateSources['data']
+export type TemplateSources = WireTemplateSources['data'] & { workspaceId?: string }
 export type TemplateSource = TemplateSources['documents'][number]
 
 export interface TemplatePreviewRequest {
@@ -188,16 +188,49 @@ async function response<T>(reply: Response): Promise<Envelope<T>> {
 
 /** This transport never loads recorded responses or submits a file save. */
 export class LiveTemplatePreviewClient implements TemplatePreviewClient {
-  workspace(signal?: AbortSignal) {
-    return new LiveData().workspace(signal)
+  private async recoveryContext(signal?: AbortSignal): Promise<string | undefined> {
+    const token = document.querySelector<HTMLMetaElement>('meta[name="mantra-session-token"]')?.content
+    if (!token) return
+    try {
+      const reply = await fetch('/api/v1/template-recovery-context', {
+        signal,
+        headers: { 'X-Mantra-Token': token },
+      })
+      if (!reply.ok) return
+      const body: unknown = await reply.json()
+      if (
+        !object(body) ||
+        body.contract !== 'mantra.workbench/4' ||
+        !object(body.engine) ||
+        typeof body.engine.mantra !== 'string' ||
+        typeof body.engine.normein !== 'string' ||
+        !object(body.data) ||
+        Object.keys(body.data).length !== 1 ||
+        typeof body.data.workspaceId !== 'string' ||
+        !/^[a-f0-9]{64}$/.test(body.data.workspaceId) ||
+        body.revision !== body.data.workspaceId
+      )
+        return
+      return body.data.workspaceId
+    } catch {
+      // Older/offline hosts can still provide ordinary source preview without browser recovery.
+      return
+    }
+  }
+
+  async workspace(signal?: AbortSignal) {
+    const workspace = await new LiveData().workspace(signal)
+    const normalized = { ...workspace }
+    delete normalized.workspaceId
+    const identity = await this.recoveryContext(signal)
+    if (identity) normalized.workspaceId = identity
+    return normalized
   }
 
   async sources(caseId: string, signal?: AbortSignal) {
     const reply = await fetch(`${path(caseId)}/template-sources`, { signal })
     const source = await response<TemplateSources>(reply)
     if (
-      typeof source.data.workspaceId !== 'string' ||
-      !/^[a-f0-9]{64}$/.test(source.data.workspaceId ?? '') ||
       source.data.document !== caseId ||
       !revisions(source.data.baseRevisions) ||
       !Array.isArray(source.data.documents) ||
@@ -223,7 +256,11 @@ export class LiveTemplatePreviewClient implements TemplatePreviewClient {
     ) {
       throw new Error('The server returned an inconsistent template source snapshot.')
     }
-    return source
+    const data = { ...source.data }
+    delete data.workspaceId
+    const identity = await this.recoveryContext(signal)
+    if (identity) data.workspaceId = identity
+    return { ...source, data }
   }
 
   async preview(caseId: string, request: TemplatePreviewRequest, signal?: AbortSignal) {

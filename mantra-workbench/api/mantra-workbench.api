@@ -638,6 +638,7 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun tableKeyColumn (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public final fun templateLayoutSettings (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplateLayoutSettingsRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templatePreview (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun templateRecoveryContext ()Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templateSources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templateStyleClasses (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplateStyleClassesRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun undo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;

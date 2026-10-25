@@ -158,7 +158,11 @@ export function useTemplateDraftRecovery({
     setLocal(undefined)
     setImported(undefined)
     if (!identity || !context.workspaceId || !context.caseId) {
-      setStatus({ state: 'idle', message: 'Capture a workspace identity before accessing browser recovery.' })
+      setStatus({
+        state: 'idle',
+        message:
+          'Browser recovery is unavailable: the server did not provide a valid workspace identity. Draft preview remains available.',
+      })
       return cancel
     }
     const read = readRecoveryStorage(context.workspaceId, context.caseId, storage)

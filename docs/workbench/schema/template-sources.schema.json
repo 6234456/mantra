@@ -13,9 +13,8 @@
   "properties": {
     "data": {
       "type": "object",
-      "required": ["workspaceId", "document", "baseRevisions", "documents"],
+      "required": ["document", "baseRevisions", "documents"],
       "properties": {
-        "workspaceId": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
         "document": { "type": "string", "minLength": 1 },
         "baseRevisions": { "$ref": "#/$defs/sourceRevisions" },
         "documents": {

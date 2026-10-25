@@ -9,7 +9,7 @@ import { recoveryStorageKey } from './recoveryStorage'
 
 const snapshot = templateSources()
 const source = snapshot.data.documents.find((entry) => entry.role === 'schema')!
-const slot = recoveryStorageKey(snapshot.data.workspaceId, firstCase)
+const slot = recoveryStorageKey(snapshot.data.workspaceId!, firstCase)
 
 beforeEach(() => {
   localStorage.clear()
@@ -462,4 +462,32 @@ it('checks the import file byte budget before reading its contents', async () =>
   expect(read).not.toHaveBeenCalled()
   expect(screen.getByRole('alert').textContent).toContain('exceeds the 2 MiB limit')
   expect(editor.value).toBe(source.text)
+})
+
+it('keeps ordinary preview working on a legacy host without a recovery context and never claims browser protection', async () => {
+  const legacySnapshot = structuredClone(snapshot)
+  Reflect.deleteProperty(legacySnapshot.data, 'workspaceId')
+  const storage = { getItem: vi.fn(() => null), setItem: vi.fn(), removeItem: vi.fn() }
+  const host: TemplatePreviewClient = {
+    workspace: vi.fn(async () => ({ cases: [{ id: firstCase, title: 'Legacy example' }] })),
+    sources: vi.fn(async () => legacySnapshot),
+    preview: vi.fn(async (id, request) => templatePreview(id, request)),
+  }
+  render(<TemplateDraftPreviewPage client={host} recoveryStorage={storage} />)
+  await waitFor(() =>
+    expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(false),
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Preview draft' }))
+  await waitFor(() =>
+    expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Current engine preview/),
+  )
+  expect(screen.getByTestId('template-recovery-status').textContent).toContain('Browser recovery is unavailable')
+  expect((screen.getByRole('button', { name: 'Download draft backup' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(screen.queryByRole('button', { name: 'Restore browser draft' })).toBeNull()
+  importJson(backup().json)
+  expect((screen.getByRole('button', { name: 'Restore imported draft' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent(window, new Event('pagehide'))
+  expect(storage.getItem).not.toHaveBeenCalled()
+  expect(storage.setItem).not.toHaveBeenCalled()
+  expect(storage.removeItem).not.toHaveBeenCalled()
 })

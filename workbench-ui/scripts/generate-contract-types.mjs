@@ -16,6 +16,7 @@ const names = [
   'source-context',
   'preview-paper',
   'template-sources',
+  'template-recovery-context',
   'template-preview',
   'template-layout-settings',
   'template-style-classes',
