@@ -501,6 +501,10 @@ async function sourceHistory(action, name, expected) {
 }
 
 async function historyBlockedByFields() {
+  await until(
+    () => evaluate(`${button('Undo source')}.disabled && ${button('Redo source')}.disabled`),
+    'unapplied fields disable both source history actions',
+  )
   assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
   assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
   const reason = await evaluate(`(() => {

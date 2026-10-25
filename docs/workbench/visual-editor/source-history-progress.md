@@ -48,3 +48,28 @@ TypeScript 检查通过。新增覆盖精确 CRLF／Unicode／空文本、多文
 | 前端 | 完整 format／lint／生成类型／TypeScript 通过；50 文件、477 项测试通过 |
 | 构建与隔离 | fixture 构建成功；新 live 构建 8 个文件及完整依赖图排除原型／录制／golden，9 项隔离反例通过 |
 | 录制与文档 | 原 32 状态及 pattern 源摘要通过；26 项文档测试通过，默认静态站点 37 个 HTML／2073 个本地链接通过 |
+| 真实浏览器 | 33 个流程，37 个预览响应、13 个根设置响应、13 个样式响应，32 次源文件字节检查，0 失败 |
+
+## 最终真实浏览器复核
+
+前一批 28 个流程全部保留并通过，再增加五个源历史流程：四步跨入口精确撤销／重做；两个面板的
+未提交字段阻止历史操作并关联原因；真实迟到预览在 Undo 时取消；新编辑替换 redo 分支；显式重新
+捕获清空历史和示例覆盖。候选原始输入 `1,25`、独立保存基准 20 与实际候选精确值 3.75 均由真实服务验证，
+浏览器未自行计算候选或差异。
+
+报告 `build/ui-qa/template-preview/report.json` 标记 VERIFIED；取消请求为预览 3、根设置 2、class 1，
+明确外部修改仍为原有两个 409 场景。32 次源文件字节检查保持一致；浏览器／服务进程组及临时目录
+均清理，`taskProcessGroupsStopped` 与 `temporaryDirectoryRemoved` 为 true。
+[源分支实测完整页面](screenshots/source-history/branch.png) 为 1425×1952，`completePage: true`。
+脚本按 React 更新后核对字段保护按钮，保留全部断言；验证中的时序修正未修改生产代码。
+
+历史与样式流程共用现有真实服务测试入口：
+
+```sh
+./gradlew --no-daemon :mantra-cli:installDist
+MANTRA_TEST_CHROME=/path/to/installed/chrome \
+  npm --prefix workbench-ui run test:template-preview:e2e
+```
+
+设计／用户文档的相对链接和锚点已检查。物理系统拼音输入法、正式文件保存、服务端历史与发布
+继续按各自范围复核；这里未运行带完整 KDoc／应用制品的严格文档发布。
