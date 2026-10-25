@@ -356,6 +356,10 @@ class WorkspaceCatalog(
     fun templatePreview(caseId: String, request: TemplatePreviewRequest): DocumentResult =
         previewTemplate(caseId, request)
 
+    /** Inspects or edits only the submitted root layout; no workspace file or history is changed. */
+    fun templateLayoutSettings(caseId: String, request: TemplateLayoutSettingsRequest): DocumentResult =
+        layoutSettings(caseId, request)
+
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
         caseId: String,

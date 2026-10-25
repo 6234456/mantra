@@ -33,7 +33,7 @@ data class TemplatePreviewRequest(
     val explain: ExplainAddress? = null,
 )
 
-private data class TemplateDocument(
+internal data class TemplateDocument(
     val source: SourceText,
     val role: SourceRole,
     val hash: String,
@@ -51,9 +51,9 @@ private data class TemplateDocument(
     )
 }
 
-private data class TemplateSnapshot(val revisions: Map<String, String>, val documents: List<TemplateDocument>)
+internal data class TemplateSnapshot(val revisions: Map<String, String>, val documents: List<TemplateDocument>)
 
-private fun templateSnapshot(base: Resolved): TemplateSnapshot {
+internal fun templateSnapshot(base: Resolved): TemplateSnapshot {
     val graph = checkNotNull(base.graph)
     val revisions = graph.cases.values.flatMap { it.sources }.associate { it.identity to it.sha256 }.toSortedMap()
     val root = checkNotNull(graph.root)
@@ -213,7 +213,7 @@ private fun validateTemplateRequest(request: TemplatePreviewRequest) {
     }
 }
 
-private fun checkTemplateIdentity(original: SourceText, replacement: String) {
+internal fun checkTemplateIdentity(original: SourceText, replacement: String) {
     fun parsed(text: String): Pair<Document, DslForm.Sequence> {
         val sink = DiagnosticSink()
         val doc = Document.read(SourceText(original.name, text, original.base), sink)
@@ -253,7 +253,7 @@ private fun templateInvalid(code: String, message: String): Nothing = throw Work
     listOf(com.xqiou.mantra.core.Diagnostic(com.xqiou.mantra.core.Severity.ERROR, code, message)),
 )
 
-private fun WorkspaceCatalog.checkTemplateBaseline(caseId: String, base: Resolved) {
+internal fun WorkspaceCatalog.checkTemplateBaseline(caseId: String, base: Resolved) {
     val current = runCatching { resolve(caseId, scan(), freshDiagnostics = true).revision }.getOrNull()
     if (current != base.revision) {
         throw WorkspaceException(
@@ -265,7 +265,7 @@ private fun WorkspaceCatalog.checkTemplateBaseline(caseId: String, base: Resolve
 }
 
 /** A now-invalid or deleted baseline is still a conflict when captured bytes have changed. */
-private fun WorkspaceCatalog.expectedTemplateSourcesChanged(revisions: Map<String, String>): Boolean {
+internal fun WorkspaceCatalog.expectedTemplateSourcesChanged(revisions: Map<String, String>): Boolean {
     var bytes = 0L
     for ((document, expected) in revisions) {
         val target = try {

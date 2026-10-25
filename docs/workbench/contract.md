@@ -500,7 +500,8 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 **根版式高级设置（文件工作区，2026-10-25）**：G-A16／G-A18 的首个有界切片。
 `POST …/template-layout-settings` 读取或修改客户端提交的根 layout 原文，返回属性目录与源补丁；
-不写文件、不计算案例、不推进历史，不代表草稿已通过计算、正式保存或发布。
+不写文件、不计算草稿候选、不推进历史，不代表草稿已通过计算、正式保存或发布。
+取得设置与前后校验修订时仍会解析、求值已保存的基准案例图，不把这些结果当作当前未提交草稿的结果。
 它使用现有会话令牌、1 MiB 请求预算和 v4 envelope，不接受查询参数，其他方法返回 405；包宿主不提供该端点。
 
 - 请求必须且仅包含 `{baseRevision, baseRevisions, draftSequence, handle, text, operations}`。
@@ -522,6 +523,8 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   locale 必须是非空、可解析且含语言的 BCP 47 标签，不静默回退。precision／percent-precision 必须为
   0–18 的十进制整数原文；这是本编辑入口的上限，不改变 DSL reader 对既有原文的语义。
   文本经正式 literal 编码后写入；不能注入表达式或将显示精度变成计算 round。
+  新编码文本必须能由当前公开 reader 无损读回；无法准确表示的控制字符返回 422，不静默变成转义拼写。
+  每一步编辑结果也必须保持在 65536 个 UTF-16 code units 内，超出返回 413。
 - 当前源中合法但超出编辑范围的数值、nil 或非字面量属性保持原样；目录标为只读并给出原因，允许显式 unset
   恢复继承时以 canUnset 表达。表单不得自行归一化这些值。未知选项和注释、换行、其他声明保持原字节；
   unset 只移除该属性键值，set 只替换值或插入缺失的 metadata／键值。无变化时补丁为空。
@@ -668,6 +671,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/preview-paper` | 预演案例操作并返回同一候选的工作表（§7.1） |
 | GET | `/cases/{case}/template-sources` | 完整基准源修订与根 DSL 快照（§7.1） |
 | POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
+| POST | `/cases/{case}/template-layout-settings` | 根版式属性目录与内存源码补丁，不写文件（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |
