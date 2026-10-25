@@ -153,6 +153,55 @@ it('submits zero, false, an empty text value and an explicit reset without confl
   await waitFor(() => expect(initial.onApply).toHaveBeenCalledWith(firstCase, request, source.text))
 })
 
+it('lets an author explicitly override inherited empty text, false and zero without changing the displayed values', async () => {
+  const initial = props()
+  initial.client.settings.mockImplementation(async (_case, request) => ({
+    ...response(request),
+    data: {
+      ...response(request).data,
+      properties: [
+        property('zero', {
+          declared: false,
+          explicitValue: null,
+          inheritedValue: null,
+          effectiveValue: null,
+          canUnset: false,
+        }),
+        property('grouping', {
+          type: 'boolean',
+          declared: false,
+          explicitValue: null,
+          inheritedValue: false,
+          effectiveValue: false,
+          canUnset: false,
+        }),
+        property('precision', {
+          type: 'integer',
+          declared: false,
+          explicitValue: null,
+          inheritedValue: { n: '0' },
+          effectiveValue: { n: '0' },
+          canUnset: false,
+        }),
+      ],
+    },
+  }))
+  render(<LayoutSettingsPanel {...initial} />)
+  await inspect()
+  expect(input('zero').value).toBe('')
+  expect(input('grouping').value).toBe('false')
+  expect(input('precision').value).toBe('0')
+  for (const id of ['zero', 'grouping', 'precision'])
+    fireEvent.click(screen.getByRole('button', { name: `Set explicit layout setting ${id}` }))
+  fireEvent.click(apply())
+  await waitFor(() => expect(initial.client.settings).toHaveBeenCalledTimes(2))
+  expect(initial.client.settings.mock.lastCall![1].operations).toEqual([
+    { op: 'set', property: 'zero', text: '' },
+    { op: 'set', property: 'grouping', text: 'false' },
+    { op: 'set', property: 'precision', text: '0' },
+  ])
+})
+
 it('keeps incomplete integer input and lets native IME confirmation pass without submitting source edits', async () => {
   const initial = props()
   render(<LayoutSettingsPanel {...initial} />)

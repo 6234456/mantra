@@ -328,6 +328,21 @@ export function LayoutSettingsPanel({
                           </label>
                           <button
                             type="button"
+                            aria-label={`Set explicit layout setting ${property.id}`}
+                            disabled={
+                              disabled ||
+                              (property.declared && !edit) ||
+                              !complete(property, {
+                                operation: { op: 'set', property: property.id, text: displayed },
+                                version: 0,
+                              })
+                            }
+                            onClick={() => change(property, displayed)}
+                          >
+                            Use explicit value
+                          </button>
+                          <button
+                            type="button"
                             aria-label={`Reset layout setting ${property.id}`}
                             disabled={!current || !source.editable || (!property.canUnset && !edit)}
                             onClick={() => reset(property)}
@@ -349,6 +364,7 @@ export function LayoutSettingsPanel({
                             </div>
                           </dl>
                           {edit?.operation.op === 'unset' && <p>Override will be removed when you apply.</p>}
+                          {edit?.operation.op === 'set' && <p>Explicit value will be applied.</p>}
                           {property.reason && <p>{property.reason}</p>}
                           {property.minimum !== null && property.maximum !== null && (
                             <p className="muted">

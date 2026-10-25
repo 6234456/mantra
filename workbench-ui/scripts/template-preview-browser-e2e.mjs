@@ -674,7 +674,14 @@ try {
   await fill('Layout setting title', 'Structured draft title')
   await fill('Layout setting precision', '0')
   await settingChoice('grouping', 'false')
-  await fill('Layout setting zero', '')
+  await until(
+    () =>
+      evaluate(
+        `!!${field('Set explicit layout setting zero')} && !${field('Set explicit layout setting zero')}.disabled`,
+      ),
+    'an explicit empty override can be requested without inventing intermediate text',
+  )
+  await evaluate(`${field('Set explicit layout setting zero')}.click()`)
   const applied = await settings(200, 'Apply layout settings')
   assert.deepEqual(
     Object.fromEntries(applied.request.operations.map((operation) => [operation.property, operation.text])),
