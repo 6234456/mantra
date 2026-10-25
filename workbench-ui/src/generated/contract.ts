@@ -576,6 +576,37 @@ export type TemplateLayoutSettingsSourcePatch = {
   removedText: string
 }
 
+export type TemplateStyleClasses = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'layout-style-classes'
+    layoutId: string
+    stylePresets: Array<'utilities' | 'working-paper'>
+    usageScope: 'submitted-layout'
+    source: { handle: string; document: string; text: string }
+    classes: Array<TemplateStyleClassesStyleClass>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateStyleClassesStyleSpec = {
+  weight: 'normal' | 'bold' | null
+  tone: 'default' | 'muted' | 'accent' | null
+  fill: 'none' | 'subtle' | 'accent' | null
+}
+export type TemplateStyleClassesReference = { kind: 'use' | 'selector'; startOffset: number; endOffset: number }
+export type TemplateStyleClassesStyleClass = {
+  name: string
+  presets: Array<'utilities' | 'working-paper'>
+  local: TemplateStyleClassesStyleSpec | null
+  inherited: TemplateStyleClassesStyleSpec
+  effective: TemplateStyleClassesStyleSpec
+  references: Array<TemplateStyleClassesReference>
+  canRemove: boolean
+  removeReason: string | null
+}
+
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
     cases: Array<{

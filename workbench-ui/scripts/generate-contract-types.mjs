@@ -18,6 +18,7 @@ const names = [
   'template-sources',
   'template-preview',
   'template-layout-settings',
+  'template-style-classes',
   'workspace',
   'compare',
   'parameters',

@@ -589,6 +589,52 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **撤销与重做**：服务为每个案例在内存中保存最近 50 个文档版本。撤销是一次普通写入，同样检查修订。持久的历史交给版本控制（D4）。
 - **写入成功的响应**：新修订、改动的文档路径、诊断，以及前后两次计算的差异（格式同 §6.7）。
 
+**根版式样式 class（文件工作区，2026-10-25）**：G-A16／G-A17／G-A18 的有限定义编辑切片。
+`POST …/template-style-classes` 检查或修改当前根 layout 中的 `(style-class :name {...})` 定义。
+这是源级操作；保存基准解析、会话令牌、无查询参数／其他方法 405、包宿主 404、完整 revision map、
+根 layout handle、源身份／include 闭包保持、请求前后修订检查及 409 语义与上述根设置接口相同。
+它不写文件、不计算未提交草稿、不推进源历史，不把 class 目录当作最终单元格样式。
+
+- 请求必须且仅含 `{baseRevision,baseRevisions,draftSequence,handle,text,operations}`，同样最多 65536 个
+  UTF-16 code units 的根 layout 原文及 1 MiB 请求预算。`operations` 至多 16 项，类名不能重复；
+  空数组只检查当前源，返回不变的 text 与空 patches。
+  upsert 项必须且仅含 `{op:"upsert",name,style:{weight,tone,fill}}`；三个 style 键都必须存在，
+  null 表示从本地定义移除该属性，其他值为省略冒号的有限关键字：weight normal／bold、
+  tone default／muted／accent、fill none／subtle／accent。显式 normal／default／none 与 null 不同。
+  全 null 生成或保留合法的空定义 `{}`。remove 项仅含 `{op:"remove",name}`。
+  name 不带冒号，遵循现有 `[a-z][a-z0-9-]*`；不支持重命名、引用重写、修改预设或任意 CSS。
+- 未知字段／操作、重复 JSON 键／类名、非法类型／枚举或修订句柄返回 400；语法、重复定义、歧义
+  metadata、布局 reader 错误或不可删除的定义返回带诊断的 422；请求或任一步编辑结果超预算返回 413。
+  upsert 创建或改写一个本地定义；其余本地定义、样式规则、未知的根选项、注释及行结束符保持不变。
+  属性值只替换其 token，省略属性只移除其键值 token；remove 删除定义的语法 token，保留其间注释和空白。
+  名称已在选中的 preset 中存在时，upsert 创建本地覆盖；remove 仅移除本地定义，恢复 preset 的同名贡献。
+- 响应 `data` 为 `{document,draftSequence,baseRevisions,scope:"layout-style-classes",layoutId,
+  stylePresets,usageScope:"submitted-layout",source:{handle,document,text},classes,patches}`。
+  stylePresets 为当前布局选中的样式 preset，顺序与源一致；目录内容从当前引擎公开 LayoutReader 的
+  规则取得，不能复制前端静态表冒充引擎目录。每个类名一项，classes 为选中 preset、本地声明及当前
+  布局字面量 selector 引用的并集，按 preset 顺序、局部声明顺序、剩余引用首次出现顺序排列。
+  每项 `{name,presets,local,inherited,effective,references,canRemove,removeReason}`：
+  presets 为提供此类的已选 preset 名称；local 为本地三个声明或 null，inherited 为选中 preset
+  依序合并的声明，effective 为 inherited 再合并 local。三种声明均为 `{weight,tone,fill}`，
+  各属性取上述关键字或 null。这仅是具名 class 的合并贡献；规则位置、选择器、表级规则和后续覆盖仍
+  可影响最终单元格，实际样式必须读取匹配候选的 Paper，浏览器不得以这些字段重建最终样式。
+- references 只报告**返回的当前根 layout 原文**中的字面量引用，形状为
+  `{kind:"use"|"selector",startOffset,endOffset}`，偏移为对应类名 token 的 UTF-16 半开范围。
+  use 来自 style 声明的 `:use`，selector 来自 style selector 的 `:class`；重复出现分别记录。
+  不扫描或声称涵盖 schema／include／其他模板，更不代表未提交 schema 的影响分析。
+  UI 必须标注该范围，并提示完整候选影响需 Preview。
+  只有本地定义可 remove；若当前布局仍以 `:use` 引用它、且没有同名已选 preset 回退，
+  canRemove 为 false 且 remove 返回 422。selector 引用及普通 schema tag 本身允许无规则，
+  不能误当作这种硬依赖。无本地定义时 canRemove false；所有禁止删除情况均有 removeReason。
+- patches 与根设置接口相同：顺序 UTF-16 补丁、精确 removedText、逆序可还原输入，原文无变化则为空。
+  前端严格匹配 case、完整修订、handle、序号及提交原文，并验证补丁产生返回 text。
+  未 Apply 的 class 字段与根设置缓冲共同阻止 Preview；Apply 只接纳源补丁，再明确预览真实候选。
+  另一编辑入口改变源后，旧目录标过期，保留字段缓冲，Refresh 后须再次明确 Apply；迟到响应不得覆盖
+  新源或清除请求发出后又修改的字段。业务 finding 和运行时失败不因新增表单被误判为技术拒绝。
+
+响应 schema 见 [template-style-classes.schema.json](schema/template-style-classes.schema.json)。
+本切片不实现通用 owner 句柄、schema class 分配、完整引用影响、撤销历史、正式文件保存或发布。
+
 ## 8. 数据接入与公式编辑
 
 ### 8.1 导入
@@ -672,6 +718,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | GET | `/cases/{case}/template-sources` | 完整基准源修订与根 DSL 快照（§7.1） |
 | POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
 | POST | `/cases/{case}/template-layout-settings` | 根版式属性目录与内存源码补丁，不写文件（§7.1） |
+| POST | `/cases/{case}/template-style-classes` | 根版式 class 目录、布局引用与内存源码补丁，不写文件（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |
