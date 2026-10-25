@@ -18,6 +18,10 @@
 > 最多 50 条、精确原文守卫及清空边界见 [源历史记录](source-history-progress.md)，不代表服务端历史或持久化恢复。
 > 随后真实页加入 G-A12 的客户端自动副本、JSON 备份和字段恢复，见 [草稿保护记录](template-recovery-progress.md)
 > 与 [用户说明](../../site/template-recovery.md)；按工作区隔离，不恢复可信结果或 Undo／Redo，正式 Save／服务端草稿仍未实现。
+> `e0d2148` 继续交付 G-A20 的只读多案例 CLI 切片：同一候选根模板、完整源图锁定、标量原始输入与独立
+> 精确预期，执行后重查全部基准。capture 保留 `expect: null`，不会从当前结果生成通过基准；见
+> [验收合同](template-acceptance-contract.md)、[实施记录](template-acceptance-progress.md) 和
+> [用户说明](../../site/template-acceptance.md)。多案例界面、表／维度输入、正式保存与发布仍未实现。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
@@ -113,6 +117,9 @@
   精确文本事务；显式 Undo／Redo、待应用字段与冲突守卫，源预览标旧，保存基准及示例输入保持独立。
 - [x] [真实草稿自动副本与 JSON 备份](template-recovery-progress.md)：根源、原始示例覆盖和未 Apply 字段；
   工作区／完整基准隔离，显式 Restore／Discard 与跨工作区导入，不恢复结果、旧权限、有效状态或内存历史。
-- [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19–G-A21 及正式 Save／源历史／发布；不得因此启用原型交付按钮。
+- [x] [多案例模板 CLI 验收](template-acceptance-progress.md)：`e0d2148` 实现 G-A20 的只读切片；capture
+  不生成预期，verify 复用真实候选、核对精确值／display／业务判定／完整诊断多重集，并在末尾重查全部源图。
+- [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19、G-A20 的界面／表与维度支持、G-A21 及正式
+  Save／源历史／发布；不得因此启用原型交付按钮。
 - [x] [真实模板预览增强](template-preview-enhancements.md)：面板／零值上下文、独立保存基准、精确差异、
-  空候选与过期／冲突证据，真实 CLI／Chrome 验证；正式多案例验收和完整高级属性编辑尚未实现。
+  空候选与过期／冲突证据，真实 CLI／Chrome 验证；当时尚无多案例验收，后续 CLI 切片见上项，完整高级属性编辑仍待实现。

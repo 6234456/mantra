@@ -90,5 +90,9 @@ diagnostics、assertions（path、expected、actual、passed）及 error（无�
 
 ## 未包含
 
+JSON Schema：[suite](../schema/template-acceptance.schema.json) 与
+[report](../schema/template-acceptance-report.schema.json)。预算、跨项唯一性和源修订语义仍由严格 reader／
+真实执行校验，不由 schema 单独证明。实际实现与验证见 [实施记录](template-acceptance-progress.md)。
+
 多案例视觉界面、独立验收记录服务、表／维度输入、绑定改动、结构编辑、自动期望生成、正式保存、
 构建与发布、Template Engine 重算兼容。G-A20 只标记部分完成；完整兼容状态仍为 false。

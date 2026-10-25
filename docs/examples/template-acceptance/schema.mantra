@@ -1,0 +1,6 @@
+; Generic arithmetic example. Acceptance expectations are calculated independently as base-amount * 3.
+(schema example/template-acceptance {:version "1" :mainline [main]}
+  (input base-amount :decimal)
+  (section main "Summary" {:panel true}
+    (info answer "Answer" (* base-amount 2))
+    (check nonnegative "Nonnegative" (>= base-amount 0))))

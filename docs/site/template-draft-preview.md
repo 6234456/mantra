@@ -89,7 +89,8 @@ from the saved template or an earlier nonempty preview. A stale comparison is ex
 
 Comparison is optional and performs an additional isolated calculation. The ordinary draft
 preview does not make this extra request when comparison is off. Preview remains explicit through
-**Preview draft**; this slice does not add automatic typing previews or multi-case batch acceptance.
+**Preview draft**; this page does not add automatic typing previews or multi-case batch controls.
+Use the separate [multi-case acceptance CLI](template-acceptance.md) for revision-pinned regression checks.
 
 Expand **Advanced layout settings** for typed root-layout controls, including display precision,
 locale, zero/negative formatting and visibility. Inspect the current source before applying fields;

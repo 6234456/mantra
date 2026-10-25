@@ -67,6 +67,11 @@ combines recovery identity with its source snapshot only in memory. A server wit
 still supports ordinary draft preview, while recovery and backup remain unavailable. The portable
 `mantra.template-preview-recovery/1` format is versioned separately and carries no trusted results.
 
+The additive `template-capture` and `template-verify` CLI commands use standalone
+`mantra.template-acceptance/1` suites and `mantra.template-acceptance-report/1` reports. They reuse
+the existing public template-preview service; HTTP v4 schemas, DSL semantics and public JVM
+descriptors remain unchanged. Captures contain no generated expected results.
+
 Wire consumers reject unsupported major versions before editing. Adding an optional field is not
 inherently compatible with an older strict JSON schema: supported clients and schema revisions must
 accept the change, or the incompatibility must be versioned. Do not call a required client upgrade

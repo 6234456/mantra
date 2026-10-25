@@ -8,7 +8,7 @@
 
 2026-10-24 新增独立规划任务：[Invoice Builder 对照与高级设置](invoice-builder-gaps.md)。
 参考 `6234456/invoice-parser@1cbf0efa78556d2aa4b1db23552176ce91b13b99` 的实际实现，
-补入 G-A16–G-A21、设计规范 §3.14 与状态矩阵 §8；高级设置部分仅文档，没有新增高级表单或公共 API。
+补入 G-A16–G-A21、设计规范 §3.14 与状态矩阵 §8；该次高级设置交付仅文档，没有新增高级表单或公共 API。
 独立真实预览页的面板、保存基准对照、引擎差异与空 Paper 反馈则已实现，代码 `5d20a23`、`4cfce72`，
 见 [预览增强记录](template-preview-enhancements.md)。本轮复核需区分这些已实现功能与高级设置规划。
 可单独复核该规划，不把参考项目的版本、Save draft／Activate、模板标签投影或自由打印布局当作
@@ -49,6 +49,18 @@ Refresh 后明确 Apply 以及手动改源／迟到确认的保护。当前实�
 只有匹配的当前真实候选 200 且无未应用字段才解除未校验标记；422、迟到或保存基准响应不能解除。
 JSON 检查不直接恢复；编辑 JSON 或另选文件应使旧检查过期。服务端 G-A12、正式 Save、源历史和 D-A1
 仍未实现；录制原型的另一种备份格式与人工签收状态不变，结果以当前实施记录及 PR 最新 HEAD 为准。
+
+`e0d2148` 又加入 [G-A20 只读多案例 CLI 验收](template-acceptance-progress.md)，合同见
+[template-acceptance-contract.md](template-acceptance-contract.md)，操作见 [用户说明](../../site/template-acceptance.md)。
+复查 template-capture 只生成根候选原文、完整源修订与 expect=null；不能从当前计算自动生成通过预期。
+template-verify 复用真实候选服务：同一根 schema/layout、每个案例自己的句柄及完整源图、原始标量输入，
+核对独立精确值、display、active、业务判定和完整诊断多重集，并在全部案例后重查每个已捕获基准。
+重点核对 locale 与超出 binary64 的十进制、不存在与 null／false、业务 finding 的明确预期、技术错误与
+运行时失败负例的区别；错误案例不能导致后续案例被跳过后仍宣称通过。报告失败也保留真实诊断和差异，
+不覆盖套件或任何源文件，输出的符号链接、硬链接及父目录别名均受保护。
+G-A20 仅部分完成：没有多案例 UI、表／维度输入或结果坐标断言、服务端验收记录、正式 Save 或发布。
+这项 CLI 功能不修改 `/authoring` 原型，也不替代 Claude 人工复核、真实系统输入法测试或 Template Engine
+重算兼容验证。29 项定向测试已由编码方运行通过；当前完整结果仍以最新实施记录和已推送 HEAD 为准。
 
 ---
 
@@ -154,6 +166,8 @@ S2 的 Inspector 文字编辑作为原型接受项保留，S3 多行 class 分�
 - `/template-preview` 是独立真实服务页，启动见 [用户说明](../../site/template-draft-preview.md)。
   它同时预览 schema、layout 和示例标量输入，保留无效／冲突草稿，没有保存或发布操作。
   可以复核信息层次和下一阶段交互方案，不要求把 source-first 页当作最终视觉编辑器。
+- [多案例 CLI 验收](template-acceptance-progress.md) 使用独立套件／报告格式和真实候选计算；它是 G-A20
+  的标量首批切片，复核独立预期与完整修订保护，不把命令通过当作多案例视觉交互或正式交付通过。
 - Sources 的 Worksheet range 使用检查元数据的首个已存储行；更靠后的表头可以用源 DSL 显式映射，
   尚无按任意范围重新检查表头的 UI API。
 - [Excel 兼容报告](excel-compatibility.md) 的实际导入／有限业务重算通过，但完整工作簿兼容为 false。

@@ -1,0 +1,314 @@
+{
+  "format": "mantra.template-acceptance-smoke-evidence/1",
+  "source": "Installed CLI, isolated copy of docs/examples/template-acceptance",
+  "flowCount": 4,
+  "commandCount": 5,
+  "commands": [
+    {
+      "name": "good-four-scenarios",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "sourceHashesAfter": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "30a00cdab0011539ae652f4c80da352e235ecc0537caf8c4931141b213801816",
+      "reportSha256": "aee41271f67f4e6a40ae84b26e64cd4ecd593be37ee07b1f500175f9f91fb63f",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": true,
+      "scenarioCount": 4,
+      "assertionCount": 42,
+      "caseStatuses": [
+        {
+          "id": "positive-saved",
+          "status": "passed"
+        },
+        {
+          "id": "negative-finding",
+          "status": "passed"
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed"
+        },
+        {
+          "id": "large-exact-decimal",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "mismatched-independent-expectation",
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "sourceHashesBefore": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "sourceHashesAfter": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportSha256": "9c773d084247f5f620113fe702c4132f2bd52fd22559d784fc72c1aa3444706a",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 42,
+      "caseStatuses": [
+        {
+          "id": "positive-saved",
+          "status": "failed"
+        },
+        {
+          "id": "negative-finding",
+          "status": "passed"
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed"
+        },
+        {
+          "id": "large-exact-decimal",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "name": "external-source-conflict",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "88f5f1bcbf76f766b21e2eb94e73639f6826829017709657bc1e7b276e7cd8cd",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "sourceHashesAfter": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "88f5f1bcbf76f766b21e2eb94e73639f6826829017709657bc1e7b276e7cd8cd",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportSha256": "ebf1f426980b1b6cffe3b4293e250b332c8a01e867b99b691b115c2e4983ddc2",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 0,
+      "caseStatuses": [
+        {
+          "id": "positive-saved",
+          "status": "conflict"
+        },
+        {
+          "id": "negative-finding",
+          "status": "conflict"
+        },
+        {
+          "id": "german-raw-input",
+          "status": "conflict"
+        },
+        {
+          "id": "large-exact-decimal",
+          "status": "conflict"
+        }
+      ]
+    },
+    {
+      "name": "fresh-capture-no-expectations",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "sourceHashesAfter": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "92304f22cdf270ba663a606e6c3e14e651dd35b871c304bf69d67f968203acf1"
+    },
+    {
+      "name": "unfilled-expectations-rejected",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "sourceHashesAfter": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+        "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportSha256": "217677db0da2c232112c0c6f4f84455f9c8a16e8854488569c39c2884737c5e0",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 2,
+      "assertionCount": 0,
+      "caseStatuses": [
+        {
+          "id": "case-1",
+          "status": "error"
+        },
+        {
+          "id": "case-2",
+          "status": "error"
+        }
+      ]
+    }
+  ],
+  "engine": {
+    "mantra": "1.0.0-rc.1",
+    "normein": "0.3.0"
+  },
+  "suiteSha256": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f",
+  "goodReportSha256": "aee41271f67f4e6a40ae84b26e64cd4ecd593be37ee07b1f500175f9f91fb63f",
+  "actualAnswerAssertions": [
+    {
+      "id": "positive-saved",
+      "assertion": {
+        "path": "/run/values/answer//value",
+        "expected": {
+          "n": "30"
+        },
+        "actual": {
+          "n": "30"
+        },
+        "passed": true
+      }
+    },
+    {
+      "id": "negative-finding",
+      "assertion": {
+        "path": "/run/values/answer//value",
+        "expected": {
+          "n": "-6"
+        },
+        "actual": {
+          "n": "-6"
+        },
+        "passed": true
+      }
+    },
+    {
+      "id": "german-raw-input",
+      "assertion": {
+        "path": "/run/values/answer//value",
+        "expected": {
+          "n": "3.75"
+        },
+        "actual": {
+          "n": "3.75"
+        },
+        "passed": true
+      }
+    },
+    {
+      "id": "large-exact-decimal",
+      "assertion": {
+        "path": "/run/values/answer//value",
+        "expected": {
+          "n": "27021597764222979.0000000003"
+        },
+        "actual": {
+          "n": "27021597764222979.0000000003"
+        },
+        "passed": true
+      }
+    }
+  ],
+  "mismatchActualAssertion": {
+    "path": "/run/values/answer//value",
+    "expected": {
+      "n": "999"
+    },
+    "actual": {
+      "n": "30"
+    },
+    "passed": false
+  },
+  "externalMutations": [
+    {
+      "file": "schema.mantra",
+      "action": "append-comment",
+      "beforeSha256": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+      "afterSha256": "88f5f1bcbf76f766b21e2eb94e73639f6826829017709657bc1e7b276e7cd8cd"
+    },
+    {
+      "file": "schema.mantra",
+      "action": "restore-original",
+      "beforeSha256": "88f5f1bcbf76f766b21e2eb94e73639f6826829017709657bc1e7b276e7cd8cd",
+      "afterSha256": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6"
+    }
+  ],
+  "workspaceFilesInitiallyAndFinallyEqual": true,
+  "applicationWorkspaceFileWritesObserved": false,
+  "originalFixtureHashes": {
+    "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+    "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+    "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+    "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+    "suite.json": "544a5fc0302bc18dc6021f42edc9a2434d9735daacfd5022bc3ba906a0f5366f"
+  },
+  "schemaValidation": {
+    "suiteDocuments": 3,
+    "reportDocuments": 4,
+    "allPassed": true
+  },
+  "originalFixtureUnchanged": true,
+  "temporaryWorkspaceRemoved": true
+}
