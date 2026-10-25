@@ -51,11 +51,13 @@ const owned = []
 const failures = []
 const passed = []
 const responses = []
+const settingsResponses = []
 const screenshots = []
 const browserErrors = []
 const network = new Map()
 const pausedResponses = []
 const cancelledRequests = []
+const cancelledSettingsRequests = []
 const externalChanges = []
 let directory, workspace, service, browser, session, baseUrl
 let interrupted = false
@@ -193,10 +195,13 @@ async function connect(url) {
     if (
       response.method === 'Network.requestWillBeSent' &&
       params.request.method === 'POST' &&
-      params.request.url.endsWith('/template-preview')
+      (params.request.url.endsWith('/template-preview') || params.request.url.endsWith('/template-layout-settings'))
     ) {
       // Keep only JSON body evidence, never session-token request headers.
-      network.set(params.requestId, { request: JSON.parse(params.request.postData) })
+      network.set(params.requestId, {
+        request: JSON.parse(params.request.postData),
+        settings: params.request.url.endsWith('/template-layout-settings'),
+      })
     }
     if (response.method === 'Network.responseReceived' && network.has(params.requestId)) {
       network.get(params.requestId).status = params.response.status
@@ -204,7 +209,8 @@ async function connect(url) {
     if (response.method === 'Network.loadingFailed' && network.has(params.requestId)) {
       const captured = network.get(params.requestId)
       network.delete(params.requestId)
-      cancelledRequests.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
+      const cancellations = captured.settings ? cancelledSettingsRequests : cancelledRequests
+      cancellations.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
       if (!params.canceled && !closing) failures.push(new Error(`Preview HTTP request failed: ${params.errorText}`))
     }
     if (response.method === 'Fetch.requestPaused') {
@@ -217,7 +223,7 @@ async function connect(url) {
         .send('Network.getResponseBody', { requestId: params.requestId })
         .then(({ body, base64Encoded }) => {
           captured.body = JSON.parse(base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body)
-          responses.push(captured)
+          ;(captured.settings ? settingsResponses : responses).push(captured)
         })
         .catch((error) => {
           if (!closing) failures.push(error)
@@ -353,6 +359,70 @@ async function preview(status) {
     )
   }
   return captured
+}
+
+async function settings(status, action = 'Refresh layout settings') {
+  const index = settingsResponses.length
+  await click(action)
+  const captured = await until(() => settingsResponses[index], `real template-layout-settings HTTP ${status}`)
+  assert.equal(captured.status, status, JSON.stringify(captured.body))
+  await until(
+    () =>
+      evaluate(
+        `!document.querySelector('[aria-label="Layout settings"]').textContent.includes('Reading layout settings…')`,
+      ),
+    'settled layout settings UI',
+  )
+  if (status === 200) {
+    assert.equal(captured.body.contract, 'mantra.workbench/4')
+    assert.equal(captured.body.revision, captured.request.baseRevision)
+    assert.equal(captured.body.data.draftSequence, captured.request.draftSequence)
+    assert.equal(captured.body.data.source.handle, captured.request.handle)
+    assert.deepEqual(captured.body.data.baseRevisions, captured.request.baseRevisions)
+    let reconstructed = captured.request.text
+    for (const patch of captured.body.data.patches) {
+      assert.equal(reconstructed.slice(patch.startOffset, patch.endOffset), patch.removedText)
+      reconstructed = reconstructed.slice(0, patch.startOffset) + patch.text + reconstructed.slice(patch.endOffset)
+    }
+    assert.equal(
+      reconstructed,
+      captured.body.data.source.text,
+      'Sequential UTF-16 patches reconstruct the exact source',
+    )
+    for (const patch of [...captured.body.data.patches].reverse())
+      reconstructed =
+        reconstructed.slice(0, patch.startOffset) +
+        patch.removedText +
+        reconstructed.slice(patch.startOffset + patch.text.length)
+    assert.equal(reconstructed, captured.request.text, 'Inverse patches restore the exact submitted source')
+  }
+  return captured
+}
+
+async function settingChoice(id, value) {
+  const element = field(`Layout setting ${id}`)
+  await until(() => evaluate(`!!${element} && !${element}.disabled`), `editable layout setting ${id}`)
+  await evaluate(`(() => {
+    const select = ${element};
+    if (![...select.options].some(option => option.value === ${JSON.stringify(value)})) throw new Error('Missing setting option');
+    select.value = ${JSON.stringify(value)};
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  assert.equal(await evaluate(`${element}.value`), value)
+}
+
+async function resetSetting(id) {
+  const element = field(`Reset layout setting ${id}`)
+  await until(() => evaluate(`!!${element} && !${element}.disabled`), `resettable layout setting ${id}`)
+  await evaluate(`${element}.click()`)
+}
+
+async function releaseHeld(response) {
+  await session.send('Fetch.continueResponse', { requestId: response.requestId }).catch((error) => {
+    if (!/interception|not found/i.test(error.message)) throw error
+  })
+  await session.send('Fetch.disable')
+  await delay(150)
 }
 
 const answer = (response) => response.data.run.values.answer[''].value.n
@@ -553,6 +623,182 @@ try {
   await savedAnswer('20')
   await screenshot('initial')
   pass('fresh live UI renders a real saved-template Paper with unchanged files')
+
+  await source('layout.mantra')
+  await evaluate(`document.querySelector('.template-layout-settings-disclosure > summary').click()`)
+  await until(
+    () => evaluate(`document.querySelector('.template-layout-settings-disclosure').open`),
+    'advanced layout settings opened before using its real browser fields',
+  )
+  const inspected = await settings(200, 'Inspect layout settings')
+  assert.equal(inspected.body.data.scope, 'layout')
+  assert.equal(inspected.body.data.source.document, 'layout.mantra')
+  assert.equal(inspected.body.data.source.text, layout)
+  assert.deepEqual(inspected.request.operations, [])
+  assert.deepEqual(inspected.body.data.patches, [])
+  assert.equal(inspected.body.data.properties.length, 14)
+  const property = (captured, id) => captured.body.data.properties.find((item) => item.id === id)
+  assert.deepEqual(property(inspected, 'precision').effectiveValue, { n: '2' })
+  assert.equal(property(inspected, 'precision').declared, false)
+  assert.equal(property(inspected, 'title').explicitValue, 'Saved title')
+  await unchangedFiles()
+  pass('real root-layout inspection exposes fourteen typed settings and the engine preset defaults')
+
+  await fill('Layout setting title', 'Unapplied title')
+  await until(() => evaluate(`${button('Preview draft')}.disabled`), 'unapplied settings block a misleading preview')
+  await fill('Layout setting precision', '-')
+  assert.equal(await evaluate(`${button('Apply layout settings')}.disabled`), true, 'Incomplete numbers stay buffered')
+  const beforeIme = settingsResponses.length
+  const ime = await evaluate(`(() => {
+    const input = ${field('Layout setting title')};
+    input.focus();
+    input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }));
+    const key = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 229, isComposing: true, bubbles: true, cancelable: true });
+    const accepted = input.dispatchEvent(key);
+    const state = { accepted, prevented: key.defaultPrevented, applying: ${button('Apply layout settings')}.disabled,
+      source: ${field('Draft source layout.mantra')}.value };
+    input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '标题' }));
+    input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+    return state;
+  })()`)
+  assert.equal(ime.accepted, true, 'The native IME confirmation event stays accepted')
+  assert.equal(ime.prevented, false, 'Settings do not cancel the native IME candidate confirmation')
+  assert.equal(ime.applying, true)
+  assert.equal(ime.source, layout)
+  assert.equal(settingsResponses.length, beforeIme, 'Composition and partial input submit no source edit')
+  await click('Cancel setting changes')
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), layout)
+  await until(() => evaluate(`!${button('Preview draft')}.disabled`), 'cancel leaves the applied source previewable')
+  pass('unapplied settings and synthetic IME stay buffered while Cancel preserves source and native confirmation')
+
+  await fill('Layout setting title', 'Structured draft title')
+  await fill('Layout setting precision', '0')
+  await settingChoice('grouping', 'false')
+  await fill('Layout setting zero', '')
+  const applied = await settings(200, 'Apply layout settings')
+  assert.deepEqual(
+    Object.fromEntries(applied.request.operations.map((operation) => [operation.property, operation.text])),
+    { title: 'Structured draft title', precision: '0', grouping: 'false', zero: '' },
+    'False, zero and empty text remain explicit requests rather than unset operations',
+  )
+  assert.deepEqual(property(applied, 'precision').explicitValue, { n: '0' })
+  assert.equal(property(applied, 'grouping').explicitValue, false)
+  assert.equal(property(applied, 'zero').explicitValue, '')
+  await until(
+    () => evaluate(`${field('Draft source layout.mantra')}.value === ${JSON.stringify(applied.body.data.source.text)}`),
+    'structured settings applied to the exact same source draft',
+  )
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid="template-preview-status"]').textContent.startsWith('Previous engine preview')`,
+    ),
+    true,
+  )
+  const savedBeforeSettingsPreview = responses.length
+  await toggle('Compare with saved template', true)
+  await baselineResponse(savedBeforeSettingsPreview)
+  const precisionZero = await preview(200)
+  assert.equal(answer(precisionZero.body), '20', 'Display precision leaves the exact calculated value unchanged')
+  assert.equal(precisionZero.body.data.paper.title, 'Structured draft title')
+  await paperAnswer('20')
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  await savedAnswer('20')
+  await screenshot('layout-settings-applied')
+  pass(
+    'structured zero false and empty overrides update only the draft while exact Run and saved baseline stay independent',
+  )
+
+  await resetSetting('precision')
+  const inherited = await settings(200, 'Apply layout settings')
+  assert.deepEqual(inherited.request.operations, [{ op: 'unset', property: 'precision' }])
+  assert.equal(property(inherited, 'precision').declared, false)
+  assert.deepEqual(property(inherited, 'precision').effectiveValue, { n: '2' })
+  assert.equal(/:precision\b/.test(inherited.body.data.source.text), false)
+  const inheritedPreview = await preview(200)
+  assert.equal(answer(inheritedPreview.body), '20')
+  await paperAnswer('20,00')
+  await unchangedFiles()
+  pass('Reset removes the source override and restores the engine preset instead of writing an explicit default')
+
+  const manualNil = layout.replace('})', ' :grouping nil})')
+  await fill('Draft source layout.mantra', manualNil)
+  const nilSetting = await settings(200)
+  assert.equal(property(nilSetting, 'grouping').editable, false)
+  assert.equal(property(nilSetting, 'grouping').canUnset, true)
+  assert.equal(await evaluate(`${field('Layout setting grouping')}.disabled`), true)
+  assert.equal(
+    await evaluate(`${field('Layout setting grouping')}.selectedOptions[0].textContent`),
+    'Unsupported source value',
+    'A manual nil does not visually become an unrequested true setting',
+  )
+  await resetSetting('grouping')
+  const nilReset = await settings(200, 'Apply layout settings')
+  assert.equal(property(nilReset, 'grouping').declared, false)
+  assert.equal(property(nilReset, 'grouping').effectiveValue, true)
+  await unchangedFiles()
+  pass('unsupported manual declarations remain read-only and visible until an explicit inherited reset')
+
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-layout-settings', requestStage: 'Response' }],
+  })
+  await click('Refresh layout settings')
+  const heldInspection = await until(
+    () => pausedResponses.shift(),
+    'real settings inspection held at the browser boundary',
+  )
+  assert.equal(heldInspection.status, 200)
+  const inspectedThenEdited = `${nilReset.body.data.source.text}\n; newer source while inspecting\n`
+  await fill('Draft source layout.mantra', inspectedThenEdited)
+  await releaseHeld(heldInspection)
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), inspectedThenEdited)
+  assert.equal(await evaluate(`${field('Layout setting title')}.disabled`), true)
+  await unchangedFiles()
+  pass('a real delayed settings inspection cannot restore stale properties over manually edited source')
+
+  await settings(200)
+  await fill('Layout setting title', 'Held source edit')
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-layout-settings', requestStage: 'Response' }],
+  })
+  await click('Apply layout settings')
+  const heldSettingEdit = await until(() => pausedResponses.shift(), 'real settings edit held at the browser boundary')
+  assert.equal(heldSettingEdit.status, 200)
+  const newerManualSource = `${inspectedThenEdited}; later manual source wins\n`
+  await fill('Draft source layout.mantra', newerManualSource)
+  await releaseHeld(heldSettingEdit)
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), newerManualSource)
+  assert.equal(await evaluate(`${field('Layout setting title')}.value`), 'Held source edit')
+  assert.equal(
+    await evaluate(`${button('Preview draft')}.disabled`),
+    true,
+    'Retained unapplied fields still block preview',
+  )
+  await click('Cancel setting changes')
+  await unchangedFiles()
+  pass('a real delayed source patch cannot overwrite newer manual source and retains its unapplied field buffer')
+
+  await fill('Draft source layout.mantra', layout)
+  await settings(200)
+  const settingsExternal = Buffer.from(`${layout}\n; external edit during settings\n`)
+  await writeFile(join(workspace, 'layout.mantra'), settingsExternal)
+  expectedFiles.set('layout.mantra', settingsExternal)
+  externalChanges.push('layout.mantra')
+  await settings(409)
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), layout)
+  assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
+  await unchangedFiles()
+  await writeFile(join(workspace, 'layout.mantra'), originals.get('layout.mantra'))
+  expectedFiles.set('layout.mantra', originals.get('layout.mantra'))
+  await click('Reload saved source')
+  await until(() => evaluate(`!!${field('Draft source layout.mantra')}`), 'source recaptured after settings conflict')
+  await toggle('Compare with saved template', false)
+  await delay(100)
+  const settingsRecovered = await preview(200)
+  assert.equal(answer(settingsRecovered.body), '20')
+  await unchangedFiles()
+  await source('schema.mantra')
+  pass('a settings source conflict keeps the draft and blocks calculation until an explicit baseline recapture')
 
   await fill('Draft source schema.mantra', candidateSchema)
   await source('layout.mantra')
@@ -901,8 +1147,21 @@ try {
           baseRevision: request.baseRevision,
           proposedRevision: body.data?.proposedRevision ?? null,
         })),
+        settingsResponses: settingsResponses.map(({ status, request, body }) => ({
+          status,
+          draftSequence: request.draftSequence,
+          baseRevision: request.baseRevision,
+          handle: request.handle,
+          submittedSourceSha256: sha256(Buffer.from(request.text)),
+          operations: request.operations,
+          source: body.data?.source ?? null,
+          properties: body.data?.properties ?? null,
+          patches: body.data?.patches ?? null,
+          error: body.error ?? null,
+        })),
         sourceByteChecks: filesVerified,
         cancelledPreviewRequests: cancelledRequests,
+        cancelledSettingsRequests,
         originalSources: Object.fromEntries([...originals].map(([name, bytes]) => [name, sha256(bytes)])),
         authorizedExternalChanges: externalChanges,
         temporaryDirectoryRemoved: !directory || !existsSync(directory),
