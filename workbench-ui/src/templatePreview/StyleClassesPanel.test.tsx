@@ -6,6 +6,7 @@ import type { Envelope } from '../types'
 import { StyleClassesPanel } from './StyleClassesPanel'
 import { TemplatePreviewError } from './client'
 import { firstCase, templateSources } from './fixtures.test.helpers'
+import type { RecoveryPending } from './recovery'
 import type { StyleClass, StyleClasses, StyleClassesClient, StyleClassesRequest, StyleSpec } from './styleClassesClient'
 
 afterEach(cleanup)
@@ -298,11 +299,13 @@ it('keeps newer field edits when an earlier source patch is accepted', async () 
   const client = fakeClient()
   const late = deferred<Envelope<StyleClasses>>()
   const onApply = vi.fn()
+  const onDraftChange = vi.fn()
   function Harness() {
     const [text, setText] = useState(source.text)
     return (
       <StyleClassesPanel
         {...props(client)}
+        onDraftChange={onDraftChange}
         text={text}
         onApply={(_case, request, next) => {
           onApply(request, next)
@@ -327,6 +330,81 @@ it('keeps newer field edits when an earlier source patch is accepted', async () 
   expect(onApply).toHaveBeenCalledOnce()
   expect(field('fill').value).toBe('accent')
   expect(apply().disabled).toBe(false)
+  expect(onDraftChange.mock.lastCall?.[0]).toEqual({
+    operation: { op: 'upsert', name: 'custom', style: { weight: 'normal', tone: 'muted', fill: 'accent' } },
+    creating: false,
+    selection: 'custom',
+  })
+})
+
+it('restores incomplete class creation fields visibly before inspection and keeps them cancelable offline', async () => {
+  const initial = props()
+  const onDraftChange = vi.fn()
+  const restoredDraft: RecoveryPending['styleClass'] = {
+    operation: { op: 'upsert', name: '中文', style: { weight: 'normal', tone: null, fill: 'none' } },
+    creating: true,
+    selection: '',
+  }
+  initial.client.classes.mockRejectedValueOnce(new Error('The style service is offline'))
+  render(<StyleClassesPanel {...initial} restoredDraft={restoredDraft} onDraftChange={onDraftChange} />)
+  expect(initial.client.classes).not.toHaveBeenCalled()
+  expect(JSON.parse(screen.getByLabelText('Uninspected restored style change').textContent!)).toEqual(restoredDraft)
+  expect(onDraftChange.mock.lastCall?.[0]).toEqual(restoredDraft)
+  expect(initial.onPendingChange.mock.lastCall?.[0]).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect style classes' }))
+  await screen.findByText('The style service is offline')
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel style changes' }))
+  expect(onDraftChange.mock.lastCall?.[0]).toBeNull()
+  expect(initial.onApply).not.toHaveBeenCalled()
+  expect(screen.queryByLabelText('Uninspected restored style change')).toBeNull()
+})
+
+it('restores a preset override only as raw local declarations until an explicit fresh inspection and apply', async () => {
+  const initial = props()
+  const onDraftChange = vi.fn()
+  const restoredDraft: RecoveryPending['styleClass'] = {
+    operation: { op: 'upsert', name: 'result', style: { weight: 'normal', tone: 'default', fill: 'none' } },
+    creating: false,
+    selection: 'result',
+  }
+  render(<StyleClassesPanel {...initial} restoredDraft={restoredDraft} onDraftChange={onDraftChange} />)
+  expect(screen.queryByRole('button', { name: 'Apply style changes' })).toBeNull()
+  await inspect()
+  expect(field('name').value).toBe('result')
+  expect(field('weight').value).toBe('normal')
+  expect(field('tone').value).toBe('default')
+  expect(field('fill').value).toBe('none')
+  expect(apply().disabled).toBe(false)
+  expect(initial.client.classes).toHaveBeenCalledOnce()
+  expect(screen.getAllByRole('button', { name: 'Cancel style changes' })).toHaveLength(1)
+  fireEvent.click(apply())
+  await waitFor(() => expect(initial.client.classes).toHaveBeenCalledTimes(2))
+  expect(initial.client.classes.mock.lastCall![1].operations).toEqual([restoredDraft.operation])
+  await waitFor(() => expect(onDraftChange.mock.lastCall?.[0]).toBeNull())
+})
+
+it('keeps a missing restored class target visible and refuses to apply under a different inspected class', async () => {
+  const initial = props()
+  const onDraftChange = vi.fn()
+  const restoredDraft: RecoveryPending['styleClass'] = {
+    operation: { op: 'upsert', name: 'missing', style: { weight: 'normal', tone: null, fill: null } },
+    creating: false,
+    selection: 'missing',
+  }
+  render(<StyleClassesPanel {...initial} restoredDraft={restoredDraft} onDraftChange={onDraftChange} />)
+  await inspect()
+  const selection = screen.getByLabelText('Style class') as HTMLSelectElement
+  expect(selection.value).toBe('missing')
+  expect(selection.selectedOptions[0].textContent).toContain('pending target unavailable')
+  expect(screen.getByText(/The pending class is not in the inspected catalog/)).toBeTruthy()
+  expect(field('name').value).toBe('missing')
+  expect(field('weight').matches(':disabled')).toBe(true)
+  expect(apply().disabled).toBe(true)
+  fireEvent.click(apply())
+  expect(initial.client.classes).toHaveBeenCalledOnce()
+  expect(initial.onApply).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel style changes' }))
+  expect(onDraftChange.mock.lastCall?.[0]).toBeNull()
 })
 
 it('keeps edits made during creation editable after that class is accepted as a new local definition', async () => {

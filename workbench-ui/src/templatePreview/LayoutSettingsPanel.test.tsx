@@ -6,6 +6,7 @@ import type { Envelope } from '../types'
 import { LayoutSettingsPanel } from './LayoutSettingsPanel'
 import { TemplatePreviewError } from './client'
 import { firstCase, templateSources } from './fixtures.test.helpers'
+import type { RecoveryPending } from './recovery'
 import type {
   LayoutProperty,
   LayoutSettings,
@@ -254,11 +255,13 @@ it('retains newer field input when an earlier accepted source operation returns'
   const client = fakeClient()
   const pending = deferred<Envelope<LayoutSettings>>()
   const onApply = vi.fn()
+  const onDraftChange = vi.fn()
   function Harness() {
     const [text, setText] = useState(source.text)
     return (
       <LayoutSettingsPanel
         {...props(client)}
+        onDraftChange={onDraftChange}
         text={text}
         onApply={(_case, request, next) => {
           onApply(request, next)
@@ -281,6 +284,75 @@ it('retains newer field input when an earlier accepted source operation returns'
   })
   expect(onApply).toHaveBeenCalledOnce()
   expect(input('precision').value).toBe('6')
+  expect(apply().disabled).toBe(false)
+  expect(onDraftChange.mock.lastCall?.[0]).toEqual([{ op: 'set', property: 'precision', text: '6' }])
+})
+
+it('restores raw setting operations without a catalog and requires fresh inspection before applying', async () => {
+  const initial = props()
+  const onDraftChange = vi.fn()
+  const restoredDraft: RecoveryPending['layoutSettings'] = [
+    { op: 'set', property: 'precision', text: '-' },
+    { op: 'set', property: 'zero', text: '' },
+    { op: 'set', property: 'grouping', text: 'false' },
+    { op: 'unset', property: 'title' },
+  ]
+  render(<LayoutSettingsPanel {...initial} restoredDraft={restoredDraft} onDraftChange={onDraftChange} />)
+  expect(initial.client.settings).not.toHaveBeenCalled()
+  expect(screen.getByRole('list', { name: 'Uninspected restored layout changes' }).textContent).toContain(
+    'precision: "-"',
+  )
+  expect(screen.queryByRole('button', { name: 'Apply layout settings' })).toBeNull()
+  expect(onDraftChange.mock.lastCall?.[0]).toEqual(restoredDraft)
+  expect(initial.onPendingChange.mock.lastCall?.[0]).toBe(true)
+  await inspect()
+  expect(input('precision').value).toBe('-')
+  expect(input('zero').value).toBe('')
+  expect(input('grouping').value).toBe('false')
+  expect(apply().disabled).toBe(true)
+  fireEvent.change(input('precision'), { target: { value: '0' } })
+  fireEvent.click(apply())
+  await waitFor(() => expect(initial.client.settings).toHaveBeenCalledTimes(2))
+  expect(initial.client.settings.mock.lastCall![1].operations).toEqual([
+    { op: 'set', property: 'precision', text: '0' },
+    ...restoredDraft.slice(1),
+  ])
+  await waitFor(() => expect(onDraftChange.mock.lastCall?.[0]).toEqual([]))
+  expect(screen.getAllByRole('button', { name: 'Cancel setting changes' })).toHaveLength(1)
+})
+
+it('keeps restored settings visible and cancelable when fresh inspection is unavailable', async () => {
+  const initial = props()
+  const onDraftChange = vi.fn()
+  const restoredDraft: RecoveryPending['layoutSettings'] = [{ op: 'set', property: 'precision', text: '1.' }]
+  initial.client.settings.mockRejectedValueOnce(new Error('The service is offline'))
+  render(<LayoutSettingsPanel {...initial} restoredDraft={restoredDraft} onDraftChange={onDraftChange} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect layout settings' }))
+  await screen.findByText('The service is offline')
+  expect(screen.getByRole('list', { name: 'Uninspected restored layout changes' }).textContent).toContain('"1."')
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel setting changes' }))
+  expect(onDraftChange.mock.lastCall?.[0]).toEqual([])
+  expect(initial.onApply).not.toHaveBeenCalled()
+  expect(screen.queryByRole('list', { name: 'Uninspected restored layout changes' })).toBeNull()
+})
+
+it('shows unsupported restored choices as raw unvalidated values instead of coercing them', async () => {
+  const initial = props()
+  const restoredDraft: RecoveryPending['layoutSettings'] = [
+    { op: 'set', property: 'grouping', text: 'not-a-boolean' },
+    { op: 'set', property: 'language', text: '' },
+  ]
+  render(<LayoutSettingsPanel {...initial} restoredDraft={restoredDraft} />)
+  await inspect()
+  const grouping = input('grouping') as unknown as HTMLSelectElement
+  const language = input('language') as unknown as HTMLSelectElement
+  expect(grouping.value).toBe('not-a-boolean')
+  expect(grouping.selectedOptions[0].textContent).toBe('"not-a-boolean" (unvalidated field value)')
+  expect(language.value).toBe('')
+  expect(language.selectedOptions[0].textContent).toBe('"" (unvalidated field value)')
+  expect(apply().disabled).toBe(true)
+  fireEvent.change(grouping, { target: { value: 'false' } })
+  fireEvent.change(language, { target: { value: 'de' } })
   expect(apply().disabled).toBe(false)
 })
 

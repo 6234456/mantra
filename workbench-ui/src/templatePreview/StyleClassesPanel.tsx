@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Envelope } from '../types'
+import type { RecoveryPending } from './recovery'
 import { sameTemplateRevisions, TemplatePreviewError, type TemplateSource, type TemplateSources } from './client'
 import {
   LiveStyleClassesClient,
@@ -60,6 +61,8 @@ export function StyleClassesPanel({
   onApply,
   onConflict,
   onPendingChange,
+  restoredDraft,
+  onDraftChange,
   client: supplied,
 }: {
   caseId: string
@@ -70,19 +73,32 @@ export function StyleClassesPanel({
   onApply: (caseId: string, request: StyleClassesRequest, nextText: string) => boolean
   onConflict: () => void
   onPendingChange?: (pending: boolean) => void
+  restoredDraft?: RecoveryPending['styleClass']
+  onDraftChange?: (draft: RecoveryPending['styleClass']) => void
   client?: StyleClassesClient
 }) {
   const client = useMemo(() => supplied ?? new LiveStyleClassesClient(), [supplied])
   const [inspection, setInspection] = useState<{ binding: Binding; data: StyleClasses }>()
-  const [selection, setSelection] = useState('')
-  const [edit, setEdit] = useState<Edit>()
+  const [selection, setSelection] = useState(restoredDraft?.selection ?? '')
+  const [edit, setEdit] = useState<Edit | undefined>(() =>
+    restoredDraft
+      ? {
+          operation:
+            restoredDraft.operation.op === 'upsert'
+              ? { ...restoredDraft.operation, style: { ...restoredDraft.operation.style } }
+              : { ...restoredDraft.operation },
+          creating: restoredDraft.creating,
+          version: 1,
+        }
+      : undefined,
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [composing, setComposing] = useState(false)
   const generation = useRef(0)
   const sequence = useRef(0)
-  const fieldVersion = useRef(0)
+  const fieldVersion = useRef(restoredDraft ? 1 : 0)
   const compositionKey = useRef(false)
   const pending = useRef<AbortController | null>(null)
   const latest = useRef<{
@@ -113,6 +129,20 @@ export function StyleClassesPanel({
     onPendingChange?.(!!edit)
     return () => onPendingChange?.(false)
   }, [edit, onPendingChange])
+  const rawDraft = useMemo<RecoveryPending['styleClass']>(
+    () =>
+      edit
+        ? {
+            operation: edit.operation,
+            creating: edit.creating,
+            selection,
+          }
+        : null,
+    [edit, selection],
+  )
+  useLayoutEffect(() => {
+    onDraftChange?.(rawDraft)
+  }, [rawDraft, onDraftChange])
 
   const current = sameBinding(inspection?.binding, binding) && !conflict
   const selected = inspection?.data.classes.find((item) => item.name === selection)
@@ -130,7 +160,9 @@ export function StyleClassesPanel({
     !composing &&
     (operation?.op === 'remove'
       ? selected?.name === operation.name && selected.canRemove
-      : validName && !existingLocalName)
+      : validName &&
+        !existingLocalName &&
+        (edit.creating || (selected?.name === operation?.name && selected?.editable)))
 
   function clear() {
     generation.current++
@@ -208,7 +240,11 @@ export function StyleClassesPanel({
         setNotice('Style changes applied to the source draft. Preview the draft to check its results.')
       } else {
         setSelection((previous) =>
-          reply.data.classes.some((item) => item.name === previous) ? previous : (reply.data.classes[0]?.name ?? ''),
+          edit && !edit.creating
+            ? edit.operation.name
+            : reply.data.classes.some((item) => item.name === previous)
+              ? previous
+              : (reply.data.classes[0]?.name ?? ''),
         )
         setNotice(edit ? 'Style classes refreshed. Review retained changes before applying.' : '')
       }
@@ -231,6 +267,17 @@ export function StyleClassesPanel({
   return (
     <section className="sheet template-style-classes" aria-label="Style classes">
       <h2>Style classes</h2>
+      {edit && !inspection && (
+        <div>
+          <p role="status">
+            Restored style fields have not been inspected. Inspect the current layout before applying them.
+          </p>
+          <pre aria-label="Uninspected restored style change">{JSON.stringify(rawDraft, null, 2)}</pre>
+          <button type="button" onClick={clear}>
+            Cancel style changes
+          </button>
+        </div>
+      )}
       {!source ? (
         <p>No editable root layout was captured. Choose a layout in the workbench and reload the saved source.</p>
       ) : (
@@ -266,6 +313,9 @@ export function StyleClassesPanel({
                   onChange={(event) => setSelection(event.target.value)}
                 >
                   <option value="">Select a class</option>
+                  {selection && !inspection.data.classes.some((item) => item.name === selection) && (
+                    <option value={selection}>:{selection} · pending target unavailable</option>
+                  )}
                   {inspection.data.classes.map((item) => (
                     <option key={item.name} value={item.name}>
                       :{item.name} · {item.local ? 'local' : item.presets.length ? 'preset' : 'selector only'}
@@ -360,6 +410,12 @@ export function StyleClassesPanel({
                     compositionKey.current = false
                   }}
                 >
+                  {edit && !edit.creating && !selected && (
+                    <p role="status">
+                      The pending class is not in the inspected catalog. Cancel this edit and create a class explicitly,
+                      or repair its source and refresh.
+                    </p>
+                  )}
                   {operation?.op === 'remove' ? (
                     <p role="status">
                       Local definition :{operation.name} will be removed when you apply. Preset style, if available,

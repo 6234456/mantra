@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Envelope, Value } from '../types'
+import type { RecoveryPending } from './recovery'
 import { sameTemplateRevisions, TemplatePreviewError, type TemplateSource, type TemplateSources } from './client'
 import {
   LiveLayoutSettingsClient,
@@ -77,6 +78,8 @@ export function LayoutSettingsPanel({
   onApply,
   onConflict,
   onPendingChange,
+  restoredDraft,
+  onDraftChange,
   client: supplied,
 }: {
   caseId: string
@@ -87,18 +90,27 @@ export function LayoutSettingsPanel({
   onApply: (caseId: string, request: LayoutSettingsRequest, nextText: string) => boolean
   onConflict: () => void
   onPendingChange?: (pending: boolean) => void
+  restoredDraft?: RecoveryPending['layoutSettings']
+  onDraftChange?: (draft: RecoveryPending['layoutSettings']) => void
   client?: LayoutSettingsClient
 }) {
   const client = useMemo(() => supplied ?? new LiveLayoutSettingsClient(), [supplied])
   const [inspection, setInspection] = useState<{ binding: Binding; data: LayoutSettings }>()
-  const [changes, setChanges] = useState<Record<string, FieldChange>>({})
+  const [changes, setChanges] = useState<Record<string, FieldChange>>(() =>
+    Object.fromEntries(
+      (restoredDraft ?? []).map((operation, index) => [
+        operation.property,
+        { operation: { ...operation }, version: index + 1 },
+      ]),
+    ),
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [composing, setComposing] = useState(false)
   const generation = useRef(0)
   const sequence = useRef(0)
-  const fieldVersion = useRef(0)
+  const fieldVersion = useRef(restoredDraft?.length ?? 0)
   const compositionKey = useRef(false)
   const pending = useRef<AbortController | null>(null)
   const latest = useRef<{
@@ -126,6 +138,10 @@ export function LayoutSettingsPanel({
     return abortPending
   }, [caseId, snapshot.revision, source?.handle, source?.editable, text, conflict, abortPending])
   const hasChanges = Object.keys(changes).length > 0
+  const rawDraft = useMemo(() => Object.values(changes).map((change) => change.operation), [changes])
+  useLayoutEffect(() => {
+    onDraftChange?.(rawDraft)
+  }, [rawDraft, onDraftChange])
   useEffect(() => {
     onPendingChange?.(hasChanges)
     return () => onPendingChange?.(false)
@@ -237,6 +253,24 @@ export function LayoutSettingsPanel({
   return (
     <section className="sheet template-layout-settings" aria-label="Layout settings">
       <h2>Layout settings</h2>
+      {hasChanges && !inspection && (
+        <div>
+          <p role="status">
+            Restored setting fields have not been inspected. Inspect the current layout before applying them.
+          </p>
+          <ul aria-label="Uninspected restored layout changes">
+            {rawDraft.map((operation) => (
+              <li key={operation.property}>
+                <code>{operation.property}</code>:{' '}
+                {operation.op === 'set' ? JSON.stringify(operation.text) : 'Reset to inherited (not applied)'}
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={cancel}>
+            Cancel setting changes
+          </button>
+        </div>
+      )}
       {!source ? (
         <p>No editable root layout was captured. Choose a layout in the workbench and reload the saved source.</p>
       ) : (
@@ -307,7 +341,9 @@ export function LayoutSettingsPanel({
                               >
                                 {!options.includes(displayed) && (
                                   <option value={displayed}>
-                                    {displayed || (property.declared ? 'Unsupported source value' : 'Inherited')}
+                                    {edit?.operation.op === 'set'
+                                      ? `${JSON.stringify(displayed)} (unvalidated field value)`
+                                      : displayed || (property.declared ? 'Unsupported source value' : 'Inherited')}
                                   </option>
                                 )}
                                 {options.map((option) => (
