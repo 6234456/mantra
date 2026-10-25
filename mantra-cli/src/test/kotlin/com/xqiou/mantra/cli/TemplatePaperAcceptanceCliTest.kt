@@ -164,4 +164,20 @@ class TemplatePaperAcceptanceCliTest {
         assertEquals("error", json.readTree(error.stdout)["cases"][0]["status"].asText())
         validate(error.stdout, "template-acceptance-report-v2")
     }
+
+    @Test fun `published v2 example and its actual Paper report remain valid without fixture changes`() {
+        val root = Path.of("docs/examples/template-paper-acceptance")
+        val suite = root.resolve("suite.json")
+        val before = Files.list(root).use { paths -> paths.toList().associateWith(Files::readAllBytes) }
+        validate(Files.readString(suite), "template-acceptance-v2")
+        val result = command("template-verify", "$suite", "--workspace", "$root")
+        assertEquals(0, result.status, result.stderr + result.stdout)
+        validate(result.stdout, "template-acceptance-report-v2")
+        val report = json.readTree(result.stdout)
+        assertEquals(4, report["cases"].size())
+        assertTrue(report["passed"].asBoolean())
+        assertTrue(report["cases"].all { it["paper"].isObject })
+        before.forEach { (file, bytes) -> assertContentEquals(bytes, Files.readAllBytes(file)) }
+        assertEquals(before.size, Files.list(root).use { it.count().toInt() })
+    }
 }

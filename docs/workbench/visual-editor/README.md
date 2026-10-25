@@ -22,6 +22,10 @@
 > 精确预期，执行后重查全部基准。capture 保留 `expect: null`，不会从当前结果生成通过基准；见
 > [验收合同](template-acceptance-contract.md)、[实施记录](template-acceptance-progress.md) 和
 > [用户说明](../../site/template-acceptance.md)。多案例界面、表／维度输入、正式保存与发布仍未实现。
+> 随后显式 v2 套件加入同次候选 Paper 的标题、表列顺序、单元格文本／editable／最终样式及零值可见性验收；
+> 结构化 address 保留完整成员坐标，v1 schema 与默认 capture 输出保持原形。见 [Paper 合同](template-paper-acceptance-contract.md)、
+> [实施记录](template-paper-acceptance-progress.md) 与 [用户说明](../../site/template-paper-acceptance.md)；
+> 输入和 Run 断言仍限标量，G-A20 仍部分完成。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
@@ -119,7 +123,9 @@
   工作区／完整基准隔离，显式 Restore／Discard 与跨工作区导入，不恢复结果、旧权限、有效状态或内存历史。
 - [x] [多案例模板 CLI 验收](template-acceptance-progress.md)：`e0d2148` 实现 G-A20 的只读切片；capture
   不生成预期，verify 复用真实候选、核对精确值／display／业务判定／完整诊断多重集，并在末尾重查全部源图。
-- [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19、G-A20 的界面／表与维度支持、G-A21 及正式
+- [x] [Paper 展示验收 v2](template-paper-acceptance-progress.md)：显式 --format 2，读取同次真实候选的标题、列、
+  单元格最终文本／样式与精确地址；缺失父表／列或多匹配报错，零值可见性可核对。v1 保持原形。
+- [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19、G-A20 的界面／表与维度输入／Run 坐标支持、G-A21 及正式
   Save／源历史／发布；不得因此启用原型交付按钮。
 - [x] [真实模板预览增强](template-preview-enhancements.md)：面板／零值上下文、独立保存基准、精确差异、
   空候选与过期／冲突证据，真实 CLI／Chrome 验证；当时尚无多案例验收，后续 CLI 切片见上项，完整高级属性编辑仍待实现。

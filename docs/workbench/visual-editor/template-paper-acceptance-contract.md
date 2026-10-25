@@ -60,6 +60,10 @@ Capture 不添加 paper 预期，不把真实 Paper 自动转成通过断言；�
 
 ## 保留边界
 
+Schema：[suite v2](../schema/template-acceptance-v2.schema.json) 与
+[report v2](../schema/template-acceptance-report-v2.schema.json)；实际结果见
+[实施与证据](template-paper-acceptance-progress.md)。JSON Schema 不代替组合预算、唯一性与真实源修订检查。
+
 本切片没有多案例 UI、table／维度输入覆盖、Run 维度断言、PDF／XLSX 视觉或重算认证、
 正式 Save、服务端验收记录、构建／发布。Paper 验收只说明本次引擎表格模型符合所给断言。
 Template Engine 完整兼容仍为 false；G-A20 仍标记部分完成。

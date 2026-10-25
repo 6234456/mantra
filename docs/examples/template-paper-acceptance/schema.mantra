@@ -1,0 +1,10 @@
+; Independent arithmetic: candidate answer = base-amount * 3; each matrix cell = 7.
+(schema example/template-paper-acceptance {:version "1" :mainline [main]}
+  (input base-amount :decimal)
+  (dimension entity {:members [:A :B]})
+  (dimension year {:members [:Y1 :Y2]})
+  (section main "Summary" {:panel true}
+    (info answer "Answer" (* base-amount 2) {:class :custom})
+    (info zero-row "Zero" 0))
+  (section matrix "Matrix" {:panel true :per [entity year]}
+    (info element "Element" 7 {:aggregate :sum})))

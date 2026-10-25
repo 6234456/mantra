@@ -4,6 +4,8 @@ Use `template-verify` to check one candidate schema/layout against several saved
 scalar input scenarios. Each result comes from the same real preview service as `/template-preview`.
 The command checks exact values, formatted text, active state and business findings, and produces
 a JSON report suitable for CI. Workspace sources remain unchanged.
+Use [Paper presentation acceptance](template-paper-acceptance.md) for version 2 checks of rendered
+titles, ordered columns, cell text, final styles and visibility.
 
 ## Run the included example
 

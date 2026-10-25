@@ -30,6 +30,7 @@ reset to inheritance; [style classes](site:style-classes.html) edit reusable fin
 Use [draft recovery and JSON backup](site:template-recovery.html) to preserve source and raw fields.
 Run [multi-case template acceptance](site:template-acceptance.html) to verify a candidate against
 independent expectations and complete source revisions from the command line.
+Its [Paper checks](site:template-paper-acceptance.html) also cover rendered formatting and final styles.
 These workbench pages require the running JVM service; this documentation
 site contains their instructions.
 

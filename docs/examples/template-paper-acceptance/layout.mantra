@@ -1,0 +1,8 @@
+(layout example/template-paper-acceptance-layout
+  {:title "Saved paper" :locale "de-DE" :precision 2 :hide-zero true :zero "ZERO"}
+  (style-class :custom {:weight :normal :tone :default :fill :none})
+  (style {:class :custom} {:use [:custom]})
+  (table main (col :label {:header "Item"}) (col :value {:header "Amount"}))
+  (table matrix {:style :matrix :row-dimension entity}
+    :label (col :first {:content (member year :Y1) :header "Y1"})
+    (col :second {:content (member year :Y2) :header "Y2"}) :cross-total))

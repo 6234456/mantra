@@ -4,6 +4,9 @@
 > [合同](template-acceptance-contract.md) · [用户说明](../../site/template-acceptance.md) ·
 > [案例套件](../../examples/template-acceptance/suite.json) · [Draft PR #15](https://github.com/6234456/mantra/pull/15)
 
+后续已增加独立 v2 的 [Paper 展示验收](template-paper-acceptance-progress.md)；本文保留首批 v1 的
+执行记录和边界，不将后续测试计入本轮结果。
+
 ## 已完成
 
 - `template-capture` 取得真实完整源图与根 schema/layout 原文；expect 留 null，不能自动生成通过基准。

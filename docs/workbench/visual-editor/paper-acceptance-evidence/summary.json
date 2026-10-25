@@ -1,0 +1,625 @@
+{
+  "format": "mantra.template-paper-acceptance-smoke-evidence/1",
+  "source": "Installed CLI, isolated copy of docs/examples/template-paper-acceptance",
+  "flowCount": 7,
+  "commandCount": 10,
+  "commands": [
+    {
+      "name": "good-four-scenarios",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "30a00cdab0011539ae652f4c80da352e235ecc0537caf8c4931141b213801816",
+      "reportFile": "good-four-scenarios-report.json",
+      "reportSha256": "bd34bdf3a7e2360b1dccdee941e06ecb8f81f0754dc20fdf697943ce3da3c06c",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": true,
+      "scenarioCount": 4,
+      "assertionCount": 59,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "show-zero",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "matrix-panel",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed",
+          "hasPaper": true
+        }
+      ]
+    },
+    {
+      "name": "style-mismatch",
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "style-mismatch-report.json",
+      "reportSha256": "99a863c7e921d2369406a426353bc967d1371bbabea69a6b086cea73f322864d",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 59,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "failed",
+          "hasPaper": true
+        },
+        {
+          "id": "show-zero",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "matrix-panel",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed",
+          "hasPaper": true
+        }
+      ]
+    },
+    {
+      "name": "column-order-mismatch",
+      "exitCode": 3,
+      "expectedExitCode": 3,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "column-order-mismatch-report.json",
+      "reportSha256": "f50cbd973a0a55cc7669e78fc9482b2f1229e3e4f433a0c7340a10dbc481ac37",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 59,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "failed",
+          "hasPaper": true
+        },
+        {
+          "id": "show-zero",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "matrix-panel",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed",
+          "hasPaper": true
+        }
+      ]
+    },
+    {
+      "name": "missing-parent-column",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "missing-parent-column-report.json",
+      "reportSha256": "a2f09da14d29b4df7f6492a1de92d49b45349cea86b06cfc2073a01dea83916c",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 36,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "error",
+          "hasPaper": true
+        },
+        {
+          "id": "show-zero",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "matrix-panel",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed",
+          "hasPaper": true
+        }
+      ]
+    },
+    {
+      "name": "ambiguous-matrix-row",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "ambiguous-matrix-row-report.json",
+      "reportSha256": "ffc4b93a8c3a087d54e10170c2873bd9812a7fb10b5e8513e69b48432e72e512",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 36,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "error",
+          "hasPaper": true
+        },
+        {
+          "id": "show-zero",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "matrix-panel",
+          "status": "passed",
+          "hasPaper": true
+        },
+        {
+          "id": "german-raw-input",
+          "status": "passed",
+          "hasPaper": true
+        }
+      ]
+    },
+    {
+      "name": "external-source-conflict",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "48a695f6917373daf857f528007c7d07b5f2ef21196889d90a2e880a087af77f",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "48a695f6917373daf857f528007c7d07b5f2ef21196889d90a2e880a087af77f",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "external-source-conflict-report.json",
+      "reportSha256": "098dfdab2d2899ef3929526888e7109cdf2aba5283ec6506d4716c949b47ebe0",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 4,
+      "assertionCount": 0,
+      "caseStatuses": [
+        {
+          "id": "styled-main-and-matrix",
+          "status": "conflict",
+          "hasPaper": false
+        },
+        {
+          "id": "show-zero",
+          "status": "conflict",
+          "hasPaper": false
+        },
+        {
+          "id": "matrix-panel",
+          "status": "conflict",
+          "hasPaper": false
+        },
+        {
+          "id": "german-raw-input",
+          "status": "conflict",
+          "hasPaper": false
+        }
+      ]
+    },
+    {
+      "name": "default-v1-capture",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "05667a6ff774cf34e9797b56a57142040e231394057f38406e0a1b997e10048d",
+      "suiteFile": "default-v1-capture.json",
+      "suiteSha256": "e7c1c1a7e201a40a942baddec8575d8d4ce95fa5962a123418408a935be4dcb7",
+      "format": "mantra.template-acceptance/1"
+    },
+    {
+      "name": "explicit-v1-capture",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "05667a6ff774cf34e9797b56a57142040e231394057f38406e0a1b997e10048d",
+      "suiteFile": "explicit-v1-capture.json",
+      "suiteSha256": "e7c1c1a7e201a40a942baddec8575d8d4ce95fa5962a123418408a935be4dcb7",
+      "format": "mantra.template-acceptance/1"
+    },
+    {
+      "name": "explicit-v2-capture",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "05667a6ff774cf34e9797b56a57142040e231394057f38406e0a1b997e10048d",
+      "suiteFile": "explicit-v2-capture.json",
+      "suiteSha256": "fdd48fdc9e18a74b83c7abafc744fcd4d2bae747031df2cf75aa7a691d8d97a7",
+      "format": "mantra.template-acceptance/2"
+    },
+    {
+      "name": "unfilled-v2-expectations",
+      "exitCode": 2,
+      "expectedExitCode": 2,
+      "sourceHashesBefore": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+        "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "c3f1ff65f5f295bef05cf45a93fa1881bb4663f183b23cba6ad356e66294da50",
+      "reportFile": "unfilled-v2-expectations-report.json",
+      "reportSha256": "d3a23fc333c83ecad774d046eb9a981a28b6db17d0cdd7541afa6b66e21358a0",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "passed": false,
+      "scenarioCount": 1,
+      "assertionCount": 0,
+      "caseStatuses": [
+        {
+          "id": "case-1",
+          "status": "error",
+          "hasPaper": false
+        }
+      ]
+    }
+  ],
+  "engine": {
+    "mantra": "1.0.0-rc.1",
+    "normein": "0.3.0"
+  },
+  "suiteSha256": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b",
+  "goodReportSha256": "bd34bdf3a7e2360b1dccdee941e06ecb8f81f0754dc20fdf697943ce3da3c06c",
+  "actualPaper": {
+    "title": "Candidate paper",
+    "mainColumns": [
+      [
+        "label",
+        "Item"
+      ],
+      [
+        "value",
+        "Amount"
+      ]
+    ],
+    "answer": {
+      "text": "30,000",
+      "address": {
+        "case": null,
+        "node": "answer"
+      },
+      "editable": false,
+      "style": {
+        "weight": "bold",
+        "tone": "accent",
+        "fill": "subtle"
+      },
+      "styleOverrides": {
+        "weight": "bold",
+        "tone": "accent",
+        "fill": "subtle"
+      }
+    },
+    "germanAnswer": {
+      "text": "3,750",
+      "address": {
+        "case": null,
+        "node": "answer"
+      },
+      "editable": false,
+      "style": {
+        "weight": "bold",
+        "tone": "accent",
+        "fill": "subtle"
+      },
+      "styleOverrides": {
+        "weight": "bold",
+        "tone": "accent",
+        "fill": "subtle"
+      }
+    },
+    "mainRowIds": [
+      {
+        "node": "answer",
+        "anchor": "t1-r1",
+        "kind": "value"
+      }
+    ],
+    "matrixRowIds": [
+      {
+        "node": null,
+        "anchor": "t2-r1",
+        "kind": "heading"
+      },
+      {
+        "node": "element",
+        "anchor": "t2-r2",
+        "kind": "value"
+      },
+      {
+        "node": null,
+        "anchor": "t2-r3",
+        "kind": "heading"
+      },
+      {
+        "node": "element",
+        "anchor": "t2-r4",
+        "kind": "value"
+      },
+      {
+        "node": null,
+        "anchor": "t2-r5",
+        "kind": "heading"
+      },
+      {
+        "node": "element",
+        "anchor": "t2-r6",
+        "kind": "value"
+      }
+    ],
+    "zeroHiddenInDefault": true,
+    "shownZeroRows": [
+      {
+        "kind": "value",
+        "depth": 0,
+        "node": "zero-row",
+        "flags": [
+          "info"
+        ],
+        "anchor": "t1-r2",
+        "lead": false,
+        "optionKey": null,
+        "section": null,
+        "classes": [],
+        "cells": [
+          {
+            "text": "Zero",
+            "address": null,
+            "editable": false,
+            "style": {
+              "weight": "normal",
+              "tone": "default",
+              "fill": "none"
+            }
+          },
+          {
+            "text": "ZERO",
+            "address": {
+              "case": null,
+              "node": "zero-row"
+            },
+            "editable": false,
+            "style": {
+              "weight": "normal",
+              "tone": "default",
+              "fill": "none"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "styleMismatchAssertion": {
+    "path": "/paper/cells/{\"table\":\"main\",\"column\":\"value\",\"address\":{\"node\":\"answer\",\"coord\":[]}}/style/weight",
+    "expected": "normal",
+    "actual": "bold",
+    "passed": false
+  },
+  "columnOrderMismatchAssertion": {
+    "path": "/paper/tables/main/columns",
+    "expected": [
+      [
+        "value",
+        "Amount"
+      ],
+      [
+        "label",
+        "Item"
+      ]
+    ],
+    "actual": [
+      [
+        "label",
+        "Item"
+      ],
+      [
+        "value",
+        "Amount"
+      ]
+    ],
+    "passed": false
+  },
+  "missingColumnError": {
+    "problem": "INVALID",
+    "message": "Paper cell parent column must exist exactly once: main/misspelled-column",
+    "currentRevision": null
+  },
+  "ambiguousRowError": {
+    "problem": "INVALID",
+    "message": "Paper cell selector is ambiguous: {\"table\":\"matrix\",\"column\":\"first\",\"row\":{\"node\":\"element\"}}",
+    "currentRevision": null
+  },
+  "defaultAndExplicitV1CaptureBytesEqual": true,
+  "explicitV2CaptureOnlyFormatDiffers": true,
+  "externalMutations": [
+    {
+      "file": "schema.mantra",
+      "action": "append-comment",
+      "beforeSha256": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+      "afterSha256": "48a695f6917373daf857f528007c7d07b5f2ef21196889d90a2e880a087af77f"
+    },
+    {
+      "file": "schema.mantra",
+      "action": "restore-original",
+      "beforeSha256": "48a695f6917373daf857f528007c7d07b5f2ef21196889d90a2e880a087af77f",
+      "afterSha256": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1"
+    }
+  ],
+  "workspaceFilesInitiallyAndFinallyEqual": true,
+  "applicationWorkspaceFileWritesObserved": false,
+  "originalFixtureHashes": {
+    "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+    "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+    "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+    "suite.json": "4bc16525d66a9eabd2671fc424a1dcee830025e0323a8c50e467f9410b19942b"
+  },
+  "schemaValidation": {
+    "suiteDocuments": 8,
+    "reportDocuments": 7,
+    "allPassed": true
+  },
+  "originalFixtureUnchanged": true,
+  "temporaryWorkspaceRemoved": true
+}

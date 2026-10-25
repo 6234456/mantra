@@ -71,6 +71,9 @@ The additive `template-capture` and `template-verify` CLI commands use standalon
 `mantra.template-acceptance/1` suites and `mantra.template-acceptance-report/1` reports. They reuse
 the existing public template-preview service; HTTP v4 schemas, DSL semantics and public JVM
 descriptors remain unchanged. Captures contain no generated expected results.
+The opt-in `/2` suite adds Paper presentation assertions and the `/2` report carries the candidate
+Paper. Existing `/1` schemas and default capture output remain unchanged. Select version 2 with
+`template-capture --format 2`; verify follows the explicit suite version without an override.
 
 Wire consumers reject unsupported major versions before editing. Adding an optional field is not
 inherently compatible with an older strict JSON schema: supported clients and schema revisions must

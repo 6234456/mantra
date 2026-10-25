@@ -47,6 +47,12 @@ workspaceId／case 隔离自动副本，保留根源、原始覆盖及未 Apply 
 仍为 null，必须明确填写后验收。该切片没有多案例 UI、表／维度输入、服务端记录、正式 Save 或发布，
 因此 G-A20 仅为部分完成，不改变原型人工复核状态。
 
+后续显式 [Paper 验收 v2](template-paper-acceptance-contract.md) 增加同次真实候选的标题、表样式／列顺序、
+单元格文本／editable／最终有限样式，以及 includeZero 的展示存在性检查。结构化地址使用完整成员数组，
+不读取 Run 拼接键；row/address 可取交集，父对象须存在且唯一，多匹配报技术错误。v1 schema／报告字段
+和默认 capture 不变，--format 2 才捕获 v2；原始输入和 Run 值断言仍限标量。见
+[实施记录](template-paper-acceptance-progress.md) 与 [用户说明](../../site/template-paper-acceptance.md)。
+
 ## 1. 能力现状
 
 | 能力 | 状态 | 入口 |
@@ -69,7 +75,7 @@ workspaceId／case 隔离自动副本，保留根源、原始覆盖及未 Apply 
 | 构建记录、兼容报告、发布 | 【设计】／计划 | G-A10、G-A11 |
 | 本地恢复草稿 | 【部分已实现】真实预览的工作区隔离自动副本、JSON 备份、根源／原始输入／未 Apply 字段恢复；录制原型仍独立，服务端恢复仍为【设计】 | G-A12，[恢复记录](template-recovery-progress.md) |
 | 高级设置、结构编辑与参数化 pattern | 【部分已实现】根 layout 14 项设置及本地 style-class 有限定义；通用结构／属性编辑与参数化 pattern 仍为【设计】 | G-A16–G-A19，[设置记录](layout-settings-progress.md)、[样式记录](style-classes-progress.md) 与 [设置清单](invoice-builder-gaps.md#4-高级设置清单) |
-| 多案例验收 | 【部分已实现】只读 CLI 的完整基准锁定、同候选多案例／标量输入、独立精确值与格式／finding 验收；界面、表／维度和服务端记录仍为【设计】 | G-A20，[验收记录](template-acceptance-progress.md) |
+| 多案例验收 | 【部分已实现】只读 CLI 的完整基准锁定、同候选标量输入／Run 断言与 finding；显式 v2 增加 Paper 标题／列／单元格最终文本和样式、结构化成员地址与零值可见性。界面、表／维度输入、Run 坐标和服务端记录仍为【设计】 | G-A20，[首批记录](template-acceptance-progress.md)、[Paper 记录](template-paper-acceptance-progress.md) |
 | 输出能力档案 | 【设计】；独立 XLSX 审计不是目标能力档案 | G-A21 |
 
 ## 2. 组件复用清单
@@ -193,7 +199,7 @@ G-A4／G-A14 已按契约 §7.1 实现下述只读候选切片，并有 JSON Sch
 | G-A17 | 结构化声明编辑 | 输入、维度、计算项、规则、表列和有限样式定义的增删重排；ID、依赖、引用与影响范围预检；复用 G-A3 最小补丁 | 【部分已实现】根 layout 本地 style-class 的有限 upsert／remove 及布局内硬引用保护；输入／维度／计算／规则／表列、重命名重排与完整影响分析仍待实现 |
 | G-A18 | 高级设置操作与编辑协调 | set／移除显式覆盖，保留 false／0／空文本语义；属性／局部与完整源码共用源事务、草稿序号、迟到保护及撤销 | 【部分已实现】根设置与本地 class 共用 DSL、顺序补丁、精确原文／完整修订绑定及迟到保护；手写源与 Apply 共用 50 条内存 Undo／Redo，原文匹配才推进。任一未应用字段或冲突阻止历史操作，改源使预览标旧；正式服务端历史、G-A7／D-A1 保存仍待实现 |
 | G-A19 | pattern 实例化与共享影响 | 参数合同、ID 映射、命名冲突、依赖闭包、共享引用清单与显式复制／引用策略 | 【设计】；现有四个 pattern 是复制修改，不是参数化宏 |
-| G-A20 | 多案例验收集 | 同一候选模板的多个案例、基准修订、独立预期值／finding／格式与差异；表／维度输入须扩展候选合同 | 【部分已实现】`e0d2148` 的 template-capture／template-verify：共享根候选、各自完整图与句柄、标量输入／结果、精确值／display／业务判定／完整诊断断言及末尾重查；capture 的 expect 为 null。多案例 UI、表／维度、独立记录服务和发布仍待实现，见 [验收合同](template-acceptance-contract.md) |
+| G-A20 | 多案例验收集 | 同一候选模板的多个案例、基准修订、独立预期值／finding／格式与差异；表／维度输入须扩展候选合同 | 【部分已实现】`e0d2148` 的 template-capture／template-verify：共享根候选、各自完整图与句柄、标量输入／结果、精确值／display／业务判定／完整诊断断言及末尾重查；capture 的 expect 为 null。后续显式 v2 增加 Paper 标题／列／最终单元格及结构化成员地址验收，v1 默认与 schema 不变；多案例 UI、表／维度输入、Run 坐标、独立记录服务和发布仍待实现，见 [首批合同](template-acceptance-contract.md) 与 [Paper 合同](template-paper-acceptance-contract.md) |
 | G-A21 | 输出目标能力与兼容档案 | 绑定目标／版本与引擎指纹的支持／不支持／未知／未验证状态，关联 G-A10／G-A11 的报告和证据 | 【设计】；现有 Template Engine 完整兼容仍为 false |
 
 G-A16–G-A21 的详细范围、参考证据及验收见 [新增功能缺口](invoice-builder-gaps.md#3-新增功能缺口)。

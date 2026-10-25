@@ -1,0 +1,301 @@
+{
+  "format": "mantra.template-acceptance/2",
+  "documents": [
+    {
+      "document": "layout.mantra",
+      "role": "layout",
+      "sha256": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+      "text": "(layout example/template-paper-acceptance-layout\n  {:title \"Candidate paper\" :locale \"de-DE\" :precision 3 :hide-zero true :zero \"ZERO\"}\n  (style-class :custom {:weight :bold :tone :accent :fill :subtle})\n  (style {:class :custom} {:use [:custom]})\n  (table main (col :label {:header \"Item\"}) (col :value {:header \"Amount\"}))\n  (table matrix {:style :matrix :row-dimension entity}\n    :label (col :first {:content (member year :Y1) :header \"Y1\"})\n    (col :second {:content (member year :Y2) :header \"Y2\"}) :cross-total))\n"
+    },
+    {
+      "document": "schema.mantra",
+      "role": "schema",
+      "sha256": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1",
+      "text": "; Independent arithmetic: candidate answer = base-amount * 3; each matrix cell = 7.\n(schema example/template-paper-acceptance {:version \"1\" :mainline [main]}\n  (input base-amount :decimal)\n  (dimension entity {:members [:A :B]})\n  (dimension year {:members [:Y1 :Y2]})\n  (section main \"Summary\" {:panel true}\n    (info answer \"Answer\" (* base-amount 3) {:class :custom})\n    (info zero-row \"Zero\" 0))\n  (section matrix \"Matrix\" {:panel true :per [entity year]}\n    (info element \"Element\" 7 {:aggregate :sum})))\n"
+    }
+  ],
+  "cases": [
+    {
+      "id": "styled-main-and-matrix",
+      "case": "case.mantra",
+      "baseRevision": "aecaf4a533d59232ad38f33280358e9ca8b3a53b6e4efdbea791be87cf8865d7",
+      "baseRevisions": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1"
+      },
+      "inputs": [],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "30"
+            }
+          }
+        ],
+        "diagnostics": [],
+        "paper": {
+          "title": "Candidate paper",
+          "tables": [
+            {
+              "id": "main",
+              "present": true,
+              "title": "Summary",
+              "style": "tiered",
+              "columns": [
+                {
+                  "id": "label",
+                  "header": "Item"
+                },
+                {
+                  "id": "value",
+                  "header": "Amount"
+                }
+              ]
+            },
+            {
+              "id": "matrix",
+              "present": true,
+              "style": "matrix"
+            }
+          ],
+          "cells": [
+            {
+              "table": "main",
+              "column": "value",
+              "address": {
+                "node": "answer",
+                "coord": []
+              },
+              "present": true,
+              "text": "30,000",
+              "style": {
+                "weight": "bold",
+                "tone": "accent",
+                "fill": "subtle"
+              },
+              "editable": false
+            },
+            {
+              "table": "main",
+              "column": "label",
+              "row": {
+                "node": "answer",
+                "kind": "value"
+              },
+              "present": true,
+              "text": "Answer"
+            },
+            {
+              "table": "main",
+              "column": "value",
+              "address": {
+                "node": "zero-row",
+                "coord": []
+              },
+              "present": false
+            },
+            {
+              "table": "matrix",
+              "column": "first",
+              "address": {
+                "node": "element",
+                "coord": [
+                  "A",
+                  "Y1"
+                ]
+              },
+              "present": true,
+              "text": "7,000"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "show-zero",
+      "case": "case.mantra",
+      "baseRevision": "aecaf4a533d59232ad38f33280358e9ca8b3a53b6e4efdbea791be87cf8865d7",
+      "baseRevisions": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1"
+      },
+      "inputs": [],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "30"
+            }
+          }
+        ],
+        "diagnostics": [],
+        "paper": {
+          "title": "Candidate paper",
+          "cells": [
+            {
+              "table": "main",
+              "column": "value",
+              "address": {
+                "node": "zero-row",
+                "coord": []
+              },
+              "present": true,
+              "text": "ZERO"
+            }
+          ]
+        }
+      },
+      "includeZero": true
+    },
+    {
+      "id": "matrix-panel",
+      "case": "case.mantra",
+      "baseRevision": "aecaf4a533d59232ad38f33280358e9ca8b3a53b6e4efdbea791be87cf8865d7",
+      "baseRevisions": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1"
+      },
+      "inputs": [],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "30"
+            }
+          }
+        ],
+        "diagnostics": [],
+        "paper": {
+          "tables": [
+            {
+              "id": "main",
+              "present": false
+            },
+            {
+              "id": "matrix",
+              "present": true,
+              "style": "matrix"
+            }
+          ],
+          "cells": [
+            {
+              "table": "matrix",
+              "column": "first",
+              "address": {
+                "node": "element",
+                "coord": [
+                  "A",
+                  "Y1"
+                ]
+              },
+              "present": true,
+              "text": "7,000"
+            },
+            {
+              "table": "matrix",
+              "column": "second",
+              "address": {
+                "node": "element",
+                "coord": [
+                  "B",
+                  "Y2"
+                ]
+              },
+              "present": true,
+              "text": "7,000"
+            }
+          ]
+        }
+      },
+      "panel": "matrix"
+    },
+    {
+      "id": "german-raw-input",
+      "case": "case.mantra",
+      "baseRevision": "aecaf4a533d59232ad38f33280358e9ca8b3a53b6e4efdbea791be87cf8865d7",
+      "baseRevisions": {
+        "case.mantra": "cb76be584f0ca4654af4a9b19e1d37e05ba55cff81f1f158045a185a8becbe80",
+        "layout.mantra": "080ea9e19770fa535373884f7a39995ef7fc5dd34c3fd8ce1f8aecfd3711ddb8",
+        "schema.mantra": "217248d7c2aa77bf06213a9dd5e593c9a0dd83da874cb1fd3d5260ffd362d9a1"
+      },
+      "inputs": [
+        {
+          "node": "base-amount",
+          "text": "1,25"
+        }
+      ],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "3.75"
+            }
+          }
+        ],
+        "diagnostics": [],
+        "paper": {
+          "title": "Candidate paper",
+          "tables": [
+            {
+              "id": "main",
+              "present": true,
+              "title": "Summary",
+              "style": "tiered",
+              "columns": [
+                {
+                  "id": "label",
+                  "header": "Item"
+                },
+                {
+                  "id": "value",
+                  "header": "Amount"
+                }
+              ]
+            },
+            {
+              "id": "matrix",
+              "present": false
+            }
+          ],
+          "cells": [
+            {
+              "table": "main",
+              "column": "value",
+              "address": {
+                "node": "answer",
+                "coord": []
+              },
+              "present": true,
+              "text": "3,750",
+              "style": {
+                "weight": "bold",
+                "tone": "accent",
+                "fill": "subtle"
+              }
+            }
+          ]
+        }
+      },
+      "panel": "main"
+    }
+  ]
+}

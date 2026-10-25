@@ -62,6 +62,17 @@ G-A20 仅部分完成：没有多案例 UI、表／维度输入或结果坐标�
 这项 CLI 功能不修改 `/authoring` 原型，也不替代 Claude 人工复核、真实系统输入法测试或 Template Engine
 重算兼容验证。29 项定向测试已由编码方运行通过；当前完整结果仍以最新实施记录和已推送 HEAD 为准。
 
+后续继续复核 [Paper 展示验收 v2](template-paper-acceptance-progress.md)，合同见
+[template-paper-acceptance-contract.md](template-paper-acceptance-contract.md)，操作见
+[用户说明](../../site/template-paper-acceptance.md)。显式 template-capture --format 2 输出 v2；默认／1 输出及旧
+suite/report schema 必须保持原形，verify 不接受 --format。v1 仍拒绝 paper 字段，capture 不生成 Paper 预期。
+复核标题、表列完整顺序、单元格文本／editable／最终样式、includeZero 的隐藏／出现与同次真实候选一致；
+结构化地址逐项比较完整成员数组，含斜线或空文本的 Paper 坐标不经过 Run 拼接键。
+row/address 同时提供则取交集，父 table/column 缺失或重复、多匹配均技术错误，不能取首项或将拼写错误
+当隐藏通过。内容不匹配才是 failed；v2 报告保留同次完整 Paper，技术上未计算为 null，末尾冲突保留旧证据
+但作废通过状态。输入／Run 值断言仍限标量，没有多案例 UI、服务端验收记录、正式 Save 或发布。
+G-A20 仍部分完成；工程门禁与实际运行证据以最新记录为准，不作为 Claude 人工签收或输出目标兼容认证。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，
