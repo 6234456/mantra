@@ -3,6 +3,10 @@ import type { Diagnostic } from './types'
 
 /** Stable code explanations; runtime details remain separate and are never translated or rewritten. */
 const catalog: Record<string, Readonly<Record<Language, string>>> = {
+  'MANTRA-TEMPLATE-SETTING': {
+    en: 'The layout setting is invalid or ambiguous. Review its value and source before applying it again.',
+    de: 'Diese Layouteinstellung ist ungültig oder mehrdeutig. Prüfen Sie den Wert und den Quelltext.',
+  },
   'DSL-MANTRA-ALLOC-ZERO-BASIS': {
     en: 'Allocation weights sum to zero, so the requested allocation is undefined.',
     de: 'Die Summe der Verteilungsgewichte ist null; die gewünschte Verteilung ist deshalb nicht definiert.',

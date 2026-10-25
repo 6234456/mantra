@@ -1,0 +1,69 @@
+.template-layout-settings fieldset {
+  border: 1px solid var(--line);
+  margin: 16px 0;
+  padding: 12px;
+  min-width: 0;
+}
+.template-layout-settings legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+.template-layout-setting {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.template-layout-setting:last-child {
+  border-bottom: 0;
+}
+.template-layout-setting label {
+  min-width: 0;
+}
+.template-layout-setting input,
+.template-layout-setting select {
+  width: 100%;
+  min-height: 36px;
+}
+.template-layout-setting > button {
+  align-self: end;
+}
+.template-layout-setting dl {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 12px;
+}
+.template-layout-setting dt {
+  color: var(--ink-3);
+}
+.template-layout-setting dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+}
+.template-layout-setting p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.template-layout-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .template-layout-setting {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .template-layout-setting > button {
+    justify-self: start;
+  }
+  .template-layout-setting input,
+  .template-layout-setting select,
+  .template-layout-setting button,
+  .template-layout-settings-actions button {
+    min-height: 44px;
+  }
+}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Address, CaseSummary, Diagnostic, Envelope, Panel } from '../types'
 import { addressKey } from '../address'
 import { ExplainDetails } from '../ui/ExplainDetails'
@@ -6,8 +6,11 @@ import { PaperTable } from '../ui/PaperTable'
 import { ThemeControl } from '../ui/ThemeControl'
 import { explainDiagnostic } from '../diagnosticMessages'
 import { CandidateComparison } from './CandidateComparison'
+import { LayoutSettingsPanel } from './LayoutSettingsPanel'
+import type { LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
 import {
   LiveTemplatePreviewClient,
+  sameTemplateRevisions,
   TemplatePreviewError,
   type TemplatePreview,
   type TemplatePreviewClient,
@@ -16,7 +19,10 @@ import {
 import './templatePreview.css'
 
 /** A source-first real-engine workbench. The fixture visual prototype remains a separate route. */
-export default function TemplateDraftPreviewPage({ client: supplied }: { client?: TemplatePreviewClient } = {}) {
+export default function TemplateDraftPreviewPage({
+  client: supplied,
+  settingsClient,
+}: { client?: TemplatePreviewClient; settingsClient?: LayoutSettingsClient } = {}) {
   const client = useMemo(() => supplied ?? new LiveTemplatePreviewClient(), [supplied])
   const [cases, setCases] = useState<CaseSummary[]>([])
   const [caseId, setCaseId] = useState(() => new URLSearchParams(location.search).get('case') ?? '')
@@ -41,6 +47,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
   const [baselineRetry, setBaselineRetry] = useState(0)
   const [selected, setSelected] = useState<Address>()
   const [sequence, setSequence] = useState(0)
+  const [settingsPending, setSettingsPending] = useState(false)
   const context = useRef(0)
   const draftSequence = useRef(0)
   const pending = useRef<AbortController | null>(null)
@@ -50,6 +57,10 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
   const candidatePanelsReceived = useRef(false)
   const available = !!supplied || !!document.querySelector('meta[name="mantra-session-token"]')
   const packageHost = !!document.querySelector('meta[name="mantra-package-workspace"][content="on"]')
+  const latestDraft = useRef({ caseId, snapshot, documents, conflict })
+  useLayoutEffect(() => {
+    latestDraft.current = { caseId, snapshot, documents, conflict }
+  })
 
   const invalidateBaseline = useCallback(() => {
     baselineContext.current++
@@ -198,7 +209,9 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
 
   const changed =
     !!snapshot &&
-    (snapshot.data.documents.some((item) => documents[item.handle] !== item.text) || Object.keys(inputs).length > 0)
+    (snapshot.data.documents.some((item) => documents[item.handle] !== item.text) ||
+      Object.keys(inputs).length > 0 ||
+      settingsPending)
   useEffect(() => {
     if (!changed) return
     function leaving(event: BeforeUnloadEvent) {
@@ -210,7 +223,7 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
   }, [changed])
 
   async function preview() {
-    if (!snapshot || busy || conflict) return
+    if (!snapshot || busy || conflict || settingsPending) return
     pending.current?.abort()
     const controller = new AbortController()
     pending.current = controller
@@ -257,7 +270,28 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
   }
 
   const source = snapshot?.data.documents.find((item) => item.handle === sourceHandle)
-  const current = result?.data.draftSequence === sequence && !conflict
+  const layoutSource = snapshot?.data.documents.find((item) => item.role === 'layout')
+  function applyLayoutSettings(expectedCase: string, request: LayoutSettingsRequest, nextText: string): boolean {
+    const latest = latestDraft.current
+    const layout = latest.snapshot?.data.documents.find((item) => item.handle === request.handle)
+    if (
+      latest.conflict ||
+      latest.caseId !== expectedCase ||
+      latest.snapshot?.data.document !== expectedCase ||
+      latest.snapshot.revision !== request.baseRevision ||
+      !sameTemplateRevisions(latest.snapshot.data.baseRevisions, request.baseRevisions) ||
+      layout?.role !== 'layout' ||
+      !layout.editable ||
+      latest.documents[request.handle] !== request.text
+    )
+      return false
+    if (nextText !== request.text) {
+      invalidate()
+      setDocuments((previous) => ({ ...previous, [request.handle]: nextText }))
+    }
+    return true
+  }
+  const current = result?.data.draftSequence === sequence && !conflict && !settingsPending
   const explain =
     selected && result?.data.explain && addressKey(selected) === addressKey(result.data.explain.address)
       ? result.data.explain
@@ -309,9 +343,18 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
                 ))}
               </select>
             </label>
-            <button disabled={!snapshot || busy || conflict} onClick={() => void preview()}>
+            <button
+              disabled={!snapshot || busy || conflict || settingsPending}
+              aria-describedby={settingsPending ? 'template-settings-preview-reason' : undefined}
+              onClick={() => void preview()}
+            >
               Preview draft
             </button>
+            {settingsPending && (
+              <span id="template-settings-preview-reason">
+                Apply or cancel the layout setting changes before previewing.
+              </span>
+            )}
             <button
               disabled={loading}
               onClick={() => {
@@ -445,6 +488,22 @@ export default function TemplateDraftPreviewPage({ client: supplied }: { client?
               ))}
             </section>
           </div>
+          {snapshot?.data.document === caseId && (
+            <details className="template-layout-settings-disclosure" key={`${caseId}:${snapshot.revision}`}>
+              <summary>Advanced layout settings</summary>
+              <LayoutSettingsPanel
+                caseId={caseId}
+                snapshot={snapshot}
+                source={layoutSource}
+                text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
+                conflict={conflict}
+                onApply={applyLayoutSettings}
+                onConflict={markConflict}
+                onPendingChange={setSettingsPending}
+                client={settingsClient}
+              />
+            </details>
+          )}
           {compareSaved && (
             <section className="sheet template-preview-comparison" aria-label="Saved-template comparison">
               <h2>Compare with saved template</h2>

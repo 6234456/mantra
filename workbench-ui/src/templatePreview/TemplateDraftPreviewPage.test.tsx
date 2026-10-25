@@ -6,6 +6,7 @@ import TemplateDraftPreviewPage from './TemplateDraftPreviewPage'
 import { TemplatePreviewError } from './client'
 import type { TemplatePreview, TemplatePreviewClient, TemplateSources } from './client'
 import { firstCase, secondCase, formulaDiagnostic, templatePreview, templateSources } from './fixtures.test.helpers'
+import type { LayoutSettings, LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
 
 beforeEach(() => {
   vi.stubGlobal('matchMedia', () => ({
@@ -537,4 +538,109 @@ it('shows unsupported fixture and package modes without reaching a file-workspac
   expect(screen.getByRole('alert').textContent).toContain('Package workspaces do not provide this endpoint')
   expect(client.workspace).not.toHaveBeenCalled()
   expect(client.sources).not.toHaveBeenCalled()
+})
+
+async function openLayoutSettings() {
+  const client = fakeClient()
+  const layout = templateSources().data.documents.find((item) => item.role === 'layout')!
+  const settingsClient = {
+    settings: vi.fn<LayoutSettingsClient['settings']>(async (_case, request) => {
+      const suffix = request.operations.length ? '\n; layout settings applied' : ''
+      return {
+        contract: 'mantra.workbench/4',
+        revision: request.baseRevision,
+        engine: templateSources().engine,
+        data: {
+          document: firstCase,
+          draftSequence: request.draftSequence,
+          baseRevisions: request.baseRevisions,
+          scope: 'layout',
+          layoutId: 'example/layout',
+          preset: 'de-staffel-4',
+          source: { handle: layout.handle, document: layout.document, text: request.text + suffix },
+          properties: [
+            {
+              id: 'precision',
+              label: 'Precision',
+              type: 'integer',
+              group: 'numbers',
+              options: [],
+              minimum: 0,
+              maximum: 18,
+              declared: true,
+              explicitValue: { n: '2' },
+              inheritedValue: { n: '2' },
+              effectiveValue: { n: '2' },
+              editable: true,
+              reason: null,
+              canUnset: true,
+            },
+          ],
+          patches: suffix
+            ? [
+                {
+                  startOffset: request.text.length,
+                  endOffset: request.text.length,
+                  text: suffix,
+                  removedText: '',
+                },
+              ]
+            : [],
+        },
+      } as Envelope<LayoutSettings>
+    }),
+  }
+  render(<TemplateDraftPreviewPage client={client} settingsClient={settingsClient} />)
+  await waitFor(() =>
+    expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(false),
+  )
+  await previewCurrent()
+  fireEvent.change(screen.getByLabelText('Participating document'), { target: { value: layout.handle } })
+  fireEvent.click(screen.getByText('Advanced layout settings'))
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect layout settings' }))
+  const precision = (await screen.findByLabelText('Layout setting precision')) as HTMLInputElement
+  return { client, layout, settingsClient, precision }
+}
+
+it('treats unapplied layout fields as a guarded draft and never previews the old source as current', async () => {
+  const { client, precision } = await openLayoutSettings()
+  fireEvent.change(precision, { target: { value: '0' } })
+  const preview = screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement
+  expect(preview.disabled).toBe(true)
+  expect(screen.getByText('Apply or cancel the layout setting changes before previewing.').id).toBe(
+    preview.getAttribute('aria-describedby'),
+  )
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Previous engine preview/)
+  fireEvent.click(preview)
+  expect(client.preview).toHaveBeenCalledOnce()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.change(screen.getByLabelText('Example case'), { target: { value: secondCase } })
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(client.sources).toHaveBeenCalledOnce()
+  expect(precision.value).toBe('0')
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel setting changes' }))
+  expect(preview.disabled).toBe(false)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Current engine preview/)
+})
+
+it('applies a settings source patch to the real draft context while keeping the saved-template baseline independent', async () => {
+  const { client, layout, settingsClient, precision } = await openLayoutSettings()
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Compare with saved template' }))
+  await savedPreviewCurrent()
+  const before = client.preview.mock.calls.length
+  fireEvent.change(precision, { target: { value: '0' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  await screen.findByText('Settings applied to the source draft. Preview the draft to update its results.')
+  const request: LayoutSettingsRequest = settingsClient.settings.mock.lastCall![1]
+  expect(request.operations).toEqual([{ op: 'set', property: 'precision', text: '0' }])
+  expect(client.preview).toHaveBeenCalledTimes(before)
+  expect(screen.getByTestId('template-baseline-status').textContent).toMatch(/^Saved-template preview/)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Previous engine preview/)
+  expect((screen.getByRole('textbox', { name: 'Draft source ' + layout.document }) as HTMLTextAreaElement).value).toBe(
+    layout.text + '\n; layout settings applied',
+  )
+  await previewCurrent()
+  expect(client.preview.mock.lastCall![1].documents.find((item) => item.handle === layout.handle)?.text).toBe(
+    layout.text + '\n; layout settings applied',
+  )
 })
