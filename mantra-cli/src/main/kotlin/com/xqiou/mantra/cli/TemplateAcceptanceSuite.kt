@@ -15,12 +15,14 @@ import java.security.MessageDigest
 import java.time.LocalDate
 
 internal const val TEMPLATE_ACCEPTANCE_FORMAT = "mantra.template-acceptance/1"
+internal const val TEMPLATE_ACCEPTANCE_FORMAT_V2 = "mantra.template-acceptance/2"
 internal const val TEMPLATE_ACCEPTANCE_BYTES = 2 * 1024 * 1024
 
 internal data class TemplateAcceptanceSuite(
     val documents: List<AcceptanceDocument>,
     val cases: List<AcceptanceCase>,
     val sha256: String,
+    val format: String = TEMPLATE_ACCEPTANCE_FORMAT,
 )
 
 internal data class AcceptanceDocument(val document: String, val role: String, val sha256: String, val text: String)
@@ -41,6 +43,7 @@ internal data class AcceptanceExpectation(
     val validationPassed: Boolean,
     val values: List<AcceptanceValueExpectation>,
     val diagnostics: List<AcceptanceDiagnosticExpectation>?,
+    val paper: AcceptancePaperExpectation? = null,
 )
 
 /** fields distinguishes an omitted optional assertion from one explicitly asserting null. */
@@ -82,7 +85,10 @@ internal fun parseTemplateAcceptanceSuite(bytes: ByteArray): TemplateAcceptanceS
     val root = requireNotNull(mapper.readTree(text)) { "Template acceptance suite must be a JSON object" }
     checkTextBudget(root)
     root.acceptanceFields(setOf("format", "documents", "cases"))
-    require(root.acceptanceText("format") == TEMPLATE_ACCEPTANCE_FORMAT) { "Unsupported template acceptance format" }
+    val format = root.acceptanceText("format")
+    require(format in setOf(TEMPLATE_ACCEPTANCE_FORMAT, TEMPLATE_ACCEPTANCE_FORMAT_V2)) {
+        "Unsupported template acceptance format"
+    }
     val documents = root.acceptanceArray("documents", 1, 2).map { document ->
         document.acceptanceFields(setOf("document", "role", "sha256", "text"))
         AcceptanceDocument(
@@ -98,14 +104,16 @@ internal fun parseTemplateAcceptanceSuite(bytes: ByteArray): TemplateAcceptanceS
         "Candidate documents require exactly one schema and at most one layout"
     }
     acceptanceUnique(documents.map { it.document }, "candidate document")
-    val cases = root.acceptanceArray("cases", 1, 32).map(::parseAcceptanceCase)
+    val cases = root.acceptanceArray("cases", 1, 32).map { parseAcceptanceCase(it, format) }
     acceptanceUnique(cases.map { it.id }, "case id")
-    require(cases.sumOf { it.expect?.values?.size ?: 0 } <= 2048) { "Suite exceeds 2048 value assertions" }
+    require(cases.sumOf { (it.expect?.values?.size ?: 0) + (it.expect?.paper?.selectorCount ?: 0) } <= 2048) {
+        "Suite exceeds 2048 acceptance selectors"
+    }
     val sha256 = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
-    return TemplateAcceptanceSuite(documents, cases, sha256)
+    return TemplateAcceptanceSuite(documents, cases, sha256, format)
 }
 
-private fun parseAcceptanceCase(node: JsonNode): AcceptanceCase {
+private fun parseAcceptanceCase(node: JsonNode, format: String): AcceptanceCase {
     node.acceptanceFields(
         setOf("id", "case", "baseRevision", "baseRevisions", "inputs", "expect"),
         setOf("panel", "includeZero"),
@@ -125,7 +133,7 @@ private fun parseAcceptanceCase(node: JsonNode): AcceptanceCase {
         TemplateInputText(input.acceptanceText("node", nonblank = true), input.acceptanceText("text"))
     }
     acceptanceUnique(inputs.map { it.node }, "input node")
-    val expected = node["expect"].let { if (it.isNull) null else parseAcceptanceExpectation(it) }
+    val expected = node["expect"].let { if (it.isNull) null else parseAcceptanceExpectation(it, format) }
     return AcceptanceCase(
         id,
         node.acceptanceText("case", nonblank = true),
@@ -138,8 +146,9 @@ private fun parseAcceptanceCase(node: JsonNode): AcceptanceCase {
     )
 }
 
-private fun parseAcceptanceExpectation(node: JsonNode): AcceptanceExpectation {
-    node.acceptanceFields(setOf("succeeded", "validationPassed", "values"), setOf("diagnostics"))
+private fun parseAcceptanceExpectation(node: JsonNode, format: String): AcceptanceExpectation {
+    val optional = if (format == TEMPLATE_ACCEPTANCE_FORMAT_V2) setOf("diagnostics", "paper") else setOf("diagnostics")
+    node.acceptanceFields(setOf("succeeded", "validationPassed", "values"), optional)
     val values = node.acceptanceArray("values", 0, 256).map { value ->
         value.acceptanceFields(
             setOf("node", "present"),
@@ -187,11 +196,14 @@ private fun parseAcceptanceExpectation(node: JsonNode): AcceptanceExpectation {
     } else {
         null
     }
+    val paper = if (node.has("paper")) parseAcceptancePaper(node["paper"]) else null
+    require(values.size + (paper?.selectorCount ?: 0) <= 256) { "Case exceeds 256 acceptance selectors" }
     return AcceptanceExpectation(
         node.acceptanceBoolean("succeeded"),
         node.acceptanceBoolean("validationPassed"),
         values,
         diagnostics,
+        paper,
     )
 }
 
@@ -253,7 +265,7 @@ internal fun exactAcceptanceValueEquals(expected: Any?, actual: Any?): Boolean {
     return expected == actual
 }
 
-private fun JsonNode.acceptanceFields(required: Set<String>, optional: Set<String> = emptySet()) {
+internal fun JsonNode.acceptanceFields(required: Set<String>, optional: Set<String> = emptySet()) {
     require(isObject) { "Expected a JSON object" }
     val fields = fieldNames().asSequence().toSet()
     require(fields.containsAll(required) && fields.all { it in required || it in optional }) {
@@ -261,13 +273,13 @@ private fun JsonNode.acceptanceFields(required: Set<String>, optional: Set<Strin
     }
 }
 
-private fun JsonNode.acceptanceText(key: String, nonblank: Boolean = false): String {
+internal fun JsonNode.acceptanceText(key: String, nonblank: Boolean = false): String {
     val value = this[key]
     require(value?.isTextual == true) { "$key must be text" }
     return value.textValue().also { require(!nonblank || it.isNotBlank()) { "$key must not be blank" } }
 }
 
-private fun JsonNode.acceptanceBoolean(key: String): Boolean {
+internal fun JsonNode.acceptanceBoolean(key: String): Boolean {
     val value = this[key]
     require(value?.isBoolean == true) { "$key must be boolean" }
     return value.booleanValue()
@@ -277,13 +289,13 @@ private fun JsonNode.acceptanceHash(key: String): String = acceptanceText(key).a
     require(ACCEPTANCE_HASH.matches(it)) { "$key must be a lowercase SHA-256 string" }
 }
 
-private fun JsonNode.acceptanceArray(key: String, minimum: Int, maximum: Int): List<JsonNode> {
+internal fun JsonNode.acceptanceArray(key: String, minimum: Int, maximum: Int): List<JsonNode> {
     val value = this[key]
     require(value?.isArray == true && value.size() in minimum..maximum) { "$key array exceeds its allowed item count" }
     return value.toList()
 }
 
-private fun acceptanceUnique(values: List<Any?>, label: String) {
+internal fun acceptanceUnique(values: List<Any?>, label: String) {
     require(values.distinct().size == values.size) { "Duplicate $label" }
 }
 

@@ -1,0 +1,396 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-acceptance-v2.schema.json",
+  "title": "Read-only multi-case template and Paper acceptance suite v2",
+  "description": "Standalone v2 suite. The strict runtime reader additionally enforces decoded duplicate-key rejection, UTF-8, byte/depth/UTF-16 budgets, source and selector identity uniqueness, and the combined values/tables/cells/title assertion budgets (256 per case, 2048 per suite). Scalar Run assertions remain unchanged; Paper cells use their actual structured addresses.",
+  "type": "object",
+  "required": [
+    "format",
+    "documents",
+    "cases"
+  ],
+  "properties": {
+    "format": {
+      "const": "mantra.template-acceptance/2"
+    },
+    "documents": {
+      "$ref": "template-acceptance.schema.json#/properties/documents"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "case",
+        "baseRevision",
+        "baseRevisions",
+        "inputs",
+        "expect"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/id"
+        },
+        "case": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/case"
+        },
+        "baseRevision": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/baseRevision"
+        },
+        "baseRevisions": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/baseRevisions"
+        },
+        "inputs": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/inputs"
+        },
+        "panel": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/panel"
+        },
+        "includeZero": {
+          "$ref": "template-acceptance.schema.json#/$defs/case/properties/includeZero"
+        },
+        "expect": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/expectation"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "expectation": {
+      "type": "object",
+      "required": [
+        "succeeded",
+        "validationPassed",
+        "values"
+      ],
+      "properties": {
+        "succeeded": {
+          "$ref": "template-acceptance.schema.json#/$defs/expectation/properties/succeeded"
+        },
+        "validationPassed": {
+          "$ref": "template-acceptance.schema.json#/$defs/expectation/properties/validationPassed"
+        },
+        "values": {
+          "$ref": "template-acceptance.schema.json#/$defs/expectation/properties/values"
+        },
+        "diagnostics": {
+          "$ref": "template-acceptance.schema.json#/$defs/expectation/properties/diagnostics"
+        },
+        "paper": {
+          "$ref": "#/$defs/paper"
+        }
+      },
+      "additionalProperties": false
+    },
+    "paper": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "title": {
+          "$ref": "template-acceptance.schema.json#/$defs/text"
+        },
+        "tables": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/table"
+          }
+        },
+        "cells": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/cell"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "table": {
+      "type": "object",
+      "required": [
+        "id",
+        "present"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+        },
+        "present": {
+          "type": "boolean"
+        },
+        "title": {
+          "$ref": "template-acceptance.schema.json#/$defs/text"
+        },
+        "style": {
+          "enum": [
+            "tiered",
+            "matrix",
+            "transpose"
+          ]
+        },
+        "columns": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/column"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "present": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "title"
+                  ]
+                },
+                {
+                  "required": [
+                    "style"
+                  ]
+                },
+                {
+                  "required": [
+                    "columns"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "column": {
+      "type": "object",
+      "required": [
+        "id",
+        "header"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+        },
+        "header": {
+          "$ref": "template-acceptance.schema.json#/$defs/text"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cell": {
+      "type": "object",
+      "required": [
+        "table",
+        "column",
+        "present"
+      ],
+      "properties": {
+        "table": {
+          "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+        },
+        "column": {
+          "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+        },
+        "row": {
+          "$ref": "#/$defs/row"
+        },
+        "address": {
+          "$ref": "#/$defs/address"
+        },
+        "present": {
+          "type": "boolean"
+        },
+        "text": {
+          "$ref": "template-acceptance.schema.json#/$defs/text"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "row"
+              ]
+            },
+            {
+              "required": [
+                "address"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "present": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "text"
+                ]
+              },
+              {
+                "required": [
+                  "editable"
+                ]
+              },
+              {
+                "required": [
+                  "style"
+                ]
+              }
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "text"
+                  ]
+                },
+                {
+                  "required": [
+                    "editable"
+                  ]
+                },
+                {
+                  "required": [
+                    "style"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "row": {
+      "type": "object",
+      "required": [
+        "node"
+      ],
+      "properties": {
+        "node": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+            }
+          ]
+        },
+        "kind": {
+          "enum": [
+            "heading",
+            "value",
+            "option",
+            "member",
+            "subtotal",
+            "result",
+            "total",
+            "note",
+            "reference"
+          ]
+        },
+        "optionKey": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "address": {
+      "type": "object",
+      "required": [
+        "node",
+        "coord"
+      ],
+      "properties": {
+        "node": {
+          "$ref": "template-acceptance.schema.json#/$defs/nonblank"
+        },
+        "coord": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "template-acceptance.schema.json#/$defs/text"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "style": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "weight": {
+          "enum": [
+            "normal",
+            "bold"
+          ]
+        },
+        "tone": {
+          "enum": [
+            "default",
+            "muted",
+            "accent"
+          ]
+        },
+        "fill": {
+          "enum": [
+            "none",
+            "subtle",
+            "accent"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -11,7 +11,12 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-private data class AcceptanceOptions(val positional: List<String>, val workspace: Path, val output: Path?)
+private data class AcceptanceOptions(
+    val positional: List<String>,
+    val workspace: Path,
+    val output: Path?,
+    val format: String,
+)
 
 /** Independently versioned, read-only acceptance commands; legacy commands keep their existing syntax. */
 internal fun executeTemplateAcceptanceCli(args: Array<String>, out: PrintStream, err: PrintStream): Int {
@@ -25,7 +30,7 @@ internal fun executeTemplateAcceptanceCli(args: Array<String>, out: PrintStream,
     return try {
         WorkspaceCatalog(options.workspace).use { catalog ->
             if (command == "template-capture") {
-                val capture = captureTemplateAcceptanceSuite(catalog, options.positional)
+                val capture = captureTemplateAcceptanceSuite(catalog, options.positional, options.format)
                 val payload = WorkbenchJson.write(capture.suite)
                 // A capture must itself fit the public reader, including a large dependency graph.
                 parseTemplateAcceptanceSuite(payload.toByteArray(Charsets.UTF_8))
@@ -85,7 +90,14 @@ private fun acceptanceOptions(args: Array<String>): AcceptanceOptions {
         val arg = args[index++]
         if (arg.startsWith("--")) {
             val key = arg.removePrefix("--")
-            require(key in setOf("workspace", "out") && key !in named) { "Unexpected or duplicate option $arg" }
+            val allowed = if (command ==
+                "template-capture"
+            ) {
+                setOf("workspace", "out", "format")
+            } else {
+                setOf("workspace", "out")
+            }
+            require(key in allowed && key !in named) { "Unexpected or duplicate option $arg" }
             val value = args.getOrNull(index++)
             require(value != null && value.isNotBlank() && !value.startsWith("--")) { "$arg requires a value" }
             named[key] = value
@@ -104,7 +116,12 @@ private fun acceptanceOptions(args: Array<String>): AcceptanceOptions {
         }
     }
     val workspace = named["workspace"] ?: throw IllegalArgumentException("--workspace is required")
-    return AcceptanceOptions(positional, Path.of(workspace), named["out"]?.let(Path::of))
+    val format = when (named["format"]) {
+        null, "1" -> TEMPLATE_ACCEPTANCE_FORMAT
+        "2" -> TEMPLATE_ACCEPTANCE_FORMAT_V2
+        else -> throw IllegalArgumentException("--format must be 1 or 2")
+    }
+    return AcceptanceOptions(positional, Path.of(workspace), named["out"]?.let(Path::of), format)
 }
 
 /** Replace the output entry without following its final symlink or writing through a hard link. */

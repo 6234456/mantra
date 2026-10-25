@@ -27,7 +27,14 @@ private data class AcceptanceSnapshot(
 }
 
 /** Capture source identities only. In particular, do not turn a computed output into its own oracle. */
-internal fun captureTemplateAcceptanceSuite(catalog: WorkspaceCatalog, caseIds: List<String>): AcceptanceCapture {
+internal fun captureTemplateAcceptanceSuite(
+    catalog: WorkspaceCatalog,
+    caseIds: List<String>,
+    format: String = TEMPLATE_ACCEPTANCE_FORMAT,
+): AcceptanceCapture {
+    require(format in setOf(TEMPLATE_ACCEPTANCE_FORMAT, TEMPLATE_ACCEPTANCE_FORMAT_V2)) {
+        "Unsupported template acceptance format"
+    }
     require(caseIds.size in 1..32) { "Capture requires between 1 and 32 cases" }
     val snapshots = caseIds.distinct().associateWith { acceptanceSnapshot(catalog, it) }
     val roots = snapshots.values.first().roots
@@ -59,7 +66,7 @@ internal fun captureTemplateAcceptanceSuite(catalog: WorkspaceCatalog, caseIds: 
         )
     }
     return AcceptanceCapture(
-        linkedMapOf("format" to "mantra.template-acceptance/1", "documents" to documents, "cases" to cases),
+        linkedMapOf("format" to format, "documents" to documents, "cases" to cases),
         snapshots.values.flatMap {
             it.revisions.keys + it.documents.map { source -> source["document"] as String }
         }.toSet(),
@@ -95,7 +102,7 @@ internal fun runTemplateAcceptanceSuite(
     }
     var sourceCaptureComplete = failures.isEmpty()
     val results = suite.cases.mapIndexed { index, example ->
-        val result = acceptanceResult(example)
+        val result = acceptanceResult(example, suite.format)
         try {
             failures[example.caseId]?.let { throw it }
             val captured = snapshots.getValue(example.caseId)
@@ -117,6 +124,7 @@ internal fun runTemplateAcceptanceSuite(
             listOf("proposedRevision", "succeeded", "validationPassed", "diagnostics", "difference").forEach { field ->
                 result[field] = response[field]
             }
+            if (suite.format == TEMPLATE_ACCEPTANCE_FORMAT_V2) result["paper"] = response["paper"]
             val assertions = acceptanceAssertions(example.expect, response)
             result["assertions"] = assertions
             result["status"] = if (assertions.all { it["passed"] == true }) "passed" else "failed"
@@ -154,7 +162,11 @@ internal fun runTemplateAcceptanceSuite(
     }
     return AcceptanceRun(
         linkedMapOf(
-            "format" to "mantra.template-acceptance-report/1",
+            "format" to if (suite.format == TEMPLATE_ACCEPTANCE_FORMAT_V2) {
+                "mantra.template-acceptance-report/2"
+            } else {
+                "mantra.template-acceptance-report/1"
+            },
             "engine" to linkedMapOf("mantra" to RuntimeVersions.mantra, "normein" to RuntimeVersions.normein),
             "suiteSha256" to suite.sha256,
             "passed" to (status == 0),
@@ -209,7 +221,7 @@ private fun requireFreshSnapshot(caseId: String, captured: AcceptanceSnapshot, c
     }
 }
 
-private fun acceptanceResult(example: AcceptanceCase): MutableMap<String, Any?> = linkedMapOf(
+private fun acceptanceResult(example: AcceptanceCase, format: String): MutableMap<String, Any?> = linkedMapOf(
     "id" to example.id,
     "case" to example.caseId,
     "status" to "error",
@@ -222,7 +234,7 @@ private fun acceptanceResult(example: AcceptanceCase): MutableMap<String, Any?> 
     "difference" to null,
     "assertions" to emptyList<Any>(),
     "error" to null,
-)
+).apply { if (format == TEMPLATE_ACCEPTANCE_FORMAT_V2) put("paper", null) }
 
 private fun acceptanceFailure(result: MutableMap<String, Any?>, error: Exception) {
     result["status"] =
@@ -318,5 +330,9 @@ private fun acceptanceAssertions(
                 linkedMapOf("code" to key.first, "severity" to key.second, "count" to count)
             }
         assertion("/diagnostics", countsTree(expectedCounts), countsTree(actualCounts), expectedCounts == actualCounts)
+    }
+    expected.paper?.let { paper ->
+        @Suppress("UNCHECKED_CAST")
+        addAll(paperAcceptanceAssertions(paper, preview.getValue("paper") as Map<String, Any?>))
     }
 }

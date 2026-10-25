@@ -49,7 +49,7 @@ Usage:
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
   mantra serve <workspace> [--port <number>] [--ui <workbench-ui/dist>]
              [--packages <host-config.json>] [--directory-policy strict-handles|trusted-local]
-  mantra template-capture <case.mantra> [more cases...] --workspace <dir> [--out <suite.json>]
+  mantra template-capture <case.mantra> [more cases...] --workspace <dir> [--format 1|2] [--out <suite.json>]
   mantra template-verify <suite.json> --workspace <dir> [--out <report.json>]
   mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
               [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
