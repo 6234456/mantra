@@ -17,6 +17,7 @@ const names = [
   'preview-paper',
   'template-sources',
   'template-preview',
+  'template-layout-settings',
   'workspace',
   'compare',
   'parameters',

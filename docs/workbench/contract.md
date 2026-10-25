@@ -498,6 +498,52 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 
 本接口完成只读候选计算切片；owner／语义补丁、文件提交、D-A1、构建记录和发布仍需各自合同。
 
+**根版式高级设置（文件工作区，2026-10-25）**：G-A16／G-A18 的首个有界切片。
+`POST …/template-layout-settings` 读取或修改客户端提交的根 layout 原文，返回属性目录与源补丁；
+不写文件、不计算案例、不推进历史，不代表草稿已通过计算、正式保存或发布。
+它使用现有会话令牌、1 MiB 请求预算和 v4 envelope，不接受查询参数，其他方法返回 405；包宿主不提供该端点。
+
+- 请求必须且仅包含 `{baseRevision, baseRevisions, draftSequence, handle, text, operations}`。
+  修订、完整参与源映射、序号和 document handle 与 `template-sources` 相同；`handle` 必须对应
+  根案例可编辑的 layout，不能是 schema／case／include，也不接受路径或客户端源偏移。
+  `text` 是当前根 layout 的完整原文，最多 65536 个 UTF-16 code units；身份、根形式与 include 路径保持不变。
+  已保存基准仍须技术有效；运行时失败或业务 finding 不阻止获取设置。当前未提交的 schema 文本不在该请求中，
+  因此成功的设置响应不证明 schema 草稿有效。返回前重验完整基准图，任何参与源变化返回 409；
+  基准已损坏／删除且已捕获摘要变化时仍返回 409，而不是覆盖为 422／404。
+- `operations` 是至多 16 项操作，可为空。空数组只检查当前文本并返回目录；同一属性不可重复。
+  set 项必须且仅含 `{op:"set", property, text}`，text 为用户原始文本；unset 项必须且仅含
+  `{op:"unset", property}`。未知属性、错误操作、重复项、额外字段、重复 JSON 键、非法序号或句柄返回 400。
+  值不合法、布局语法／身份错误、根 metadata 重复键或不能唯一定位的属性返回带诊断的 422。
+- 首批仅开放根 layout metadata 的 14 个属性：`title`、`subtitle`、`locale`、`language`、`precision`、
+  `percent-precision`、`negative`、`zero`、`grouping`、`hide-zero`、`show-inactive`、`expand-members`、
+  `signed`、`row-numbers`。不修改 preset、表级覆盖、列、样式定义或计算舍入；不将全局有效值当作各单元格最终格式。
+  title／subtitle／zero 为原始文本（包括合法空字符串）；布尔文本仅 `true`／`false`；enum 省略冒号，
+  language 仅 de／en，negative 为 minus／parentheses，row-numbers 为 global／table。
+  locale 必须是非空、可解析且含语言的 BCP 47 标签，不静默回退。precision／percent-precision 必须为
+  0–18 的十进制整数原文；这是本编辑入口的上限，不改变 DSL reader 对既有原文的语义。
+  文本经正式 literal 编码后写入；不能注入表达式或将显示精度变成计算 round。
+- 当前源中合法但超出编辑范围的数值、nil 或非字面量属性保持原样；目录标为只读并给出原因，允许显式 unset
+  恢复继承时以 canUnset 表达。表单不得自行归一化这些值。未知选项和注释、换行、其他声明保持原字节；
+  unset 只移除该属性键值，set 只替换值或插入缺失的 metadata／键值。无变化时补丁为空。
+- 响应 `data` 为 `{document, draftSequence, baseRevisions, scope:"layout", layoutId, preset,
+  source:{handle, document, text}, properties, patches}`，外层 revision 仍为捕获基准图修订。
+  properties 每项为 `{id,label,group,type,options,minimum,maximum,declared,explicitValue,
+  inheritedValue,effectiveValue,editable,reason,canUnset}`；group 为 report／numbers／visibility，
+  type 为 text／enum／integer／boolean，options 为合法 enum 文本数组，minimum／maximum 为有限结构整数或 null。
+  三个 value 使用 §6.1 精确编码：Decimal 为 `{n:"…"}`，keyword 为 `{kw:"…"}`，文本、布尔和 nil 保持其类型。
+  declared=false 与显式 null／false／0／空字符串分别保留。inheritedValue 来自当前 preset／相应引擎默认，
+  effectiveValue 来自正式 LayoutReader 的根版式配置；不推断 schema／表级呈现提示覆盖后的最终单元格值。
+  title／subtitle 继承值为 null 时，最终 Paper 可另按 schema 标题回退，该值不在本属性目录中冒充已解析结果。
+- 每个 patch 为 `{startOffset,endOffset,text,removedText}`，偏移是 UTF-16，按数组顺序作用于前一步文本。
+  removedText 必须与对应范围完全相等；逆序以 removedText 替换插入的 text 可还原精确输入原文。
+  应用全部补丁必须恰等于 source.text。客户端还须核对 case、完整基准映射、序号、句柄及仍然相同的请求文本；
+  手工源码或设置缓冲已更新时，旧响应不能覆盖它们。成功接纳源补丁后原候选预览标为 Previous；
+  仍需 `template-preview` 重新计算，保存基准预览不因内存草稿改变而被污染。
+
+字段 Reset 表示 unset／恢复继承；Cancel 只取消尚未应用的本地缓冲。当前切片没有模板文件 Save，
+不选择 D-A1，也不关闭完整 G-A1–G-A3、G-A16–G-A18 的后续属性／声明编辑缺口。
+响应形状见 [template-layout-settings.schema.json](schema/template-layout-settings.schema.json)。
+
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
 | `op` | JSON 字段 |

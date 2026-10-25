@@ -525,6 +525,57 @@ export type TemplatePreview = Omit<Envelope, 'data'> & {
   }
 }
 
+export type TemplateLayoutSettings = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'layout'
+    layoutId: string
+    preset: string
+    source: { handle: string; document: string; text: string }
+    properties: Array<TemplateLayoutSettingsProperty>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateLayoutSettingsPropertyId =
+  | 'title'
+  | 'subtitle'
+  | 'locale'
+  | 'language'
+  | 'precision'
+  | 'percent-precision'
+  | 'negative'
+  | 'zero'
+  | 'grouping'
+  | 'hide-zero'
+  | 'show-inactive'
+  | 'expand-members'
+  | 'signed'
+  | 'row-numbers'
+export type TemplateLayoutSettingsProperty = {
+  id: TemplateLayoutSettingsPropertyId
+  label: string
+  group: 'report' | 'numbers' | 'visibility'
+  type: 'text' | 'enum' | 'integer' | 'boolean'
+  options: Array<string>
+  minimum: number | null
+  maximum: number | null
+  declared: boolean
+  explicitValue: Value
+  inheritedValue: Value
+  effectiveValue: Value
+  editable: boolean
+  reason: string | null
+  canUnset: boolean
+}
+export type TemplateLayoutSettingsSourcePatch = {
+  startOffset: number
+  endOffset: number
+  text: string
+  removedText: string
+}
+
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
     cases: Array<{
