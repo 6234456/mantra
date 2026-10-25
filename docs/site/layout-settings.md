@@ -20,8 +20,8 @@ Package workspaces do not provide the settings endpoint.
    into the document. **Cancel setting changes** discards unapplied fields and keeps the source intact.
 4. Click **Apply layout settings**. The server returns exact source patches and the updated root
    properties. The page accepts them only if the case, captured revision and current layout text
-   still match the request. The source editor receives the changes and the earlier candidate becomes
-   **Previous**; the captured saved-template comparison remains independent.
+   still match the request. When the source changes, the source editor receives the changes and the
+   earlier candidate becomes **Previous**; the captured saved-template comparison remains independent.
 5. Click **Preview draft** to see the actual calculation, formatted tables and Explain. While fields
    are unapplied, preview is disabled with an Apply/Cancel reminder, so it cannot silently calculate
    the old source instead of the settings you are editing.
