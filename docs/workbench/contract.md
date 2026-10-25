@@ -705,6 +705,10 @@ schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字
 `mantra.authoring-recovery/1` 分离，真实 live 页面不运行时导入 `src/authoring`。
 身份响应见 [template-recovery-context.schema.json](schema/template-recovery-context.schema.json)。
 
+**多案例模板验收 CLI（2026-10-25）**：独立版本的源修订锁定套件与报告复用本节真实候选计算，
+不改变 HTTP v4。详见 [CLI 验收合同](visual-editor/template-acceptance-contract.md)；capture 不生成预期，
+verify 对同一候选根模板的多个案例及原始标量输入进行只读验收，末尾再次核对完整源图。
+
 ## 8. 数据接入与公式编辑
 
 ### 8.1 导入
