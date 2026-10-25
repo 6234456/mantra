@@ -61,6 +61,12 @@ a genuine breaking-change counterexample, source and already-compiled consumer c
 normal complete CI gates. Changes to numerical semantics additionally update the normative clause
 and independently authored expected values; regenerating expectations from the engine is prohibited.
 
+Browser recovery uses the optional authenticated `/api/v1/template-recovery-context` endpoint.
+Existing v4 workspace and template-source response fields and schemas remain unchanged; the client
+combines recovery identity with its source snapshot only in memory. A server without this capability
+still supports ordinary draft preview, while recovery and backup remain unavailable. The portable
+`mantra.template-preview-recovery/1` format is versioned separately and carries no trusted results.
+
 Wire consumers reject unsupported major versions before editing. Adding an optional field is not
 inherently compatible with an older strict JSON schema: supported clients and schema revisions must
 accept the change, or the incompatibility must be versioned. Do not call a required client upgrade

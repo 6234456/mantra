@@ -52,6 +52,7 @@ const failures = []
 const passed = []
 const responses = []
 const sourceResponses = []
+const recoveryContextResponses = []
 const settingsResponses = []
 const styleResponses = []
 const screenshots = []
@@ -61,6 +62,7 @@ const network = new Map()
 const pausedResponses = []
 const cancelledRequests = []
 const cancelledSourceRequests = []
+const cancelledRecoveryContextRequests = []
 const cancelledSettingsRequests = []
 const cancelledStyleRequests = []
 const externalChanges = []
@@ -69,6 +71,7 @@ let interrupted = false
 let closing = false
 let filesVerified = 0
 let failurePage
+let downloadSequence = 0
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
 
 function start(command, args, options = {}) {
@@ -200,7 +203,9 @@ async function connect(url) {
     }
     if (
       response.method === 'Network.requestWillBeSent' &&
-      ((params.request.method === 'GET' && params.request.url.endsWith('/template-sources')) ||
+      ((params.request.method === 'GET' &&
+        (params.request.url.endsWith('/template-sources') ||
+          params.request.url.endsWith('/template-recovery-context'))) ||
         (params.request.method === 'POST' &&
           (params.request.url.endsWith('/template-preview') ||
             params.request.url.endsWith('/template-layout-settings') ||
@@ -209,7 +214,8 @@ async function connect(url) {
       // Keep only JSON body evidence, never session-token request headers.
       network.set(params.requestId, {
         request: params.request.method === 'GET' ? null : JSON.parse(params.request.postData),
-        sources: params.request.method === 'GET',
+        sources: params.request.url.endsWith('/template-sources'),
+        recoveryContext: params.request.url.endsWith('/template-recovery-context'),
         settings: params.request.url.endsWith('/template-layout-settings'),
         styles: params.request.url.endsWith('/template-style-classes'),
       })
@@ -220,13 +226,15 @@ async function connect(url) {
     if (response.method === 'Network.loadingFailed' && network.has(params.requestId)) {
       const captured = network.get(params.requestId)
       network.delete(params.requestId)
-      const cancellations = captured.sources
-        ? cancelledSourceRequests
-        : captured.settings
-          ? cancelledSettingsRequests
-          : captured.styles
-            ? cancelledStyleRequests
-            : cancelledRequests
+      const cancellations = captured.recoveryContext
+        ? cancelledRecoveryContextRequests
+        : captured.sources
+          ? cancelledSourceRequests
+          : captured.settings
+            ? cancelledSettingsRequests
+            : captured.styles
+              ? cancelledStyleRequests
+              : cancelledRequests
       cancellations.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
       if (!params.canceled && !closing) failures.push(new Error(`Preview HTTP request failed: ${params.errorText}`))
     }
@@ -240,13 +248,15 @@ async function connect(url) {
         .send('Network.getResponseBody', { requestId: params.requestId })
         .then(({ body, base64Encoded }) => {
           captured.body = JSON.parse(base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body)
-          ;(captured.sources
-            ? sourceResponses
-            : captured.settings
-              ? settingsResponses
-              : captured.styles
-                ? styleResponses
-                : responses
+          ;(captured.recoveryContext
+            ? recoveryContextResponses
+            : captured.sources
+              ? sourceResponses
+              : captured.settings
+                ? settingsResponses
+                : captured.styles
+                  ? styleResponses
+                  : responses
           ).push(captured)
         })
         .catch((error) => {
@@ -540,6 +550,30 @@ async function historyBlockedByFields() {
 const recoveryNamespace = 'mantra.template-preview.recovery.v1.'
 const recoveryKey = () => `${recoveryNamespace}${workspaceId}.${encodeURIComponent('case.mantra')}`
 
+function plainSourceSnapshot(captured) {
+  assert.equal(captured.status, 200, JSON.stringify(captured.body))
+  assert.deepEqual(Object.keys(captured.body.data).sort(), ['baseRevisions', 'document', 'documents'])
+  assert.equal(Object.hasOwn(captured.body.data, 'workspaceId'), false, 'The existing v4 source wire remains unchanged')
+}
+
+async function recoveryIdentity(start = 0) {
+  const captured = await until(
+    () => recoveryContextResponses.slice(start).find((item) => item.status === 200),
+    'real optional session-bound recovery identity',
+  )
+  assert.equal(captured.body.contract, 'mantra.workbench/4')
+  assert.deepEqual(Object.keys(captured.body.data), ['workspaceId'])
+  assert.match(captured.body.data.workspaceId, /^[a-f0-9]{64}$/)
+  assert.equal(captured.body.revision, captured.body.data.workspaceId)
+  const canonicalIdentityBytes = Buffer.concat([
+    Buffer.from('mantra.workspace/1'),
+    Buffer.from([0]),
+    Buffer.from(await realpath(workspace)),
+  ])
+  assert.equal(captured.body.data.workspaceId, sha256(canonicalIdentityBytes))
+  return captured.body.data.workspaceId
+}
+
 async function openRecovery() {
   await evaluate(`(() => {
     const details = document.querySelector('[data-testid=template-recovery-panel]');
@@ -574,16 +608,19 @@ async function protectedCopy(predicate, label) {
   )
   assert.equal(copy.backup.workspaceId, workspaceId)
   assert.equal(copy.backup.caseId, 'case.mantra')
+  assert.notEqual(copy.backup.baseRevision, workspaceId, 'A recovery-context revision is never the source baseline')
   return copy
 }
 
 async function freshSourceCapture(action = 'Reload saved source') {
   const index = sourceResponses.length
+  const identityIndex = recoveryContextResponses.length
   if (action === 'physical reload') await session.send('Page.reload', { ignoreCache: true })
   else await click(action)
   const captured = await until(() => sourceResponses[index], 'fresh real template source snapshot')
-  assert.equal(captured.status, 200, JSON.stringify(captured.body))
-  assert.equal(captured.body.data.workspaceId, workspaceId)
+  plainSourceSnapshot(captured)
+  assert.equal(await recoveryIdentity(identityIndex), workspaceId)
+  assert.notEqual(captured.body.revision, workspaceId)
   await source('schema.mantra')
   const expected = captured.body.data.documents.find((item) => item.document === 'schema.mantra').text
   await until(
@@ -664,11 +701,31 @@ function inspectBackup(text, label) {
 
 async function downloadBackup(action, label) {
   await openRecovery()
-  const downloads = join(directory, 'downloads')
+  // Chrome may overwrite an existing suggested filename; isolate each actual download.
+  const downloads = join(directory, 'downloads', String(++downloadSequence))
   await mkdir(downloads, { recursive: true })
   await session.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads })
   const before = new Set(await readdir(downloads))
-  await click(action)
+  await until(() => evaluate(`!!${button(action)} && !${button(action)}.disabled`), `enabled ${action}`)
+  await evaluate(`${button(action)}.scrollIntoView({ block: 'center', inline: 'nearest' })`)
+  const point = await evaluate(`(() => {
+    const rect = ${button(action)}.getBoundingClientRect();
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+  })()`)
+  await session.send('Input.dispatchMouseEvent', {
+    type: 'mousePressed',
+    ...point,
+    button: 'left',
+    buttons: 1,
+    clickCount: 1,
+  })
+  await session.send('Input.dispatchMouseEvent', {
+    type: 'mouseReleased',
+    ...point,
+    button: 'left',
+    buttons: 0,
+    clickCount: 1,
+  })
   const name = await until(
     async () => (await readdir(downloads)).find((item) => item.endsWith('.json') && !before.has(item)),
     'real downloaded JSON backup',
@@ -910,10 +967,9 @@ try {
   )
   await source('schema.mantra')
   const firstSources = await until(() => sourceResponses[0], 'actual initial template source response')
-  assert.equal(firstSources.status, 200)
-  workspaceId = firstSources.body.data.workspaceId
-  assert.match(workspaceId, /^[a-f0-9]{64}$/)
-  assert.equal(workspaceId, sha256(Buffer.from(`mantra.workspace/1\0${await realpath(workspace)}`)))
+  plainSourceSnapshot(firstSources)
+  workspaceId = await recoveryIdentity()
+  assert.notEqual(firstSources.body.revision, workspaceId)
   assert.equal(
     await evaluate(`!!document.querySelector('meta[name="mantra-session-token"][content]')`),
     true,
@@ -2195,6 +2251,13 @@ try {
   pass(
     'a changed dependency blocks automatic recovery while preserving old JSON and current edits until explicit discard',
   )
+  for (const captured of sourceResponses) plainSourceSnapshot(captured)
+  for (const captured of recoveryContextResponses) {
+    assert.equal(captured.status, 200)
+    assert.deepEqual(Object.keys(captured.body.data), ['workspaceId'])
+    assert.equal(captured.body.data.workspaceId, workspaceId)
+    assert.equal(captured.body.revision, workspaceId)
+  }
   assert.deepEqual(browserErrors, [], 'No uncaught browser exceptions after recovery and backup workflows')
 } catch (error) {
   failures.push(error)
@@ -2235,7 +2298,6 @@ try {
         sourceCaptures: sourceResponses.map(({ status, body }) => ({
           status,
           revision: body.revision,
-          workspaceId: body.data?.workspaceId ?? null,
           caseId: body.data?.document ?? null,
           baseRevisions: body.data?.baseRevisions ?? null,
           documents: (body.data?.documents ?? []).map((document) => ({
@@ -2245,6 +2307,12 @@ try {
             sha256: document.sha256,
             textSha256: sha256(Buffer.from(document.text)),
           })),
+        })),
+        recoveryContextCaptures: recoveryContextResponses.map(({ status, body }) => ({
+          status,
+          contract: body.contract,
+          revision: body.revision,
+          workspaceId: body.data?.workspaceId ?? null,
         })),
         recoveryEvidence,
         responses: responses.map(({ status, request, body }) => ({
@@ -2287,6 +2355,7 @@ try {
         sourceByteChecks: filesVerified,
         cancelledPreviewRequests: cancelledRequests,
         cancelledSourceRequests,
+        cancelledRecoveryContextRequests,
         cancelledSettingsRequests,
         cancelledStyleRequests,
         originalSources: Object.fromEntries([...originals].map(([name, bytes]) => [name, sha256(bytes)])),

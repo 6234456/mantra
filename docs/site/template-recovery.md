@@ -9,6 +9,9 @@ Start the updated server and UI using [Template draft preview](template-draft-pr
 recovery tools require a file workspace with a valid workspace identity. This is separate from
 the recorded `/authoring` prototype's recovery format.
 
+An older server can still provide ordinary draft preview. If recovery identity is unavailable,
+the recovery tools stay disabled; rebuild or update the live server and UI to enable them.
+
 ## Browser recovery
 
 1. Edit source, an example input or a layout/style field. The page briefly waits, then writes the
@@ -74,4 +77,6 @@ browser recovery copy; it then captures the current saved template. A physical p
 offers recovery. Browser copies are local to this browser and can be removed by clearing site data.
 
 See [the workbench contract](../workbench/contract.md#71-操作) for the format and identity rules.
+Identity comes from the optional authenticated `/api/v1/template-recovery-context` endpoint;
+existing v4 workspace and source responses keep their original shape.
 Formal template Save, server drafts and publication remain separate capabilities.
