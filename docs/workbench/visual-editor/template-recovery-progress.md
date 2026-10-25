@@ -64,6 +64,11 @@ template-sources 响应及 schema 与 `42647b8` 完全相同，改为新增带�
 上下文 revision 只等于 workspaceId，不替代源图 baseRevision。Kotlin ABI 仅新增一个服务方法。
 这避免了要求旧预览服务或严格客户端为基础功能升级；JSON 备份本身仍严格要求合法身份。
 
+兼容修订后完整 `check` 再次通过：8 分 33 秒／110 个任务，220 份 JVM 结果、998 项测试，
+失败／错误／跳过均为 0。前端完整 format／ESLint／生成类型／TypeScript、53 文件／536 项测试，
+fixture／live 构建、8 文件完整依赖图隔离、9 项隔离反例与 32 状态摘要全部通过。
+独立身份端点的旧服务退化、严格旧响应形状和内存组合均有对应专项；没有用模板源请求中的字段猜测身份。
+
 ## 远端 CI 背景与复核边界
 
 上一检查点 `42647b8` 的 push verify 成功（run `40154628325`／job `121053484825`），
@@ -71,3 +76,52 @@ PR verify 在真实 Chrome 预览步骤失败（run `40154632059`／job `1210534
 没有取得具体失败文本，不能据此断言生产缺陷或确定根因。
 本轮复查到若干输入后立即读取 React 派生按钮状态的断言，将其改为等待对应真实状态后保留断言；
 最终浏览器验证需要连续两轮通过，不能用固定 sleep 或削弱旧流程取得通过。
+
+## 最终连续两轮真实验证
+
+兼容性修订和脚本检查点 `3bd9f27` 在同一份冻结生产代码／脚本上连续两次通过，每次都是 41 个真实
+流程、0 失败。原有 33 个流程保留，新增刷新恢复、无效／超限源、未 Apply 字段、真实 JSON 下载／
+跨工作区导入、损坏备份、配额与他页修改、恢复时取消迟到预览，以及外部依赖变化后的旧副本保留。
+
+| 每轮检查 | 实际结果 |
+| --- | --- |
+| 真实响应 | 50 个模板预览、15 个根设置、15 个 class 响应 |
+| 身份与兼容性 | 15 个源快照 data 仍只有原有三字段；21 个独立恢复上下文均 200，身份／revision 与 canonical-root 的独立哈希校验一致 |
+| 备份与文件 | 7 份实际备份检查、40 次源文件字节核对；保留空文本、未完成字段和超出 binary64 的精确原文 |
+| 取消与外部变更 | 预览 4、设置 2、class 1 个取消；源与上下文无取消；3 次明确的测试外部修改，非预览写入 |
+| 清理 | 两轮 `taskProcessGroupsStopped`／`temporaryDirectoryRemoved` 均为 true |
+
+两次临时工作区的身份不同，而初始源图修订相同，验证了工作区命名空间与源基准的分离。
+实际大数预览精确值 `27021597764222979.0000000003` 来自真实引擎响应，不经过前端 Number 转换。
+70k 无效源可备份／恢复，真实预览返回 413；422 保留未校验标记，技术有效的运行时失败响应解除标记
+并仍显示真实失败状态。恢复不载入旧 Paper、Explain 或有效状态。
+
+两轮完整验证报告／截图保存在 `build/ui-qa/recovery-compat-run1/`、`recovery-compat-run2/`，
+当前 `build/ui-qa/template-preview/` 是第二轮，现有 CI artifact 会收集。
+仓库保留 [第一轮摘要](recovery-evidence/run-1.json)、[第二轮摘要](recovery-evidence/run-2.json)，
+含完整报告 SHA-256、全部流程、工作区／源修订与计数，不含令牌／请求头。
+报告保留实际 HTTP 协议／修订和请求摘要，不包含完整 Run／Paper 响应体；数值断言使用运行时真实响应。
+这些是验证证据，不是发布记录。
+最终交叉检查覆盖 8 份文档的 139 个相对链接／锚点，均可解析；两份摘要的报告 SHA-256 与原文件一致。
+
+四张实测图均完整页面，宽 1425：
+
+- [恢复后未校验](screenshots/template-recovery/unvalidated.png)，高 1944。
+- [未 Apply 字段恢复](screenshots/template-recovery/unapplied-fields.png)，高 1999。
+- [显式可携带导入](screenshots/template-recovery/portable-import.png)，高 1415。
+- [失配基准保留与下载](screenshots/template-recovery/baseline-mismatch.png)，高 1339。
+
+首次扩展运行停在第二次下载检测：Chrome 可覆盖同名文件，脚本误等新文件名。最终脚本为每次下载
+使用独立任务子目录，并通过真实鼠标手势触发；实际文件字节／schema／内容断言全部保留。
+此修正仅在测试驱动，没有修改生产下载代码；未把此前远端 CI 的失败根因写成已确认。
+
+复现仍使用现有入口：
+
+```sh
+./gradlew --no-daemon :mantra-cli:installDist
+MANTRA_TEST_CHROME=/path/to/installed/chrome \
+  npm --prefix workbench-ui run test:template-preview:e2e
+```
+
+没有运行物理系统拼音输入法、正式保存／发布或完整 KDoc／应用制品的严格站点发布。
+本轮通过结论不代表 Claude 已签收最终视觉设计，也不把 G-A12 的服务端范围标为完成。
