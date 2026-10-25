@@ -100,6 +100,27 @@ Expand **Style classes** to inspect selected engine presets and edit reusable lo
 and fill definitions. It shares the same source draft and Apply/Cancel preview guards. See
 [Edit reusable style classes](style-classes.md) for inheritance, scoped references and removal.
 
+## Undo and redo source edits
+
+**Undo source** and **Redo source** share a history of the last fifty source edits in this page.
+Manual schema/layout editing, applied layout settings and applied style classes all participate.
+Each step restores the exact text, including comments, whitespace and line endings. A new source
+edit after Undo clears the redo branch; a no-op does not create a history entry.
+
+Undo or Redo cancels an older candidate request and marks its preview as previous. Click **Preview
+draft** to calculate the restored source. Temporary example inputs and the captured saved-template
+comparison remain independent. The property forms become stale when their source changes; refresh
+before another structured edit.
+
+Apply or cancel any unapplied setting/class fields before using history. The buttons also explain
+when loading, a revision conflict or an empty history prevents the operation. Capturing a new source
+snapshot or switching cases clears the history. Source history stays in this page's memory; leaving
+or refreshing the page does not persist it. Native editor and system input-method undo remain native;
+these explicit buttons do not intercept their keyboard shortcuts.
+
+This history changes the browser source draft. It does not call the workbench's case Undo/Redo
+endpoints, save template files or create server source-history records.
+
 ## Invalid drafts and source conflicts
 
 `422` reports technically invalid source or input text. Diagnostics display the engine code,

@@ -489,6 +489,27 @@ async function paperAnswerStyle(captured, expected) {
   assert.equal(answer(captured.body), '20', 'Style editing preserves exact calculated values')
 }
 
+async function sourceHistory(action, name, expected) {
+  await click(action)
+  await until(
+    () =>
+      evaluate(
+        `!!${field(`Draft source ${name}`)} && ${field(`Draft source ${name}`)}.value === ${JSON.stringify(expected)}`,
+      ),
+    `${action} restores exact ${name} and selects its source`,
+  )
+}
+
+async function historyBlockedByFields() {
+  assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  const reason = await evaluate(`(() => {
+    const button = ${button('Undo source')};
+    return (button.getAttribute('aria-describedby') ?? '').split(' ').map(id => document.getElementById(id)?.textContent ?? '').join(' ');
+  })()`)
+  assert.match(reason, /apply|cancel|unapplied/i, 'Disabled history identifies the pending-field action required')
+}
+
 async function releaseHeld(response) {
   await session.send('Fetch.continueResponse', { requestId: response.requestId }).catch((error) => {
     if (!/interception|not found/i.test(error.message)) throw error
@@ -1046,6 +1067,142 @@ try {
       if (details.open) details.querySelector('summary').click();
   })()`)
   await source('schema.mantra')
+
+  await click('Reload saved source')
+  await source('schema.mantra')
+  const historyInitial = await preview(200)
+  assert.equal(answer(historyInitial.body), '20')
+  assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  const historyBaselineStart = responses.length
+  await toggle('Compare with saved template', true)
+  await baselineResponse(historyBaselineStart)
+  await evaluate(
+    `${field('Example input base-amount')}.closest('label').querySelector('input[type="checkbox"]').click()`,
+  )
+  await fill('Example input base-amount', '1,25')
+  const historyInput = await preview(200)
+  assert.equal(answer(historyInput.body), '2.50')
+  await fill('Draft source schema.mantra', candidateSchema)
+  await source('layout.mantra')
+  const historyManualLayout = `${layout}\n; Manual layout transaction for shared source history.\n`
+  await fill('Draft source layout.mantra', historyManualLayout)
+  await evaluate(`document.querySelector('.template-layout-settings-disclosure > summary').click()`)
+  await settings(200, 'Inspect layout settings')
+  await fill('Layout setting title', 'History title')
+  const historySetting = await settings(200, 'Apply layout settings')
+  const historySettingLayout = historySetting.body.data.source.text
+  await evaluate(`document.querySelector('.template-style-classes-disclosure > summary').click()`)
+  await styles(200, 'Inspect style classes')
+  await click('Create local style class')
+  await fill('Style class name', 'history-local')
+  await styleChoice('weight', 'bold')
+  const historyClass = await styles(200, 'Apply style changes')
+  const historyClassLayout = historyClass.body.data.source.text
+  const beforeHistoryMoves = {
+    preview: responses.length,
+    settings: settingsResponses.length,
+    styles: styleResponses.length,
+  }
+  await sourceHistory('Undo source', 'layout.mantra', historySettingLayout)
+  await sourceHistory('Undo source', 'layout.mantra', historyManualLayout)
+  await sourceHistory('Undo source', 'layout.mantra', layout)
+  await sourceHistory('Undo source', 'schema.mantra', schema)
+  assert.equal(await evaluate(`${button('Undo source')}.disabled`), true, 'All four source transactions were reversed')
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), '1,25')
+  await paperValue('Answer', '20,00', 'Saved template')
+  const undoneCandidate = await preview(200)
+  assert.equal(answer(undoneCandidate.body), '2.50')
+  await sourceHistory('Redo source', 'schema.mantra', candidateSchema)
+  await sourceHistory('Redo source', 'layout.mantra', historyManualLayout)
+  await sourceHistory('Redo source', 'layout.mantra', historySettingLayout)
+  await sourceHistory('Redo source', 'layout.mantra', historyClassLayout)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), '1,25')
+  assert.deepEqual(
+    { preview: responses.length, settings: settingsResponses.length, styles: styleResponses.length },
+    { ...beforeHistoryMoves, preview: beforeHistoryMoves.preview + 1 },
+    'Undo and Redo issue no preview, settings, style or baseline requests',
+  )
+  const redoneCandidate = await preview(200)
+  assert.equal(answer(redoneCandidate.body), '3.75')
+  assert.equal(redoneCandidate.body.data.paper.title, 'History title')
+  assert.deepEqual(redoneCandidate.request.inputs, [{ node: 'base-amount', text: '1,25' }])
+  await paperAnswer('3,75')
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  pass(
+    'manual schema layout settings and class edits share exact Undo Redo while inputs and saved baseline stay independent',
+  )
+
+  await settings(200)
+  await fill('Layout setting title', 'Unapplied history setting')
+  await historyBlockedByFields()
+  await click('Cancel setting changes')
+  await until(() => evaluate(`!${button('Undo source')}.disabled`), 'canceling settings releases source history')
+  await styles(200)
+  await styleChoice('class', 'history-local')
+  await styleChoice('weight', 'normal')
+  await historyBlockedByFields()
+  await click('Cancel style changes')
+  await until(() => evaluate(`!${button('Undo source')}.disabled`), 'canceling class fields releases source history')
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), historyClassLayout)
+  await unchangedFiles()
+  pass('both unapplied property panels disable source history with a linked Apply or Cancel reason')
+
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-preview', requestStage: 'Response' }],
+  })
+  await click('Preview draft')
+  const heldHistoryPreview = await until(() => pausedResponses.shift(), 'real preview held before source Undo')
+  assert.equal(heldHistoryPreview.status, 200)
+  await sourceHistory('Undo source', 'layout.mantra', historySettingLayout)
+  await releaseHeld(heldHistoryPreview)
+  const previousHistoryStatus = await evaluate(
+    `document.querySelector('[data-testid="template-preview-status"]').textContent`,
+  )
+  assert.ok(previousHistoryStatus.startsWith('Previous engine preview'))
+  assert.ok(previousHistoryStatus.includes(`draft #${redoneCandidate.body.data.draftSequence}`))
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), '1,25')
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  pass('source Undo cancels an actual delayed engine response and keeps the earlier candidate explicitly previous')
+
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), false)
+  const historyNewBranch = `${historySettingLayout}\n; New edit replaces the old redo branch.\n`
+  await fill('Draft source layout.mantra', historyNewBranch)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  await sourceHistory('Undo source', 'layout.mantra', historySettingLayout)
+  await sourceHistory('Redo source', 'layout.mantra', historyNewBranch)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  assert.equal(historyNewBranch.includes('(style-class :history-local'), false)
+  assert.equal(
+    await evaluate(`${field('Draft source layout.mantra')}.value.includes('(style-class :history-local')`),
+    false,
+  )
+  await unchangedFiles()
+  pass('a new source edit after Undo replaces the old redo branch instead of restoring the discarded class edit')
+
+  await evaluate(`(() => {
+    for (const details of document.querySelectorAll('.template-layout-settings-disclosure, .template-style-classes-disclosure'))
+      if (details.open) details.querySelector('summary').click();
+  })()`)
+  await screenshot('source-history-branch')
+  await toggle('Compare with saved template', false)
+  await click('Reload saved source')
+  await source('schema.mantra')
+  const historyRecaptured = await preview(200)
+  assert.equal(answer(historyRecaptured.body), '20')
+  assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
+  assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
+  assert.equal(
+    await evaluate(
+      `${field('Example input base-amount')}.closest('label').querySelector('input[type="checkbox"]').checked`,
+    ),
+    false,
+  )
+  await unchangedFiles()
+  pass('explicit saved-source recapture clears local source history and input overrides without writing the workspace')
 
   await fill('Draft source schema.mantra', candidateSchema)
   await source('layout.mantra')

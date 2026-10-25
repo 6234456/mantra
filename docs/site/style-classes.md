@@ -68,6 +68,10 @@ Unapplied fields in either form disable Preview with an Apply/Cancel explanation
 form makes the other's previous inspection stale without discarding its pending fields.
 Refresh, review the retained values and apply explicitly. Manual source edits follow the same rule.
 
+Applied definitions also participate in the shared
+[Undo source and Redo source history](template-draft-preview.md#undo-and-redo-source-edits).
+Apply or cancel any pending fields before undoing source changes.
+
 Delayed responses cannot replace newer source text or clear fields edited after a request began.
 Invalid source or edits retain the draft. A `409` retains the draft and marks its captured source
 revision as conflicted; explicitly reload the saved source after preserving any text you need.

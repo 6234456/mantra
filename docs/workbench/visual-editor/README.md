@@ -14,6 +14,8 @@
 > inspect／set／unset、源补丁与预览衔接见 [实施记录](layout-settings-progress.md)，正式 Save／历史／发布仍未实现。
 > 同日继续实现根 layout 的本地 style-class 目录、有限定义编辑及布局内引用保护，G-A17 也推进为部分完成；
 > 真实服务、预览和验证范围见 [样式定义实施记录](style-classes-progress.md)，操作见 [用户说明](../../site/style-classes.md)。
+> 真实预览页随后加入统一的客户端内存源历史，手写 schema／layout 与两类属性 Apply 均可 Undo／Redo；
+> 最多 50 条、精确原文守卫及清空边界见 [源历史记录](source-history-progress.md)，不代表服务端历史或持久化恢复。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
@@ -105,6 +107,8 @@
   inspect／set／unset、完整修订／原文绑定与冲突保护；Apply 后仍需真实预览。
 - [x] [本地样式 class 定义](style-classes-progress.md)：选中引擎 preset 与本地目录、有限 weight／tone／fill
   upsert／remove、布局内引用与 preset 回退保护；与高级设置共用当前 DSL、待应用字段与过期响应守卫。
+- [x] [统一内存源历史](source-history-progress.md)：手写根 schema／layout、设置与 class Apply 共用最多 50 条
+  精确文本事务；显式 Undo／Redo、待应用字段与冲突守卫，源预览标旧，保存基准及示例输入保持独立。
 - [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19–G-A21 及正式 Save／源历史／发布；不得因此启用原型交付按钮。
 - [x] [真实模板预览增强](template-preview-enhancements.md)：面板／零值上下文、独立保存基准、精确差异、
   空候选与过期／冲突证据，真实 CLI／Chrome 验证；正式多案例验收和完整高级属性编辑尚未实现。

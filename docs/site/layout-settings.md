@@ -91,3 +91,7 @@ source interfaces or future authoring contracts.
 The separate [Style classes](style-classes.md) form now edits local style definitions in the same
 draft. Applying either form makes the other's inspection stale; pending fields are retained for
 review and another explicit Apply.
+
+Applied source changes participate in the shared
+[Undo source and Redo source history](template-draft-preview.md#undo-and-redo-source-edits).
+Apply or cancel unapplied fields before using those buttons.

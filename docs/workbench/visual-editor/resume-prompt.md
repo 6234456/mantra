@@ -33,6 +33,14 @@ normal／default／none 不同。复核本地覆盖移除后的 preset 回退，
 Refresh 后明确 Apply 以及手动改源／迟到确认的保护。当前实现不含 schema tag 分配、重命名重排、
 通用规则编辑、正式 Save、源历史或发布。当前门禁与提交以新的实施记录和 PR 最新 HEAD 为准。
 
+随后 G-A18 新增 [统一客户端内存源历史](source-history-progress.md)，操作见
+[Undo／Redo 说明](../../site/template-draft-preview.md#undo-and-redo-source-edits)。手写根 schema／layout、
+根设置与 class Apply 共用最多 50 条精确原文事务；Undo 核对 after，Redo 核对 before，新编辑截断 redo。
+复查各入口交错编辑、拒绝／迟到响应不入历史、撤销后真实预览标旧，以及保存基准和标量示例输入保持独立。
+未 Apply 字段、加载与冲突时按钮给出阻止原因；重新捕获源／切换案例清空。没有新增全局快捷键，
+输入框和系统输入法保留自身撤销／组合行为。这是页面内存协调，不持久化或恢复历史，
+不表示服务端 G-A6、正式提交 G-A7、恢复合同 G-A12 或 D-A1 已完成。当前结果仍以实施记录为准。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，
