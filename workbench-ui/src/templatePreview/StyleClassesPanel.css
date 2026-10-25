@@ -1,0 +1,45 @@
+.template-style-classes > button {
+  margin: 0 8px 12px 0;
+}
+.template-style-classes fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  min-width: 0;
+  margin: 16px 0;
+  border: 1px solid var(--line);
+  padding: 12px;
+}
+.template-style-classes fieldset legend {
+  padding: 0 6px;
+  font-weight: 600;
+}
+.template-style-classes input,
+.template-style-classes select {
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+}
+.template-style-catalog {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-left: 20px;
+}
+.template-style-selected dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.template-style-selected dt {
+  color: var(--ink-3);
+}
+.template-style-selected dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+.template-style-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

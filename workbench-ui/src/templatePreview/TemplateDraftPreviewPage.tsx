@@ -8,6 +8,8 @@ import { explainDiagnostic } from '../diagnosticMessages'
 import { CandidateComparison } from './CandidateComparison'
 import { LayoutSettingsPanel } from './LayoutSettingsPanel'
 import type { LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
+import { StyleClassesPanel } from './StyleClassesPanel'
+import type { StyleClassesClient } from './styleClassesClient'
 import {
   LiveTemplatePreviewClient,
   sameTemplateRevisions,
@@ -22,7 +24,12 @@ import './templatePreview.css'
 export default function TemplateDraftPreviewPage({
   client: supplied,
   settingsClient,
-}: { client?: TemplatePreviewClient; settingsClient?: LayoutSettingsClient } = {}) {
+  styleClassesClient,
+}: {
+  client?: TemplatePreviewClient
+  settingsClient?: LayoutSettingsClient
+  styleClassesClient?: StyleClassesClient
+} = {}) {
   const client = useMemo(() => supplied ?? new LiveTemplatePreviewClient(), [supplied])
   const [cases, setCases] = useState<CaseSummary[]>([])
   const [caseId, setCaseId] = useState(() => new URLSearchParams(location.search).get('case') ?? '')
@@ -48,6 +55,8 @@ export default function TemplateDraftPreviewPage({
   const [selected, setSelected] = useState<Address>()
   const [sequence, setSequence] = useState(0)
   const [settingsPending, setSettingsPending] = useState(false)
+  const [styleClassesPending, setStyleClassesPending] = useState(false)
+  const authoringPending = settingsPending || styleClassesPending
   const context = useRef(0)
   const draftSequence = useRef(0)
   const pending = useRef<AbortController | null>(null)
@@ -211,7 +220,7 @@ export default function TemplateDraftPreviewPage({
     !!snapshot &&
     (snapshot.data.documents.some((item) => documents[item.handle] !== item.text) ||
       Object.keys(inputs).length > 0 ||
-      settingsPending)
+      authoringPending)
   useEffect(() => {
     if (!changed) return
     function leaving(event: BeforeUnloadEvent) {
@@ -223,7 +232,7 @@ export default function TemplateDraftPreviewPage({
   }, [changed])
 
   async function preview() {
-    if (!snapshot || busy || conflict || settingsPending) return
+    if (!snapshot || busy || conflict || authoringPending) return
     pending.current?.abort()
     const controller = new AbortController()
     pending.current = controller
@@ -271,7 +280,11 @@ export default function TemplateDraftPreviewPage({
 
   const source = snapshot?.data.documents.find((item) => item.handle === sourceHandle)
   const layoutSource = snapshot?.data.documents.find((item) => item.role === 'layout')
-  function applyLayoutSettings(expectedCase: string, request: LayoutSettingsRequest, nextText: string): boolean {
+  function applyLayoutSource(
+    expectedCase: string,
+    request: Pick<LayoutSettingsRequest, 'baseRevision' | 'baseRevisions' | 'handle' | 'text'>,
+    nextText: string,
+  ): boolean {
     const latest = latestDraft.current
     const layout = latest.snapshot?.data.documents.find((item) => item.handle === request.handle)
     if (
@@ -286,12 +299,14 @@ export default function TemplateDraftPreviewPage({
     )
       return false
     if (nextText !== request.text) {
+      // Reserve the accepted source before React commits so two panels cannot both accept the same old text.
+      latestDraft.current = { ...latest, documents: { ...latest.documents, [request.handle]: nextText } }
       invalidate()
       setDocuments((previous) => ({ ...previous, [request.handle]: nextText }))
     }
     return true
   }
-  const current = result?.data.draftSequence === sequence && !conflict && !settingsPending
+  const current = result?.data.draftSequence === sequence && !conflict && !authoringPending
   const explain =
     selected && result?.data.explain && addressKey(selected) === addressKey(result.data.explain.address)
       ? result.data.explain
@@ -344,15 +359,19 @@ export default function TemplateDraftPreviewPage({
               </select>
             </label>
             <button
-              disabled={!snapshot || busy || conflict || settingsPending}
-              aria-describedby={settingsPending ? 'template-settings-preview-reason' : undefined}
+              disabled={!snapshot || busy || conflict || authoringPending}
+              aria-describedby={authoringPending ? 'template-settings-preview-reason' : undefined}
               onClick={() => void preview()}
             >
               Preview draft
             </button>
-            {settingsPending && (
+            {authoringPending && (
               <span id="template-settings-preview-reason">
-                Apply or cancel the layout setting changes before previewing.
+                {settingsPending && styleClassesPending
+                  ? 'Apply or cancel the layout setting and style class changes before previewing.'
+                  : styleClassesPending
+                    ? 'Apply or cancel the style class changes before previewing.'
+                    : 'Apply or cancel the layout setting changes before previewing.'}
               </span>
             )}
             <button
@@ -497,10 +516,26 @@ export default function TemplateDraftPreviewPage({
                 source={layoutSource}
                 text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
                 conflict={conflict}
-                onApply={applyLayoutSettings}
+                onApply={applyLayoutSource}
                 onConflict={markConflict}
                 onPendingChange={setSettingsPending}
                 client={settingsClient}
+              />
+            </details>
+          )}
+          {snapshot?.data.document === caseId && (
+            <details className="template-style-classes-disclosure" key={`style:${caseId}:${snapshot.revision}`}>
+              <summary>Style classes</summary>
+              <StyleClassesPanel
+                caseId={caseId}
+                snapshot={snapshot}
+                source={layoutSource}
+                text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
+                conflict={conflict}
+                onApply={applyLayoutSource}
+                onConflict={markConflict}
+                onPendingChange={setStyleClassesPending}
+                client={styleClassesClient}
               />
             </details>
           )}

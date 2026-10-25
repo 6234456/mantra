@@ -7,6 +7,7 @@ import { TemplatePreviewError } from './client'
 import type { TemplatePreview, TemplatePreviewClient, TemplateSources } from './client'
 import { firstCase, secondCase, formulaDiagnostic, templatePreview, templateSources } from './fixtures.test.helpers'
 import type { LayoutSettings, LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
+import type { StyleClasses, StyleClassesClient, StyleClassesRequest } from './styleClassesClient'
 
 beforeEach(() => {
   vi.stubGlobal('matchMedia', () => ({
@@ -540,7 +541,7 @@ it('shows unsupported fixture and package modes without reaching a file-workspac
   expect(client.sources).not.toHaveBeenCalled()
 })
 
-async function openLayoutSettings() {
+async function openLayoutSettings(styleClassesClient?: StyleClassesClient) {
   const client = fakeClient()
   const layout = templateSources().data.documents.find((item) => item.role === 'layout')!
   const settingsClient = {
@@ -590,7 +591,13 @@ async function openLayoutSettings() {
       } as Envelope<LayoutSettings>
     }),
   }
-  render(<TemplateDraftPreviewPage client={client} settingsClient={settingsClient} />)
+  render(
+    <TemplateDraftPreviewPage
+      client={client}
+      settingsClient={settingsClient}
+      styleClassesClient={styleClassesClient}
+    />,
+  )
   await waitFor(() =>
     expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(false),
   )
@@ -643,4 +650,180 @@ it('applies a settings source patch to the real draft context while keeping the 
   expect(client.preview.mock.lastCall![1].documents.find((item) => item.handle === layout.handle)?.text).toBe(
     layout.text + '\n; layout settings applied',
   )
+})
+
+function styleResponse(request: StyleClassesRequest): Envelope<StyleClasses> {
+  const layout = templateSources().data.documents.find((item) => item.role === 'layout')!
+  const suffix = request.operations.length ? '\n; style class applied' : ''
+  return {
+    contract: 'mantra.workbench/4',
+    revision: request.baseRevision,
+    engine: templateSources().engine,
+    data: {
+      document: firstCase,
+      draftSequence: request.draftSequence,
+      baseRevisions: request.baseRevisions,
+      scope: 'layout-style-classes',
+      layoutId: 'example/layout',
+      stylePresets: [],
+      usageScope: 'submitted-layout',
+      source: { handle: layout.handle, document: layout.document, text: request.text + suffix },
+      classes: [
+        {
+          name: 'custom',
+          editable: true,
+          reason: null,
+          presets: [],
+          local: { weight: 'bold', tone: null, fill: null },
+          inherited: { weight: null, tone: null, fill: null },
+          effective: { weight: 'bold', tone: null, fill: null },
+          references: [],
+          canRemove: true,
+          removeReason: null,
+        },
+      ],
+      patches: suffix
+        ? [{ startOffset: request.text.length, endOffset: request.text.length, text: suffix, removedText: '' }]
+        : [],
+    },
+  }
+}
+
+function fakeStyleClient() {
+  return { classes: vi.fn<StyleClassesClient['classes']>(async (_case, request) => styleResponse(request)) }
+}
+
+async function openStyleClasses() {
+  fireEvent.click(screen.getByText('Style classes', { selector: 'summary' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect style classes' }))
+  await screen.findByLabelText('Style class weight')
+}
+
+it('keeps the draft guarded until both layout-setting and style-class field buffers are applied or canceled', async () => {
+  const styles = fakeStyleClient()
+  const { client, precision } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.change(precision, { target: { value: '4' } })
+  const preview = screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement
+  expect(preview.disabled).toBe(true)
+  expect(screen.getByText('Apply or cancel the layout setting and style class changes before previewing.')).toBeTruthy()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.change(screen.getByLabelText('Example case'), { target: { value: secondCase } })
+  expect(confirm).toHaveBeenCalledOnce()
+  expect(client.sources).toHaveBeenCalledOnce()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel style changes' }))
+  expect(preview.disabled).toBe(true)
+  expect(precision.value).toBe('4')
+  expect(screen.getByText('Apply or cancel the layout setting changes before previewing.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel setting changes' }))
+  expect(preview.disabled).toBe(false)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Current engine preview/)
+})
+
+it('applies a style source patch without recalculating or changing the captured saved-template baseline', async () => {
+  const styles = fakeStyleClient()
+  const { client, layout } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Compare with saved template' }))
+  await savedPreviewCurrent()
+  const before = client.preview.mock.calls.length
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  await screen.findByText('Style changes applied to the source draft. Preview the draft to check its results.')
+  expect(styles.classes.mock.lastCall![1].operations).toEqual([
+    { op: 'upsert', name: 'custom', style: { weight: 'normal', tone: null, fill: null } },
+  ])
+  expect(client.preview).toHaveBeenCalledTimes(before)
+  expect(screen.getByTestId('template-baseline-status').textContent).toMatch(/^Saved-template preview/)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Previous engine preview/)
+  expect((screen.getByRole('textbox', { name: 'Draft source ' + layout.document }) as HTMLTextAreaElement).value).toBe(
+    layout.text + '\n; style class applied',
+  )
+  await previewCurrent()
+  expect(client.preview.mock.lastCall![1].documents.find((item) => item.handle === layout.handle)?.text).toBe(
+    layout.text + '\n; style class applied',
+  )
+})
+
+it('requires a style refresh after another settings panel applies source changes and retains the unapplied style fields', async () => {
+  const styles = fakeStyleClient()
+  const { precision } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.change(precision, { target: { value: '4' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  await screen.findByText('Settings applied to the source draft. Preview the draft to update its results.')
+  expect((screen.getByRole('button', { name: 'Apply style changes' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByLabelText('Style class weight') as HTMLSelectElement).value).toBe('normal')
+  expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh style classes' }))
+  await screen.findByText('Style classes refreshed. Review retained changes before applying.')
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  await screen.findByText('Style changes applied to the source draft. Preview the draft to check its results.')
+  expect(styles.classes.mock.lastCall![1].text).toContain('; layout settings applied')
+  expect(styles.classes.mock.lastCall![1].operations).toEqual([
+    { op: 'upsert', name: 'custom', style: { weight: 'normal', tone: null, fill: null } },
+  ])
+})
+
+it('rejects a late style patch after manual source editing and keeps both source and style buffers', async () => {
+  const styles = fakeStyleClient()
+  const { layout } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  const late = deferred<Envelope<StyleClasses>>()
+  styles.classes.mockReturnValueOnce(late.promise)
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  const request = styles.classes.mock.lastCall![1]
+  const signal = styles.classes.mock.lastCall![2]
+  const source = screen.getByRole('textbox', { name: 'Draft source ' + layout.document }) as HTMLTextAreaElement
+  const newer = source.value + '\n; Manual edit after style request'
+  fireEvent.change(source, { target: { value: newer } })
+  await act(async () => {
+    late.resolve(styleResponse(request))
+    await late.promise
+  })
+  expect(signal?.aborted).toBe(true)
+  expect(source.value).toBe(newer)
+  expect((screen.getByLabelText('Style class weight') as HTMLSelectElement).value).toBe('normal')
+  expect((screen.getByRole('button', { name: 'Apply style changes' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+it('accepts only one source patch when settings and style responses arrive together for the same old text', async () => {
+  const styles = fakeStyleClient()
+  const { layout, precision, settingsClient } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  const inspected = await settingsClient.settings.mock.results[0].value
+  const settingReply = deferred<Envelope<LayoutSettings>>()
+  const styleReply = deferred<Envelope<StyleClasses>>()
+  settingsClient.settings.mockReturnValueOnce(settingReply.promise)
+  styles.classes.mockReturnValueOnce(styleReply.promise)
+  fireEvent.change(precision, { target: { value: '4' } })
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  const request = settingsClient.settings.mock.lastCall![1]
+  const styleRequest = styles.classes.mock.lastCall![1]
+  const suffix = '\n; layout settings applied'
+  await act(async () => {
+    settingReply.resolve({
+      ...inspected,
+      data: {
+        ...inspected.data,
+        draftSequence: request.draftSequence,
+        source: { ...inspected.data.source, text: request.text + suffix },
+        patches: [{ startOffset: request.text.length, endOffset: request.text.length, text: suffix, removedText: '' }],
+      },
+    })
+    styleReply.resolve(styleResponse(styleRequest))
+    await Promise.all([settingReply.promise, styleReply.promise])
+  })
+  const source = screen.getByRole('textbox', { name: 'Draft source ' + layout.document }) as HTMLTextAreaElement
+  expect(source.value).toBe(request.text + suffix)
+  expect(source.value).not.toContain('; style class applied')
+  expect((screen.getByLabelText('Style class weight') as HTMLSelectElement).value).toBe('normal')
+  expect((screen.getByRole('button', { name: 'Apply style changes' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(true)
 })
