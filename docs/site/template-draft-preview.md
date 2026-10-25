@@ -91,6 +91,11 @@ Comparison is optional and performs an additional isolated calculation. The ordi
 preview does not make this extra request when comparison is off. Preview remains explicit through
 **Preview draft**; this slice does not add automatic typing previews or multi-case batch acceptance.
 
+Expand **Advanced layout settings** for typed root-layout controls, including display precision,
+locale, zero/negative formatting and visibility. Inspect the current source before applying fields;
+use explicit overrides, reset to inheritance or cancel unapplied fields. See
+[Edit advanced layout settings](layout-settings.md) for the complete list and conflict behavior.
+
 ## Invalid drafts and source conflicts
 
 `422` reports technically invalid source or input text. Diagnostics display the engine code,
@@ -122,7 +127,8 @@ New dependencies or binding changes are rejected. A technically invalid saved ba
 `422` when capturing sources. Package workspaces do not provide these endpoints, and the page does
 not fall back to fixture responses or the package API.
 
-This source-first page implements a bounded preview slice. Semantic property owners, minimal
-patches, multi-document saves and template publication remain separate work. Request limits,
+This source-first page implements a bounded preview slice. Advanced layout settings add a typed
+root-layout catalog and reversible source patches; general semantic owners, multi-document saves
+and template publication remain separate work. Request limits,
 response schemas and failure semantics are defined in the
 [workbench contract](../workbench/contract.md#71-操作).

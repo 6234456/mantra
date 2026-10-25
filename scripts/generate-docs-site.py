@@ -129,6 +129,8 @@ class Site:
             self.root / "docs/diagnostics.md": "reference/diagnostics.html",
             self.root / "docs/language-specification-v1.md": "reference/specification.html",
             self.root / "docs/compatibility.md": "reference/compatibility.html",
+            self.source / "template-draft-preview.md": "template-draft-preview.html",
+            self.source / "layout-settings.md": "layout-settings.html",
         }
 
     def read(self, path):
@@ -457,7 +459,9 @@ def generate_content(root, output, require_artifacts=False, catalog=None):
     site.read(site.source / "site.css")
     for name, title in (("index", "Overview"), ("tutorial", "Your first schema"), ("embedding", "Embed in Kotlin"),
                         ("packages", "Package boundaries"), ("independent-sources", "Independent sources"),
-                        ("neutral-domains", "Two neutral domains")):
+                        ("neutral-domains", "Two neutral domains"),
+                        ("template-draft-preview", "Template draft preview"),
+                        ("layout-settings", "Advanced layout settings")):
         origin = site.source / (name + ".md")
         site.page(name + ".html", title, site.read(origin), origin)
     for name, title, source in (("dsl", "DSL reference", "dsl-reference.md"),
