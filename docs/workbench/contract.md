@@ -613,11 +613,13 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
   stylePresets 为当前布局选中的样式 preset，顺序与源一致；目录内容从当前引擎公开 LayoutReader 的
   规则取得，不能复制前端静态表冒充引擎目录。每个类名一项，classes 为选中 preset、本地声明及当前
   布局字面量 selector 引用的并集，按 preset 顺序、局部声明顺序、剩余引用首次出现顺序排列。
-  每项 `{name,presets,local,inherited,effective,references,canRemove,removeReason}`：
+  每项 `{name,presets,local,inherited,effective,references,editable,reason,canRemove,removeReason}`：
   presets 为提供此类的已选 preset 名称；local 为本地三个声明或 null，inherited 为选中 preset
   依序合并的声明，effective 为 inherited 再合并 local。三种声明均为 `{weight,tone,fill}`，
   各属性取上述关键字或 null。这仅是具名 class 的合并贡献；规则位置、选择器、表级规则和后续覆盖仍
   可影响最终单元格，实际样式必须读取匹配候选的 Paper，浏览器不得以这些字段重建最终样式。
+  selector 允许的名称比 style-class 定义更广；其非简单类名仍列入目录并保留引用，但 editable false
+  且 reason 说明不可创建本地定义，不能因此拒绝检查本来有效的布局。可编辑项 editable true、reason null。
 - references 只报告**返回的当前根 layout 原文**中的字面量引用，形状为
   `{kind:"use"|"selector",startOffset,endOffset}`，偏移为对应类名 token 的 UTF-16 半开范围。
   use 来自 style 声明的 `:use`，selector 来自 style selector 的 `:class`；重复出现分别记录。

@@ -360,6 +360,10 @@ class WorkspaceCatalog(
     fun templateLayoutSettings(caseId: String, request: TemplateLayoutSettingsRequest): DocumentResult =
         layoutSettings(caseId, request)
 
+    /** Inspects or edits root-local style class definitions without saving files or history. */
+    fun templateStyleClasses(caseId: String, request: TemplateStyleClassesRequest): DocumentResult =
+        styleClasses(caseId, request)
+
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
         caseId: String,

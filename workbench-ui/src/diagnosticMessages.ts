@@ -3,6 +3,10 @@ import type { Diagnostic } from './types'
 
 /** Stable code explanations; runtime details remain separate and are never translated or rewritten. */
 const catalog: Record<string, Readonly<Record<Language, string>>> = {
+  'MANTRA-TEMPLATE-STYLE': {
+    en: 'The local style class is invalid or cannot be changed safely. Review its definition and layout references.',
+    de: 'Die lokale Stilklasse ist ungültig oder kann nicht sicher geändert werden. Prüfen Sie ihre Definition und die Layoutverweise.',
+  },
   'MANTRA-TEMPLATE-SETTING': {
     en: 'The layout setting is invalid or ambiguous. Review its value and source before applying it again.',
     de: 'Diese Layouteinstellung ist ungültig oder mehrdeutig. Prüfen Sie den Wert und den Quelltext.',

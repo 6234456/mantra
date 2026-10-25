@@ -234,6 +234,7 @@ listed code is a top-level workbench diagnostic.
 | `MANTRA-TEMPLATE-IDENTITY` | structural | A template candidate changes its root declaration kind, schema id/version or layout id. |
 | `MANTRA-TEMPLATE-INPUT` | structural | A template candidate tries to replace a table or dimensioned input through the scalar-text interface. |
 | `MANTRA-TEMPLATE-SETTING` | structural | The layout setting is invalid or ambiguous. Review its value and source before applying it again. |
+| `MANTRA-TEMPLATE-STYLE` | structural | The local style class is invalid or cannot be changed safely. Review its definition and layout references. |
 | `MANTRA-TOTAL-DIMS` | structural | A total combines incompatible dimension contexts. |
 | `MANTRA-TOTAL-TRAILING` | structural | An unterminated contributing sequence has no appropriate total. |
 | `MANTRA-TYPES` | structural | Internal record-type definitions are inconsistent. |

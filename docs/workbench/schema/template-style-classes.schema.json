@@ -26,9 +26,11 @@
     },
     "styleClass": {
       "type": "object",
-      "required": ["name", "presets", "local", "inherited", "effective", "references", "canRemove", "removeReason"],
+      "required": ["name", "editable", "reason", "presets", "local", "inherited", "effective", "references", "canRemove", "removeReason"],
       "properties": {
-        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "editable": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
         "presets": {
           "type": "array",
           "maxItems": 2,

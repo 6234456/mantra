@@ -598,6 +598,8 @@ export type TemplateStyleClassesStyleSpec = {
 export type TemplateStyleClassesReference = { kind: 'use' | 'selector'; startOffset: number; endOffset: number }
 export type TemplateStyleClassesStyleClass = {
   name: string
+  editable: boolean
+  reason: string | null
   presets: Array<'utilities' | 'working-paper'>
   local: TemplateStyleClassesStyleSpec | null
   inherited: TemplateStyleClassesStyleSpec
