@@ -54,5 +54,32 @@ G-A19–G-A21 与 D-A1 保持原计划。没有修改计算原语、内核、依
 | 前端完整门禁 | format／lint／生成类型／TypeScript 通过；49 文件、465 项测试通过 |
 | 构建与录制 | fixture 与新 live 构建通过；8 个 live 产物及完整依赖图排除原型／录制／golden；9 项隔离反例、32 个原录制状态摘要通过 |
 | 文档 | 26 项测试、默认站点生成与复查通过：37 个 HTML、2071 个本地链接；6 份设计／用户文档的 94 个相对链接及锚点通过 |
+| 完整 Gradle 门禁 | `check` 成功，8 分 20 秒／110 个任务；218 份 JVM 测试结果、990 项，失败／错误／跳过均为 0 |
+| 真实 Chromium | 28 个流程通过：31 个预览响应、10 个根设置响应、10 个 class 响应，27 次源文件字节检查，0 失败 |
 
 物理系统拼音输入法需要人工操作；合成事件不作为系统输入法通过证据。
+
+## 浏览器证据
+
+沿用前 21 个真实流程，增加真实 preset／局部贡献与最终 Paper 的区别、字段缓冲与 Cancel、
+本地 class 创建与硬引用删除保护、null 与显式中性值、空闲定义删除和 preset 回退、迟到 class 补丁、
+跨面板 Refresh／Apply。逐项验证实际 Paper、DOM 的 weight／tone／fill、候选精确值 20 与独立保存基准 20。
+新 class 组合输入检查使用合成事件，并等待 React 更新后核对按钮状态，未替代物理输入法验证。
+
+浏览器验证了 `:use` 阻止删除按钮和真实 preset 回退移除；删除失败 422、class 端点修订 409 则由
+新 HTTP／Workbench 测试覆盖。浏览器原有 409 流程仍包含根设置与模板预览的两次明确外部修改。
+预览过程本身未写工作区源文件。
+
+`build/ui-qa/template-preview/report.json` 保存实际请求、响应、补丁与文件指纹，并由现有 CI artifact 收集。
+浏览器、服务进程组与临时目录均清理，报告标记 `taskProcessGroupsStopped` 和
+`temporaryDirectoryRemoved`。取消请求分别为预览 2、根设置 2、class 1，不把迟到回复视为当前结果。
+[实测完整页面](screenshots/style-classes/applied.png) 为 1425×1778，报告 `completePage: true`。
+本轮文档站检查为默认静态快照，没有执行带全部 KDoc／应用制品的严格站点发布。
+
+重跑：
+
+```sh
+./gradlew --no-daemon :mantra-cli:installDist
+MANTRA_TEST_CHROME=/path/to/installed/chrome \
+  npm --prefix workbench-ui run test:template-preview:e2e
+```

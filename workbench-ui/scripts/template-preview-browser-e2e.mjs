@@ -912,10 +912,14 @@ try {
   await styleChoice('fill', 'subtle')
   assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
   const classRequestsBeforeIme = styleResponses.length
-  const classIme = await evaluate(`(() => {
+  await evaluate(`(() => {
     const input = ${field('Style class name')};
     input.focus();
     input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }));
+  })()`)
+  await until(() => evaluate(`${button('Apply style changes')}.disabled`), 'class composition remains buffered')
+  const classIme = await evaluate(`(() => {
+    const input = ${field('Style class name')};
     const key = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 229, isComposing: true, bubbles: true, cancelable: true });
     const accepted = input.dispatchEvent(key);
     const state = { accepted, prevented: key.defaultPrevented, applying: ${button('Apply style changes')}.disabled,
