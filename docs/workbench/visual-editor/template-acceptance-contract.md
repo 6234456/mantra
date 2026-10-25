@@ -30,7 +30,7 @@ cases 为 1–32 项，仅允许：
   "case": "case.mantra",
   "baseRevision": "<64 lowercase hex>",
   "baseRevisions": {"<source document>": "<64 lowercase hex>"},
-  "inputs": [{"node": "amount", "text": "1,25"}],
+  "inputs": [{"node": "base-amount", "text": "1,25"}],
   "panel": "main",
   "includeZero": false,
   "expect": {
@@ -57,7 +57,7 @@ values 至多 256 个不同 node 的标量结果断言，不接受维度坐标�
   不同类型不等，向量及有序 map 递归比较并保留顺序。日期须合法；不接受 JSON 数字代替 Decimal。
 - validationPassed 为 boolean 或 null；null 表示该值没有有效业务判定，不能和 false 合并。
 - diagnostics 如提供，为 `{code,severity,count}` 数组，与候选诊断的整个 code/severity 多重集相等；
-  severity 为 error/warning/info，count 为 1–10000，同一组不可重复。空数组表示不得有诊断。
+  severity 为 error/warning/info，count 为 1–10000，至多 2048 组，同一组不可重复。空数组表示不得有诊断。
 - expect.succeeded=false 可显式验收运行时失败负例；技术无效、修订冲突或未执行不能以此冒充通过。
   业务 finding 可用 validationPassed=false 及实际 check 值／诊断断言明确验收。
 
@@ -85,6 +85,8 @@ diagnostics、assertions（path、expected、actual、passed）及 error（无�
 
 `--out` 不得覆盖套件、任何参与源，或经符号链接／硬链接指向这些文件；capture 同样保护其参与源。
 写报告前再次检查输出目标，避免输出操作自己改变被验收的源。报告可含案例原始值，按用户指定位置保管。
+若任何实际源图未能完整读取，则输出只能走 stdout 或写入工作区外的新文件；不能依赖失配套件里
+不完整的旧源清单来批准覆盖已有文件。写文件采用同目录临时文件与原子替换，失败清理临时文件。
 
 ## 未包含
 

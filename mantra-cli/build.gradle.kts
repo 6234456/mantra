@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":mantra-workbench"))
     implementation(project(":mantra-server"))
     implementation(project(":mantra-lsp"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
 }
 
 application {

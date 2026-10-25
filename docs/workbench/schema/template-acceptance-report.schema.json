@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-acceptance-report.schema.json",
+  "title": "Read-only multi-case template acceptance report",
+  "description": "A standalone CLI report, not an HTTP envelope. Engine values, diagnostics and differences come from real disposable template previews; expected assertion values come from the suite. A final baseline conflict may retain earlier candidate evidence while invalidating its status.",
+  "type": "object",
+  "required": ["format", "engine", "suiteSha256", "passed", "cases"],
+  "properties": {
+    "format": { "const": "mantra.template-acceptance-report/1" },
+    "engine": {
+      "type": "object",
+      "required": ["mantra", "normein"],
+      "properties": { "mantra": { "type": "string", "minLength": 1 }, "normein": { "type": "string", "minLength": 1 } },
+      "additionalProperties": false
+    },
+    "suiteSha256": { "$ref": "template-acceptance.schema.json#/$defs/hash" },
+    "passed": { "type": "boolean" },
+    "cases": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "$ref": "#/$defs/caseResult" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "caseResult": {
+      "type": "object",
+      "required": ["id", "case", "status", "baseRevision", "baseRevisions", "proposedRevision", "succeeded", "validationPassed", "diagnostics", "difference", "assertions", "error"],
+      "properties": {
+        "id": { "$ref": "template-acceptance.schema.json#/$defs/nonblank", "maxLength": 120 },
+        "case": { "$ref": "template-acceptance.schema.json#/$defs/nonblank" },
+        "status": { "enum": ["passed", "failed", "error", "conflict"] },
+        "baseRevision": { "$ref": "template-acceptance.schema.json#/$defs/hash" },
+        "baseRevisions": { "$ref": "template-acceptance.schema.json#/$defs/revisions" },
+        "proposedRevision": { "anyOf": [{ "type": "null" }, { "$ref": "template-acceptance.schema.json#/$defs/hash" }] },
+        "succeeded": { "type": ["boolean", "null"] },
+        "validationPassed": { "type": ["boolean", "null"] },
+        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } },
+        "difference": { "anyOf": [{ "type": "null" }, { "$ref": "compare.schema.json#/properties/data" }] },
+        "assertions": { "type": "array", "items": { "$ref": "#/$defs/assertion" } },
+        "error": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/error" }] }
+      },
+      "additionalProperties": false
+    },
+    "assertion": {
+      "type": "object",
+      "required": ["path", "expected", "actual", "passed"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "pattern": "^/" },
+        "expected": { "$ref": "#/$defs/assertionValue" },
+        "actual": { "$ref": "#/$defs/assertionValue" },
+        "passed": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "assertionValue": {
+      "anyOf": [
+        { "$ref": "value.schema.json" },
+        { "type": "array", "items": { "$ref": "#/$defs/diagnosticCount" } }
+      ]
+    },
+    "diagnosticCount": {
+      "type": "object",
+      "required": ["code", "severity", "count"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["error", "warning", "info"] },
+        "count": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "required": ["problem", "message", "currentRevision"],
+      "properties": {
+        "problem": { "enum": ["REQUEST", "NOT_FOUND", "INVALID", "TOO_LARGE", "CONFLICT"] },
+        "message": { "type": ["string", "null"] },
+        "currentRevision": { "anyOf": [{ "type": "null" }, { "$ref": "template-acceptance.schema.json#/$defs/hash" }] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

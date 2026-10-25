@@ -49,6 +49,8 @@ Usage:
   mantra fixtures <case.mantra> [more cases...] --out <dir> [--workspace <dir>]
   mantra serve <workspace> [--port <number>] [--ui <workbench-ui/dist>]
              [--packages <host-config.json>] [--directory-policy strict-handles|trusted-local]
+  mantra template-capture <case.mantra> [more cases...] --workspace <dir> [--out <suite.json>]
+  mantra template-verify <suite.json> --workspace <dir> [--out <report.json>]
   mantra diff <schema.mantra> --case <case.mantra> --variant-parameters <file[,file...]>
               [--base-parameters <file[,file...]>] [--variant-case <case.mantra>]
               [--workspace <dir>] [--layout <layout.mantra>] [--format json|text] [--out <file>]
@@ -73,6 +75,8 @@ Commands:
   serve    Start the loopback-only workbench service with structured case editing, Explain and live updates.
   diff     Compare two evaluations of one schema (JSON by default).
   explain  Explain one calculated value with bounded source steps (JSON by default).
+  template-capture  Capture template source revisions without generating expected results.
+  template-verify   Check a candidate template against an independently specified acceptance suite.
 """
 
 fun main(args: Array<String>) {
@@ -109,6 +113,10 @@ internal fun executeCli(args: Array<String>, out: PrintStream = System.out, err:
             "serve" -> serve(options)
             "diff" -> diff(options)
             "explain" -> explain(options)
+            "template-capture", "template-verify" -> {
+                val status = executeTemplateAcceptanceCli(args, out, err)
+                if (status != 0) throw CliExit(status)
+            }
             null, "help", "--help", "-h" -> out.println(USAGE.trimIndent())
             else -> fail("Unknown command `$command`.\n${USAGE.trimIndent()}")
         }
