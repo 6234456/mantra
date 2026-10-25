@@ -8,6 +8,7 @@ import type { TemplatePreview, TemplatePreviewClient, TemplateSources } from './
 import { firstCase, secondCase, formulaDiagnostic, templatePreview, templateSources } from './fixtures.test.helpers'
 import type { LayoutSettings, LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
 import type { StyleClasses, StyleClassesClient, StyleClassesRequest } from './styleClassesClient'
+import * as sourceHistory from './sourceHistory'
 
 beforeEach(() => {
   vi.stubGlobal('matchMedia', () => ({
@@ -27,8 +28,12 @@ afterEach(() => {
 
 function deferred<T>() {
   let resolve!: (value: T) => void
-  const promise = new Promise<T>((complete) => (resolve = complete))
-  return { promise, resolve }
+  let reject!: (reason: unknown) => void
+  const promise = new Promise<T>((complete, fail) => {
+    resolve = complete
+    reject = fail
+  })
+  return { promise, resolve, reject }
 }
 
 function fakeClient() {
@@ -825,5 +830,236 @@ it('accepts only one source patch when settings and style responses arrive toget
   expect(source.value).not.toContain('; style class applied')
   expect((screen.getByLabelText('Style class weight') as HTMLSelectElement).value).toBe('normal')
   expect((screen.getByRole('button', { name: 'Apply style changes' }) as HTMLButtonElement).disabled).toBe(true)
+  expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel style changes' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Undo source' }))
+  expect(source.value).toBe(request.text)
+  expect((screen.getByRole('button', { name: 'Undo source' }) as HTMLButtonElement).disabled).toBe(true)
+})
+
+const undoSource = () => screen.getByRole('button', { name: 'Undo source' }) as HTMLButtonElement
+const redoSource = () => screen.getByRole('button', { name: 'Redo source' }) as HTMLButtonElement
+const sourceText = (document: string) =>
+  screen.getByRole('textbox', { name: 'Draft source ' + document }) as HTMLTextAreaElement
+
+it('uses one exact source history for manual schema edits, root settings and style class application', async () => {
+  const styles = fakeStyleClient()
+  const { layout, precision } = await openLayoutSettings(styles)
+  fireEvent.change(screen.getByLabelText('Participating document'), { target: { value: schema.handle } })
+  const schemaDraft = schema.text + '\n; 中文😀 manual edit\n'
+  fireEvent.change(sourceText(schema.document), { target: { value: schemaDraft } })
+  fireEvent.change(screen.getByLabelText('Participating document'), { target: { value: layout.handle } })
+  fireEvent.change(precision, { target: { value: '4' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  await screen.findByText('Settings applied to the source draft. Preview the draft to update its results.')
+  await openStyleClasses()
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  await screen.findByText('Style changes applied to the source draft. Preview the draft to check its results.')
+  const settingsDraft = layout.text + '\n; layout settings applied'
+  const styledDraft = settingsDraft + '\n; style class applied'
+  expect(sourceText(layout.document).value).toBe(styledDraft)
+  fireEvent.click(undoSource())
+  expect(sourceText(layout.document).value).toBe(settingsDraft)
+  fireEvent.click(undoSource())
+  expect(sourceText(layout.document).value).toBe(layout.text)
+  fireEvent.click(undoSource())
+  expect(sourceText(schema.document).value).toBe(schema.text)
+  expect(undoSource().disabled).toBe(true)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Previous engine preview/)
+  fireEvent.click(redoSource())
+  expect(sourceText(schema.document).value).toBe(schemaDraft)
+  fireEvent.click(redoSource())
+  expect(sourceText(layout.document).value).toBe(settingsDraft)
+  fireEvent.click(redoSource())
+  expect(sourceText(layout.document).value).toBe(styledDraft)
+  expect(redoSource().disabled).toBe(true)
+})
+
+it('links blocked history actions to unapplied fields and requires explicit Apply or Cancel', async () => {
+  const styles = fakeStyleClient()
+  const { layout, precision } = await openLayoutSettings(styles)
+  fireEvent.change(sourceText(layout.document), { target: { value: layout.text + '\n; manual edit' } })
+  fireEvent.click(undoSource())
+  expect(redoSource().disabled).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: 'Refresh layout settings' }))
+  await screen.findByLabelText('Layout setting precision')
+  await waitFor(() =>
+    expect((screen.getByRole('button', { name: 'Refresh layout settings' }) as HTMLButtonElement).disabled).toBe(false),
+  )
+  fireEvent.change(precision, { target: { value: '4' } })
+  expect(undoSource().disabled).toBe(true)
+  expect(redoSource().disabled).toBe(true)
+  expect(document.getElementById(redoSource().getAttribute('aria-describedby')!)?.textContent).toContain(
+    'Apply or cancel',
+  )
+  fireEvent.click(redoSource())
+  expect(sourceText(layout.document).value).toBe(layout.text)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel setting changes' }))
+  expect(redoSource().disabled).toBe(false)
+  await openStyleClasses()
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  expect(redoSource().disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel style changes' }))
+  fireEvent.click(redoSource())
+  expect(sourceText(layout.document).value).toBe(layout.text + '\n; manual edit')
+})
+
+it('undoes during a candidate request, discards its late response and retains raw inputs and the independent saved baseline', async () => {
+  const { client, source } = await open()
+  await previewCurrent()
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Compare with saved template' }))
+  await savedPreviewCurrent()
+  const node = templatePreview(firstCase, client.preview.mock.lastCall![1]).data.structure.nodes!['requested-units']
+  fireEvent.click(screen.getByRole('checkbox', { name: node.label || 'requested-units' }))
+  fireEvent.change(screen.getByRole('textbox', { name: 'Example input requested-units' }), { target: { value: ' 9 ' } })
+  fireEvent.change(source, { target: { value: schema.text + '\n; in-memory source edit' } })
+  const late = deferred<Envelope<TemplatePreview>>()
+  client.preview.mockReturnValueOnce(late.promise)
+  fireEvent.click(screen.getByRole('button', { name: 'Preview draft' }))
+  const request = client.preview.mock.lastCall![1]
+  const signal = client.preview.mock.lastCall![2]
+  const before = client.preview.mock.calls.length
+  expect(undoSource().disabled).toBe(false)
+  fireEvent.click(undoSource())
+  expect(signal?.aborted).toBe(true)
+  await act(async () => {
+    late.resolve(templatePreview(firstCase, request))
+    await late.promise
+  })
+  expect(source.value).toBe(schema.text)
+  expect((screen.getByRole('textbox', { name: 'Example input requested-units' }) as HTMLInputElement).value).toBe(' 9 ')
+  expect(screen.getByTestId('template-baseline-status').textContent).toMatch(/^Saved-template preview/)
+  expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Previous engine preview/)
+  expect(client.preview).toHaveBeenCalledTimes(before)
+  await previewCurrent()
+  expect(client.preview.mock.lastCall![1].inputs).toEqual([{ node: 'requested-units', text: ' 9 ' }])
+})
+
+it('clears a redo branch on new editing and clears all source history while recapturing or switching cases', async () => {
+  const { client, source } = await open()
+  fireEvent.change(source, { target: { value: schema.text + '\n; first edit' } })
+  fireEvent.click(undoSource())
+  expect(redoSource().disabled).toBe(false)
+  const branch = schema.text + '\n; new branch'
+  fireEvent.change(source, { target: { value: branch } })
+  expect(redoSource().disabled).toBe(true)
+  const recapture = deferred<Envelope<TemplateSources>>()
+  client.sources.mockReturnValueOnce(recapture.promise)
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Reload saved source' }))
+  expect(undoSource().disabled).toBe(true)
+  expect(redoSource().disabled).toBe(true)
+  expect(document.getElementById(undoSource().getAttribute('aria-describedby')!)?.textContent).toContain(
+    'Capture template sources',
+  )
+  await act(async () => {
+    recapture.resolve(templateSources())
+    await recapture.promise
+  })
+  expect(undoSource().disabled).toBe(true)
+  fireEvent.change(screen.getByLabelText('Participating document'), { target: { value: schema.handle } })
+  fireEvent.change(sourceText(schema.document), { target: { value: schema.text + '\n; next edit' } })
+  expect(undoSource().disabled).toBe(false)
+  fireEvent.change(screen.getByLabelText('Example case'), { target: { value: secondCase } })
+  await waitFor(() => expect(client.sources).toHaveBeenCalledTimes(3))
+  await waitFor(() =>
+    expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(false),
+  )
+  expect(undoSource().disabled).toBe(true)
+  expect(redoSource().disabled).toBe(true)
+})
+
+it('retains the source but disables its history after a graph conflict', async () => {
+  const { client, source } = await open()
+  const draft = source.value + '\n; keep on conflict'
+  fireEvent.change(source, { target: { value: draft } })
+  client.preview.mockRejectedValueOnce(new TemplatePreviewError(409, 'Source changed externally'))
+  fireEvent.click(screen.getByRole('button', { name: 'Preview draft' }))
+  await screen.findByText('Source changed externally')
+  expect(source.value).toBe(draft)
+  expect(undoSource().disabled).toBe(true)
+  expect(document.getElementById(undoSource().getAttribute('aria-describedby')!)?.textContent).toContain(
+    'Resolve the source revision conflict',
+  )
+})
+
+it('does not intercept native editor undo, redo or IME confirmation keys', async () => {
+  const { source } = await open()
+  const draft = source.value + '\n; native editor text'
+  fireEvent.change(source, { target: { value: draft } })
+  expect(fireEvent.keyDown(source, { key: 'z', ctrlKey: true })).toBe(true)
+  expect(fireEvent.keyDown(source, { key: 'z', metaKey: true, shiftKey: true })).toBe(true)
+  expect(fireEvent.keyDown(source, { key: 'y', ctrlKey: true })).toBe(true)
+  fireEvent.compositionStart(source)
+  expect(fireEvent.keyDown(source, { key: 'Enter', keyCode: 229, isComposing: true })).toBe(true)
+  fireEvent.compositionEnd(source)
+  expect(source.value).toBe(draft)
+  expect(undoSource().disabled).toBe(false)
+  expect(redoSource().disabled).toBe(true)
+})
+
+it('does not record an accepted source no-op as an undoable transaction', async () => {
+  const { precision, settingsClient } = await openLayoutSettings()
+  settingsClient.settings.mockImplementationOnce(async (_case, request) => {
+    const previous = await settingsClient.settings.mock.results[0].value
+    return {
+      ...previous,
+      data: {
+        ...previous.data,
+        draftSequence: request.draftSequence,
+        source: { ...previous.data.source, text: request.text },
+        patches: [],
+      },
+    }
+  })
+  fireEvent.change(precision, { target: { value: '4' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  await screen.findByText('Settings applied to the source draft. Preview the draft to update its results.')
+  expect(undoSource().disabled).toBe(true)
+  expect(redoSource().disabled).toBe(true)
+  await waitFor(() =>
+    expect(screen.getByTestId('template-preview-status').textContent).toMatch(/^Current engine preview/),
+  )
+})
+
+it('reserves a graph conflict before a simultaneous settings success can accept source or history', async () => {
+  const record = vi.spyOn(sourceHistory, 'recordSourceChange')
+  const styles = fakeStyleClient()
+  const { layout, precision, settingsClient } = await openLayoutSettings(styles)
+  await openStyleClasses()
+  const inspected = await settingsClient.settings.mock.results[0].value
+  const settingReply = deferred<Envelope<LayoutSettings>>()
+  const styleReply = deferred<Envelope<StyleClasses>>()
+  settingsClient.settings.mockReturnValueOnce(settingReply.promise)
+  styles.classes.mockReturnValueOnce(styleReply.promise)
+  fireEvent.change(precision, { target: { value: '4' } })
+  fireEvent.change(screen.getByLabelText('Style class weight'), { target: { value: 'normal' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Apply layout settings' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Apply style changes' }))
+  const request = settingsClient.settings.mock.lastCall![1]
+  const suffix = '\n; stale success after another source conflict'
+  await act(async () => {
+    styleReply.reject(new TemplatePreviewError(409, 'Style baseline changed externally'))
+    settingReply.resolve({
+      ...inspected,
+      data: {
+        ...inspected.data,
+        draftSequence: request.draftSequence,
+        source: { ...inspected.data.source, text: request.text + suffix },
+        patches: [{ startOffset: request.text.length, endOffset: request.text.length, text: suffix, removedText: '' }],
+      },
+    })
+    await Promise.allSettled([styleReply.promise, settingReply.promise])
+  })
+  expect(sourceText(layout.document).value).toBe(layout.text)
+  expect((screen.getByLabelText('Layout setting precision') as HTMLInputElement).value).toBe('4')
+  expect((screen.getByLabelText('Style class weight') as HTMLSelectElement).value).toBe('normal')
+  expect(record).not.toHaveBeenCalled()
+  expect(undoSource().disabled).toBe(true)
+  expect(redoSource().disabled).toBe(true)
+  expect(document.getElementById(undoSource().getAttribute('aria-describedby')!)?.textContent).toContain(
+    'Resolve the source revision conflict',
+  )
   expect((screen.getByRole('button', { name: 'Preview draft' }) as HTMLButtonElement).disabled).toBe(true)
 })

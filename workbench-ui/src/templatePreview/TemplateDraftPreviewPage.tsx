@@ -10,6 +10,7 @@ import { LayoutSettingsPanel } from './LayoutSettingsPanel'
 import type { LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
 import { StyleClassesPanel } from './StyleClassesPanel'
 import type { StyleClassesClient } from './styleClassesClient'
+import { emptySourceHistory, recordSourceChange, stepSourceHistory, type SourceHistory } from './sourceHistory'
 import {
   LiveTemplatePreviewClient,
   sameTemplateRevisions,
@@ -35,6 +36,8 @@ export default function TemplateDraftPreviewPage({
   const [caseId, setCaseId] = useState(() => new URLSearchParams(location.search).get('case') ?? '')
   const [snapshot, setSnapshot] = useState<Envelope<TemplateSources>>()
   const [documents, setDocuments] = useState<Record<string, string>>({})
+  const [history, setHistory] = useState<SourceHistory>(emptySourceHistory)
+  const [historyNotice, setHistoryNotice] = useState('')
   const [sourceHandle, setSourceHandle] = useState('')
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Envelope<TemplatePreview>>()
@@ -66,9 +69,9 @@ export default function TemplateDraftPreviewPage({
   const candidatePanelsReceived = useRef(false)
   const available = !!supplied || !!document.querySelector('meta[name="mantra-session-token"]')
   const packageHost = !!document.querySelector('meta[name="mantra-package-workspace"][content="on"]')
-  const latestDraft = useRef({ caseId, snapshot, documents, conflict })
+  const latestDraft = useRef({ caseId, snapshot, documents, conflict, history, authoringPending, loading })
   useLayoutEffect(() => {
-    latestDraft.current = { caseId, snapshot, documents, conflict }
+    latestDraft.current = { caseId, snapshot, documents, conflict, history, authoringPending, loading }
   })
 
   const invalidateBaseline = useCallback(() => {
@@ -80,6 +83,7 @@ export default function TemplateDraftPreviewPage({
   }, [])
 
   const markConflict = useCallback(() => {
+    latestDraft.current = { ...latestDraft.current, conflict: true }
     context.current++
     pending.current?.abort()
     setBusy(false)
@@ -134,12 +138,15 @@ export default function TemplateDraftPreviewPage({
     setConflict(false)
     setInputs({})
     setDocuments({})
+    setHistory(emptySourceHistory())
+    setHistoryNotice('')
     void client
       .sources(caseId, controller.signal)
       .then((next) => {
         if (controller.signal.aborted || context.current !== generation) return
         setSnapshot(next)
         setDocuments(Object.fromEntries(next.data.documents.map((item) => [item.handle, item.text])))
+        setHistory(emptySourceHistory())
         setSourceHandle(
           next.data.documents.find((item) => item.editable)?.handle ?? next.data.documents[0]?.handle ?? '',
         )
@@ -280,10 +287,33 @@ export default function TemplateDraftPreviewPage({
 
   const source = snapshot?.data.documents.find((item) => item.handle === sourceHandle)
   const layoutSource = snapshot?.data.documents.find((item) => item.role === 'layout')
+  function acceptSourceChange(handle: string, before: string, after: string, label: string): boolean {
+    const latest = latestDraft.current
+    const document = latest.snapshot?.data.documents.find((item) => item.handle === handle)
+    if (
+      latest.loading ||
+      latest.snapshot?.data.document !== latest.caseId ||
+      !document?.editable ||
+      !['schema', 'layout'].includes(document.role) ||
+      latest.documents[handle] !== before
+    )
+      return false
+    if (before === after) return true
+    const nextDocuments = { ...latest.documents, [handle]: after }
+    const nextHistory = recordSourceChange(latest.history, { handle, before, after, label })
+    // Reserve both source and history before React commits so concurrent editors see the accepted text.
+    latestDraft.current = { ...latest, documents: nextDocuments, history: nextHistory }
+    invalidate()
+    setDocuments(nextDocuments)
+    setHistory(nextHistory)
+    setHistoryNotice('')
+    return true
+  }
   function applyLayoutSource(
     expectedCase: string,
     request: Pick<LayoutSettingsRequest, 'baseRevision' | 'baseRevisions' | 'handle' | 'text'>,
     nextText: string,
+    label: string,
   ): boolean {
     const latest = latestDraft.current
     const layout = latest.snapshot?.data.documents.find((item) => item.handle === request.handle)
@@ -298,14 +328,47 @@ export default function TemplateDraftPreviewPage({
       latest.documents[request.handle] !== request.text
     )
       return false
-    if (nextText !== request.text) {
-      // Reserve the accepted source before React commits so two panels cannot both accept the same old text.
-      latestDraft.current = { ...latest, documents: { ...latest.documents, [request.handle]: nextText } }
-      invalidate()
-      setDocuments((previous) => ({ ...previous, [request.handle]: nextText }))
-    }
-    return true
+    return acceptSourceChange(request.handle, request.text, nextText, label)
   }
+  function historyReason(direction: 'undo' | 'redo'): string | undefined {
+    if (loading || !snapshot || snapshot.data.document !== caseId)
+      return 'Capture template sources before using source history.'
+    if (conflict) return 'Resolve the source revision conflict before using source history.'
+    if (authoringPending)
+      return 'Apply or cancel the layout setting and style class changes before using source history.'
+    const transaction = (direction === 'undo' ? history.past : history.future).at(-1)
+    if (!transaction) return direction === 'undo' ? 'No source changes to undo.' : 'No source changes to redo.'
+    if (documents[transaction.handle] !== transaction[direction === 'undo' ? 'after' : 'before'])
+      return 'The source no longer matches this history entry.'
+  }
+  function moveHistory(direction: 'undo' | 'redo') {
+    const latest = latestDraft.current
+    if (
+      latest.loading ||
+      latest.conflict ||
+      latest.authoringPending ||
+      latest.snapshot?.data.document !== latest.caseId
+    )
+      return
+    const next = stepSourceHistory(latest.history, direction, latest.documents)
+    if (
+      !next ||
+      !latest.snapshot?.data.documents.some(
+        (item) => item.handle === next.transaction.handle && item.editable && ['schema', 'layout'].includes(item.role),
+      )
+    )
+      return
+    latestDraft.current = { ...latest, documents: next.documents, history: next.history }
+    invalidate()
+    setDocuments(next.documents)
+    setHistory(next.history)
+    setSourceHandle(next.transaction.handle)
+    setHistoryNotice(
+      `${direction === 'undo' ? 'Undid' : 'Redid'} source change: ${next.transaction.label}. Preview the draft to update its results.`,
+    )
+  }
+  const undoReason = historyReason('undo')
+  const redoReason = historyReason('redo')
   const current = result?.data.draftSequence === sequence && !conflict && !authoringPending
   const explain =
     selected && result?.data.explain && addressKey(selected) === addressKey(result.data.explain.address)
@@ -365,6 +428,30 @@ export default function TemplateDraftPreviewPage({
             >
               Preview draft
             </button>
+            <button
+              disabled={!!undoReason}
+              aria-describedby={undoReason ? 'template-source-undo-reason' : undefined}
+              onClick={() => moveHistory('undo')}
+            >
+              Undo source
+            </button>
+            {undoReason && (
+              <span id="template-source-undo-reason" className="muted">
+                {undoReason}
+              </span>
+            )}
+            <button
+              disabled={!!redoReason}
+              aria-describedby={redoReason ? 'template-source-redo-reason' : undefined}
+              onClick={() => moveHistory('redo')}
+            >
+              Redo source
+            </button>
+            {redoReason && (
+              <span id="template-source-redo-reason" className="muted">
+                {redoReason}
+              </span>
+            )}
             {authoringPending && (
               <span id="template-settings-preview-reason">
                 {settingsPending && styleClassesPending
@@ -431,6 +518,7 @@ export default function TemplateDraftPreviewPage({
             </label>
           </div>
           {loading && <p role="status">Capturing template sources…</p>}
+          {historyNotice && <p role="status">{historyNotice}</p>}
           {snapshot && (
             <p className="muted">
               Captured source revision <code>{snapshot.revision}</code>
@@ -464,8 +552,12 @@ export default function TemplateDraftPreviewPage({
                     readOnly={!source.editable}
                     value={documents[source.handle] ?? source.text}
                     onChange={(event) => {
-                      invalidate()
-                      setDocuments((value) => ({ ...value, [source.handle]: event.target.value }))
+                      acceptSourceChange(
+                        source.handle,
+                        documents[source.handle] ?? source.text,
+                        event.target.value,
+                        `Edit ${source.document}`,
+                      )
                     }}
                   />
                 </>
@@ -516,7 +608,9 @@ export default function TemplateDraftPreviewPage({
                 source={layoutSource}
                 text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
                 conflict={conflict}
-                onApply={applyLayoutSource}
+                onApply={(expectedCase, request, nextText) =>
+                  applyLayoutSource(expectedCase, request, nextText, 'Apply layout settings')
+                }
                 onConflict={markConflict}
                 onPendingChange={setSettingsPending}
                 client={settingsClient}
@@ -532,7 +626,9 @@ export default function TemplateDraftPreviewPage({
                 source={layoutSource}
                 text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
                 conflict={conflict}
-                onApply={applyLayoutSource}
+                onApply={(expectedCase, request, nextText) =>
+                  applyLayoutSource(expectedCase, request, nextText, 'Apply style classes')
+                }
                 onConflict={markConflict}
                 onPendingChange={setStyleClassesPending}
                 client={styleClassesClient}
