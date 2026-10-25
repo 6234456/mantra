@@ -52,12 +52,14 @@ const failures = []
 const passed = []
 const responses = []
 const settingsResponses = []
+const styleResponses = []
 const screenshots = []
 const browserErrors = []
 const network = new Map()
 const pausedResponses = []
 const cancelledRequests = []
 const cancelledSettingsRequests = []
+const cancelledStyleRequests = []
 const externalChanges = []
 let directory, workspace, service, browser, session, baseUrl
 let interrupted = false
@@ -195,12 +197,15 @@ async function connect(url) {
     if (
       response.method === 'Network.requestWillBeSent' &&
       params.request.method === 'POST' &&
-      (params.request.url.endsWith('/template-preview') || params.request.url.endsWith('/template-layout-settings'))
+      (params.request.url.endsWith('/template-preview') ||
+        params.request.url.endsWith('/template-layout-settings') ||
+        params.request.url.endsWith('/template-style-classes'))
     ) {
       // Keep only JSON body evidence, never session-token request headers.
       network.set(params.requestId, {
         request: JSON.parse(params.request.postData),
         settings: params.request.url.endsWith('/template-layout-settings'),
+        styles: params.request.url.endsWith('/template-style-classes'),
       })
     }
     if (response.method === 'Network.responseReceived' && network.has(params.requestId)) {
@@ -209,7 +214,11 @@ async function connect(url) {
     if (response.method === 'Network.loadingFailed' && network.has(params.requestId)) {
       const captured = network.get(params.requestId)
       network.delete(params.requestId)
-      const cancellations = captured.settings ? cancelledSettingsRequests : cancelledRequests
+      const cancellations = captured.settings
+        ? cancelledSettingsRequests
+        : captured.styles
+          ? cancelledStyleRequests
+          : cancelledRequests
       cancellations.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
       if (!params.canceled && !closing) failures.push(new Error(`Preview HTTP request failed: ${params.errorText}`))
     }
@@ -223,7 +232,7 @@ async function connect(url) {
         .send('Network.getResponseBody', { requestId: params.requestId })
         .then(({ body, base64Encoded }) => {
           captured.body = JSON.parse(base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body)
-          ;(captured.settings ? settingsResponses : responses).push(captured)
+          ;(captured.settings ? settingsResponses : captured.styles ? styleResponses : responses).push(captured)
         })
         .catch((error) => {
           if (!closing) failures.push(error)
@@ -415,6 +424,69 @@ async function resetSetting(id) {
   const element = field(`Reset layout setting ${id}`)
   await until(() => evaluate(`!!${element} && !${element}.disabled`), `resettable layout setting ${id}`)
   await evaluate(`${element}.click()`)
+}
+
+async function styles(status, action = 'Refresh style classes') {
+  const index = styleResponses.length
+  await click(action)
+  const captured = await until(() => styleResponses[index], `real template-style-classes HTTP ${status}`)
+  assert.equal(captured.status, status, JSON.stringify(captured.body))
+  if (status === 200)
+    await until(() => evaluate(`!${button('Refresh style classes')}?.disabled`), 'settled style classes UI')
+  if (status === 200) {
+    assert.equal(captured.body.contract, 'mantra.workbench/4')
+    assert.equal(captured.body.revision, captured.request.baseRevision)
+    assert.equal(captured.body.data.draftSequence, captured.request.draftSequence)
+    assert.equal(captured.body.data.source.handle, captured.request.handle)
+    assert.deepEqual(captured.body.data.baseRevisions, captured.request.baseRevisions)
+    assert.equal(captured.body.data.usageScope, 'submitted-layout')
+    let reconstructed = captured.request.text
+    for (const patch of captured.body.data.patches) {
+      assert.equal(reconstructed.slice(patch.startOffset, patch.endOffset), patch.removedText)
+      reconstructed = reconstructed.slice(0, patch.startOffset) + patch.text + reconstructed.slice(patch.endOffset)
+    }
+    assert.equal(reconstructed, captured.body.data.source.text, 'Style patches reconstruct the exact source')
+    for (const patch of [...captured.body.data.patches].reverse())
+      reconstructed =
+        reconstructed.slice(0, patch.startOffset) +
+        patch.removedText +
+        reconstructed.slice(patch.startOffset + patch.text.length)
+    assert.equal(reconstructed, captured.request.text, 'Inverse style patches restore the exact submitted source')
+  }
+  return captured
+}
+
+async function styleChoice(property, value) {
+  const element = field(property === 'class' ? 'Style class' : `Style class ${property}`)
+  await until(() => evaluate(`!!${element} && !${element}.disabled`), `editable style class ${property}`)
+  await evaluate(`(() => {
+    const select = ${element};
+    if (![...select.options].some(option => option.value === ${JSON.stringify(value)})) throw new Error('Missing style class option');
+    select.value = ${JSON.stringify(value)};
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  assert.equal(await evaluate(`${element}.value`), value)
+}
+
+async function paperAnswerStyle(captured, expected) {
+  const row = captured.body.data.paper.tables.flatMap((table) => table.rows).find((item) => item.node === 'answer')
+  assert.ok(row, 'Actual candidate Paper contains the answer row')
+  const cell = row.cells.find((item) => item.address?.node === 'answer')
+  assert.ok(cell, 'Actual candidate Paper contains an addressable answer value')
+  for (const [property, value] of Object.entries(expected))
+    assert.equal(cell.style[property], value, `Actual Paper answer ${property}`)
+  const appearance = await evaluate(`(() => {
+    const section = document.querySelector('[aria-label="Draft preview"]');
+    const button = [...section.querySelectorAll('.paper-table button')].find(item => item.textContent.trim() === '20,00');
+    if (!button) return null;
+    const cell = button.closest('td');
+    return { classes: cell.className, weight: cell.style.fontWeight, tone: cell.style.color, fill: cell.style.backgroundColor };
+  })()`)
+  assert.ok(appearance, 'The real browser rendered the answer value cell')
+  if (expected.tone) assert.ok(appearance.classes.includes(`tone-${expected.tone}`))
+  if (expected.fill) assert.ok(appearance.classes.includes(`fill-${expected.fill}`))
+  if (expected.weight) assert.equal(appearance.weight, expected.weight === 'bold' ? '600' : '400')
+  assert.equal(answer(captured.body), '20', 'Style editing preserves exact calculated values')
 }
 
 async function releaseHeld(response) {
@@ -807,6 +879,170 @@ try {
   await source('schema.mantra')
   pass('a settings source conflict keeps the draft and blocks calculation until an explicit baseline recapture')
 
+  await source('layout.mantra')
+  const classLayout = `(layout browser/layout {:title "Saved title" :locale "de-DE" :style-preset :working-paper}
+  ; Keep this source comment while definitions change.
+  (style-class :result {:tone :muted})
+  (style {:all true} {:use :result}))`
+  await fill('Draft source layout.mantra', classLayout)
+  await evaluate(`document.querySelector('.template-style-classes-disclosure > summary').click()`)
+  await until(
+    () => evaluate(`document.querySelector('.template-style-classes-disclosure').open`),
+    'style classes opened before using the real class catalog',
+  )
+  const classInspection = await styles(200, 'Inspect style classes')
+  assert.deepEqual(classInspection.request.operations, [])
+  assert.deepEqual(classInspection.body.data.stylePresets, ['working-paper'])
+  const klass = (captured, name) => captured.body.data.classes.find((item) => item.name === name)
+  assert.equal(classInspection.body.data.classes.length, 8)
+  assert.deepEqual(klass(classInspection, 'result').presets, ['working-paper'])
+  assert.deepEqual(klass(classInspection, 'result').local, { weight: null, tone: 'muted', fill: null })
+  assert.deepEqual(klass(classInspection, 'result').inherited, { weight: 'bold', tone: 'accent', fill: 'accent' })
+  assert.deepEqual(klass(classInspection, 'result').effective, { weight: 'bold', tone: 'muted', fill: 'accent' })
+  assert.equal(klass(classInspection, 'result').references[0].kind, 'use')
+  const presetOverridePreview = await preview(200)
+  await paperAnswerStyle(presetOverridePreview, { weight: 'bold', tone: 'muted', fill: 'accent' })
+  await unchangedFiles()
+  pass('real style catalog distinguishes preset contribution from the local override and actual Paper style')
+
+  await click('Create local style class')
+  await fill('Style class name', 'custom')
+  await styleChoice('weight', 'bold')
+  await styleChoice('tone', 'accent')
+  await styleChoice('fill', 'subtle')
+  assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
+  const classRequestsBeforeIme = styleResponses.length
+  const classIme = await evaluate(`(() => {
+    const input = ${field('Style class name')};
+    input.focus();
+    input.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }));
+    const key = new KeyboardEvent('keydown', { key: 'Enter', keyCode: 229, isComposing: true, bubbles: true, cancelable: true });
+    const accepted = input.dispatchEvent(key);
+    const state = { accepted, prevented: key.defaultPrevented, applying: ${button('Apply style changes')}.disabled,
+      source: ${field('Draft source layout.mantra')}.value };
+    input.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: '类' }));
+    input.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+    return state;
+  })()`)
+  assert.equal(classIme.accepted, true)
+  assert.equal(classIme.prevented, false, 'Class editing preserves native IME candidate confirmation')
+  assert.equal(classIme.applying, true, 'Composition does not submit a class definition')
+  assert.equal(classIme.source, classLayout)
+  assert.equal(styleResponses.length, classRequestsBeforeIme)
+  await click('Cancel style changes')
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), classLayout)
+  await until(() => evaluate(`!${button('Preview draft')}.disabled`), 'canceled style fields release preview')
+  await unchangedFiles()
+  pass('unapplied class fields and synthetic IME stay buffered while Cancel preserves the source')
+
+  await click('Create local style class')
+  await fill('Style class name', 'custom')
+  await styleChoice('weight', 'bold')
+  await styleChoice('tone', 'accent')
+  await styleChoice('fill', 'subtle')
+  const createdClass = await styles(200, 'Apply style changes')
+  assert.deepEqual(createdClass.request.operations, [
+    { op: 'upsert', name: 'custom', style: { weight: 'bold', tone: 'accent', fill: 'subtle' } },
+  ])
+  assert.deepEqual(klass(createdClass, 'custom').local, { weight: 'bold', tone: 'accent', fill: 'subtle' })
+  assert.ok(createdClass.body.data.source.text.includes('; Keep this source comment while definitions change.'))
+  const usedClassSource = createdClass.body.data.source.text.replace('{:use :result}', '{:use :custom}')
+  await fill('Draft source layout.mantra', usedClassSource)
+  const usedClass = await styles(200)
+  await styleChoice('class', 'custom')
+  assert.equal(klass(usedClass, 'custom').canRemove, false)
+  assert.ok(klass(usedClass, 'custom').removeReason)
+  assert.equal(await evaluate(`${button('Remove local style class')}.disabled`), true)
+  const customPreview = await preview(200)
+  await paperAnswerStyle(customPreview, { weight: 'bold', tone: 'accent', fill: 'subtle' })
+  await unchangedFiles()
+  await savedAnswer('20')
+  await screenshot('style-class-applied')
+  pass('creating a local class changes real Paper styling without changing values and protects hard use references')
+
+  await styleChoice('weight', 'normal')
+  await styleChoice('tone', 'default')
+  await styleChoice('fill', '')
+  const omittedFill = await styles(200, 'Apply style changes')
+  assert.deepEqual(klass(omittedFill, 'custom').local, { weight: 'normal', tone: 'default', fill: null })
+  assert.deepEqual(omittedFill.request.operations[0].style, { weight: 'normal', tone: 'default', fill: null })
+  await styleChoice('fill', 'none')
+  const explicitNone = await styles(200, 'Apply style changes')
+  assert.deepEqual(klass(explicitNone, 'custom').local, { weight: 'normal', tone: 'default', fill: 'none' })
+  const explicitNonePreview = await preview(200)
+  await paperAnswerStyle(explicitNonePreview, { weight: 'normal', tone: 'default', fill: 'none' })
+  await unchangedFiles()
+  pass('omitting a class property stays distinct from explicit normal default and none declarations')
+
+  const unlinkedClassSource = explicitNone.body.data.source.text.replace('{:use :custom}', '{:use :result}')
+  await fill('Draft source layout.mantra', unlinkedClassSource)
+  const unlinkedClass = await styles(200)
+  await styleChoice('class', 'custom')
+  assert.equal(klass(unlinkedClass, 'custom').canRemove, true)
+  await click('Remove local style class')
+  const removedClass = await styles(200, 'Apply style changes')
+  assert.deepEqual(removedClass.request.operations, [{ op: 'remove', name: 'custom' }])
+  assert.equal(klass(removedClass, 'custom'), undefined)
+  assert.ok(removedClass.body.data.source.text.includes('; Keep this source comment while definitions change.'))
+  await styleChoice('class', 'result')
+  assert.equal(klass(removedClass, 'result').canRemove, true, 'The selected preset provides a same-name fallback')
+  await click('Remove local style class')
+  const removedOverride = await styles(200, 'Apply style changes')
+  assert.equal(klass(removedOverride, 'result').local, null)
+  assert.deepEqual(klass(removedOverride, 'result').effective, { weight: 'bold', tone: 'accent', fill: 'accent' })
+  const fallbackPreview = await preview(200)
+  await paperAnswerStyle(fallbackPreview, { weight: 'bold', tone: 'accent', fill: 'accent' })
+  await unchangedFiles()
+  pass('removing unused local definitions preserves comments and removing a preset override restores its contribution')
+
+  await styleChoice('class', 'result')
+  await click('Create local override')
+  await styleChoice('tone', 'muted')
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-style-classes', requestStage: 'Response' }],
+  })
+  await click('Apply style changes')
+  const heldClassPatch = await until(() => pausedResponses.shift(), 'real class patch held at the browser boundary')
+  assert.equal(heldClassPatch.status, 200)
+  const newerClassSource = `${removedOverride.body.data.source.text}\n; Manual source wins over a late class patch.\n`
+  await fill('Draft source layout.mantra', newerClassSource)
+  await releaseHeld(heldClassPatch)
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), newerClassSource)
+  assert.equal(await evaluate(`${field('Style class tone')}.value`), 'muted')
+  assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
+  await unchangedFiles()
+  pass('a late class patch cannot overwrite manual source or clear its retained field buffer')
+
+  await evaluate(`(() => {
+    const details = document.querySelector('.template-layout-settings-disclosure');
+    if (!details.open) details.querySelector('summary').click();
+  })()`)
+  await settings(200, 'Inspect layout settings')
+  await fill('Layout setting title', 'Cross-panel draft')
+  await settings(200, 'Apply layout settings')
+  assert.equal(
+    await evaluate(`${button('Preview draft')}.disabled`),
+    true,
+    'Root settings cannot dismiss class buffers',
+  )
+  const refreshedClass = await styles(200)
+  assert.ok(refreshedClass.body.data.source.text.includes('Cross-panel draft'))
+  assert.equal(await evaluate(`${field('Style class tone')}.value`), 'muted')
+  const coordinatedClass = await styles(200, 'Apply style changes')
+  assert.equal(klass(coordinatedClass, 'result').local.tone, 'muted')
+  const crossPanelPreview = await preview(200)
+  assert.equal(crossPanelPreview.body.data.paper.title, 'Cross-panel draft')
+  await paperAnswerStyle(crossPanelPreview, { weight: 'bold', tone: 'muted', fill: 'accent' })
+  await unchangedFiles()
+  pass('root settings and class edits keep independent unapplied buffers and coordinate through the same source')
+
+  await fill('Draft source layout.mantra', layout)
+  await evaluate(`(() => {
+    for (const details of document.querySelectorAll('.template-layout-settings-disclosure, .template-style-classes-disclosure'))
+      if (details.open) details.querySelector('summary').click();
+  })()`)
+  await source('schema.mantra')
+
   await fill('Draft source schema.mantra', candidateSchema)
   await source('layout.mantra')
   await fill('Draft source layout.mantra', candidateLayout)
@@ -1166,9 +1402,24 @@ try {
           patches: body.data?.patches ?? null,
           error: body.error ?? null,
         })),
+        styleResponses: styleResponses.map(({ status, request, body }) => ({
+          status,
+          draftSequence: request.draftSequence,
+          baseRevision: request.baseRevision,
+          handle: request.handle,
+          submittedSourceSha256: sha256(Buffer.from(request.text)),
+          operations: request.operations,
+          source: body.data?.source ?? null,
+          stylePresets: body.data?.stylePresets ?? null,
+          usageScope: body.data?.usageScope ?? null,
+          classes: body.data?.classes ?? null,
+          patches: body.data?.patches ?? null,
+          error: body.error ?? null,
+        })),
         sourceByteChecks: filesVerified,
         cancelledPreviewRequests: cancelledRequests,
         cancelledSettingsRequests,
+        cancelledStyleRequests,
         originalSources: Object.fromEntries([...originals].map(([name, bytes]) => [name, sha256(bytes)])),
         authorizedExternalChanges: externalChanges,
         temporaryDirectoryRemoved: !directory || !existsSync(directory),
