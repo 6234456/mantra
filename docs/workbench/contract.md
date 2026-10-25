@@ -648,6 +648,56 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 操作并关联原因；取得新案例／源快照时清空。采用显式按钮，不拦截原生输入框、textarea 或系统 IME
 的撤销与组合键。历史仅存在当前页面内存，刷新不会自动保存或恢复它。
 
+**真实预览页的浏览器恢复与 JSON 备份（2026-10-25）**：G-A12 的客户端切片，覆盖已接受的根
+schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字段。恢复副本不是模板文件保存、
+服务端草稿、源历史或可信校验结果；不关闭 G-A7、服务端 G-A12 或 D-A1。
+
+- `workspace` 和 `template-sources` 的 data 增加 `workspaceId`：64 位小写十六进制，值为
+  SHA-256(UTF-8(`"mantra.workspace/1" + NUL + canonicalRootPath`))。同一规范根路径跨服务重启稳定，
+  不同目录即使源图完全相同也不同；不返回路径，不使用会话令牌，也不将该摘要当作文件权限。
+  `template-sources` 的字段是必需的；普通工作台 fixture 可缺此字段，但真实恢复入口必须取得有效身份。
+- 备份是独立的 `mantra.template-preview-recovery/1` JSON，必须且仅含
+  `{format,savedAt,workspaceId,caseId,baseRevision,baseRevisions,documents,inputs,pending}`。
+  savedAt 为规范 ISO UTC 时间，仅供显示；修订和身份是 64 位摘要，baseRevisions 是完整非空参与源映射。
+  documents 只包含全部可编辑根文档（一份 schema 和零或一份 layout），每项必须且仅含
+  `{handle,document,role,sha256,baseText,text}`：前五项和 baseText 记录捕获基准，text 是当前原文。
+  inputs 为至多 100 个唯一 node 的 `{node,text}` 数组，仅存启用的原始覆盖；空字符串、0、超出 binary64
+  的十进制文本、未被当前 schema 接受的文本均原样保留，不在浏览器转换或检查业务合法性。
+- pending 必须且仅含 `{layoutSettings,styleClass}`。layoutSettings 是至多 14 个不同属性的
+  set／unset 原始操作，形状与根设置请求相同，但 set.text 可以是不完整或无效的原始文本；
+  styleClass 为 null 或 `{operation,creating,selection}`，operation 是 class upsert／remove，
+  upsert 三个 style 字段仍为有限值或 null，但待输入的 name／selection 可为空或不完整。
+  不保存目录、权限、检查状态、版本计数或请求。恢复后重新产生本地版本，必须重新 Inspect 并明确 Apply。
+  原始操作和 Cancel 在没有目录、布局无效或服务离线时仍可见，不能让隐藏缓冲永久阻止预览。
+- 整份 JSON 最多 2 MiB UTF-8，嵌套深度最多 16；拒绝重复 JSON 键（包括转义后同名键）、未知字段、
+  错误形状／枚举、重复文档／输入／属性。当前 draft 的原文和输入只受总备份预算约束，不套用预览的
+  65536 字符源预算；例如 70k 的无效粘贴可备份，恢复后预览仍如实返回 413。超预算不截断、不改写，
+  当前编辑继续保留并显示备份失败。基准文档仍须符合已捕获快照的字段与预算。
+  备份不得携带 Paper／Run／Explain／Difference、诊断、有效状态、旧权限、undo／redo 或会话令牌。
+- 浏览器自动副本按 origin、workspaceId、caseId 分槽，namespace 为
+  `mantra.template-preview.recovery.v1.`，工作区摘要和 encodeURIComponent(caseId) 构成键。
+  不把基准 revision 放入键，以便新源图下仍能发现旧副本。干净初始化只读取，不覆盖或删除已发现、
+  尚未 Restore／Discard 的副本；不兼容副本保留供下载。用户有新编辑且旧副本待决时明确暂停替换。
+  编辑后短延迟保存，pagehide／beforeunload 尝试同步刷新最后已提交的 React 状态；保存成功须回读核对。
+  丢弃、案例切换和恢复会取消旧代次的延迟写入。比较期望原文，发现其他页面更改时暂停并给出原因；
+  localStorage 不提供事务原子性，本切片不承诺多标签并行编辑同步或自动合并。
+- 自动恢复副本要求同 workspaceId、caseId、完整基准 revision／映射，以及全部根 descriptor／baseText
+  与新取得的服务快照逐项相同。内容失配、缺失或额外根文档不能恢复；保留 JSON 供下载／手动取回。
+  显式导入可来自另一 workspaceId，但必须显示跨工作区说明，经用户明确 Restore，且上述 case、完整图、
+  descriptor 和 baseText 仍完全相同；不改写 handle、源路径或基准，不做自动 rebase。
+  JSON 检查／导入本身不修改当前草稿。恢复覆盖已有编辑时要求明确确认，保留原内容直到接纳完成。
+- 接纳恢复时原子替换客户端文档／输入／缓冲、取消旧候选和独立基准请求、清除 Paper／Explain／诊断和
+  内存历史，递增恢复 epoch 并重新挂载属性检查，标记 `Restored · not validated`。
+  即使没有 Structure，也按恢复的 node ID 显示可编辑、可移除的未校验原始覆盖，不能藏起 `nine` 等无效输入。
+  未 Apply 字段继续阻止 Preview／历史；匹配当前草稿、无未应用字段的真实候选 200（包括业务 finding
+  或运行时失败）才清除恢复未校验标记，422／413、基准预览、迟到响应均不清除。
+  失效存储、损坏副本或配额失败不能显示为已保护；当前草稿仍可编辑，合法且未超预算的 JSON 可直接下载。
+- 物理页面刷新发现副本后提供 Restore／Discard，不自动套用。显式 Reload saved source 是主动放弃当前
+  草稿：确认后丢弃本页对应的恢复副本并取消旧写入，再捕获新源。源文件、正式历史和发布状态始终不变。
+
+格式定义见 [template-recovery.schema.json](schema/template-recovery.schema.json)。它与录制作者原型的
+`mantra.authoring-recovery/1` 分离，真实 live 页面不运行时导入 `src/authoring`。
+
 ## 8. 数据接入与公式编辑
 
 ### 8.1 导入

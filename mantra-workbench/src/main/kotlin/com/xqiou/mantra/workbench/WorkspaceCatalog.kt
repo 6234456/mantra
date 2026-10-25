@@ -178,6 +178,7 @@ class WorkspaceCatalog(
             )
         }
         val data = linkedMapOf<String, Any?>(
+            "workspaceId" to workspaceIdentity(),
             "cases" to cases,
             "schemas" to schemas.map { linkedMapOf("id" to it.name, "path" to it.id, "version" to it.version) },
             "parameters" to params.map { linkedMapOf("id" to it.name, "path" to it.id) },

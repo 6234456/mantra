@@ -344,6 +344,7 @@ export interface Diagnostics {
 }
 export type SourceContext = WireSourceContext['data']
 export interface Workspace {
+  workspaceId?: string
   cases: CaseSummary[]
   parameters?: Array<{ id: string; path: string }>
   layouts?: Array<{ id: string; path: string }>

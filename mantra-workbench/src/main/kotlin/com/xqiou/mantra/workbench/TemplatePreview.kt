@@ -82,6 +82,7 @@ internal fun WorkspaceCatalog.readTemplateSources(caseId: String): DocumentResul
     return DocumentResult(
         base.revision,
         linkedMapOf(
+            "workspaceId" to workspaceIdentity(),
             "document" to caseId,
             "baseRevisions" to snapshot.revisions,
             "documents" to snapshot.documents.map(TemplateDocument::data),

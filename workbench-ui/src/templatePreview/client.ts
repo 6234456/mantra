@@ -196,6 +196,8 @@ export class LiveTemplatePreviewClient implements TemplatePreviewClient {
     const reply = await fetch(`${path(caseId)}/template-sources`, { signal })
     const source = await response<TemplateSources>(reply)
     if (
+      typeof source.data.workspaceId !== 'string' ||
+      !/^[a-f0-9]{64}$/.test(source.data.workspaceId ?? '') ||
       source.data.document !== caseId ||
       !revisions(source.data.baseRevisions) ||
       !Array.isArray(source.data.documents) ||

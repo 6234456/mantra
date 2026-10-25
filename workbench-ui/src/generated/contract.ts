@@ -381,6 +381,7 @@ export type PreviewPaper = Omit<Envelope, 'data'> & {
 
 export type TemplateSources = Omit<Envelope, 'data'> & {
   data: {
+    workspaceId: string
     document: string
     baseRevisions: TemplateSourcesSourceRevisions
     documents: Array<{
@@ -611,6 +612,7 @@ export type TemplateStyleClassesStyleClass = {
 
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
+    workspaceId?: string
     cases: Array<{
       id: string
       title: string

@@ -35,6 +35,7 @@ it('captures opaque source handles and the full revision map, including dependen
   expect(fetch.mock.calls[0][0]).toBe('/api/v1/cases/' + encodeURIComponent(firstCase) + '/template-sources')
   expect(source.data.baseRevisions['data/example.csv']).toBe('a'.repeat(64))
   expect(source.data.documents.some((document) => !document.editable)).toBe(true)
+  expect(source.data.workspaceId).toMatch(/^[a-f0-9]{64}$/)
 })
 
 it('refuses to submit a draft without a live session token', async () => {
@@ -107,6 +108,10 @@ it('rejects unsupported envelopes and source snapshots with missing identities o
   const source = templateSources()
   const malformed = [
     { ...source, contract: 'unrecognized/1' },
+    { ...source, data: { ...source.data, workspaceId: undefined } },
+    { ...source, data: { ...source.data, workspaceId: 'a local directory path' } },
+    { ...source, data: { ...source.data, workspaceId: 'F'.repeat(64) } },
+    { ...source, data: { ...source.data, workspaceId: ['e'.repeat(64)] } },
     {
       ...source,
       data: { ...source.data, documents: [{ handle: 'opaque', text: '(source)' }] },

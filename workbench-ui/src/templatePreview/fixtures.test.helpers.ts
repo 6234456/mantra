@@ -28,6 +28,7 @@ export function templateSources(caseId = firstCase): Envelope<TemplateSources> {
     engine: candidate.engine,
     revision: candidate.revision,
     data: {
+      workspaceId: 'e'.repeat(64),
       document: caseId,
       baseRevisions: {
         ...Object.fromEntries(Object.entries(recording.base).map(([path, source]) => [path, source.sha256])),
@@ -42,7 +43,7 @@ export function templateSources(caseId = firstCase): Envelope<TemplateSources> {
               ? 'case'
               : 'included'
         return {
-          handle: 'snapshot-handle-' + index,
+          handle: String(index + 1).padStart(64, '0'),
           document: path,
           role,
           text: source.text,
