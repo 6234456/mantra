@@ -131,6 +131,7 @@ class Site:
             self.root / "docs/compatibility.md": "reference/compatibility.html",
             self.source / "template-draft-preview.md": "template-draft-preview.html",
             self.source / "layout-settings.md": "layout-settings.html",
+            self.source / "style-classes.md": "style-classes.html",
         }
 
     def read(self, path):
@@ -461,7 +462,8 @@ def generate_content(root, output, require_artifacts=False, catalog=None):
                         ("packages", "Package boundaries"), ("independent-sources", "Independent sources"),
                         ("neutral-domains", "Two neutral domains"),
                         ("template-draft-preview", "Template draft preview"),
-                        ("layout-settings", "Advanced layout settings")):
+                        ("layout-settings", "Advanced layout settings"),
+                        ("style-classes", "Reusable style classes")):
         origin = site.source / (name + ".md")
         site.page(name + ".html", title, site.read(origin), origin)
     for name, title, source in (("dsl", "DSL reference", "dsl-reference.md"),

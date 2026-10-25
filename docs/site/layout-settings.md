@@ -87,3 +87,7 @@ The [workbench contract](../workbench/contract.md#71-操作) defines the request
 error semantics. This slice does not edit calculation rules, presets, table columns, local style
 definitions, shared includes or source bindings. Those remain available through their existing
 source interfaces or future authoring contracts.
+
+The separate [Style classes](style-classes.md) form now edits local style definitions in the same
+draft. Applying either form makes the other's inspection stale; pending fields are retained for
+review and another explicit Apply.

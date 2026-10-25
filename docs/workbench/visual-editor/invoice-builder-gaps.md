@@ -1,6 +1,6 @@
 # Invoice Template Builder 对照：功能缺口与高级设置
 
-> 2026-10-24 初始规划；2026-10-25 更新：**根版式 14 项设置已实现，G-A16／G-A18 部分完成**。
+> 2026-10-24 初始规划；2026-10-25 更新：**根版式设置与有限本地样式定义已实现，G-A16／G-A17／G-A18 部分完成**。
 > 依据 Mantra `62f004d` 与 [Invoice Parser `1cbf0efa`](https://github.com/6234456/invoice-parser/tree/1cbf0efa78556d2aa4b1db23552176ce91b13b99)。
 > 2026-10-24 对参考仓库只读核对源码和测试断言，没有运行 Invoice Parser，历史截图和验证记录不作为本次实测。
 > 本文补充 [实施计划](implementation-plan.md)、[设计规范](design-spec.md) 与 [状态矩阵](state-matrix.md)，
@@ -9,7 +9,9 @@
 首批实现检查点为 `67149fc`，详见 [根版式设置实施记录](layout-settings-progress.md)。
 独立 `/template-preview` 已提供根 layout 的类型目录、inspect／set／unset、显式／继承／根有效值，
 并将源补丁接回当前草稿。Apply 后仍须真实预览；操作绑定完整源修订与当前文本，409 保留草稿。
-它不包含通用单元格／表级／样式目录，也不提供正式文件 Save、源历史或发布。
+该首批不包含通用单元格／表级／样式目录，也不提供正式文件 Save、源历史或发布。
+后续已加入选中引擎 preset 与本地 style-class 目录、有限 upsert／remove 和当前布局引用保护，见
+[样式定义实施记录](style-classes-progress.md)。其贡献不是最终单元格样式；完整候选仍需真实 Preview。
 
 ## 1. 需要借鉴的能力
 
@@ -20,7 +22,7 @@ Invoice Builder 与 Mantra 都以 DSL 为权威源，但解决的问题不同。
 | --- | --- | --- |
 | 属性、局部 DSL、完整源码、拖动等入口最终写同一份原文；局部片段绑定规范 source span | 录制 `/authoring` 有模拟 owner／补丁；独立 `/template-preview` 接受根文档原文 | 正式 owner／最小补丁继续用 G-A1／G-A3；所有新增设置共用 G-A18 的写入协调，不另建可写表格配置 |
 | 表单保留未完成数字；局部与全局样式分别有 Apply／Cancel；迟到编辑核对原文后才能接纳 | 已有未提交缓冲、迟到预览丢弃和源历史模型 | 扩展到类型化高级属性、多个编辑入口和字段级待确认状态 |
-| 模板级样式、局部覆盖、具名样式／格式、引用范围精确编辑 | 引擎已有 preset、style-class、style、use；原型只分配 class、显示最终样式 | 增加定义编辑与影响范围；格式先映射 Mantra 已有选项，不直接加入另一套 DSL |
+| 模板级样式、局部覆盖、具名样式／格式、引用范围精确编辑 | 引擎已有 preset、style-class、style、use；真实预览页已提供有限本地定义与布局引用，录制原型仍只分配 class、显示最终样式 | 完整引用影响、schema tag 分配与更广定义编辑继续扩展；格式先映射已有选项，不直接加入另一套 DSL |
 | 可搜索字段目录：类型、参考值、空值过滤、复制表达式；零与 false 保留 | Structure、Explain、CLI catalog 已有；正式 schema 语言服务仍为 G-A5 | 按真实作用域提供输入、参数、节点、维度成员、函数、class 目录，不能用发票字段或集合首项规则代替 |
 | 持久化 draft 与 active source 分离；用户 version 与 CAS revision 分离 | 浏览器恢复／JSON 备份已有；模板文件提交、构建／发布仍有缺口 | 保留恢复、正式保存、构建与发布的不同语义；继续 G-A6／G-A7／G-A10–G-A12，不创建平行的生命周期合同 |
 | 预设库、参考单据、预览语言、模板视图与实际单据视图 | 四个 pattern；真实模板预览只覆盖根 schema/layout 与标量示例输入 | 增加可参数化实例化、验收样例集与预览上下文；继续保持真实引擎计算 |
@@ -63,16 +65,17 @@ Mantra 的 G-A16 仍需覆盖更广的声明、作用域与目标；已实现的
 
 ## 3. 新增功能缺口
 
-以下 G-A16／G-A18 已实现根版式有界切片，其余范围和 G-A17／G-A19–G-A21 仍为**待实现**。
-现有 `template-layout-settings` 合同、JSON Schema 与生成类型见 [工作台契约 §7.1](../contract.md#71-操作)；
+以下 G-A16／G-A17／G-A18 已实现根版式与有限本地样式定义切片，其余范围和 G-A19–G-A21 仍为**待实现**。
+现有 `template-layout-settings`／`template-style-classes` 合同、JSON Schema 与生成类型见
+[工作台契约](../contract.md)；
 后续扩展仍须先定义相应版本、请求／响应与错误。
 G-A1–G-A15 的编号、未完成部分及 D-A1 的多文档保存决定继续保留。
 
 | 编号 | 功能缺口 | 交付内容 | 依赖与验收重点 |
 | --- | --- | --- | --- |
-| G-A16 | 类型化高级属性与能力目录 | 按声明种类、作用域、源修订及输出目标给出属性类型、枚举／范围、是否显式声明、继承值、最终值、来源、可编辑原因、支持状态和引用候选 | 【部分实现】根版式 14 项的类型、编辑范围、显式／继承／根有效值及只读原因；更广属性／目标目录仍依赖 G-A1／G-A5／G-A9，不代表保存可用 |
-| G-A17 | 结构化声明编辑 | 创建、删除、重排输入／维度／计算项／check／reconcile／表格列；编辑本地 style-class 和规则；检查 ID、依赖、类型及引用影响 | G-A1／G-A3／G-A15；不能用 DOM 行号定义语义位置；删除被引用定义先报告影响，不能静默级联 |
-| G-A18 | 高级设置语义操作与编辑协调 | set／移除显式覆盖；保持 false、0、空字符串与省略不同。属性、公式、class、局部／完整源码共用源事务、序号、撤销和冲突处理 | 【部分实现】根版式 inspect／set／unset、顺序源补丁、原文／完整修订绑定及迟到保护；Apply 后经真实预览确认，更广操作／源历史／正式保存仍依赖 G-A3／G-A6／G-A7 |
+| G-A16 | 类型化高级属性与能力目录 | 按声明种类、作用域、源修订及输出目标给出属性类型、枚举／范围、是否显式声明、继承值、最终值、来源、可编辑原因、支持状态和引用候选 | 【部分实现】根版式 14 项及选中 preset／本地 class 的类型、继承贡献与只读原因；非简单 selector 保留只读。更广属性／目标目录仍依赖 G-A1／G-A5／G-A9，不代表保存可用 |
+| G-A17 | 结构化声明编辑 | 创建、删除、重排输入／维度／计算项／check／reconcile／表格列；编辑本地 style-class 和规则；检查 ID、依赖、类型及引用影响 | 【部分实现】根 layout 本地 class 有限 upsert／remove，保留属性省略与显式中性值区别；布局内硬 :use 依赖阻止无 preset 回退的删除。其他声明、schema tag 分配、重命名重排与完整引用影响仍依赖 G-A1／G-A3／G-A15 |
+| G-A18 | 高级设置语义操作与编辑协调 | set／移除显式覆盖；保持 false、0、空字符串与省略不同。属性、公式、class、局部／完整源码共用源事务、序号、撤销和冲突处理 | 【部分实现】根设置与本地 class 修改同一 DSL，顺序补丁、原文／完整修订绑定及迟到保护；任一未应用缓冲阻止预览、跨面板改源令目录过期但保留字段。更广操作／源历史／正式保存仍依赖 G-A3／G-A6／G-A7 |
 | G-A19 | pattern 实例化与共享影响 | 参数契约、命名冲突预检、ID 映射和显式引用重写、依赖清单；显示共享 fragment／defn／样式的使用范围；明确编辑共享定义与创建独立副本 | G-A2／G-A8／G-A9；现有 include 不是参数化宏。共享 fragment 在真实草稿预览中的覆盖仍需扩展合同 |
 | G-A20 | 多案例验收集 | 保存验收案例引用、基准修订、必要的预期值／finding／格式检查；同一候选模板分别预览多个案例，报告差异与失败 | G-A4／G-A10／G-A14；表／维度输入与绑定更改超出现有标量候选合同，须先定义。独立核对预期值，不能由当前输出自动生成通过基准 |
 | G-A21 | 输出目标能力与兼容档案 | 按 Text／HTML／PDF／XLSX／Template Engine 及版本标明值、格式、样式和可重算支持；关联构建证据、fallback 与阻断原因 | G-A10／G-A11；未知／未验证区别于不支持。Template Engine 的完整兼容仍为 false，不得以开关隐藏真实失败 |
@@ -91,6 +94,8 @@ G-A16 的描述至少覆盖：属性身份、owner／文档、声明种类、类
 
 所有设置先按源所属分组，再按选中对象过滤。首批已开放根 layout 的 title／subtitle、locale／language、
 precision／percent-precision、negative／zero／grouping、hide-zero／show-inactive／expand-members、signed／row-numbers。
+随后加入本地 style-class 的 weight／tone／fill 定义与移除；null 表示省略属性，normal／default／none
+是显式中性声明。引用清单只覆盖当前根 layout 的 selector／use，不冒充 schema／include 的完整影响。
 其余设置仍为后续规格；下面的源键均为 Mantra **已有 DSL**，不能据此宣称完整高级作者界面已实现。
 
 | 设置组 | 设置与控件意图 | 写入位置 | 已有能力与作者缺口 |
@@ -109,7 +114,7 @@ precision／percent-precision、negative／zero／grouping、hide-zero／show-in
 | 行与成员 | hide-zero、show-inactive、expand-members、row-numbers global／table | layout 全局／适用 table | 不活跃和零值为不同状态；零值转换解释行仍按引擎规则保留 |
 | 表结构 | tiered／matrix／transpose、columns、members／member、列 header／width／align、table／schedule／inline／hide | layout 的结构声明 | 扩展 G-A17，保持有限列与表模型；不是自由画布或任意单元格公式模型 |
 | 报告信息 | title／subtitle、header、explain appendix／none | layout | header 选择已有字段；案例中的 subject／period 等事实仍写 case |
-| 样式与复用 | style-preset、class 标签、本地 style-class、style selector 与 use | 标签在 schema／fragment；样式定义在 layout | 管理定义与应用分开，显示真实来源；weight／tone／fill 之外的自由 CSS 不开放 |
+| 样式与复用 | style-preset、class 标签、本地 style-class、style selector 与 use | 标签在 schema／fragment；样式定义在 layout | 选中 preset 目录、本地有限定义和布局内引用已开放；定义与应用分开，标签／规则编辑和完整来源链仍待补；自由 CSS 不开放 |
 | 参数和数据绑定 | parameters、layout、params；sources 路径／映射／顺序 | case／parameters／外部输入文件 | 复用现有案例编辑与 Sources；不写进布局或编辑器私有状态 |
 | 预览上下文 | 示例案例、面板、坐标、临时标量输入、includeZero、对比基准 | 临时请求／可恢复的编辑上下文 | 当前候选只允许根 schema/layout 与标量输入；预览更改不暗中修改案例绑定或 layout 的 hide-zero |
 | 验收与输出 | 验收集、目标／版本、兼容状态、构建／产物修订 | 规划中的工作区验收记录／构建记录 | 需 G-A20／G-A21 与正式合同；不得作为额外计算模型或直接打开发布 |
@@ -182,6 +187,7 @@ Invoice 允许技术无效的服务端 draft，但激活需重新编译。Mantra
 
 2026-10-24 的初始交付为缺口、设置规格与实施次序，仅验证文档链接、固定源码证据及能力／编号一致性。
 2026-10-25 的根版式表单、真实服务与浏览器验证另见 [实施记录](layout-settings-progress.md)；
+后续有限 class 定义的实现与验证见 [样式记录](style-classes-progress.md)。
 没有据此验收 Invoice 运行、跨项目格式迁移或发布，其余实现仍按上述阶段推进。
 
 ## 7. 本轮另行落实的模板预览增强

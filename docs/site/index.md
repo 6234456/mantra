@@ -26,7 +26,8 @@ The [two neutral-domain walkthroughs](site:neutral-domains.html) show monthly en
 Run [template draft preview](site:template-draft-preview.html) to edit a schema/layout draft,
 compare it with the saved template and inspect the real engine result. Its
 [advanced layout settings](site:layout-settings.html) provide typed root-layout overrides and
-reset to inheritance. These workbench pages require the running JVM service; this documentation
+reset to inheritance; [style classes](site:style-classes.html) edit reusable finite local styles.
+These workbench pages require the running JVM service; this documentation
 site contains their instructions.
 
 This static documentation and application gallery is published to [GitHub Pages](https://6234456.github.io/mantra/) after the complete `main` CI checks pass. HTML papers and downloadable Text/XLSX files are calculated snapshots from that build. To change inputs and calculate new results, run the local JVM reference workbench described in the [repository README](repo:README.md#reference-workbench). Downloaded XLSX formulas recalculate in Excel; their engine audit snapshot shows `outdated` when its original inputs change, until those inputs are restored or the workbook is re-exported.

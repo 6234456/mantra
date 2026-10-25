@@ -23,6 +23,16 @@ Apply 只接纳源补丁，之后仍须真实预览。重点复查 false／0／�
 通用单元格／表级／样式目录、正式文件 Save、源历史与发布仍未实现，不把此切片当作全部高级作者能力。
 后续复查仍以 PR 最新已推送 HEAD 为准，完整运行结果由实施记录提供，不把自动检查视作人工签收。
 
+同日后续已加入根 layout 的本地 style-class 定义编辑，见 [实施记录](style-classes-progress.md)
+与 [用户说明](../../site/style-classes.md)。G-A16／G-A17／G-A18 仍是部分完成：目录来自选中引擎 preset、
+本地声明和当前布局 selector；upsert／remove 仅开放 weight／tone／fill，null 省略与显式
+normal／default／none 不同。复核本地覆盖移除后的 preset 回退，及无回退时 `:use` 硬依赖阻止删除；
+引用范围仅为提交的根 layout，不是 schema／include／其他模板或完整候选的影响分析。
+非简单 selector 名称保持可见但只读；合并 class 贡献不能替代最终单元格 Paper 样式。
+重点复查两个属性面板共用同一源、任一未应用字段阻止 Preview、跨面板 Apply 后保留过期字段、
+Refresh 后明确 Apply 以及手动改源／迟到确认的保护。当前实现不含 schema tag 分配、重命名重排、
+通用规则编辑、正式 Save、源历史或发布。当前门禁与提交以新的实施记录和 PR 最新 HEAD 为准。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，

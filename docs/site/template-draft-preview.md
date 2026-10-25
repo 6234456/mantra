@@ -96,6 +96,10 @@ locale, zero/negative formatting and visibility. Inspect the current source befo
 use explicit overrides, reset to inheritance or cancel unapplied fields. See
 [Edit advanced layout settings](layout-settings.md) for the complete list and conflict behavior.
 
+Expand **Style classes** to inspect selected engine presets and edit reusable local weight, tone
+and fill definitions. It shares the same source draft and Apply/Cancel preview guards. See
+[Edit reusable style classes](style-classes.md) for inheritance, scoped references and removal.
+
 ## Invalid drafts and source conflicts
 
 `422` reports technically invalid source or input text. Diagnostics display the engine code,
