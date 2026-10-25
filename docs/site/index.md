@@ -27,6 +27,7 @@ Run [template draft preview](site:template-draft-preview.html) to edit a schema/
 compare it with the saved template and inspect the real engine result. Its
 [advanced layout settings](site:layout-settings.html) provide typed root-layout overrides and
 reset to inheritance; [style classes](site:style-classes.html) edit reusable finite local styles.
+Use [draft recovery and JSON backup](site:template-recovery.html) to preserve source and raw fields.
 These workbench pages require the running JVM service; this documentation
 site contains their instructions.
 

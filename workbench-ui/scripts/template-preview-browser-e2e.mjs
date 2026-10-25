@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
@@ -51,20 +51,24 @@ const owned = []
 const failures = []
 const passed = []
 const responses = []
+const sourceResponses = []
 const settingsResponses = []
 const styleResponses = []
 const screenshots = []
+const recoveryEvidence = []
 const browserErrors = []
 const network = new Map()
 const pausedResponses = []
 const cancelledRequests = []
+const cancelledSourceRequests = []
 const cancelledSettingsRequests = []
 const cancelledStyleRequests = []
 const externalChanges = []
-let directory, workspace, service, browser, session, baseUrl
+let directory, workspace, service, browser, session, baseUrl, workspaceId
 let interrupted = false
 let closing = false
 let filesVerified = 0
+let failurePage
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
 
 function start(command, args, options = {}) {
@@ -196,14 +200,16 @@ async function connect(url) {
     }
     if (
       response.method === 'Network.requestWillBeSent' &&
-      params.request.method === 'POST' &&
-      (params.request.url.endsWith('/template-preview') ||
-        params.request.url.endsWith('/template-layout-settings') ||
-        params.request.url.endsWith('/template-style-classes'))
+      ((params.request.method === 'GET' && params.request.url.endsWith('/template-sources')) ||
+        (params.request.method === 'POST' &&
+          (params.request.url.endsWith('/template-preview') ||
+            params.request.url.endsWith('/template-layout-settings') ||
+            params.request.url.endsWith('/template-style-classes'))))
     ) {
       // Keep only JSON body evidence, never session-token request headers.
       network.set(params.requestId, {
-        request: JSON.parse(params.request.postData),
+        request: params.request.method === 'GET' ? null : JSON.parse(params.request.postData),
+        sources: params.request.method === 'GET',
         settings: params.request.url.endsWith('/template-layout-settings'),
         styles: params.request.url.endsWith('/template-style-classes'),
       })
@@ -214,11 +220,13 @@ async function connect(url) {
     if (response.method === 'Network.loadingFailed' && network.has(params.requestId)) {
       const captured = network.get(params.requestId)
       network.delete(params.requestId)
-      const cancellations = captured.settings
-        ? cancelledSettingsRequests
-        : captured.styles
-          ? cancelledStyleRequests
-          : cancelledRequests
+      const cancellations = captured.sources
+        ? cancelledSourceRequests
+        : captured.settings
+          ? cancelledSettingsRequests
+          : captured.styles
+            ? cancelledStyleRequests
+            : cancelledRequests
       cancellations.push({ request: captured.request, cancelled: !!params.canceled, reason: params.errorText })
       if (!params.canceled && !closing) failures.push(new Error(`Preview HTTP request failed: ${params.errorText}`))
     }
@@ -232,7 +240,14 @@ async function connect(url) {
         .send('Network.getResponseBody', { requestId: params.requestId })
         .then(({ body, base64Encoded }) => {
           captured.body = JSON.parse(base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body)
-          ;(captured.settings ? settingsResponses : captured.styles ? styleResponses : responses).push(captured)
+          ;(captured.sources
+            ? sourceResponses
+            : captured.settings
+              ? settingsResponses
+              : captured.styles
+                ? styleResponses
+                : responses
+          ).push(captured)
         })
         .catch((error) => {
           if (!closing) failures.push(error)
@@ -466,6 +481,14 @@ async function styleChoice(property, value) {
     select.dispatchEvent(new Event('change', { bubbles: true }));
   })()`)
   assert.equal(await evaluate(`${element}.value`), value)
+  if (property === 'class')
+    await until(
+      () =>
+        evaluate(
+          `document.querySelector('.template-style-selected h3')?.textContent === ${JSON.stringify(`:${value}`)}`,
+        ),
+      `committed selection for style class ${value}`,
+    )
 }
 
 async function paperAnswerStyle(captured, expected) {
@@ -512,6 +535,191 @@ async function historyBlockedByFields() {
     return (button.getAttribute('aria-describedby') ?? '').split(' ').map(id => document.getElementById(id)?.textContent ?? '').join(' ');
   })()`)
   assert.match(reason, /apply|cancel|unapplied/i, 'Disabled history identifies the pending-field action required')
+}
+
+const recoveryNamespace = 'mantra.template-preview.recovery.v1.'
+const recoveryKey = () => `${recoveryNamespace}${workspaceId}.${encodeURIComponent('case.mantra')}`
+
+async function openRecovery() {
+  await evaluate(`(() => {
+    const details = document.querySelector('[data-testid=template-recovery-panel]');
+    if (!details) throw new Error('Missing recovery panel');
+    if (!details.open) details.querySelector('summary').click();
+  })()`)
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[data-testid=template-recovery-panel]')?.open && ${button('Download draft backup')}?.getClientRects().length > 0`,
+      ),
+    'opened recovery and JSON backup panel',
+  )
+}
+
+async function browserCopy() {
+  return evaluate(`(() => {
+    const raw = localStorage.getItem(${JSON.stringify(recoveryKey())});
+    return raw === null ? null : { raw, backup: JSON.parse(raw) };
+  })()`)
+}
+
+async function protectedCopy(predicate, label) {
+  const copy = await until(async () => {
+    const value = await browserCopy()
+    return value && predicate(value.backup) ? value : undefined
+  }, label)
+  await until(
+    () =>
+      evaluate(`document.querySelector('[data-testid=template-recovery-status]')?.dataset.recoveryState === 'saved'`),
+    'complete current browser copy confirmed by readback',
+  )
+  assert.equal(copy.backup.workspaceId, workspaceId)
+  assert.equal(copy.backup.caseId, 'case.mantra')
+  return copy
+}
+
+async function freshSourceCapture(action = 'Reload saved source') {
+  const index = sourceResponses.length
+  if (action === 'physical reload') await session.send('Page.reload', { ignoreCache: true })
+  else await click(action)
+  const captured = await until(() => sourceResponses[index], 'fresh real template source snapshot')
+  assert.equal(captured.status, 200, JSON.stringify(captured.body))
+  assert.equal(captured.body.data.workspaceId, workspaceId)
+  await source('schema.mantra')
+  const expected = captured.body.data.documents.find((item) => item.document === 'schema.mantra').text
+  await until(
+    () => evaluate(`${field('Draft source schema.mantra')}.value === ${JSON.stringify(expected)}`),
+    'fresh source snapshot visible without automatic draft restoration',
+  )
+  await openRecovery()
+  return captured
+}
+
+async function restoredWithoutEvidence() {
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[data-testid=template-restored-status]')?.textContent.includes('Restored · not validated')`,
+      ),
+    'restored source remains unvalidated',
+  )
+  assert.equal(await evaluate(`!!document.querySelector('[aria-label="Draft preview"] .paper-table')`), false)
+  assert.equal(
+    await evaluate(
+      `document.querySelector('[data-testid=template-preview-status]')?.textContent.startsWith('Current engine preview') ?? false`,
+    ),
+    false,
+  )
+  assert.equal(
+    await evaluate(`${button('Undo source')}.disabled`),
+    true,
+    'Restoration does not trust an old source history',
+  )
+}
+
+function backupDocument(backup, name) {
+  const document = backup.documents.find((item) => item.document === name)
+  assert.ok(document, `Backup contains root source ${name}`)
+  return document
+}
+
+function inspectBackup(text, label) {
+  const backup = JSON.parse(text)
+  assert.deepEqual(
+    Object.keys(backup).sort(),
+    [
+      'format',
+      'savedAt',
+      'workspaceId',
+      'caseId',
+      'baseRevision',
+      'baseRevisions',
+      'documents',
+      'inputs',
+      'pending',
+    ].sort(),
+  )
+  assert.equal(backup.format, 'mantra.template-preview-recovery/1')
+  assert.deepEqual(backup.documents.map((item) => item.role).sort(), ['layout', 'schema'])
+  assert.ok(backup.documents.every((item) => typeof item.text === 'string' && typeof item.baseText === 'string'))
+  assert.equal(new Date(backup.savedAt).toISOString(), backup.savedAt)
+  recoveryEvidence.push({
+    label,
+    workspaceId: backup.workspaceId,
+    caseId: backup.caseId,
+    baseRevision: backup.baseRevision,
+    bytes: Buffer.byteLength(text),
+    inputs: backup.inputs,
+    pending: backup.pending,
+    documents: backup.documents.map((item) => ({
+      document: item.document,
+      role: item.role,
+      sha256: item.sha256,
+      baseTextSha256: sha256(Buffer.from(item.baseText)),
+      textSha256: sha256(Buffer.from(item.text)),
+    })),
+    engineEvidenceExcluded: true,
+  })
+  return backup
+}
+
+async function downloadBackup(action, label) {
+  await openRecovery()
+  const downloads = join(directory, 'downloads')
+  await mkdir(downloads, { recursive: true })
+  await session.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: downloads })
+  const before = new Set(await readdir(downloads))
+  await click(action)
+  const name = await until(
+    async () => (await readdir(downloads)).find((item) => item.endsWith('.json') && !before.has(item)),
+    'real downloaded JSON backup',
+  )
+  const file = join(downloads, name)
+  const text = await until(async () => {
+    const value = await readFile(file, 'utf8')
+    JSON.parse(value)
+    return value
+  }, 'complete downloaded backup bytes')
+  return { file, text, backup: inspectBackup(text, label) }
+}
+
+async function importBackupFile(file) {
+  await openRecovery()
+  const raw = await readFile(file, 'utf8')
+  const input = await session.send('Runtime.evaluate', {
+    expression: field('Import draft backup file'),
+    returnByValue: false,
+  })
+  assert.ok(input.result.objectId, 'The live page exposes a real backup file input')
+  await session.send('DOM.setFileInputFiles', { objectId: input.result.objectId, files: [file] })
+  await until(
+    () =>
+      evaluate(
+        Buffer.byteLength(raw) > 2 * 1024 * 1024
+          ? `document.querySelector('[data-testid=template-recovery-import-match]')?.textContent.includes('2 MiB limit')`
+          : `${field('Draft backup JSON')}.value === ${JSON.stringify(raw)} && !!document.querySelector('[data-testid=template-recovery-import-match]') && !${button('Validate backup JSON')}.disabled`,
+      ),
+    'import file reviewed without restoration',
+  )
+}
+
+async function rawExampleInput(value) {
+  await until(() => evaluate(`!!${field('Example input base-amount')}`), 'editable raw example override')
+  await evaluate(`(() => {
+    const checkbox = ${field('Example input base-amount')}.closest('label').querySelector('input[type=checkbox]');
+    if (!checkbox.checked) checkbox.click();
+  })()`)
+  await fill('Example input base-amount', value)
+}
+
+async function assertImportRejected(reason) {
+  await until(async () => {
+    const state = await evaluate(`({
+        disabled: ${button('Restore imported draft')}?.disabled === true,
+        reason: document.querySelector('[data-testid=template-recovery-import-match]')?.textContent ?? '',
+      })`)
+    return state.disabled && (!reason || reason.test(state.reason))
+  }, 'invalid imported bytes cannot replace the current draft')
+  assert.equal(await evaluate(`${button('Restore imported draft')}.disabled`), true)
 }
 
 async function releaseHeld(response) {
@@ -701,6 +909,11 @@ try {
     'real captured source documents',
   )
   await source('schema.mantra')
+  const firstSources = await until(() => sourceResponses[0], 'actual initial template source response')
+  assert.equal(firstSources.status, 200)
+  workspaceId = firstSources.body.data.workspaceId
+  assert.match(workspaceId, /^[a-f0-9]{64}$/)
+  assert.equal(workspaceId, sha256(Buffer.from(`mantra.workspace/1\0${await realpath(workspace)}`)))
   assert.equal(
     await evaluate(`!!document.querySelector('meta[name="mantra-session-token"][content]')`),
     true,
@@ -744,6 +957,10 @@ try {
   await fill('Layout setting title', 'Unapplied title')
   await until(() => evaluate(`${button('Preview draft')}.disabled`), 'unapplied settings block a misleading preview')
   await fill('Layout setting precision', '-')
+  await until(
+    () => evaluate(`${button('Apply layout settings')}.disabled`),
+    'incomplete precision disables layout Apply after its field state commits',
+  )
   assert.equal(await evaluate(`${button('Apply layout settings')}.disabled`), true, 'Incomplete numbers stay buffered')
   const beforeIme = settingsResponses.length
   const ime = await evaluate(`(() => {
@@ -935,6 +1152,7 @@ try {
   await styleChoice('weight', 'bold')
   await styleChoice('tone', 'accent')
   await styleChoice('fill', 'subtle')
+  await until(() => evaluate(`${button('Preview draft')}.disabled`), 'unapplied class fields block preview')
   assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
   const classRequestsBeforeIme = styleResponses.length
   await evaluate(`(() => {
@@ -1175,6 +1393,7 @@ try {
   assert.equal(await evaluate(`${button('Redo source')}.disabled`), false)
   const historyNewBranch = `${historySettingLayout}\n; New edit replaces the old redo branch.\n`
   await fill('Draft source layout.mantra', historyNewBranch)
+  await until(() => evaluate(`${button('Redo source')}.disabled`), 'new source text replaces the old redo branch')
   assert.equal(await evaluate(`${button('Redo source')}.disabled`), true)
   await sourceHistory('Undo source', 'layout.mantra', historySettingLayout)
   await sourceHistory('Redo source', 'layout.mantra', historyNewBranch)
@@ -1519,8 +1738,477 @@ try {
   await screenshot('source-only-change')
   assert.deepEqual(browserErrors, [], 'No uncaught browser exceptions')
   pass('a source-only title change reports no value changes while keeping distinct draft and saved titles')
+
+  await toggle('Compare with saved template', false)
+  await freshSourceCapture()
+  await until(
+    () => evaluate(`localStorage.getItem(${JSON.stringify(recoveryKey())}) === null`),
+    'explicit recapture discards this browser draft',
+  )
+  await preview(200)
+  const recoveryBaseLayout = expectedFiles.get('layout.mantra').toString('utf8')
+  const recoveryLayout = recoveryBaseLayout.replace('Saved title', 'Recovered draft title')
+  await fill('Draft source schema.mantra', candidateSchema)
+  await source('layout.mantra')
+  await fill('Draft source layout.mantra', recoveryLayout)
+  await rawExampleInput('1,25')
+  const protectedSource = await protectedCopy(
+    (backup) =>
+      backupDocument(backup, 'schema.mantra').text === candidateSchema &&
+      backupDocument(backup, 'layout.mantra').text === recoveryLayout &&
+      backup.inputs[0]?.text === '1,25',
+    'source and raw input automatically protected together',
+  )
+  inspectBackup(protectedSource.raw, 'browser copy before physical reload')
+  await freshSourceCapture('physical reload')
+  await until(
+    () => evaluate(`!${button('Restore browser draft')}.disabled`),
+    'compatible browser recovery offered explicitly',
+  )
+  assert.equal(await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`), false)
+  assert.equal(
+    await evaluate(`${field('Draft source schema.mantra')}.value`),
+    schema,
+    'Finding a browser copy does not apply it',
+  )
+  assert.equal(
+    (await browserCopy()).raw,
+    protectedSource.raw,
+    'Clean initialization did not overwrite the found source',
+  )
+  await click('Restore browser draft')
+  await restoredWithoutEvidence()
+  await source('layout.mantra')
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), recoveryLayout)
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), '1,25')
+  const recoveryBaselineStart = responses.length
+  await toggle('Compare with saved template', true)
+  await baselineResponse(recoveryBaselineStart)
+  assert.equal(
+    await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`),
+    true,
+    'A saved baseline cannot validate the restored candidate',
+  )
+  await screenshot('recovery-unvalidated')
+  const recoveredSourcePreview = await preview(200)
+  assert.equal(answer(recoveredSourcePreview.body), '3.75')
+  assert.equal(recoveredSourcePreview.body.data.paper.title, 'Recovered draft title')
+  assert.deepEqual(recoveredSourcePreview.request.inputs, [{ node: 'base-amount', text: '1,25' }])
+  await until(
+    () => evaluate(`!document.querySelector('[data-testid=template-restored-status]')`),
+    'matching candidate validates the restored source',
+  )
+  await paperValue('Answer', '20,00', 'Saved template')
+  await unchangedFiles()
+  pass(
+    'physical reload offers exact source and raw input recovery without restoring engine evidence or trusting a baseline',
+  )
+
+  await toggle('Compare with saved template', false)
+  await freshSourceCapture()
+  await preview(200)
+  await fill('Draft source schema.mantra', invalidSchema)
+  await rawExampleInput('nine')
+  await protectedCopy(
+    (backup) => backupDocument(backup, 'schema.mantra').text === invalidSchema && backup.inputs[0]?.text === 'nine',
+    'technically invalid source and input remain backupable',
+  )
+  await freshSourceCapture('physical reload')
+  await click('Restore browser draft')
+  await restoredWithoutEvidence()
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), 'nine')
+  assert.equal(
+    await evaluate(`${field('Example input base-amount')}.disabled`),
+    false,
+    'An unchecked restored input remains repairable without Structure',
+  )
+  await preview(422)
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), invalidSchema)
+  assert.equal(await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`), true)
+  await fill('Draft source schema.mantra', runtimeSchema)
+  await rawExampleInput('1,25')
+  const recoveredRuntime = await preview(200)
+  assert.equal(recoveredRuntime.body.data.succeeded, false)
+  await until(
+    () => evaluate(`!document.querySelector('[data-testid=template-restored-status]')`),
+    'a matching technically valid runtime failure clears recovery validation',
+  )
+  const oversizedSource = `${schema}\n; ${'x'.repeat(70_000)}\n`
+  await fill('Draft source schema.mantra', oversizedSource)
+  await protectedCopy(
+    (backup) => backupDocument(backup, 'schema.mantra').text === oversizedSource,
+    'backup preserves source exceeding the preview budget without truncation',
+  )
+  await freshSourceCapture('physical reload')
+  await click('Restore browser draft')
+  await restoredWithoutEvidence()
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), oversizedSource)
+  await preview(413)
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), oversizedSource)
+  assert.equal(await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`), true)
+  await unchangedFiles()
+  pass(
+    'recovery retains invalid and oversized drafts while only matching technical engine results clear the unvalidated marker',
+  )
+
+  await freshSourceCapture()
+  await source('layout.mantra')
+  await evaluate(`document.querySelector('.template-layout-settings-disclosure > summary').click()`)
+  await settings(200, 'Inspect layout settings')
+  await fill('Layout setting precision', '-')
+  await evaluate(`document.querySelector('.template-style-classes-disclosure > summary').click()`)
+  await styles(200, 'Inspect style classes')
+  await click('Create local style class')
+  await fill('Style class name', '未完成')
+  await styleChoice('weight', 'bold')
+  const protectedFields = await protectedCopy(
+    (backup) =>
+      backup.pending.layoutSettings.some((operation) => operation.property === 'precision' && operation.text === '-') &&
+      backup.pending.styleClass?.operation.name === '未完成' &&
+      backup.pending.styleClass.operation.style?.weight === 'bold',
+    'fields-only edits are protected before Apply',
+  )
+  assert.ok(protectedFields.backup.documents.every((document) => document.text === document.baseText))
+  await freshSourceCapture('physical reload')
+  await click('Restore browser draft')
+  await restoredWithoutEvidence()
+  await evaluate(`(() => {
+    for (const details of document.querySelectorAll('.template-layout-settings-disclosure, .template-style-classes-disclosure'))
+      if (!details.open) details.querySelector('summary').click();
+  })()`)
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[aria-label="Uninspected restored layout changes"]')?.textContent.includes('precision') && document.querySelector('[aria-label="Uninspected restored style change"]')?.textContent.includes('未完成')`,
+      ),
+    'raw restored buffers visible before any new inspection',
+  )
+  assert.ok(
+    await evaluate(
+      `document.querySelector('[aria-label="Uninspected restored layout changes"]').textContent.includes('"-"')`,
+    ),
+  )
+  await until(() => evaluate(`${button('Preview draft')}.disabled`), 'restored unapplied fields block preview')
+  await screenshot('recovery-unapplied-fields')
+  const settingsBeforeFields = settingsResponses.length
+  const stylesBeforeFields = styleResponses.length
+  const inspectedFields = await settings(200, 'Inspect layout settings')
+  const inspectedStyleFields = await styles(200, 'Inspect style classes')
+  assert.deepEqual(inspectedFields.request.operations, [])
+  assert.deepEqual(inspectedStyleFields.request.operations, [])
+  assert.equal(settingsResponses.length, settingsBeforeFields + 1)
+  assert.equal(styleResponses.length, stylesBeforeFields + 1)
+  assert.equal(await evaluate(`${field('Layout setting precision')}.value`), '-')
+  assert.equal(await evaluate(`${field('Style class name')}.value`), '未完成')
+  assert.equal(await evaluate(`${field('Style class weight')}.value`), 'bold')
+  assert.equal(await evaluate(`${button('Apply layout settings')}.disabled`), true)
+  assert.equal(await evaluate(`${button('Apply style changes')}.disabled`), true)
+  await click('Cancel setting changes')
+  await until(
+    () => evaluate(`${button('Preview draft')}.disabled`),
+    'the class buffer remains unapplied after canceling settings',
+  )
+  await click('Cancel style changes')
+  await until(() => evaluate(`!${button('Preview draft')}.disabled`), 'explicit Cancel releases all restored buffers')
+  const canceledRecoveredFields = await preview(200)
+  assert.equal(answer(canceledRecoveredFields.body), '20')
+  await until(
+    () => evaluate(`!document.querySelector('[data-testid=template-restored-status]')`),
+    'candidate validates after the user cancels restored fields',
+  )
+  await unchangedFiles()
+  pass(
+    'fields-only recovery retains incomplete precision and class edits visibly before Inspect and requires explicit Cancel or Apply',
+  )
+
+  await freshSourceCapture()
+  await preview(200)
+  const portableLayout = recoveryBaseLayout.replace('Saved title', 'Portable draft title')
+  const largeRawInput = '9007199254740993,0000000001'
+  const largeExactAnswer = '27021597764222979.0000000003'
+  await fill('Draft source schema.mantra', candidateSchema)
+  await source('layout.mantra')
+  await fill('Draft source layout.mantra', portableLayout)
+  await rawExampleInput(largeRawInput)
+  await protectedCopy(
+    (backup) =>
+      backupDocument(backup, 'layout.mantra').text === portableLayout && backup.inputs[0]?.text === largeRawInput,
+    'portable source and raw exact decimal protected',
+  )
+  const portable = await downloadBackup('Download draft backup', 'actual portable JSON export')
+  assert.equal(backupDocument(portable.backup, 'schema.mantra').text, candidateSchema)
+  assert.equal(backupDocument(portable.backup, 'layout.mantra').text, portableLayout)
+  assert.deepEqual(portable.backup.inputs, [{ node: 'base-amount', text: largeRawInput }])
+  assert.deepEqual(portable.backup.pending, { layoutSettings: [], styleClass: null })
+  const foreignWorkspaceBackup = {
+    ...portable.backup,
+    workspaceId: workspaceId === 'f'.repeat(64) ? 'e'.repeat(64) : 'f'.repeat(64),
+  }
+  const foreignFile = join(directory, 'foreign-workspace-draft.json')
+  await writeFile(foreignFile, JSON.stringify(foreignWorkspaceBackup))
+  await freshSourceCapture()
+  await importBackupFile(foreignFile)
+  await until(
+    () =>
+      evaluate(
+        `document.querySelector('[data-testid=template-recovery-import-match]')?.textContent.includes('another workspace')`,
+      ),
+    'explicit foreign-workspace import notice',
+  )
+  assert.equal(
+    await evaluate(`${field('Draft source schema.mantra')}.value`),
+    schema,
+    'File inspection alone does not apply its sources',
+  )
+  assert.equal(await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`), false)
+  await click('Restore imported draft')
+  await restoredWithoutEvidence()
+  await source('layout.mantra')
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), portableLayout)
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), largeRawInput)
+  const importedPreview = await preview(200)
+  assert.equal(
+    answer(importedPreview.body),
+    largeExactAnswer,
+    'Only the real engine computes the decimal beyond binary64',
+  )
+  assert.deepEqual(importedPreview.request.inputs, [{ node: 'base-amount', text: largeRawInput }])
+  await until(
+    () => evaluate(`!document.querySelector('[data-testid=template-restored-status]')`),
+    'imported source validated by its current engine preview',
+  )
+  await screenshot('recovery-portable-import')
+  await unchangedFiles()
+  pass(
+    'a real JSON download and explicit matching-graph file import preserve exact decimal text across workspace identities',
+  )
+
+  const sourceBeforeInvalidImport = await evaluate(`${field('Draft source layout.mantra')}.value`)
+  const storedBeforeInvalidImport = await protectedCopy(
+    (backup) =>
+      backupDocument(backup, 'layout.mantra').text === portableLayout && backup.inputs[0]?.text === largeRawInput,
+    'current imported source protected before rejecting malformed imports',
+  )
+  for (const [label, raw, reason] of [
+    [
+      'fabricated engine evidence',
+      JSON.stringify({ ...portable.backup, preview: { succeeded: true } }),
+      /unsupported|inconsistent/i,
+    ],
+    ['malformed JSON', '{bad', /valid JSON|property name|position|unexpected|expected/i],
+    [
+      'duplicate JSON keys',
+      `{"format":"mantra.template-preview-recovery/1",${portable.text.slice(1)}`,
+      /duplicate JSON keys/i,
+    ],
+  ]) {
+    await fill('Draft backup JSON', raw)
+    await until(
+      () => evaluate(`!document.querySelector('[data-testid=template-recovery-import-match]')`),
+      'editing import text clears the earlier validation review',
+    )
+    await click('Validate backup JSON')
+    await assertImportRejected(reason)
+    assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), sourceBeforeInvalidImport, label)
+    assert.equal(await evaluate(`${field('Example input base-amount')}.value`), largeRawInput, label)
+    assert.equal((await browserCopy()).raw, storedBeforeInvalidImport.raw, `${label} cannot replace the browser copy`)
+  }
+  const tooLargeBackupFile = join(directory, 'over-limit-draft.json')
+  await writeFile(tooLargeBackupFile, ' '.repeat(2 * 1024 * 1024 + 1))
+  await importBackupFile(tooLargeBackupFile)
+  await until(
+    () =>
+      evaluate(`document.querySelector('[data-testid=template-recovery-panel]').textContent.includes('2 MiB limit')`),
+    'oversized file rejected before it changes the current draft',
+  )
+  await assertImportRejected()
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), sourceBeforeInvalidImport)
+  assert.equal((await browserCopy()).raw, storedBeforeInvalidImport.raw)
+  await unchangedFiles()
+  pass('invalid evidence malformed duplicate-key and oversized JSON imports cannot replace editable or stored drafts')
+
+  await evaluate(`(() => {
+    window.mantraOriginalRecoveryWrite = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key.startsWith(${JSON.stringify(recoveryNamespace)})) throw new DOMException('Quota exhausted', 'QuotaExceededError');
+      return window.mantraOriginalRecoveryWrite.call(this, key, value);
+    };
+  })()`)
+  const quotaLayout = `${portableLayout}\n; Source remains editable when browser storage is full.\n`
+  await fill('Draft source layout.mantra', quotaLayout)
+  await until(
+    () =>
+      evaluate(`document.querySelector('[data-testid=template-recovery-status]')?.dataset.recoveryState === 'error'`),
+    'browser quota failure is visible for the current source',
+  )
+  assert.match(
+    await evaluate(`document.querySelector('[data-testid=template-recovery-status]').textContent`),
+    /full.*not.*protected/i,
+  )
+  const quotaExport = await downloadBackup(
+    'Download draft backup',
+    'current source download despite browser quota failure',
+  )
+  assert.equal(backupDocument(quotaExport.backup, 'layout.mantra').text, quotaLayout)
+  assert.equal(await evaluate(`${field('Draft source layout.mantra')}.value`), quotaLayout)
+  assert.equal(
+    (await browserCopy()).raw,
+    storedBeforeInvalidImport.raw,
+    'A failed write does not pretend the old copy protects the new source',
+  )
+  await evaluate(
+    `Storage.prototype.setItem = window.mantraOriginalRecoveryWrite; delete window.mantraOriginalRecoveryWrite`,
+  )
+  await click('Retry browser backup')
+  const ownCopy = await protectedCopy(
+    (backup) => backupDocument(backup, 'layout.mantra').text === quotaLayout,
+    'retry protects the complete current source after quota recovery',
+  )
+  const otherPageBackup = JSON.parse(ownCopy.raw)
+  backupDocument(otherPageBackup, 'layout.mantra').text += '\n; A different page changed this stored copy.\n'
+  otherPageBackup.savedAt = new Date().toISOString()
+  const otherPageRaw = JSON.stringify(otherPageBackup)
+  await evaluate(`localStorage.setItem(${JSON.stringify(recoveryKey())}, ${JSON.stringify(otherPageRaw)})`)
+  const sourceAfterOtherPage = `${candidateSchema}\n; This editor keeps its own newer source.\n`
+  await source('schema.mantra')
+  await fill('Draft source schema.mantra', sourceAfterOtherPage)
+  await until(
+    () =>
+      evaluate(`document.querySelector('[data-testid=template-recovery-status]')?.dataset.recoveryState === 'paused'`),
+    'a changed browser copy pauses automatic replacement',
+  )
+  assert.equal((await browserCopy()).raw, otherPageRaw)
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), sourceAfterOtherPage)
+  const pausedExport = await downloadBackup(
+    'Download draft backup',
+    'current source remains downloadable while another copy is pending',
+  )
+  assert.equal(backupDocument(pausedExport.backup, 'schema.mantra').text, sourceAfterOtherPage)
+  await click('Retry browser backup')
+  await until(() => evaluate(`!!${button('Discard browser draft')}`), 'the changed browser copy is offered for review')
+  const otherDownload = await downloadBackup(
+    'Download browser draft',
+    'the independently changed browser copy is preserved',
+  )
+  assert.equal(otherDownload.text, otherPageRaw)
+  await click('Discard browser draft')
+  await protectedCopy(
+    (backup) => backupDocument(backup, 'schema.mantra').text === sourceAfterOtherPage,
+    'discarding the observed old copy allows this editor to protect its retained source',
+  )
+  await unchangedFiles()
+  pass(
+    'quota errors and independently changed browser copies preserve current edits and expose honest portable backup fallbacks',
+  )
+
+  const beforeRestoreSchema = candidateSchema.replace('(* base-amount 3)', '(* base-amount 4)')
+  await fill('Draft source schema.mantra', beforeRestoreSchema)
+  await rawExampleInput('2')
+  const beforeRestorePreview = await preview(200)
+  assert.equal(answer(beforeRestorePreview.body), '8')
+  await importBackupFile(portable.file)
+  await until(
+    () => evaluate(`!${button('Restore imported draft')}.disabled`),
+    'compatible import ready before a delayed preview',
+  )
+  await session.send('Fetch.enable', {
+    patterns: [{ urlPattern: '*/api/v1/cases/*/template-preview', requestStage: 'Response' }],
+  })
+  await click('Preview draft')
+  const heldRecoveryPreview = await until(
+    () => pausedResponses.shift(),
+    'real preview held before restoring different source',
+  )
+  assert.equal(heldRecoveryPreview.status, 200)
+  await click('Restore imported draft')
+  await restoredWithoutEvidence()
+  assert.equal(await evaluate(`${field('Example input base-amount')}.value`), largeRawInput)
+  await releaseHeld(heldRecoveryPreview)
+  assert.equal(
+    await evaluate(`!!document.querySelector('[aria-label="Draft preview"] .paper-table')`),
+    false,
+    'A delayed response cannot reinstate the previous Paper after Restore',
+  )
+  assert.equal(await evaluate(`!!document.querySelector('[data-testid=template-restored-status]')`), true)
+  const restoredAfterHeld = await preview(200)
+  assert.equal(answer(restoredAfterHeld.body), largeExactAnswer)
+  assert.ok(restoredAfterHeld.request.documents.some((document) => document.text === candidateSchema))
+  assert.equal(
+    restoredAfterHeld.request.documents.some((document) => document.text === beforeRestoreSchema),
+    false,
+  )
+  await unchangedFiles()
+  pass(
+    'explicit restoration cancels an actual delayed preview and calculates only the newly restored source and raw input',
+  )
+
+  const beforeBaselineChange = await protectedCopy(
+    (backup) =>
+      backupDocument(backup, 'schema.mantra').text === candidateSchema && backup.inputs[0]?.text === largeRawInput,
+    'old-baseline source protected before the explicit external change',
+  )
+  const changedHelper = Buffer.from(
+    `${expectedFiles.get('helpers.mantra').toString('utf8')}\n; External dependency change for recovery baseline validation.\n`,
+  )
+  await writeFile(join(workspace, 'helpers.mantra'), changedHelper)
+  expectedFiles.set('helpers.mantra', changedHelper)
+  externalChanges.push('helpers.mantra')
+  const newBaseline = await freshSourceCapture('physical reload')
+  assert.notEqual(newBaseline.body.revision, beforeBaselineChange.backup.baseRevision)
+  await until(
+    () => evaluate(`${button('Restore browser draft')}?.disabled === true`),
+    'a changed full source graph blocks local restoration',
+  )
+  assert.equal(
+    (await browserCopy()).raw,
+    beforeBaselineChange.raw,
+    'A fresh baseline does not replace the older recovery copy',
+  )
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), schema)
+  const mismatchedDownload = await downloadBackup(
+    'Download browser draft',
+    'incompatible baseline copy retained for manual recovery',
+  )
+  assert.equal(mismatchedDownload.text, beforeBaselineChange.raw)
+  assert.equal(mismatchedDownload.backup.baseRevision, beforeBaselineChange.backup.baseRevision)
+  const sourceAlongsideOldCopy = `${schema}\n; New editing retains the older pending recovery copy.\n`
+  await fill('Draft source schema.mantra', sourceAlongsideOldCopy)
+  const alongsideDownload = await downloadBackup(
+    'Download draft backup',
+    'new source available while an incompatible old copy is pending',
+  )
+  assert.equal(backupDocument(alongsideDownload.backup, 'schema.mantra').text, sourceAlongsideOldCopy)
+  assert.equal(alongsideDownload.backup.baseRevision, newBaseline.body.revision)
+  assert.equal((await browserCopy()).raw, beforeBaselineChange.raw)
+  await screenshot('recovery-baseline-mismatch')
+  await click('Discard browser draft')
+  await protectedCopy(
+    (backup) =>
+      backup.baseRevision === newBaseline.body.revision &&
+      backupDocument(backup, 'schema.mantra').text === sourceAlongsideOldCopy,
+    'explicit discard allows new-baseline backup without losing current edits',
+  )
+  assert.equal(await evaluate(`${field('Draft source schema.mantra')}.value`), sourceAlongsideOldCopy)
+  const currentBaselinePreview = await preview(200)
+  assert.equal(answer(currentBaselinePreview.body), '20')
+  await unchangedFiles()
+  pass(
+    'a changed dependency blocks automatic recovery while preserving old JSON and current edits until explicit discard',
+  )
+  assert.deepEqual(browserErrors, [], 'No uncaught browser exceptions after recovery and backup workflows')
 } catch (error) {
   failures.push(error)
+  if (session)
+    try {
+      failurePage = await evaluate(`({
+        title: document.title,
+        text: document.body?.innerText.slice(0, 12000) ?? '',
+        recoveryState: document.querySelector('[data-testid=template-recovery-status]')?.dataset.recoveryState ?? null,
+        sources: [...document.querySelectorAll('.template-preview-source textarea')].map(item => ({ label: item.getAttribute('aria-label'), length: item.value.length })),
+      })`)
+    } catch {
+      // Preserve the original verification failure if its browser context has already closed.
+    }
 } finally {
   closing = true
   session?.close()
@@ -1544,6 +2232,21 @@ try {
         status: failures.length ? 'FAILED' : 'VERIFIED',
         scenarios: passed,
         screenshots,
+        sourceCaptures: sourceResponses.map(({ status, body }) => ({
+          status,
+          revision: body.revision,
+          workspaceId: body.data?.workspaceId ?? null,
+          caseId: body.data?.document ?? null,
+          baseRevisions: body.data?.baseRevisions ?? null,
+          documents: (body.data?.documents ?? []).map((document) => ({
+            document: document.document,
+            role: document.role,
+            handle: document.handle,
+            sha256: document.sha256,
+            textSha256: sha256(Buffer.from(document.text)),
+          })),
+        })),
+        recoveryEvidence,
         responses: responses.map(({ status, request, body }) => ({
           status,
           draftSequence: request.draftSequence,
@@ -1583,6 +2286,7 @@ try {
         })),
         sourceByteChecks: filesVerified,
         cancelledPreviewRequests: cancelledRequests,
+        cancelledSourceRequests,
         cancelledSettingsRequests,
         cancelledStyleRequests,
         originalSources: Object.fromEntries([...originals].map(([name, bytes]) => [name, sha256(bytes)])),
@@ -1590,6 +2294,7 @@ try {
         temporaryDirectoryRemoved: !directory || !existsSync(directory),
         taskProcessGroupsStopped: cleanup.every((result) => result.status === 'fulfilled'),
         failures: failures.map((error) => error.message),
+        failurePage,
       },
       null,
       2,

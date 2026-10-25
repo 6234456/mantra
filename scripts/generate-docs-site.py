@@ -132,6 +132,7 @@ class Site:
             self.source / "template-draft-preview.md": "template-draft-preview.html",
             self.source / "layout-settings.md": "layout-settings.html",
             self.source / "style-classes.md": "style-classes.html",
+            self.source / "template-recovery.md": "template-recovery.html",
         }
 
     def read(self, path):
@@ -463,7 +464,8 @@ def generate_content(root, output, require_artifacts=False, catalog=None):
                         ("neutral-domains", "Two neutral domains"),
                         ("template-draft-preview", "Template draft preview"),
                         ("layout-settings", "Advanced layout settings"),
-                        ("style-classes", "Reusable style classes")):
+                        ("style-classes", "Reusable style classes"),
+                        ("template-recovery", "Template draft recovery")):
         origin = site.source / (name + ".md")
         site.page(name + ".html", title, site.read(origin), origin)
     for name, title, source in (("dsl", "DSL reference", "dsl-reference.md"),

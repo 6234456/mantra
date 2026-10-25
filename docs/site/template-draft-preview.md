@@ -114,9 +114,13 @@ before another structured edit.
 
 Apply or cancel any unapplied setting/class fields before using history. The buttons also explain
 when loading, a revision conflict or an empty history prevents the operation. Capturing a new source
-snapshot or switching cases clears the history. Source history stays in this page's memory; leaving
-or refreshing the page does not persist it. Native editor and system input-method undo remain native;
+snapshot or switching cases clears the history. Source history stays in this page's memory and is
+not included in recovery backups. Native editor and system input-method undo remain native;
 these explicit buttons do not intercept their keyboard shortcuts.
+
+The [browser recovery and JSON backup](template-recovery.md) tools preserve source text, raw example
+inputs and unapplied fields across refreshes. Recovery remains explicit and requires matching saved
+sources; restored content must be previewed again.
 
 This history changes the browser source draft. It does not call the workbench's case Undo/Redo
 endpoints, save template files or create server source-history records.
@@ -131,8 +135,8 @@ previous engine preview retains its previous label. Repair the draft and preview
 results as previous; further preview is blocked until **Reload saved source** captures a new base.
 Copy draft text you want to keep before accepting the reload confirmation. Reloading discards the
 page's source changes and example overrides. Switching example cases also requests confirmation
-before discarding a changed draft. Leaving the page can discard this in-memory
-draft; the recorded `/authoring` prototype's browser recovery is a separate feature.
+before discarding a changed draft. Review the browser backup status or download JSON before leaving.
+Real preview recovery and the recorded `/authoring` prototype use separate formats.
 
 ## Scope and API
 
