@@ -11,6 +11,7 @@ import type { StyleClasses, StyleClassesClient, StyleClassesRequest } from './st
 import * as sourceHistory from './sourceHistory'
 
 beforeEach(() => {
+  localStorage.clear()
   vi.stubGlobal('matchMedia', () => ({
     matches: false,
     addEventListener: vi.fn(),
@@ -20,6 +21,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  localStorage.clear()
   document.querySelector('meta[name="mantra-session-token"]')?.remove()
   document.querySelector('meta[name="mantra-package-workspace"]')?.remove()
   vi.restoreAllMocks()

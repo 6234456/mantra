@@ -12,6 +12,15 @@ import { StyleClassesPanel } from './StyleClassesPanel'
 import type { StyleClassesClient } from './styleClassesClient'
 import { emptySourceHistory, recordSourceChange, stepSourceHistory, type SourceHistory } from './sourceHistory'
 import {
+  emptyRecoveryPending,
+  matchBackup,
+  restoreDocuments,
+  type RecoveryDraft,
+  type RecoveryPending,
+} from './recovery'
+import { recoveryContextChanged, useTemplateDraftRecovery, type RecoveryContext } from './useTemplateDraftRecovery'
+import { TemplateRecoveryPanel } from './TemplateRecoveryPanel'
+import {
   LiveTemplatePreviewClient,
   sameTemplateRevisions,
   TemplatePreviewError,
@@ -26,13 +35,16 @@ export default function TemplateDraftPreviewPage({
   client: supplied,
   settingsClient,
   styleClassesClient,
+  recoveryStorage,
 }: {
   client?: TemplatePreviewClient
   settingsClient?: LayoutSettingsClient
   styleClassesClient?: StyleClassesClient
+  recoveryStorage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 } = {}) {
   const client = useMemo(() => supplied ?? new LiveTemplatePreviewClient(), [supplied])
   const [cases, setCases] = useState<CaseSummary[]>([])
+  const [workspaceId, setWorkspaceId] = useState<string>()
   const [caseId, setCaseId] = useState(() => new URLSearchParams(location.search).get('case') ?? '')
   const [snapshot, setSnapshot] = useState<Envelope<TemplateSources>>()
   const [documents, setDocuments] = useState<Record<string, string>>({})
@@ -59,7 +71,16 @@ export default function TemplateDraftPreviewPage({
   const [sequence, setSequence] = useState(0)
   const [settingsPending, setSettingsPending] = useState(false)
   const [styleClassesPending, setStyleClassesPending] = useState(false)
-  const authoringPending = settingsPending || styleClassesPending
+  const [recoveryPending, setRecoveryPending] = useState(emptyRecoveryPending)
+  const [recoveryEpoch, setRecoveryEpoch] = useState(0)
+  const [restored, setRestored] = useState(false)
+  const [layoutDisclosureOpen, setLayoutDisclosureOpen] = useState(false)
+  const [styleDisclosureOpen, setStyleDisclosureOpen] = useState(false)
+  const authoringPending =
+    settingsPending ||
+    styleClassesPending ||
+    recoveryPending.layoutSettings.length > 0 ||
+    recoveryPending.styleClass !== null
   const context = useRef(0)
   const draftSequence = useRef(0)
   const pending = useRef<AbortController | null>(null)
@@ -69,10 +90,50 @@ export default function TemplateDraftPreviewPage({
   const candidatePanelsReceived = useRef(false)
   const available = !!supplied || !!document.querySelector('meta[name="mantra-session-token"]')
   const packageHost = !!document.querySelector('meta[name="mantra-package-workspace"][content="on"]')
-  const latestDraft = useRef({ caseId, snapshot, documents, conflict, history, authoringPending, loading })
-  useLayoutEffect(() => {
-    latestDraft.current = { caseId, snapshot, documents, conflict, history, authoringPending, loading }
+  const latestDraft = useRef({
+    caseId,
+    workspaceId: snapshot?.data.workspaceId ?? workspaceId,
+    snapshot,
+    documents,
+    inputs,
+    recoveryPending,
+    conflict,
+    history,
+    authoringPending,
+    loading,
   })
+  useLayoutEffect(() => {
+    latestDraft.current = {
+      caseId,
+      workspaceId: snapshot?.data.workspaceId ?? workspaceId,
+      snapshot,
+      documents,
+      inputs,
+      recoveryPending,
+      conflict,
+      history,
+      authoringPending,
+      loading,
+    }
+  })
+  const publishLayoutDraft = useCallback((layoutSettings: RecoveryPending['layoutSettings']) => {
+    const pending = { ...latestDraft.current.recoveryPending, layoutSettings }
+    latestDraft.current = {
+      ...latestDraft.current,
+      recoveryPending: pending,
+      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null,
+    }
+    setRecoveryPending(pending)
+  }, [])
+  const publishStyleDraft = useCallback((styleClass: RecoveryPending['styleClass']) => {
+    const pending = { ...latestDraft.current.recoveryPending, styleClass }
+    latestDraft.current = {
+      ...latestDraft.current,
+      recoveryPending: pending,
+      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null,
+    }
+    setRecoveryPending(pending)
+  }, [])
 
   const invalidateBaseline = useCallback(() => {
     baselineContext.current++
@@ -111,6 +172,7 @@ export default function TemplateDraftPreviewPage({
       .then((workspace) => {
         if (controller.signal.aborted) return
         setCases(workspace.cases)
+        setWorkspaceId(workspace.workspaceId)
         setCaseId((id) => id || workspace.cases[0]?.id || '')
       })
       .catch((failure: unknown) => {
@@ -140,11 +202,19 @@ export default function TemplateDraftPreviewPage({
     setDocuments({})
     setHistory(emptySourceHistory())
     setHistoryNotice('')
+    setRecoveryPending(emptyRecoveryPending())
+    setSettingsPending(false)
+    setStyleClassesPending(false)
+    setRecoveryEpoch((value) => value + 1)
+    setRestored(false)
+    setLayoutDisclosureOpen(false)
+    setStyleDisclosureOpen(false)
     void client
       .sources(caseId, controller.signal)
       .then((next) => {
         if (controller.signal.aborted || context.current !== generation) return
         setSnapshot(next)
+        setWorkspaceId(next.data.workspaceId)
         setDocuments(Object.fromEntries(next.data.documents.map((item) => [item.handle, item.text])))
         setHistory(emptySourceHistory())
         setSourceHandle(
@@ -273,6 +343,7 @@ export default function TemplateDraftPreviewPage({
       candidatePanelsReceived.current = true
       setPanels(next.data.structure.panels)
       setDiagnostics(next.data.diagnostics)
+      if (!latestDraft.current.authoringPending) setRestored(false)
     } catch (failure) {
       if (controller.signal.aborted || context.current !== generation) return
       setError(failure instanceof Error ? failure.message : String(failure))
@@ -367,6 +438,86 @@ export default function TemplateDraftPreviewPage({
       `${direction === 'undo' ? 'Undid' : 'Redid'} source change: ${next.transaction.label}. Preview the draft to update its results.`,
     )
   }
+  const getRecoveryContext = useCallback((): RecoveryContext => {
+    const latest = latestDraft.current
+    return {
+      workspaceId: latest.workspaceId,
+      caseId: latest.caseId,
+      snapshot: latest.snapshot,
+      documents: latest.documents,
+      inputs: latest.inputs,
+      pending: latest.recoveryPending,
+      loading: latest.loading,
+      conflict: latest.conflict,
+    }
+  }, [])
+  function restoreDraft(draft: RecoveryDraft, mode: 'local' | 'import'): boolean {
+    const latest = latestDraft.current
+    if (latest.loading || latest.conflict || !latest.snapshot || latest.snapshot.data.document !== latest.caseId)
+      return false
+    if (!matchBackup(draft, latest.snapshot, mode).compatible) return false
+    const restoredDocuments = restoreDocuments(draft, latest.snapshot, mode)
+    if (!restoredDocuments) return false
+    if (
+      recoveryContextChanged(getRecoveryContext()) &&
+      !window.confirm(
+        'Replace this page’s current source, inputs and unapplied fields with the selected recovery copy?',
+      )
+    )
+      return false
+    const nextInputs = Object.fromEntries(draft.inputs.map(({ node, text }) => [node, text]))
+    const pendingFields = structuredClone(draft.pending)
+    const nextHistory = emptySourceHistory()
+    latestDraft.current = {
+      ...latest,
+      documents: restoredDocuments,
+      inputs: nextInputs,
+      recoveryPending: pendingFields,
+      history: nextHistory,
+      authoringPending: pendingFields.layoutSettings.length > 0 || pendingFields.styleClass !== null,
+    }
+    invalidate()
+    invalidateBaseline()
+    setResult(undefined)
+    setSelected(undefined)
+    setPanels([])
+    candidatePanelsReceived.current = false
+    setPanel('')
+    setIncludeZero(false)
+    setCompareSaved(false)
+    setDocuments(restoredDocuments)
+    setInputs(nextInputs)
+    setRecoveryPending(pendingFields)
+    setSettingsPending(pendingFields.layoutSettings.length > 0)
+    setStyleClassesPending(pendingFields.styleClass !== null)
+    setHistory(nextHistory)
+    setHistoryNotice('')
+    setRecoveryEpoch((value) => value + 1)
+    setSourceHandle(
+      draft.documents.find((item) => item.text !== item.baseText)?.handle ??
+        latest.snapshot.data.documents.find((item) => item.editable)?.handle ??
+        '',
+    )
+    setLayoutDisclosureOpen(pendingFields.layoutSettings.length > 0)
+    setStyleDisclosureOpen(pendingFields.styleClass !== null)
+    setRestored(true)
+    return true
+  }
+  const recovery = useTemplateDraftRecovery({
+    context: {
+      workspaceId: snapshot?.data.workspaceId ?? workspaceId,
+      caseId,
+      snapshot,
+      documents,
+      inputs,
+      pending: recoveryPending,
+      loading,
+      conflict,
+    },
+    getCurrent: getRecoveryContext,
+    onRestore: restoreDraft,
+    storage: recoveryStorage,
+  })
   const undoReason = historyReason('undo')
   const redoReason = historyReason('redo')
   const current = result?.data.draftSequence === sequence && !conflict && !authoringPending
@@ -377,6 +528,7 @@ export default function TemplateDraftPreviewPage({
   const scalarInputs = Object.entries(result?.data.structure.nodes ?? {}).filter(
     ([, node]) => ['input', 'field'].includes(node.kind) && !node.dims?.length && node.type !== 'table',
   )
+  const inputIds = [...new Set([...scalarInputs.map(([id]) => id), ...Object.keys(inputs)])]
 
   return (
     <main className="template-preview-page">
@@ -406,9 +558,13 @@ export default function TemplateDraftPreviewPage({
                   if (
                     changed &&
                     event.target.value !== caseId &&
-                    !window.confirm('Discard this in-memory draft and switch example cases?')
+                    !window.confirm(
+                      'Leave this in-memory draft and switch example cases? Any existing browser backup remains available.',
+                    )
                   )
                     return
+                  recovery.flushNow()
+                  recovery.leaveContext()
                   invalidate()
                   invalidateBaseline()
                   setCaseId(event.target.value)
@@ -464,8 +620,14 @@ export default function TemplateDraftPreviewPage({
             <button
               disabled={loading}
               onClick={() => {
-                if (changed && !window.confirm('Discard this in-memory draft and capture the current saved source?'))
+                if (
+                  (changed || recovery.local) &&
+                  !window.confirm(
+                    'Discard this in-memory draft and its browser recovery copy, then capture the current saved source?',
+                  )
+                )
                   return
+                recovery.prepareReload()
                 invalidate()
                 invalidateBaseline()
                 setReload((value) => value + 1)
@@ -530,6 +692,11 @@ export default function TemplateDraftPreviewPage({
               Sources changed outside this page. Your draft is retained; reload to capture a new base.
             </p>
           )}
+          <TemplateRecoveryPanel
+            key={`recovery:${workspaceId ?? snapshot?.data.workspaceId ?? ''}:${caseId}`}
+            recovery={recovery}
+            restored={restored}
+          />
           <div className="template-preview-columns">
             <section className="sheet template-preview-source">
               <h2>Source</h2>
@@ -600,7 +767,12 @@ export default function TemplateDraftPreviewPage({
             </section>
           </div>
           {snapshot?.data.document === caseId && (
-            <details className="template-layout-settings-disclosure" key={`${caseId}:${snapshot.revision}`}>
+            <details
+              className="template-layout-settings-disclosure"
+              key={`${caseId}:${snapshot.revision}:${recoveryEpoch}`}
+              open={layoutDisclosureOpen}
+              onToggle={(event) => setLayoutDisclosureOpen(event.currentTarget.open)}
+            >
               <summary>Advanced layout settings</summary>
               <LayoutSettingsPanel
                 caseId={caseId}
@@ -613,12 +785,19 @@ export default function TemplateDraftPreviewPage({
                 }
                 onConflict={markConflict}
                 onPendingChange={setSettingsPending}
+                restoredDraft={recoveryPending.layoutSettings}
+                onDraftChange={publishLayoutDraft}
                 client={settingsClient}
               />
             </details>
           )}
           {snapshot?.data.document === caseId && (
-            <details className="template-style-classes-disclosure" key={`style:${caseId}:${snapshot.revision}`}>
+            <details
+              className="template-style-classes-disclosure"
+              key={`style:${caseId}:${snapshot.revision}:${recoveryEpoch}`}
+              open={styleDisclosureOpen}
+              onToggle={(event) => setStyleDisclosureOpen(event.currentTarget.open)}
+            >
               <summary>Style classes</summary>
               <StyleClassesPanel
                 caseId={caseId}
@@ -631,6 +810,8 @@ export default function TemplateDraftPreviewPage({
                 }
                 onConflict={markConflict}
                 onPendingChange={setStyleClassesPending}
+                restoredDraft={recoveryPending.styleClass}
+                onDraftChange={publishStyleDraft}
                 client={styleClassesClient}
               />
             </details>
@@ -652,33 +833,37 @@ export default function TemplateDraftPreviewPage({
               <CandidateComparison candidate={result?.data} baseline={baseline?.data} current={current} />
             </section>
           )}
-          {scalarInputs.length > 0 && (
+          {inputIds.length > 0 && (
             <section className="sheet template-preview-inputs">
               <h2>Example input overrides</h2>
               <p>Checked fields are sent as raw text and parsed by the candidate template.</p>
-              {scalarInputs.map(([id, node]) => (
+              {inputIds.map((id) => (
                 <label key={id}>
                   <input
                     type="checkbox"
                     checked={Object.hasOwn(inputs, id)}
                     onChange={(event) => {
                       invalidate()
-                      setInputs((previous) => {
-                        const next = { ...previous }
-                        if (event.target.checked) next[id] = ''
-                        else delete next[id]
-                        return next
-                      })
+                      const next = { ...latestDraft.current.inputs }
+                      if (event.target.checked) next[id] = ''
+                      else delete next[id]
+                      latestDraft.current = { ...latestDraft.current, inputs: next }
+                      setInputs(next)
                     }}
                   />
-                  {node.label || id}
+                  {scalarInputs.find(([nodeId]) => nodeId === id)?.[1].label || id}
+                  {!scalarInputs.some(([nodeId]) => nodeId === id) && (
+                    <small>Unvalidated restored input override</small>
+                  )}
                   <input
                     aria-label={`Example input ${id}`}
                     disabled={!Object.hasOwn(inputs, id)}
                     value={inputs[id] ?? ''}
                     onChange={(event) => {
                       invalidate()
-                      setInputs((previous) => ({ ...previous, [id]: event.target.value }))
+                      const next = { ...latestDraft.current.inputs, [id]: event.target.value }
+                      latestDraft.current = { ...latestDraft.current, inputs: next }
+                      setInputs(next)
                     }}
                   />
                 </label>
