@@ -27,6 +27,21 @@ Choose a declaration by document, line, form, node and property. The list includ
 inactive declarations; captured includes show their read-only reason. It is a source declaration
 list, not a projection of visible Paper rows or their final computed text/style.
 
+**Presentation outline** groups the inspected declarations by document and source path. A declaration's
+label/note and class properties appear together. **Find a declaration** searches document names,
+forms, node IDs and raw text/class values; matching children keep their parent context. Hidden,
+zero and inactive declarations remain listed, but their current visibility/reasons require a real
+preview. The directory covers presentation items, not independent inputs, dimensions or functions.
+
+Choose a property in the outline or the compact selector, then **Show property in source** to open
+its captured document and select its exact token. An absent class declaration selects the enclosing
+declaration. Captured includes open read-only. CRLF and emoji are handled without changing the
+original source. Navigation does not calculate, edit or add Undo entries.
+
+Apply or Cancel pending fields before switching properties or locating them. If the source changed,
+refresh the directory first; old ranges cannot navigate newer text. Search remains available while
+the old directory is visible. This is a source declaration navigator, not a mapping of Paper cells.
+
 Edit **Declared text** for a label or note. For **Assigned classes**, enter unique simple names
 separated by whitespace, without colons. Unknown valid names remain allowed. Clearing the field
 and applying sets explicit `[]`; **Remove class declaration** removes the option entirely.

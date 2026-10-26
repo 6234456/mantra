@@ -1,0 +1,44 @@
+.schema-presentation-outline {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  max-height: 440px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.schema-presentation-outline h3,
+.schema-presentation-outline h4 {
+  margin: 0 0 12px;
+}
+.schema-presentation-outline section + section {
+  margin-top: 20px;
+}
+.schema-presentation-outline ol {
+  list-style: none;
+  padding-left: 16px;
+  margin: 8px 0;
+}
+.schema-presentation-outline section > ol {
+  padding-left: 0;
+}
+.schema-presentation-outline li {
+  padding: 8px 0;
+}
+.schema-declaration-heading,
+.schema-declaration-properties {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.schema-declaration-heading span {
+  color: var(--ink-3);
+}
+.schema-declaration-text {
+  white-space: pre-wrap;
+  margin: 8px 0;
+}
+.schema-declaration-properties button[aria-pressed='true'] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

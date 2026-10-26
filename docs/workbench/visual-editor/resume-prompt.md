@@ -92,6 +92,11 @@ G-A1／G-A3／G-A16／G-A18 仅部分完成：没有完整 Outline／Paper owner
 手工改源后 refresh、声明变化拒绝重绑定、迟到 Apply 不清除新字段与 409 保留。
 恢复字段不含 owner 权限，须重新 inspect；结果以当前实施记录为准，不代表人工设计或真实 IME 签收。
 
+后续 [展示声明目录与源码定位](schema-navigation-progress.md) 使用同一正式 owner 目录。
+复查同文档数值 path 分组、父子搜索上下文、只读 include／缺省 class 的定位范围、CRLF／emoji DOM
+偏移、过期或未 Apply 字段禁用导航；导航不能写源、入历史或触发计算。G-A2 仍部分完成，
+不把声明目录当完整 Outline、实际可见原因或 Paper owner 投影；验证以新实施记录为准。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，

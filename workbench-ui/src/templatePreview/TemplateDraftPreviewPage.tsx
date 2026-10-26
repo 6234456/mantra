@@ -9,7 +9,8 @@ import { CandidateComparison } from './CandidateComparison'
 import { LayoutSettingsPanel } from './LayoutSettingsPanel'
 import type { LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
 import { SchemaPropertiesPanel } from './SchemaPropertiesPanel'
-import type { SchemaPropertiesClient } from './schemaPropertiesClient'
+import type { SchemaPropertiesClient, SchemaPropertiesRequest, SchemaPropertyOwner } from './schemaPropertiesClient'
+import { textareaSourceRange, type SourceRange } from './sourceNavigation'
 import { StyleClassesPanel } from './StyleClassesPanel'
 import type { StyleClassesClient } from './styleClassesClient'
 import { emptySourceHistory, recordSourceChange, stepSourceHistory, type SourceHistory } from './sourceHistory'
@@ -55,6 +56,8 @@ export default function TemplateDraftPreviewPage({
   const [history, setHistory] = useState<SourceHistory>(emptySourceHistory)
   const [historyNotice, setHistoryNotice] = useState('')
   const [sourceHandle, setSourceHandle] = useState('')
+  const [sourceLocation, setSourceLocation] = useState<{ handle: string; text: string; range: SourceRange }>()
+  const sourceEditor = useRef<HTMLTextAreaElement | null>(null)
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [result, setResult] = useState<Envelope<TemplatePreview>>()
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([])
@@ -122,6 +125,16 @@ export default function TemplateDraftPreviewPage({
       loading,
     }
   })
+  useLayoutEffect(() => {
+    if (!sourceLocation || sourceLocation.handle !== sourceHandle) return
+    const latest = latestDraft.current
+    const editor = sourceEditor.current
+    if (!editor || latest.documents[sourceLocation.handle] !== sourceLocation.text || latest.conflict) return
+    editor.focus()
+    editor.setSelectionRange(sourceLocation.range.startOffset, sourceLocation.range.endOffset)
+    editor.scrollIntoView?.({ block: 'center' })
+    setSourceLocation(undefined)
+  }, [sourceLocation, sourceHandle])
   const publishLayoutDraft = useCallback((layoutSettings: RecoveryPending['layoutSettings']) => {
     const pending = { ...latestDraft.current.recoveryPending, layoutSettings }
     latestDraft.current = {
@@ -206,6 +219,7 @@ export default function TemplateDraftPreviewPage({
     setLoading(true)
     setBusy(false)
     setSnapshot(undefined)
+    setSourceLocation(undefined)
     setResult(undefined)
     setDiagnostics([])
     setSelected(undefined)
@@ -419,6 +433,36 @@ export default function TemplateDraftPreviewPage({
     )
       return false
     return acceptSourceChange(request.handle, request.text, nextText, label)
+  }
+  function locateSchemaProperty(
+    expectedCase: string,
+    request: SchemaPropertiesRequest,
+    owner: SchemaPropertyOwner,
+  ): boolean {
+    const latest = latestDraft.current
+    const root = latest.snapshot?.data.documents.find((item) => item.handle === request.handle)
+    const target = latest.snapshot?.data.documents.find((item) => item.document === owner.document)
+    if (
+      latest.loading ||
+      latest.conflict ||
+      latest.caseId !== expectedCase ||
+      latest.snapshot?.data.document !== expectedCase ||
+      latest.snapshot.revision !== request.baseRevision ||
+      !sameTemplateRevisions(latest.snapshot.data.baseRevisions, request.baseRevisions) ||
+      root?.role !== 'schema' ||
+      !root.editable ||
+      latest.documents[request.handle] !== request.text ||
+      !target ||
+      (!target.editable && latest.documents[target.handle] !== target.text)
+    )
+      return false
+    const text = latest.documents[target.handle]
+    if (typeof text !== 'string') return false
+    const range = textareaSourceRange(text, owner.range ?? owner.declarationRange)
+    if (!range) return false
+    setSourceHandle(target.handle)
+    setSourceLocation({ handle: target.handle, text, range })
+    return true
   }
   function historyReason(direction: 'undo' | 'redo'): string | undefined {
     if (loading || !snapshot || snapshot.data.document !== caseId)
@@ -736,6 +780,7 @@ export default function TemplateDraftPreviewPage({
                 <>
                   {!source.editable && <p className="muted">{source.reason}</p>}
                   <textarea
+                    ref={sourceEditor}
                     aria-label={`Draft source ${source.document}`}
                     spellCheck={false}
                     readOnly={!source.editable}
@@ -858,6 +903,7 @@ export default function TemplateDraftPreviewPage({
                 onConflict={markConflict}
                 onDraftChange={publishSchemaDraft}
                 restoredDraft={recoveryPending.schemaProperty}
+                onLocate={locateSchemaProperty}
                 client={schemaPropertiesClient}
               />
             </details>

@@ -60,7 +60,9 @@ workspaceId／case 隔离自动副本，保留根源、原始覆盖及未 Apply 
 全部操作绑定初始精确草稿 owner，并按声明路径逐步重定位，返回可逆顺序补丁。合法的展示属性可在
 公式绑定错误的草稿中编辑，但成功只代表源语义读回，实际值、有效样式和可见性仍须候选 Preview。
 它推进 G-A1／G-A3／G-A16／G-A18 的部分范围，不提供完整 Outline、结构增删、UI／UX 签收、正式 Save、
-源历史提交、服务端草稿、D-A1 或发布；新属性的页面缓冲／Undo／恢复协调仍待接入。
+源历史提交、服务端草稿、D-A1 或发布。随后 [属性面板](schema-properties-ui-progress.md) 已接入
+schema 字段缓冲、统一源 Undo／Redo 和恢复 v2；[展示声明导航](schema-navigation-progress.md)
+进一步接入真实按文档／path 分组的目录与精确源码定位，不推断计算可见性或 Paper 投影。
 
 ## 1. 能力现状
 
@@ -75,7 +77,7 @@ workspaceId／case 隔离自动副本，保留根源、原始覆盖及未 Apply 
 | 已保存案例的 XLSX 导出与保真报告 | 【已实现】 | `export.xlsx`、`export-preview`，契约 §6.9 |
 | Paper 浏览：显示零值行、表内查找 | 【已实现】 | `includeZero`，`PaperTable` |
 | 模板 owner 句柄、源投影与 Outline | 【部分已实现】根 schema 展示属性 owner、精确范围、声明路径及只读 include；完整 Outline／Paper 投影仍为【设计】 | G-A1、G-A2；[schema 属性合同](schema-properties-contract.md) |
-| 模板语义操作与最小源补丁 | 【部分已实现】根 schema 的标签／note／classes 初始 owner 绑定、顺序／可逆补丁；更广操作与页面接入仍待完成 | G-A3；[schema 属性记录](schema-properties-progress.md) |
+| 模板语义操作与最小源补丁 | 【部分已实现】根 schema 的标签／note／classes 初始 owner 绑定、顺序／可逆补丁；展示属性页面已接入统一草稿／历史／恢复；更广操作仍待完成 | G-A3；[schema 属性记录](schema-properties-progress.md) |
 | 模板草稿预览（draft Paper、Explain、诊断） | 【部分已实现】，仅文件工作区根 schema/layout 原文与标量示例输入；无文件 Save | `template-sources`、`template-preview`，独立 `/template-preview` 页；G-A4／G-A14 只读候选切片，G-A15 的 owner 诊断仍为设计 |
 | schema 公式语言服务 | 【设计】 | G-A5 |
 | 源历史、提交与多文档原子性 | 【设计】正式服务端历史／文件提交；真实预览已有 G-A18 的有界客户端内存 Undo／Redo，不持久化 | G-A6、G-A7、D-A1；[客户端历史](source-history-progress.md) |
@@ -190,8 +192,8 @@ G-A4／G-A14 已按契约 §7.1 实现下述只读候选切片，并有 JSON Sch
 | # | 缺口 | 最小合同 | 原型中的处理 |
 | --- | --- | --- | --- |
 | G-A1 | owner 句柄 | 每个可编辑属性返回不透明 `handle`、`kind`（label／title／note／formula／classes／layoutOption）、文档、显示范围、显示路径、`editable` 与原因、共享范围（include 它的 schema）、在 Paper 中的投影（面板、行 anchor、单元格）。句柄绑定精确文档修订与 graph 修订；删除或歧义使其失效 | 【部分已实现】schema presentation-items 的 label／text／classes owner，绑定完整基准、document handle、精确根草稿及声明路径；根可编辑、捕获 include 只读。通用属性、共享影响与 Paper 投影仍待完成；录制原型保持模拟 owner |
-| G-A2 | 模板身份与 Outline | 模板 = schema id／version + layout id + 参与文档；Outline 包括隐藏、零值隐藏与不活跃声明及原因 | 【原型】由模拟扫描器与录制的 Paper flags 组合 |
-| G-A3 | 语义操作与最小补丁 | `{baseRevisions, draftSequence, operations:[{op, handle, value}]}` → `{patches:[{document, startOffset, endOffset, text, inverse}], diagnostics}`；不变式同契约 §7.2：读回语义等价、编辑区间外字节不变 | 【部分已实现】schema setText／setClasses／unset 返回相对前一步的 UTF-16 补丁及 removedText，逆序精确还原；先绑定初始 owner，后按稳定声明路径定位，正式 reader 读回。其他语义操作／UI 协调仍待接入，原型补丁保持模拟 |
+| G-A2 | 模板身份与 Outline | 模板 = schema id／version + layout id + 参与文档；Outline 包括隐藏、零值隐藏与不活跃声明及原因 | 【部分已实现】真实 presentation-items 目录按捕获文档和声明 path 分组／搜索，含隐藏／零值／不活跃声明，可精确定位源；不含全种类声明、计算可见原因或 Paper 投影。录制原型仍用模拟扫描器与 Paper flags |
+| G-A3 | 语义操作与最小补丁 | `{baseRevisions, draftSequence, operations:[{op, handle, value}]}` → `{patches:[{document, startOffset, endOffset, text, inverse}], diagnostics}`；不变式同契约 §7.2：读回语义等价、编辑区间外字节不变 | 【部分已实现】schema setText／setClasses／unset 返回相对前一步的 UTF-16 补丁及 removedText，逆序精确还原；先绑定初始 owner，后按稳定声明路径定位，正式 reader 读回。展示属性 UI 已接入统一历史／恢复；其他语义操作仍待完成，原型补丁保持模拟 |
 | G-A4 | 模板草稿预览 | 语义与 `preview-paper` 一致：`draftSequence`、全部参与修订、候选修订、`succeeded`、`validationPassed`、`diagnostics`、`run`、`difference`、`paper`；修订不一致 409；技术无效 422 | 【部分已实现】文件工作区 `template-sources`／`template-preview` 接受根 schema/layout 原文与标量示例输入，保持模板身份和依赖闭包，在同一隔离候选中返回 Structure／Run／Paper／Difference／诊断；返回前重验完整源修订，提供 409／422 与序号。独立 `/template-preview` 页已接入，无文件 Save；【录制原型】仍按文档集摘要查找响应，未录制显示无引擎预览，尚未接入真实 API |
 | G-A5 | schema 公式语言服务 | 以句柄为目标的 complete／hover／check，作用域为该声明可见的节点、`defn` 与函数目录 | 【原型】补全来自录制的 Structure 与 CLI catalog |
 | G-A6 | 源历史 | 服务端返回逆补丁；客户端保存事务；应用撤销时服务端核对基准修订 | 【原型】客户端历史，逆补丁在前端计算 |
@@ -200,13 +202,13 @@ G-A4／G-A14 已按契约 §7.1 实现下述只读候选切片，并有 JSON Sch
 | G-A9 | 样式来源 | 每个单元格按声明顺序列出贡献的预设规则、`style-class`、`style` 与 `:use` 合并及其源位置 | 【原型】只显示最终样式与可用 class |
 | G-A10 | 构建记录 | 目标、源修订、引擎指纹、案例／参数／版式身份、状态、`ExcelReport`、已验证与未验证的兼容项、产物摘要、映射边车摘要 | 【原型】只显示录制的导出报告，不执行构建 |
 | G-A11 | 发布与目录 | 版本化产物与 Template Engine 目录登记合同（计划） | 按钮禁用 |
-| G-A12 | 恢复草稿 | 浏览器本地保存基准修订集、源原文及未提交输入；只作恢复，不作校验结果；服务端草稿另定 | 【部分已实现】真实 `/template-preview` 的自动副本与独立 JSON 格式，保留原始输入和两个面板字段；工作区／完整图／descriptor 绑定，失配只供下载，恢复后重新检查；不存结果／权限／Undo 历史，不关闭服务端恢复或 D-A1。录制原型保持独立 |
+| G-A12 | 恢复草稿 | 浏览器本地保存基准修订集、源原文及未提交输入；只作恢复，不作校验结果；服务端草稿另定 | 【部分已实现】真实 `/template-preview` 的自动副本与独立 JSON 格式，保留原始输入和布局／样式／schema 面板字段；工作区／完整图／descriptor 绑定，失配只供下载，恢复后重新检查；不存结果／权限／Undo 历史，不关闭服务端恢复或 D-A1。录制原型保持独立 |
 | G-A13 | 模板级外部修改 | SSE 增加受影响的模板／case graph 修订，或由客户端按路径刷新参与修订 | 【原型】模拟外部修改按钮 |
 | G-A14 | 草稿 Explain | 草稿预览的 trace 与步骤 | 【部分已实现】`template-preview` 可请求一个根案例地址的 Explain，证据与该次候选 Structure／Run／Paper 一致；独立真实预览页可查看。【录制原型】Inspector 仍使用录制状态的 Explain，尚未接入候选 Explain API |
 | G-A15 | 无效草稿诊断的 owner | 诊断附 owner 句柄；现有诊断只有位置与地址 | 【原型】录制诊断的源范围映射到模拟句柄 |
 | G-A16 | 类型化高级属性与能力目录 | 声明种类、源／目标身份、类型／范围、单位、显式／继承／最终值、来源、权限与支持原因；衔接 G-A1／G-A5／G-A9 | 【部分已实现】根 layout 14 项、选中 preset／本地 style-class，以及 schema 展示属性的声明状态、原始值、类型、范围与只读原因；不把原始标签／class 列表冒充最终 Paper。通用声明／单元格／目标目录仍为设计 |
 | G-A17 | 结构化声明编辑 | 输入、维度、计算项、规则、表列和有限样式定义的增删重排；ID、依赖、引用与影响范围预检；复用 G-A3 最小补丁 | 【部分已实现】根 layout 本地 style-class 的有限 upsert／remove 及布局内硬引用保护；schema classes 赋值由独立 G-A18 属性接口提供，不等于声明结构编辑。输入／维度／计算／规则／表列、重命名重排与完整影响分析仍待实现 |
-| G-A18 | 高级设置操作与编辑协调 | set／移除显式覆盖，保留 false／0／空文本语义；属性／局部与完整源码共用源事务、草稿序号、迟到保护及撤销 | 【部分已实现】根设置／本地 class 的现有页面协调，以及 schema 展示属性的精确初始 owner、完整修订、顺序可逆补丁；class 缺省与显式 [] 分开。新 schema 属性的缓冲／Undo／恢复 UI 仍待接入，不自动继承页面已有 50 条历史；正式服务端历史、G-A7／D-A1 保存仍待实现 |
+| G-A18 | 高级设置操作与编辑协调 | set／移除显式覆盖，保留 false／0／空文本语义；属性／局部与完整源码共用源事务、草稿序号、迟到保护及撤销 | 【部分已实现】根设置／本地 class 的现有页面协调，以及 schema 展示属性的精确初始 owner、完整修订、顺序可逆补丁；class 缺省与显式 [] 分开。schema 属性 UI 已接入字段缓冲、共用的最多 50 条精确源历史和恢复 v2；正式服务端历史、G-A7／D-A1 保存仍待实现 |
 | G-A19 | pattern 实例化与共享影响 | 参数合同、ID 映射、命名冲突、依赖闭包、共享引用清单与显式复制／引用策略 | 【设计】；现有四个 pattern 是复制修改，不是参数化宏 |
 | G-A20 | 多案例验收集 | 同一候选模板的多个案例、基准修订、独立预期值／finding／格式与差异；表／维度输入须扩展候选合同 | 【部分已实现】`e0d2148` 的 template-capture／template-verify：共享根候选、各自完整图与句柄、标量输入／结果、精确值／display／业务判定／完整诊断断言及末尾重查；capture 的 expect 为 null。后续显式 v2 增加 Paper 标题／列／最终单元格及结构化成员地址验收，v1 默认与 schema 不变；多案例 UI、表／维度输入、Run 坐标、独立记录服务和发布仍待实现，见 [首批合同](template-acceptance-contract.md) 与 [Paper 合同](template-paper-acceptance-contract.md) |
 | G-A21 | 输出目标能力与兼容档案 | 绑定目标／版本与引擎指纹的支持／不支持／未知／未验证状态，关联 G-A10／G-A11 的报告和证据 | 【设计】；现有 Template Engine 完整兼容仍为 false |

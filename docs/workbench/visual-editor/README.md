@@ -35,6 +35,8 @@
 > 同日继续接入真实页的 schema 展示属性表单、统一源 Undo／Redo 与未 Apply 字段恢复，见
 > [UI 实施记录](schema-properties-ui-progress.md)。完整 Outline／Paper owner、结构编辑、正式 Save、
 > 服务端历史／草稿与发布仍待完成；恢复 v2 与旧 v1 兼容边界见该记录。工程检查不代替人工设计签收。
+> 真实页随后加入 [展示声明目录与源码定位](schema-navigation-progress.md)：按捕获文档／声明 path
+> 分组、搜索并选中精确源码 token，含只读 include 与 CRLF／emoji 偏移保护；不推断可见原因或 Paper 投影。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。

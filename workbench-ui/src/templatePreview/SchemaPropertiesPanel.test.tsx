@@ -406,3 +406,83 @@ it('edits note source text without requiring a node ID and guards composition co
     { op: 'setText', owner: textHandle, text: 'Note 中文😀' },
   ])
 })
+
+it('locates the current label in the shared source editor using normalized CRLF offsets without calculating or writing history', async () => {
+  const api = client()
+  api.properties.mockImplementation(async (_case, sent) => {
+    const reply = response(sent)
+    const startOffset = sent.text.indexOf('"Old"')
+    reply.data.owners[0].range = { line: 3, column: 16, startOffset, endOffset: startOffset + 5 }
+    return reply
+  })
+  const previewClient: TemplatePreviewClient = {
+    workspace: vi.fn(async () => ({
+      workspaceId: snapshot.data.workspaceId,
+      cases: [{ id: firstCase, title: 'First' }],
+    })),
+    sources: vi.fn(async () => snapshot),
+    preview: vi.fn(async (id, sent) => templatePreview(id, sent)),
+  }
+  render(<TemplateDraftPreviewPage client={previewClient} schemaPropertiesClient={api} />)
+  await screen.findByRole('option', { name: `${source.document} · schema` })
+  fireEvent.click(screen.getByText('Schema presentation properties', { selector: 'summary' }))
+  await inspect()
+  fireEvent.click(screen.getByRole('button', { name: 'Show property in source' }))
+  const editor = screen.getByRole('textbox', { name: `Draft source ${source.document}` }) as HTMLTextAreaElement
+  expect(document.activeElement).toBe(editor)
+  expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe('"Old"')
+  expect(editor.value).toBe(original.replace(/\r\n/g, '\n'))
+  expect((screen.getByRole('button', { name: 'Undo source' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(previewClient.preview).not.toHaveBeenCalled()
+  type('Pending')
+  expect((screen.getByRole('button', { name: 'Show property in source' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel schema property changes' }))
+  fireEvent.change(editor, { target: { value: editor.value + '\n; manual edit' } })
+  expect((screen.getByRole('button', { name: 'Show property in source' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(api.properties).toHaveBeenCalledOnce()
+})
+
+it('locates read-only include properties and falls back to declaration ranges for absent classes', async () => {
+  const sources = structuredClone(snapshot)
+  const included = sources.data.documents.find((item) => item.role === 'included')!
+  included.text = '(fragment\r\n  (note "Included 😀"))\r\n'
+  const api = client()
+  api.properties.mockImplementation(async (_case, sent) => {
+    const reply = response(sent)
+    const startOffset = included.text.indexOf('"Included 😀"')
+    Object.assign(reply.data.owners[2], {
+      document: included.document,
+      form: 'note',
+      node: null,
+      property: 'text',
+      range: { line: 2, column: 9, startOffset, endOffset: startOffset + '"Included 😀"'.length },
+    })
+    Object.assign(reply.data.owners[1], { declared: false, value: null, range: null, canUnset: false })
+    return reply
+  })
+  const previewClient: TemplatePreviewClient = {
+    workspace: vi.fn(async () => ({
+      workspaceId: sources.data.workspaceId,
+      cases: [{ id: firstCase, title: 'First' }],
+    })),
+    sources: vi.fn(async () => sources),
+    preview: vi.fn(async (id, sent) => templatePreview(id, sent)),
+  }
+  render(<TemplateDraftPreviewPage client={previewClient} schemaPropertiesClient={api} />)
+  await screen.findByRole('option', { name: `${source.document} · schema` })
+  fireEvent.click(screen.getByText('Schema presentation properties', { selector: 'summary' }))
+  await inspect()
+  fireEvent.click(screen.getByRole('button', { name: `Select text of note in ${included.document} at line 3, path 1` }))
+  fireEvent.click(screen.getByRole('button', { name: 'Show property in source' }))
+  const editor = screen.getByRole('textbox', { name: `Draft source ${included.document}` }) as HTMLTextAreaElement
+  expect(editor.readOnly).toBe(true)
+  expect(document.activeElement).toBe(editor)
+  expect(editor.value.slice(editor.selectionStart, editor.selectionEnd)).toBe('"Included 😀"')
+  fireEvent.click(
+    screen.getByRole('button', { name: `Select classes of info answer in ${source.document} at line 3, path 0` }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Show property in source' }))
+  const root = screen.getByRole('textbox', { name: `Draft source ${source.document}` }) as HTMLTextAreaElement
+  expect(root.value.slice(root.selectionStart, root.selectionEnd)).toBe(declaration)
+  expect(previewClient.preview).not.toHaveBeenCalled()
+})

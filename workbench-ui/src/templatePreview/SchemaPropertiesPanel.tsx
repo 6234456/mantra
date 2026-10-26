@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Envelope } from '../types'
 import { sameTemplateRevisions, TemplatePreviewError, type TemplateSource, type TemplateSources } from './client'
 import type { SchemaPropertyDraft } from './recovery'
+import { SchemaPresentationOutline, schemaPropertyIdentity as identity } from './SchemaPresentationOutline'
 import './SchemaPropertiesPanel.css'
 import {
   LiveSchemaPropertiesClient,
@@ -32,10 +33,6 @@ function sameBinding(left?: Binding, right?: Binding): boolean {
   )
 }
 
-function identity(owner: SchemaPropertyOwner): string {
-  return JSON.stringify([owner.document, owner.path, owner.form, owner.node, owner.property])
-}
-
 function draftIdentity(draft: SchemaPropertyDraft): string {
   return JSON.stringify([draft.document, draft.path, draft.form, draft.node, draft.property])
 }
@@ -57,6 +54,7 @@ export function SchemaPropertiesPanel({
   conflict,
   onApply,
   onConflict,
+  onLocate,
   onDraftChange,
   restoredDraft,
   client: supplied,
@@ -68,6 +66,7 @@ export function SchemaPropertiesPanel({
   conflict: boolean
   onApply: (caseId: string, request: SchemaPropertiesRequest, nextText: string) => boolean
   onConflict: () => void
+  onLocate?: (caseId: string, request: SchemaPropertiesRequest, owner: SchemaPropertyOwner) => boolean
   onDraftChange: (draft: SchemaPropertyDraft | null) => void
   restoredDraft?: SchemaPropertyDraft | null
   client?: SchemaPropertiesClient
@@ -264,6 +263,16 @@ export function SchemaPropertiesPanel({
             <p role="status">Source changed. Refresh schema properties before applying retained fields.</p>
           )}
           {inspection && (
+            <SchemaPresentationOutline
+              owners={inspection.data.owners}
+              selection={selection}
+              current={current}
+              busy={busy}
+              editing={!!edit}
+              onSelect={(owner) => setSelection(identity(owner))}
+            />
+          )}
+          {inspection && (
             <label>
               Schema property
               <select
@@ -279,8 +288,8 @@ export function SchemaPropertiesPanel({
                 )}
                 {inspection.data.owners.map((owner) => (
                   <option key={identity(owner)} value={identity(owner)}>
-                    {owner.document}:{owner.declarationRange.line} · {owner.form} {owner.node ?? 'note'} ·{' '}
-                    {owner.property}
+                    {owner.document}:{owner.declarationRange.line} · {owner.form}
+                    {owner.node ? ` ${owner.node}` : ''} · {owner.property}
                     {owner.editable ? '' : ' · read-only'}
                   </option>
                 ))}
@@ -296,6 +305,34 @@ export function SchemaPropertiesPanel({
                   : 'No class declaration'
                 : 'Declared source text'}
             </p>
+          )}
+          {selected && onLocate && (
+            <button
+              type="button"
+              disabled={!current || busy || !!edit}
+              onClick={() => {
+                if (!binding || !inspection || !current) return
+                const located = onLocate(
+                  caseId,
+                  {
+                    baseRevision: binding.revision,
+                    baseRevisions: { ...binding.revisions },
+                    draftSequence: inspection.data.draftSequence,
+                    handle: binding.handle,
+                    text: binding.text,
+                    operations: [],
+                  },
+                  selected,
+                )
+                setNotice(
+                  located
+                    ? ''
+                    : 'The captured source or property range changed. Refresh schema properties before locating again.',
+                )
+              }}
+            >
+              Show property in source
+            </button>
           )}
           {(selected || edit) && (
             <>

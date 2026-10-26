@@ -333,21 +333,22 @@ async function fill(label, value) {
 }
 
 async function source(name) {
+  // A reload may replace the select and its handles between browser protocol calls.
+  // Keep selecting the current captured option until that same document's editor is committed.
   await until(
     () =>
-      evaluate(
-        `[...document.querySelectorAll('.template-preview-source option')].some(item => item.textContent.startsWith(${JSON.stringify(`${name} ·`)}))`,
-      ),
-    `captured source ${name}`,
-  )
-  await evaluate(`(() => {
+      evaluate(`(() => {
+    if (${button('Reload saved source')}?.disabled) return false;
     const select = document.querySelector('.template-preview-source select');
-    const option = [...select.options].find(item => item.textContent.startsWith(${JSON.stringify(`${name} ·`)}));
-    if (!option) throw new Error('Missing captured source document');
+    const option = select && [...select.options].find(item => item.textContent.startsWith(${JSON.stringify(`${name} ·`)}));
+    if (!option) return false;
+    if (select.value === option.value && ${field(`Draft source ${name}`)}) return true;
     select.value = option.value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
-  })()`)
-  await until(() => evaluate(`!!${field(`Draft source ${name}`)}`), `selected source ${name}`)
+    return false;
+  })()`),
+    `selected captured source ${name}`,
+  )
 }
 
 const control = (label, selector) =>
@@ -1010,6 +1011,47 @@ try {
     select.value = option.value;
     select.dispatchEvent(new Event('change', { bubbles: true }));
   })()`)
+  const beforeNavigation = { previews: responses.length, properties: schemaPropertyResponses.length }
+  await fill('Find a declaration', 'Zero marker')
+  await until(
+    () =>
+      evaluate(
+        `!![...document.querySelectorAll('.schema-presentation-outline button')].find(item => item.getAttribute('aria-label').startsWith('Select classes of info zero-marker '))`,
+      ),
+    'zero declaration remains in the source outline',
+  )
+  assert.equal(
+    await evaluate(`document.querySelector('.schema-presentation-outline').textContent.includes('section details')`),
+    true,
+  )
+  await evaluate(
+    `[...document.querySelectorAll('.schema-presentation-outline button')].find(item => item.getAttribute('aria-label').startsWith('Select classes of info zero-marker ')).click()`,
+  )
+  await click('Show property in source')
+  assert.equal(
+    await evaluate(
+      `(() => { const editor = ${field('Draft source schema.mantra')}; return editor.value.slice(editor.selectionStart, editor.selectionEnd); })()`,
+    ),
+    '(info zero-marker "Zero marker" 0)',
+  )
+  assert.equal(await evaluate(`document.activeElement === ${field('Draft source schema.mantra')}`), true)
+  await fill('Find a declaration', 'Answer')
+  await evaluate(
+    `[...document.querySelectorAll('.schema-presentation-outline button')].find(item => item.getAttribute('aria-label').startsWith('Select label of info answer ')).click()`,
+  )
+  await click('Show property in source')
+  assert.equal(
+    await evaluate(
+      `(() => { const editor = ${field('Draft source schema.mantra')}; return editor.value.slice(editor.selectionStart, editor.selectionEnd); })()`,
+    ),
+    '"Answer"',
+  )
+  assert.deepEqual({ previews: responses.length, properties: schemaPropertyResponses.length }, beforeNavigation)
+  assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
+  await screenshot('schema-presentation-outline')
+  pass(
+    'real declaration outline finds zero rows with parent context and locates exact source without calculation or history',
+  )
   await fill('Declared text', 'Answer 中文😀')
   await historyBlockedByFields()
   assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
@@ -1231,8 +1273,8 @@ try {
   await unchangedFiles()
   await writeFile(join(workspace, 'layout.mantra'), originals.get('layout.mantra'))
   expectedFiles.set('layout.mantra', originals.get('layout.mantra'))
-  await click('Reload saved source')
-  await until(() => evaluate(`!!${field('Draft source layout.mantra')}`), 'source recaptured after settings conflict')
+  await freshSourceCapture()
+  await source('layout.mantra')
   await toggle('Compare with saved template', false)
   await delay(100)
   const settingsRecovered = await preview(200)
@@ -1410,8 +1452,7 @@ try {
   })()`)
   await source('schema.mantra')
 
-  await click('Reload saved source')
-  await source('schema.mantra')
+  await freshSourceCapture()
   const historyInitial = await preview(200)
   assert.equal(answer(historyInitial.body), '20')
   assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
@@ -1532,8 +1573,7 @@ try {
   })()`)
   await screenshot('source-history-branch')
   await toggle('Compare with saved template', false)
-  await click('Reload saved source')
-  await source('schema.mantra')
+  await freshSourceCapture()
   const historyRecaptured = await preview(200)
   assert.equal(answer(historyRecaptured.body), '20')
   assert.equal(await evaluate(`${button('Undo source')}.disabled`), true)
@@ -1803,7 +1843,7 @@ try {
   await screenshot('conflict-retains-draft')
   pass('HTTP 409 retains both source drafts, raw input and Paper without writing files')
 
-  await click('Reload saved source')
+  await freshSourceCapture()
   await source('layout.mantra')
   await until(
     () =>
@@ -2315,6 +2355,65 @@ try {
   pass(
     'a changed dependency blocks automatic recovery while preserving old JSON and current edits until explicit discard',
   )
+  // A captured include owns raw CRLF ranges; navigation must normalize DOM offsets without making it writable.
+  const navigationHelper = Buffer.from(
+    '(fragment\r\n  ;; Keep the 😀 source comment.\r\n  (defn twice [^Decimal value] (* value 2))\r\n  (note "Readonly 中文😀"))\r\n',
+  )
+  await writeFile(join(workspace, 'helpers.mantra'), navigationHelper)
+  expectedFiles.set('helpers.mantra', navigationHelper)
+  externalChanges.push('helpers.mantra')
+  await freshSourceCapture()
+  await evaluate(`document.querySelector('.template-schema-properties-disclosure > summary').click()`)
+  propertyIndex = schemaPropertyResponses.length
+  await click('Inspect schema properties')
+  const includeCatalog = await until(() => schemaPropertyResponses[propertyIndex], 'real readonly include catalog')
+  assert.equal(includeCatalog.status, 200)
+  assert.ok(
+    includeCatalog.body.data.owners.some(
+      (owner) => owner.document === 'helpers.mantra' && owner.property === 'text' && !owner.editable,
+    ),
+  )
+  await fill('Find a declaration', 'Readonly 中文😀')
+  await evaluate(
+    `[...document.querySelectorAll('.schema-presentation-outline button')].find(item => item.getAttribute('aria-label').startsWith('Select text of note ')).click()`,
+  )
+  const beforeIncludeNavigation = responses.length
+  await click('Show property in source')
+  assert.equal(await evaluate(`${field('Draft source helpers.mantra')}.readOnly`), true)
+  assert.equal(await evaluate(`document.activeElement === ${field('Draft source helpers.mantra')}`), true)
+  assert.equal(
+    await evaluate(
+      `(() => { const editor = ${field('Draft source helpers.mantra')}; return editor.value.slice(editor.selectionStart, editor.selectionEnd); })()`,
+    ),
+    '"Readonly 中文😀"',
+  )
+  assert.equal(responses.length, beforeIncludeNavigation)
+  await screenshot('schema-include-source')
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true)
+  await screenshot('schema-outline-narrow')
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  await source('schema.mantra')
+  await fill('Draft source schema.mantra', schema + '\n; Newer source makes the directory stale.\n')
+  assert.equal(await evaluate(`${button('Show property in source')}.disabled`), true)
+  assert.equal(
+    await evaluate(
+      `[...document.querySelectorAll('.schema-presentation-outline button')].every(item => item.disabled)`,
+    ),
+    true,
+  )
+  await unchangedFiles()
+  pass('real readonly include navigation preserves exact CRLF Unicode source and stale catalogs disable navigation')
   for (const captured of sourceResponses) plainSourceSnapshot(captured)
   for (const captured of recoveryContextResponses) {
     assert.equal(captured.status, 200)
