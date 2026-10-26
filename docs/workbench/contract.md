@@ -547,6 +547,11 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 不选择 D-A1，也不关闭完整 G-A1–G-A3、G-A16–G-A18 的后续属性／声明编辑缺口。
 响应形状见 [template-layout-settings.schema.json](schema/template-layout-settings.schema.json)。
 
+**Schema 展示属性（2026-10-26）**：新增 `template-schema-properties`，从正式 SchemaReader 模型及公开 AST
+获取 root schema／只读 include 的 label、note text 与 classes owner，按初始精确草稿生成最小源补丁。
+完整版本、范围和错误见 [展示属性合同](visual-editor/schema-properties-contract.md)；成功仍需真实预览，
+不构成正式保存或完整可视化作者服务。
+
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
 | `op` | JSON 字段 |
