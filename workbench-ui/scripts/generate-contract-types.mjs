@@ -20,6 +20,7 @@ const names = [
   'template-preview',
   'template-layout-settings',
   'template-style-classes',
+  'template-schema-properties',
   'workspace',
   'compare',
   'parameters',

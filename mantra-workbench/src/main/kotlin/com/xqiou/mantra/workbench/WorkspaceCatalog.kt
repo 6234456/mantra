@@ -370,6 +370,10 @@ class WorkspaceCatalog(
     fun templateStyleClasses(caseId: String, request: TemplateStyleClassesRequest): DocumentResult =
         styleClasses(caseId, request)
 
+    /** Source-bound schema presentation owners and minimal edits, without saving files or history. */
+    fun templateSchemaProperties(caseId: String, request: TemplateSchemaPropertiesRequest): DocumentResult =
+        schemaProperties(caseId, request)
+
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
         caseId: String,

@@ -537,6 +537,45 @@ public final class com/xqiou/mantra/workbench/TemplatePreviewRequest {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/xqiou/mantra/workbench/TemplateSchemaPropertiesRequest {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;JLjava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()J
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;JLjava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/TemplateSchemaPropertiesRequest;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/TemplateSchemaPropertiesRequest;Ljava/lang/String;Ljava/util/Map;JLjava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/TemplateSchemaPropertiesRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBaseRevision ()Ljava/lang/String;
+	public final fun getBaseRevisions ()Ljava/util/Map;
+	public final fun getDraftSequence ()J
+	public final fun getHandle ()Ljava/lang/String;
+	public final fun getOperations ()Ljava/util/List;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/xqiou/mantra/workbench/TemplateSchemaPropertyOperation {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lcom/xqiou/mantra/workbench/TemplateSchemaPropertyOperation;
+	public static synthetic fun copy$default (Lcom/xqiou/mantra/workbench/TemplateSchemaPropertyOperation;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lcom/xqiou/mantra/workbench/TemplateSchemaPropertyOperation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClasses ()Ljava/util/List;
+	public final fun getOp ()Ljava/lang/String;
+	public final fun getOwner ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/xqiou/mantra/workbench/TemplateSourceEdit {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -639,6 +678,7 @@ public final class com/xqiou/mantra/workbench/WorkspaceCatalog : java/lang/AutoC
 	public final fun templateLayoutSettings (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplateLayoutSettingsRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templatePreview (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplatePreviewRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templateRecoveryContext ()Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
+	public final fun templateSchemaProperties (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplateSchemaPropertiesRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templateSources (Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun templateStyleClasses (Ljava/lang/String;Lcom/xqiou/mantra/workbench/TemplateStyleClassesRequest;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;
 	public final fun undo (Ljava/lang/String;Ljava/lang/String;)Lcom/xqiou/mantra/workbench/WorkspaceCatalog$DocumentResult;

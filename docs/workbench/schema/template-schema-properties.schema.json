@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-schema-properties.schema.json",
+  "title": "Schema presentation property owners and sequential source patches",
+  "description": "Source-only inspection and patching for presentation items in a captured schema closure. Successful inspection does not validate formula bindings, evaluate the draft or save files.",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "$defs": {
+    "sourceRange": {
+      "type": "object",
+      "required": ["line", "column", "startOffset", "endOffset"],
+      "properties": {
+        "line": { "type": "integer", "minimum": 1 },
+        "column": { "type": "integer", "minimum": 1 },
+        "startOffset": { "type": "integer", "minimum": 0, "maximum": 65536 },
+        "endOffset": { "type": "integer", "minimum": 0, "maximum": 65536 }
+      },
+      "additionalProperties": false
+    },
+    "owner": {
+      "type": "object",
+      "required": ["handle", "document", "node", "form", "path", "property", "type", "declared", "value", "editable", "reason", "canUnset", "range", "declarationRange"],
+      "properties": {
+        "handle": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "document": { "type": "string", "minLength": 1 },
+        "node": { "type": ["string", "null"], "minLength": 1 },
+        "form": { "enum": ["section", "slot", "line", "subtract", "info", "formula-slot", "field", "total", "choice", "choose-min", "choose-max", "check", "reconcile", "note"] },
+        "path": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 0 } },
+        "property": { "enum": ["label", "text", "classes"] },
+        "type": { "enum": ["text", "classes"] },
+        "declared": { "type": "boolean" },
+        "value": { "$ref": "value.schema.json" },
+        "editable": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "canUnset": { "type": "boolean" },
+        "range": { "anyOf": [{ "$ref": "#/$defs/sourceRange" }, { "type": "null" }] },
+        "declarationRange": { "$ref": "#/$defs/sourceRange" }
+      },
+      "additionalProperties": false,
+      "if": { "properties": { "property": { "const": "classes" } } },
+      "then": {
+        "properties": { "type": { "const": "classes" } },
+        "if": { "properties": { "declared": { "const": true } } },
+        "then": {
+          "properties": {
+            "value": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "required": ["kw"],
+                "properties": { "kw": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+                "additionalProperties": false
+              }
+            },
+            "range": { "$ref": "#/$defs/sourceRange" }
+          }
+        },
+        "else": {
+          "properties": { "value": { "type": "null" }, "range": { "type": "null" }, "canUnset": { "const": false } }
+        }
+      },
+      "else": {
+        "properties": {
+          "type": { "const": "text" },
+          "declared": { "const": true },
+          "value": { "type": "string" },
+          "range": { "$ref": "#/$defs/sourceRange" },
+          "canUnset": { "const": false }
+        }
+      },
+      "dependentSchemas": {
+        "editable": {
+          "if": { "properties": { "editable": { "const": false } } },
+          "then": { "properties": { "reason": { "type": "string", "minLength": 1, "pattern": "\\S" }, "canUnset": { "const": false } } },
+          "else": {
+            "properties": { "reason": { "type": "null" } },
+            "if": { "properties": { "property": { "const": "classes" }, "declared": { "const": true } } },
+            "then": { "properties": { "canUnset": { "const": true } } }
+          }
+        },
+        "form": {
+          "if": { "properties": { "form": { "const": "note" } } },
+          "then": { "properties": { "node": { "type": "null" }, "property": { "enum": ["text", "classes"] } } },
+          "else": { "properties": { "node": { "type": "string", "minLength": 1 }, "property": { "enum": ["label", "classes"] } } }
+        }
+      }
+    }
+  },
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["document", "draftSequence", "baseRevisions", "scope", "coverage", "schemaId", "source", "owners", "patches"],
+      "properties": {
+        "document": { "type": "string", "minLength": 1 },
+        "draftSequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "baseRevisions": { "$ref": "template-sources.schema.json#/$defs/sourceRevisions" },
+        "scope": { "const": "schema-properties" },
+        "coverage": { "const": "presentation-items" },
+        "schemaId": { "type": "string", "minLength": 1 },
+        "source": {
+          "type": "object",
+          "required": ["handle", "document", "text"],
+          "properties": {
+            "handle": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "document": { "type": "string", "minLength": 1 },
+            "text": { "type": "string", "maxLength": 65536 }
+          },
+          "additionalProperties": false
+        },
+        "owners": { "type": "array", "items": { "$ref": "#/$defs/owner" } },
+        "patches": { "type": "array", "items": { "$ref": "template-layout-settings.schema.json#/$defs/sourcePatch" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

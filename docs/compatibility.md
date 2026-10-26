@@ -75,6 +75,11 @@ The opt-in `/2` suite adds Paper presentation assertions and the `/2` report car
 Paper. Existing `/1` schemas and default capture output remain unchanged. Select version 2 with
 `template-capture --format 2`; verify follows the explicit suite version without an override.
 
+The additive `template-schema-properties` endpoint has its own response schema under workbench/4.
+It adds source-bound presentation owner/edit DTOs and one catalog method; existing JVM descriptors
+and HTTP endpoint schemas remain unchanged. Inspecting or editing presentation tokens does not
+validate a draft calculation. Only the root schema is editable; captured include owners are read-only.
+
 Wire consumers reject unsupported major versions before editing. Adding an optional field is not
 inherently compatible with an older strict JSON schema: supported clients and schema revisions must
 accept the change, or the incompatibility must be versioned. Do not call a required client upgrade

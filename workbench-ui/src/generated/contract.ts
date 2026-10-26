@@ -611,6 +611,56 @@ export type TemplateStyleClassesStyleClass = {
   removeReason: string | null
 }
 
+export type TemplateSchemaProperties = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'schema-properties'
+    coverage: 'presentation-items'
+    schemaId: string
+    source: { handle: string; document: string; text: string }
+    owners: Array<TemplateSchemaPropertiesOwner>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateSchemaPropertiesSourceRange = {
+  line: number
+  column: number
+  startOffset: number
+  endOffset: number
+}
+export type TemplateSchemaPropertiesOwner = {
+  handle: string
+  document: string
+  node: string | null
+  form:
+    | 'section'
+    | 'slot'
+    | 'line'
+    | 'subtract'
+    | 'info'
+    | 'formula-slot'
+    | 'field'
+    | 'total'
+    | 'choice'
+    | 'choose-min'
+    | 'choose-max'
+    | 'check'
+    | 'reconcile'
+    | 'note'
+  path: Array<number>
+  property: 'label' | 'text' | 'classes'
+  type: 'text' | 'classes'
+  declared: boolean
+  value: Value
+  editable: boolean
+  reason: string | null
+  canUnset: boolean
+  range: TemplateSchemaPropertiesSourceRange | null
+  declarationRange: TemplateSchemaPropertiesSourceRange
+}
+
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
     cases: Array<{

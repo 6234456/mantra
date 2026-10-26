@@ -21,6 +21,8 @@ operations 可为空（inspect），否则每项仅为以下之一：
 
 每 owner 每批最多一项。同一声明的文本与 classes 属于不同 owner，可同批修改。
 文本原样保留，包括合法空字符串／中文；必须经当前公开 reader 无损读回，不能注入 DSL。
+草稿和 setText 必须是合法 Unicode 标量序列；未配对 UTF-16 surrogate 返回带本接口诊断的 422，
+不能让不同原文经 UTF-8 替代编码后得到同一 owner 身份。合法代理对（如 emoji）仍原样保留。
 classes 至多 64 个唯一简单名 `[a-z][a-z0-9-]*`，不带冒号；未知但合法的 tag 允许存在。
 setClasses 规范写为 keyword vector，[] 是显式空；unset 只移除 :class 键和值，保留空 metadata／注释。
 现有声明的逻辑 class 列表相同且已 declared 时不改源，保留原 keyword/vector 拼写及重复原文；
