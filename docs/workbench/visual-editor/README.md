@@ -32,6 +32,9 @@
 > 见 [合同](schema-properties-contract.md)、[实施记录](schema-properties-progress.md) 与
 > [用户说明](../../site/schema-properties.md)。可视化表单／完整 Outline、结构编辑、正式 Save／历史／D-A1／发布
 > 仍待接入或设计；此处不改变录制作者原型及 Claude 的人工签收状态。
+> 同日继续接入真实页的 schema 展示属性表单、统一源 Undo／Redo 与未 Apply 字段恢复，见
+> [UI 实施记录](schema-properties-ui-progress.md)。完整 Outline／Paper owner、结构编辑、正式 Save、
+> 服务端历史／草稿与发布仍待完成；恢复 v2 与旧 v1 兼容边界见该记录。工程检查不代替人工设计签收。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。

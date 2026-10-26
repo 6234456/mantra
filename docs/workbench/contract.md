@@ -654,7 +654,7 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 的撤销与组合键。历史仅存在当前页面内存，刷新不会自动保存或恢复它。
 
 **真实预览页的浏览器恢复与 JSON 备份（2026-10-25）**：G-A12 的客户端切片，覆盖已接受的根
-schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字段。恢复副本不是模板文件保存、
+schema／layout 源、原始示例输入及各属性面板尚未 Apply 的字段。恢复副本不是模板文件保存、
 服务端草稿、源历史或可信校验结果；不关闭 G-A7、服务端 G-A12 或 D-A1。
 
 - 身份由独立、可选的 `GET /api/v1/template-recovery-context` 提供；原 `workspace` 和
@@ -705,6 +705,12 @@ schema／layout 源、原始示例输入及两个属性面板尚未 Apply 的字
   失效存储、损坏副本或配额失败不能显示为已保护；当前草稿仍可编辑，合法且未超预算的 JSON 可直接下载。
 - 物理页面刷新发现副本后提供 Restore／Discard，不自动套用。显式 Reload saved source 是主动放弃当前
   草稿：确认后丢弃本页对应的恢复副本并取消旧写入，再捕获新源。源文件、正式历史和发布状态始终不变。
+
+没有 schema 展示属性未应用字段时，继续导出原 v1 格式。含此字段时使用独立
+`mantra.template-preview-recovery/2`，见 [v2 schema](schema/template-recovery-v2.schema.json)。
+v2 的 pending 可增加 schemaProperty：document、path、form、node、property、精确 declaration 原文、
+未提交 text 与 unset；不包含 owner handle 或权限。恢复后须重新 inspect；完整逻辑身份与 declaration
+原文都一致才可显式 Apply。旧 v1 读取与导出结构保持不变，旧客户端拒绝 v2，不可静默丢字段。
 
 格式定义见 [template-recovery.schema.json](schema/template-recovery.schema.json)。它与录制作者原型的
 `mantra.authoring-recovery/1` 分离，真实 live 页面不运行时导入 `src/authoring`。

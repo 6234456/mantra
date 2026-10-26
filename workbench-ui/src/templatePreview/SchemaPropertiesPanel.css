@@ -1,0 +1,21 @@
+.template-schema-properties label {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.template-schema-properties select,
+.template-schema-properties textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+}
+.template-schema-properties textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.template-schema-properties > button {
+  margin: 0 8px 12px 0;
+}
+.template-schema-properties p {
+  overflow-wrap: anywhere;
+}

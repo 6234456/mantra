@@ -86,6 +86,12 @@ G-A1／G-A3／G-A16／G-A18 仅部分完成：没有完整 Outline／Paper owner
 可视化表单／Undo／恢复协调、正式文件 Save、服务端源历史／草稿、D-A1 或发布。录制原型仍使用模拟 owner。
 这一 API／客户端协议切片不等于 Claude 已批准 UI／UX；复核仍以当前已推送 HEAD 与实施记录为准。
 
+2026-10-26 接续工程切片：[schema 展示属性 UI 与草稿协调](schema-properties-ui-progress.md)。
+独立真实页新增声明选择、label／note／classes Apply；统一源 Undo／Redo 与未应用字段阻止 Preview，
+并接入浏览器副本和独立恢复 v2（无 schema 缓冲时仍导出旧 v1）。复查只读 include、[]／unset、
+手工改源后 refresh、声明变化拒绝重绑定、迟到 Apply 不清除新字段与 409 保留。
+恢复字段不含 owner 权限，须重新 inspect；结果以当前实施记录为准，不代表人工设计或真实 IME 签收。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，

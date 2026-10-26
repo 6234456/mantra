@@ -55,6 +55,7 @@ const sourceResponses = []
 const recoveryContextResponses = []
 const settingsResponses = []
 const styleResponses = []
+const schemaPropertyResponses = []
 const screenshots = []
 const recoveryEvidence = []
 const browserErrors = []
@@ -209,7 +210,8 @@ async function connect(url) {
         (params.request.method === 'POST' &&
           (params.request.url.endsWith('/template-preview') ||
             params.request.url.endsWith('/template-layout-settings') ||
-            params.request.url.endsWith('/template-style-classes'))))
+            params.request.url.endsWith('/template-style-classes') ||
+            params.request.url.endsWith('/template-schema-properties'))))
     ) {
       // Keep only JSON body evidence, never session-token request headers.
       network.set(params.requestId, {
@@ -218,6 +220,7 @@ async function connect(url) {
         recoveryContext: params.request.url.endsWith('/template-recovery-context'),
         settings: params.request.url.endsWith('/template-layout-settings'),
         styles: params.request.url.endsWith('/template-style-classes'),
+        schemaProperties: params.request.url.endsWith('/template-schema-properties'),
       })
     }
     if (response.method === 'Network.responseReceived' && network.has(params.requestId)) {
@@ -256,7 +259,9 @@ async function connect(url) {
                 ? settingsResponses
                 : captured.styles
                   ? styleResponses
-                  : responses
+                  : captured.schemaProperties
+                    ? schemaPropertyResponses
+                    : responses
           ).push(captured)
         })
         .catch((error) => {
@@ -989,6 +994,65 @@ try {
   await savedAnswer('20')
   await screenshot('initial')
   pass('fresh live UI renders a real saved-template Paper with unchanged files')
+
+  // Source owner edits must go through the real API and the same in-memory source history.
+  await evaluate(`document.querySelector('.template-schema-properties-disclosure > summary').click()`)
+  let propertyIndex = schemaPropertyResponses.length
+  await click('Inspect schema properties')
+  const propertyCatalog = await until(() => schemaPropertyResponses[propertyIndex], 'real schema property catalog')
+  assert.equal(propertyCatalog.status, 200)
+  assert.ok(propertyCatalog.body.data.owners.some((item) => item.node === 'zero-marker'))
+  await until(() => evaluate(`!!${field('Schema property')}`), 'schema property selector')
+  await evaluate(`(() => {
+    const select = ${field('Schema property')};
+    const option = [...select.options].find(item => item.textContent.includes('info answer · label'));
+    if (!option) throw new Error('Missing real answer label owner');
+    select.value = option.value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  })()`)
+  await fill('Declared text', 'Answer 中文😀')
+  await historyBlockedByFields()
+  assert.equal(await evaluate(`${button('Preview draft')}.disabled`), true)
+  await protectedCopy((copy) => copy.pending.schemaProperty?.text === 'Answer 中文😀', 'schema fields protected')
+  propertyIndex = schemaPropertyResponses.length
+  await click('Apply schema property')
+  const propertyEdit = await until(() => schemaPropertyResponses[propertyIndex], 'real schema label source edit')
+  assert.equal(propertyEdit.status, 200)
+  assert.equal(propertyEdit.request.operations[0].op, 'setText')
+  assert.equal(propertyEdit.body.data.patches[0].removedText, '"Answer"')
+  const schemaLabelDraft = schema.replace('"Answer"', '"Answer 中文😀"')
+  await until(
+    () => evaluate(`${field('Draft source schema.mantra')}.value === ${JSON.stringify(schemaLabelDraft)}`),
+    'schema label accepted',
+  )
+  await sourceHistory('Undo source', 'schema.mantra', schema)
+  await sourceHistory('Redo source', 'schema.mantra', schemaLabelDraft)
+  const labelPreview = await preview(200)
+  assert.equal(answer(labelPreview.body), '20')
+  assert.ok(
+    labelPreview.body.data.paper.tables.some((table) =>
+      table.rows.some((row) => row.cells.some((cell) => cell.text === 'Answer 中文😀')),
+    ),
+  )
+  await unchangedFiles()
+  await screenshot('schema-property-label')
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true)
+  await screenshot('schema-property-narrow')
+  await session.send('Emulation.setDeviceMetricsOverride', {
+    width: 1440,
+    height: 1000,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+  await sourceHistory('Undo source', 'schema.mantra', schema)
+  await evaluate(`document.querySelector('.template-schema-properties-disclosure > summary').click()`)
+  pass('real schema owner label Apply, exact source Undo/Redo, browser backup and unchanged engine values')
 
   await source('layout.mantra')
   await evaluate(`document.querySelector('.template-layout-settings-disclosure > summary').click()`)
@@ -2337,6 +2401,11 @@ try {
           properties: body.data?.properties ?? null,
           patches: body.data?.patches ?? null,
           error: body.error ?? null,
+        })),
+        schemaPropertyResponses: schemaPropertyResponses.map(({ status, request, body }) => ({
+          status,
+          request,
+          body,
         })),
         styleResponses: styleResponses.map(({ status, request, body }) => ({
           status,

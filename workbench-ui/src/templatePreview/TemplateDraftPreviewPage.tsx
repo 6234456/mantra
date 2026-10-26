@@ -8,6 +8,8 @@ import { explainDiagnostic } from '../diagnosticMessages'
 import { CandidateComparison } from './CandidateComparison'
 import { LayoutSettingsPanel } from './LayoutSettingsPanel'
 import type { LayoutSettingsClient, LayoutSettingsRequest } from './layoutSettingsClient'
+import { SchemaPropertiesPanel } from './SchemaPropertiesPanel'
+import type { SchemaPropertiesClient } from './schemaPropertiesClient'
 import { StyleClassesPanel } from './StyleClassesPanel'
 import type { StyleClassesClient } from './styleClassesClient'
 import { emptySourceHistory, recordSourceChange, stepSourceHistory, type SourceHistory } from './sourceHistory'
@@ -35,11 +37,13 @@ export default function TemplateDraftPreviewPage({
   client: supplied,
   settingsClient,
   styleClassesClient,
+  schemaPropertiesClient,
   recoveryStorage,
 }: {
   client?: TemplatePreviewClient
   settingsClient?: LayoutSettingsClient
   styleClassesClient?: StyleClassesClient
+  schemaPropertiesClient?: SchemaPropertiesClient
   recoveryStorage?: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 } = {}) {
   const client = useMemo(() => supplied ?? new LiveTemplatePreviewClient(), [supplied])
@@ -76,11 +80,13 @@ export default function TemplateDraftPreviewPage({
   const [restored, setRestored] = useState(false)
   const [layoutDisclosureOpen, setLayoutDisclosureOpen] = useState(false)
   const [styleDisclosureOpen, setStyleDisclosureOpen] = useState(false)
+  const [schemaDisclosureOpen, setSchemaDisclosureOpen] = useState(false)
   const authoringPending =
     settingsPending ||
     styleClassesPending ||
     recoveryPending.layoutSettings.length > 0 ||
-    recoveryPending.styleClass !== null
+    recoveryPending.styleClass !== null ||
+    !!recoveryPending.schemaProperty
   const context = useRef(0)
   const draftSequence = useRef(0)
   const pending = useRef<AbortController | null>(null)
@@ -121,7 +127,7 @@ export default function TemplateDraftPreviewPage({
     latestDraft.current = {
       ...latestDraft.current,
       recoveryPending: pending,
-      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null,
+      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null || !!pending.schemaProperty,
     }
     setRecoveryPending(pending)
   }, [])
@@ -130,7 +136,17 @@ export default function TemplateDraftPreviewPage({
     latestDraft.current = {
       ...latestDraft.current,
       recoveryPending: pending,
-      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null,
+      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null || !!pending.schemaProperty,
+    }
+    setRecoveryPending(pending)
+  }, [])
+
+  const publishSchemaDraft = useCallback((schemaProperty: RecoveryPending['schemaProperty']) => {
+    const pending = { ...latestDraft.current.recoveryPending, schemaProperty }
+    latestDraft.current = {
+      ...latestDraft.current,
+      recoveryPending: pending,
+      authoringPending: pending.layoutSettings.length > 0 || pending.styleClass !== null || !!schemaProperty,
     }
     setRecoveryPending(pending)
   }, [])
@@ -209,6 +225,7 @@ export default function TemplateDraftPreviewPage({
     setRestored(false)
     setLayoutDisclosureOpen(false)
     setStyleDisclosureOpen(false)
+    setSchemaDisclosureOpen(false)
     void client
       .sources(caseId, controller.signal)
       .then((next) => {
@@ -357,6 +374,7 @@ export default function TemplateDraftPreviewPage({
   }
 
   const source = snapshot?.data.documents.find((item) => item.handle === sourceHandle)
+  const schemaSource = snapshot?.data.documents.find((item) => item.role === 'schema')
   const layoutSource = snapshot?.data.documents.find((item) => item.role === 'layout')
   function acceptSourceChange(handle: string, before: string, after: string, label: string): boolean {
     const latest = latestDraft.current
@@ -380,11 +398,12 @@ export default function TemplateDraftPreviewPage({
     setHistoryNotice('')
     return true
   }
-  function applyLayoutSource(
+  function applyPropertySource(
     expectedCase: string,
     request: Pick<LayoutSettingsRequest, 'baseRevision' | 'baseRevisions' | 'handle' | 'text'>,
     nextText: string,
     label: string,
+    role: 'schema' | 'layout' = 'layout',
   ): boolean {
     const latest = latestDraft.current
     const layout = latest.snapshot?.data.documents.find((item) => item.handle === request.handle)
@@ -394,7 +413,7 @@ export default function TemplateDraftPreviewPage({
       latest.snapshot?.data.document !== expectedCase ||
       latest.snapshot.revision !== request.baseRevision ||
       !sameTemplateRevisions(latest.snapshot.data.baseRevisions, request.baseRevisions) ||
-      layout?.role !== 'layout' ||
+      layout?.role !== role ||
       !layout.editable ||
       latest.documents[request.handle] !== request.text
     )
@@ -405,8 +424,7 @@ export default function TemplateDraftPreviewPage({
     if (loading || !snapshot || snapshot.data.document !== caseId)
       return 'Capture template sources before using source history.'
     if (conflict) return 'Resolve the source revision conflict before using source history.'
-    if (authoringPending)
-      return 'Apply or cancel the layout setting and style class changes before using source history.'
+    if (authoringPending) return 'Apply or cancel the property changes before using source history.'
     const transaction = (direction === 'undo' ? history.past : history.future).at(-1)
     if (!transaction) return direction === 'undo' ? 'No source changes to undo.' : 'No source changes to redo.'
     if (documents[transaction.handle] !== transaction[direction === 'undo' ? 'after' : 'before'])
@@ -474,7 +492,8 @@ export default function TemplateDraftPreviewPage({
       inputs: nextInputs,
       recoveryPending: pendingFields,
       history: nextHistory,
-      authoringPending: pendingFields.layoutSettings.length > 0 || pendingFields.styleClass !== null,
+      authoringPending:
+        pendingFields.layoutSettings.length > 0 || pendingFields.styleClass !== null || !!pendingFields.schemaProperty,
     }
     invalidate()
     invalidateBaseline()
@@ -500,6 +519,7 @@ export default function TemplateDraftPreviewPage({
     )
     setLayoutDisclosureOpen(pendingFields.layoutSettings.length > 0)
     setStyleDisclosureOpen(pendingFields.styleClass !== null)
+    setSchemaDisclosureOpen(!!pendingFields.schemaProperty)
     setRestored(true)
     return true
   }
@@ -610,11 +630,13 @@ export default function TemplateDraftPreviewPage({
             )}
             {authoringPending && (
               <span id="template-settings-preview-reason">
-                {settingsPending && styleClassesPending
-                  ? 'Apply or cancel the layout setting and style class changes before previewing.'
-                  : styleClassesPending
-                    ? 'Apply or cancel the style class changes before previewing.'
-                    : 'Apply or cancel the layout setting changes before previewing.'}
+                {recoveryPending.schemaProperty
+                  ? 'Apply or cancel the schema property changes before previewing.'
+                  : settingsPending && styleClassesPending
+                    ? 'Apply or cancel the layout setting and style class changes before previewing.'
+                    : styleClassesPending
+                      ? 'Apply or cancel the style class changes before previewing.'
+                      : 'Apply or cancel the layout setting changes before previewing.'}
               </span>
             )}
             <button
@@ -781,7 +803,7 @@ export default function TemplateDraftPreviewPage({
                 text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
                 conflict={conflict}
                 onApply={(expectedCase, request, nextText) =>
-                  applyLayoutSource(expectedCase, request, nextText, 'Apply layout settings')
+                  applyPropertySource(expectedCase, request, nextText, 'Apply layout settings')
                 }
                 onConflict={markConflict}
                 onPendingChange={setSettingsPending}
@@ -806,13 +828,37 @@ export default function TemplateDraftPreviewPage({
                 text={layoutSource ? (documents[layoutSource.handle] ?? layoutSource.text) : undefined}
                 conflict={conflict}
                 onApply={(expectedCase, request, nextText) =>
-                  applyLayoutSource(expectedCase, request, nextText, 'Apply style classes')
+                  applyPropertySource(expectedCase, request, nextText, 'Apply style classes')
                 }
                 onConflict={markConflict}
                 onPendingChange={setStyleClassesPending}
                 restoredDraft={recoveryPending.styleClass}
                 onDraftChange={publishStyleDraft}
                 client={styleClassesClient}
+              />
+            </details>
+          )}
+          {snapshot?.data.document === caseId && (
+            <details
+              className="template-schema-properties-disclosure"
+              key={`schema:${caseId}:${snapshot.revision}:${recoveryEpoch}`}
+              open={schemaDisclosureOpen}
+              onToggle={(event) => setSchemaDisclosureOpen(event.currentTarget.open)}
+            >
+              <summary>Schema presentation properties</summary>
+              <SchemaPropertiesPanel
+                caseId={caseId}
+                snapshot={snapshot}
+                source={schemaSource}
+                text={schemaSource ? (documents[schemaSource.handle] ?? schemaSource.text) : undefined}
+                conflict={conflict}
+                onApply={(expectedCase, request, nextText) =>
+                  applyPropertySource(expectedCase, request, nextText, 'Apply schema property', 'schema')
+                }
+                onConflict={markConflict}
+                onDraftChange={publishSchemaDraft}
+                restoredDraft={recoveryPending.schemaProperty}
+                client={schemaPropertiesClient}
               />
             </details>
           )}

@@ -40,7 +40,8 @@ export function recoveryContextChanged(context: RecoveryContext): boolean {
     ) ||
       Object.keys(context.inputs).length > 0 ||
       context.pending.layoutSettings.length > 0 ||
-      context.pending.styleClass !== null)
+      context.pending.styleClass !== null ||
+      !!context.pending.schemaProperty)
   )
 }
 

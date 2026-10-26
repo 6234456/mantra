@@ -1,8 +1,8 @@
 # Recover a real template draft
 
 The real `/template-preview` page keeps a browser recovery copy of edited root schema/layout text,
-raw example inputs and unapplied layout/style fields. A JSON backup can also transfer this source
-draft to another browser or matching workspace. It contains no calculated results or validation
+raw example inputs and unapplied layout/style/schema presentation fields. A JSON backup can also
+transfer this source draft to another browser or matching workspace. It contains no calculated results or validation
 authority and does not save template files.
 
 Start the updated server and UI using [Template draft preview](template-draft-preview.md). The
@@ -14,8 +14,8 @@ the recovery tools stay disabled; rebuild or update the live server and UI to en
 
 ## Browser recovery
 
-1. Edit source, an example input or a layout/style field. The page briefly waits, then writes the
-   current source and raw fields to this browser. **Draft recovery and JSON backup** reports the
+1. Edit source, an example input or a layout/style/schema field. The page briefly waits, then writes
+   the current source and raw fields to this browser. **Draft recovery and JSON backup** reports the
    actual state. A confirmed backup has been read back from storage; a pending or failed write
    is not a protected copy of the newest edit.
 2. After a page refresh, the stored copy is offered explicitly. Opening the page does not apply
@@ -58,8 +58,11 @@ explicitly restore it here. Different template revisions require manual recovery
 import does not rebase, migrate or rewrite document identities.
 
 Backups are limited to 2 MiB of UTF-8 JSON. Their strict versioned format rejects duplicate keys,
-unknown fields, unsupported values, excessive nesting and forged result/permission fields. A large
-or technically invalid source is still recoverable within that total budget; preview limits remain
+unknown fields, unsupported values, excessive nesting and forged result/permission fields.
+Backups containing pending schema presentation fields use `mantra.template-preview-recovery/2`
+([format](../workbench/schema/template-recovery-v2.schema.json)); the updated page also accepts
+v1 and exports its unchanged shape when no schema fields are pending. Older clients cannot read v2.
+A large or technically invalid source is still recoverable within that total budget; preview limits remain
 independent. Oversized backups fail visibly without truncating the source.
 
 ## Storage failures and deliberate discard

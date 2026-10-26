@@ -1,0 +1,839 @@
+[
+  {
+    "status": 200,
+    "request": {
+      "baseRevision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "draftSequence": 1,
+      "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+      "text": "(schema browser/preview {:version \"1\" :mainline [main]}\n  (include \"helpers.mantra\")\n  (input base-amount :decimal)\n  (section main \"Main\" {:panel true}\n    (field base-amount \"Amount\" {:op :info})\n    (info answer \"Answer\" (* base-amount 2))\n    (check positive \"Nonnegative\" (>= base-amount 0)))\n  (section details \"Details\" {:panel true :display :schedule}\n    (info detail \"Detail value\" (+ base-amount 5))\n    (info zero-marker \"Zero marker\" 0)))",
+      "operations": []
+    },
+    "body": {
+      "contract": "mantra.workbench/4",
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "data": {
+        "document": "case.mantra",
+        "draftSequence": 1,
+        "baseRevisions": {
+          "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        },
+        "scope": "schema-properties",
+        "coverage": "presentation-items",
+        "schemaId": "browser/preview",
+        "source": {
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "document": "schema.mantra",
+          "text": "(schema browser/preview {:version \"1\" :mainline [main]}\n  (include \"helpers.mantra\")\n  (input base-amount :decimal)\n  (section main \"Main\" {:panel true}\n    (field base-amount \"Amount\" {:op :info})\n    (info answer \"Answer\" (* base-amount 2))\n    (check positive \"Nonnegative\" (>= base-amount 0)))\n  (section details \"Details\" {:panel true :display :schedule}\n    (info detail \"Detail value\" (+ base-amount 5))\n    (info zero-marker \"Zero marker\" 0)))"
+        },
+        "owners": [
+          {
+            "handle": "72449839c548bba5437235011a0e0a9a5b9d0c64393044002dfdd727a0cd75c8",
+            "document": "schema.mantra",
+            "node": "main",
+            "form": "section",
+            "path": [
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Main",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 4,
+              "column": 17,
+              "startOffset": 132,
+              "endOffset": 138
+            },
+            "declarationRange": {
+              "line": 4,
+              "column": 3,
+              "startOffset": 118,
+              "endOffset": 297
+            }
+          },
+          {
+            "handle": "16126af857c07438a79cf745a726693ed42f000f6c1275cbba3a7516a7b28014",
+            "document": "schema.mantra",
+            "node": "main",
+            "form": "section",
+            "path": [
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 4,
+              "column": 3,
+              "startOffset": 118,
+              "endOffset": 297
+            }
+          },
+          {
+            "handle": "c7d3d73bddca5215c885acfe7cab502347eea76ccc6a1d4eed6cbe99dfc14249",
+            "document": "schema.mantra",
+            "node": "base-amount",
+            "form": "field",
+            "path": [
+              0,
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Amount",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 5,
+              "column": 24,
+              "startOffset": 176,
+              "endOffset": 184
+            },
+            "declarationRange": {
+              "line": 5,
+              "column": 5,
+              "startOffset": 157,
+              "endOffset": 197
+            }
+          },
+          {
+            "handle": "2346d99d5ed49551f90c3e509dcd792f9f433403f3da0907bbffb7621872ceb2",
+            "document": "schema.mantra",
+            "node": "base-amount",
+            "form": "field",
+            "path": [
+              0,
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 5,
+              "column": 5,
+              "startOffset": 157,
+              "endOffset": 197
+            }
+          },
+          {
+            "handle": "bae2ea4be9cedd0bff9ad1449fed584b499cd86c854aa731fb5f5ac7ed1a6dcd",
+            "document": "schema.mantra",
+            "node": "answer",
+            "form": "info",
+            "path": [
+              0,
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Answer",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 6,
+              "column": 18,
+              "startOffset": 215,
+              "endOffset": 223
+            },
+            "declarationRange": {
+              "line": 6,
+              "column": 5,
+              "startOffset": 202,
+              "endOffset": 242
+            }
+          },
+          {
+            "handle": "d8bbad3a3b820310cd1a3ccc4d309773b77cab4c33417038be871d6d1d07a6af",
+            "document": "schema.mantra",
+            "node": "answer",
+            "form": "info",
+            "path": [
+              0,
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 6,
+              "column": 5,
+              "startOffset": 202,
+              "endOffset": 242
+            }
+          },
+          {
+            "handle": "3ac3e88bbd8d44ba41f91aed4fc4d38b0d93cc89c2181c98561afb27c2de0944",
+            "document": "schema.mantra",
+            "node": "positive",
+            "form": "check",
+            "path": [
+              0,
+              2
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Nonnegative",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 7,
+              "column": 21,
+              "startOffset": 263,
+              "endOffset": 276
+            },
+            "declarationRange": {
+              "line": 7,
+              "column": 5,
+              "startOffset": 247,
+              "endOffset": 296
+            }
+          },
+          {
+            "handle": "b931067ded79a934e4aa22d32d6a20a62ddf4d2fb35e325db8aa77cd5e576be7",
+            "document": "schema.mantra",
+            "node": "positive",
+            "form": "check",
+            "path": [
+              0,
+              2
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 7,
+              "column": 5,
+              "startOffset": 247,
+              "endOffset": 296
+            }
+          },
+          {
+            "handle": "16ace82e79725ba159cf3790a0a199c45b85ff3b83a11c82b549214c95a630d1",
+            "document": "schema.mantra",
+            "node": "details",
+            "form": "section",
+            "path": [
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Details",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 8,
+              "column": 20,
+              "startOffset": 317,
+              "endOffset": 326
+            },
+            "declarationRange": {
+              "line": 8,
+              "column": 3,
+              "startOffset": 300,
+              "endOffset": 450
+            }
+          },
+          {
+            "handle": "f61080823a9cfefbd1e62546d80deded135ac690e5e36e02d078d8af9e598444",
+            "document": "schema.mantra",
+            "node": "details",
+            "form": "section",
+            "path": [
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 8,
+              "column": 3,
+              "startOffset": 300,
+              "endOffset": 450
+            }
+          },
+          {
+            "handle": "aa454c5e2aad0dafe06dfacda1365148a566bfbeaa1b75c762347a01331721a5",
+            "document": "schema.mantra",
+            "node": "detail",
+            "form": "info",
+            "path": [
+              1,
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Detail value",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 9,
+              "column": 18,
+              "startOffset": 377,
+              "endOffset": 391
+            },
+            "declarationRange": {
+              "line": 9,
+              "column": 5,
+              "startOffset": 364,
+              "endOffset": 410
+            }
+          },
+          {
+            "handle": "af0265d258f96cd7d2cc217cbae61b422913c2755da69a258efbcd6104eebde4",
+            "document": "schema.mantra",
+            "node": "detail",
+            "form": "info",
+            "path": [
+              1,
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 9,
+              "column": 5,
+              "startOffset": 364,
+              "endOffset": 410
+            }
+          },
+          {
+            "handle": "9784914663adf8b2f58b84feab47ca39da76ec1916506bdc1e107a9f36570460",
+            "document": "schema.mantra",
+            "node": "zero-marker",
+            "form": "info",
+            "path": [
+              1,
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Zero marker",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 10,
+              "column": 23,
+              "startOffset": 433,
+              "endOffset": 446
+            },
+            "declarationRange": {
+              "line": 10,
+              "column": 5,
+              "startOffset": 415,
+              "endOffset": 449
+            }
+          },
+          {
+            "handle": "63f98ba34cbe33c58ab4f33f8642cc93f7da0a35f18624c0f7bb9b203dfa72c5",
+            "document": "schema.mantra",
+            "node": "zero-marker",
+            "form": "info",
+            "path": [
+              1,
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 10,
+              "column": 5,
+              "startOffset": 415,
+              "endOffset": 449
+            }
+          }
+        ],
+        "patches": []
+      }
+    }
+  },
+  {
+    "status": 200,
+    "request": {
+      "baseRevision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "draftSequence": 2,
+      "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+      "text": "(schema browser/preview {:version \"1\" :mainline [main]}\n  (include \"helpers.mantra\")\n  (input base-amount :decimal)\n  (section main \"Main\" {:panel true}\n    (field base-amount \"Amount\" {:op :info})\n    (info answer \"Answer\" (* base-amount 2))\n    (check positive \"Nonnegative\" (>= base-amount 0)))\n  (section details \"Details\" {:panel true :display :schedule}\n    (info detail \"Detail value\" (+ base-amount 5))\n    (info zero-marker \"Zero marker\" 0)))",
+      "operations": [
+        {
+          "op": "setText",
+          "owner": "bae2ea4be9cedd0bff9ad1449fed584b499cd86c854aa731fb5f5ac7ed1a6dcd",
+          "text": "Answer 中文😀"
+        }
+      ]
+    },
+    "body": {
+      "contract": "mantra.workbench/4",
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "engine": {
+        "mantra": "1.0.0-rc.1",
+        "normein": "0.3.0"
+      },
+      "data": {
+        "document": "case.mantra",
+        "draftSequence": 2,
+        "baseRevisions": {
+          "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        },
+        "scope": "schema-properties",
+        "coverage": "presentation-items",
+        "schemaId": "browser/preview",
+        "source": {
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "document": "schema.mantra",
+          "text": "(schema browser/preview {:version \"1\" :mainline [main]}\n  (include \"helpers.mantra\")\n  (input base-amount :decimal)\n  (section main \"Main\" {:panel true}\n    (field base-amount \"Amount\" {:op :info})\n    (info answer \"Answer 中文😀\" (* base-amount 2))\n    (check positive \"Nonnegative\" (>= base-amount 0)))\n  (section details \"Details\" {:panel true :display :schedule}\n    (info detail \"Detail value\" (+ base-amount 5))\n    (info zero-marker \"Zero marker\" 0)))"
+        },
+        "owners": [
+          {
+            "handle": "dc39c42940d4c867d6cc2c81c7cb0b999d681d7ed7465c920d72f492743a3bbe",
+            "document": "schema.mantra",
+            "node": "main",
+            "form": "section",
+            "path": [
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Main",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 4,
+              "column": 17,
+              "startOffset": 132,
+              "endOffset": 138
+            },
+            "declarationRange": {
+              "line": 4,
+              "column": 3,
+              "startOffset": 118,
+              "endOffset": 302
+            }
+          },
+          {
+            "handle": "0cd1f628622798987f834b39d990060c38049397fb8f33ef15e8ac0bd6b5c355",
+            "document": "schema.mantra",
+            "node": "main",
+            "form": "section",
+            "path": [
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 4,
+              "column": 3,
+              "startOffset": 118,
+              "endOffset": 302
+            }
+          },
+          {
+            "handle": "a3ba914d2780f7b1d4d5d2270eccbdcb4f0ff0bb767d0ae35674df5e9a5cc9f4",
+            "document": "schema.mantra",
+            "node": "base-amount",
+            "form": "field",
+            "path": [
+              0,
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Amount",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 5,
+              "column": 24,
+              "startOffset": 176,
+              "endOffset": 184
+            },
+            "declarationRange": {
+              "line": 5,
+              "column": 5,
+              "startOffset": 157,
+              "endOffset": 197
+            }
+          },
+          {
+            "handle": "a15ab03c8069e24285d9b7f2330a709c518999c8e7cbcc9624f20f03fa0267ab",
+            "document": "schema.mantra",
+            "node": "base-amount",
+            "form": "field",
+            "path": [
+              0,
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 5,
+              "column": 5,
+              "startOffset": 157,
+              "endOffset": 197
+            }
+          },
+          {
+            "handle": "95a863be7bed1ae40cfc98f338ac971b8bcd0aab21d225cf3ca2181f3fad6186",
+            "document": "schema.mantra",
+            "node": "answer",
+            "form": "info",
+            "path": [
+              0,
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Answer 中文😀",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 6,
+              "column": 18,
+              "startOffset": 215,
+              "endOffset": 228
+            },
+            "declarationRange": {
+              "line": 6,
+              "column": 5,
+              "startOffset": 202,
+              "endOffset": 247
+            }
+          },
+          {
+            "handle": "e3052bde901f58b4a41bd94e1d349e6fe8807dea1014cddacd5127eeae493b3f",
+            "document": "schema.mantra",
+            "node": "answer",
+            "form": "info",
+            "path": [
+              0,
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 6,
+              "column": 5,
+              "startOffset": 202,
+              "endOffset": 247
+            }
+          },
+          {
+            "handle": "9b156e568e96a7ff3ad7db86f946fd4a81b4b53ecea1916c39bc561101792a30",
+            "document": "schema.mantra",
+            "node": "positive",
+            "form": "check",
+            "path": [
+              0,
+              2
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Nonnegative",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 7,
+              "column": 21,
+              "startOffset": 268,
+              "endOffset": 281
+            },
+            "declarationRange": {
+              "line": 7,
+              "column": 5,
+              "startOffset": 252,
+              "endOffset": 301
+            }
+          },
+          {
+            "handle": "7e07eee99515bd7270536883d9aab419ff77b8fbaab9bd0e0662b07b497917a9",
+            "document": "schema.mantra",
+            "node": "positive",
+            "form": "check",
+            "path": [
+              0,
+              2
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 7,
+              "column": 5,
+              "startOffset": 252,
+              "endOffset": 301
+            }
+          },
+          {
+            "handle": "7e54341b880eb0bab3726a71d13297cc1232062bb41487e27314c8c6513c55bf",
+            "document": "schema.mantra",
+            "node": "details",
+            "form": "section",
+            "path": [
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Details",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 8,
+              "column": 20,
+              "startOffset": 322,
+              "endOffset": 331
+            },
+            "declarationRange": {
+              "line": 8,
+              "column": 3,
+              "startOffset": 305,
+              "endOffset": 455
+            }
+          },
+          {
+            "handle": "549f267ddf8d6ef7b4acbc62a4a2c0557a2cfc48b3ed90c18263cfb5f7a5420c",
+            "document": "schema.mantra",
+            "node": "details",
+            "form": "section",
+            "path": [
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 8,
+              "column": 3,
+              "startOffset": 305,
+              "endOffset": 455
+            }
+          },
+          {
+            "handle": "7a4ffc9edcb22ae458f56b54c3f1729f6310a1c4bf4ba7e3850448f4348e8663",
+            "document": "schema.mantra",
+            "node": "detail",
+            "form": "info",
+            "path": [
+              1,
+              0
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Detail value",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 9,
+              "column": 18,
+              "startOffset": 382,
+              "endOffset": 396
+            },
+            "declarationRange": {
+              "line": 9,
+              "column": 5,
+              "startOffset": 369,
+              "endOffset": 415
+            }
+          },
+          {
+            "handle": "aa6bd0ce20042517d01d0e6c88ef7483aed9bd0cfa1ae1407e50729d1dead2af",
+            "document": "schema.mantra",
+            "node": "detail",
+            "form": "info",
+            "path": [
+              1,
+              0
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 9,
+              "column": 5,
+              "startOffset": 369,
+              "endOffset": 415
+            }
+          },
+          {
+            "handle": "43b7dc8cdbbd7915e65e50a027e044adaf4f05e5e4c22e3d4dbae44d172402b1",
+            "document": "schema.mantra",
+            "node": "zero-marker",
+            "form": "info",
+            "path": [
+              1,
+              1
+            ],
+            "property": "label",
+            "type": "text",
+            "declared": true,
+            "value": "Zero marker",
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": {
+              "line": 10,
+              "column": 23,
+              "startOffset": 438,
+              "endOffset": 451
+            },
+            "declarationRange": {
+              "line": 10,
+              "column": 5,
+              "startOffset": 420,
+              "endOffset": 454
+            }
+          },
+          {
+            "handle": "c57b54411a6053d9b7cfecfaf72c4cf9de47816af574e4be64b0961f22496469",
+            "document": "schema.mantra",
+            "node": "zero-marker",
+            "form": "info",
+            "path": [
+              1,
+              1
+            ],
+            "property": "classes",
+            "type": "classes",
+            "declared": false,
+            "value": null,
+            "editable": true,
+            "reason": null,
+            "canUnset": false,
+            "range": null,
+            "declarationRange": {
+              "line": 10,
+              "column": 5,
+              "startOffset": 420,
+              "endOffset": 454
+            }
+          }
+        ],
+        "patches": [
+          {
+            "startOffset": 215,
+            "endOffset": 223,
+            "text": "\"Answer 中文😀\"",
+            "removedText": "\"Answer\""
+          }
+        ]
+      }
+    }
+  }
+]

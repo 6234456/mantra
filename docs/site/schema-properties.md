@@ -18,9 +18,39 @@ mantra-cli/build/install/mantra/bin/mantra serve docs/examples/schema-properties
 ```
 
 The live index supplies the session metadata used by the script. The existing source-first page
-is described in [template draft preview](template-draft-preview.md). The new API does not add a
-property panel to that page. A visual client can use its generated contract and validated
-`LiveSchemaPropertiesClient` transport.
+is described in [template draft preview](template-draft-preview.md).
+
+## Use the presentation property panel
+
+Open **Schema presentation properties** on `/template-preview`, then **Inspect schema properties**.
+Choose a declaration by document, line, form, node and property. The list includes hidden, zero and
+inactive declarations; captured includes show their read-only reason. It is a source declaration
+list, not a projection of visible Paper rows or their final computed text/style.
+
+Edit **Declared text** for a label or note. For **Assigned classes**, enter unique simple names
+separated by whitespace, without colons. Unknown valid names remain allowed. Clearing the field
+and applying sets explicit `[]`; **Remove class declaration** removes the option entirely.
+
+**Apply schema property** accepts the real service's source patch into the in-memory root schema.
+It joins manual edits, layout settings and style definitions in the same **Undo source / Redo source**
+history. It does not save a template file or calculate a preview. Apply or Cancel all pending fields
+before **Preview draft**; source-only inspection does not validate formulas or example inputs.
+
+If source changes, refresh the directory explicitly and review retained fields before applying.
+A retained field must still match its declaration path, form, node, property and exact declaration
+text. If that declaration changed, cancel and select the intended declaration again. Responses from
+older requests, contexts or field edits cannot overwrite newer edits. External graph conflicts retain
+the draft and require a new source capture.
+
+Unapplied fields participate in [browser recovery and JSON backups](template-recovery.md). A backup
+with schema fields uses recovery format v2; v1 remains readable and is still exported when no schema
+fields are pending. Restoring does not restore owner permissions or calculated results: inspect and
+explicitly apply again. System input-method behavior still requires manual verification.
+
+## API example
+
+An authoring client can also use the generated contract and validated `LiveSchemaPropertiesClient`
+transport directly.
 
 Example sources: [schema](repo:docs/examples/schema-properties/schema.mantra),
 [shared fragment](repo:docs/examples/schema-properties/shared.mantra),

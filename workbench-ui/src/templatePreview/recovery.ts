@@ -12,6 +12,19 @@ const recoveryIdentityRequired =
 export interface RecoveryPending {
   layoutSettings: LayoutSettingOperation[]
   styleClass: { operation: StyleClassOperation; creating: boolean; selection: string } | null
+  schemaProperty?: SchemaPropertyDraft | null
+}
+
+/** Logical identity plus exact declaration text; restored fields never reuse an owner handle. */
+export interface SchemaPropertyDraft {
+  document: string
+  path: number[]
+  form: string
+  node: string | null
+  property: 'label' | 'text' | 'classes'
+  declaration: string
+  text: string
+  unset: boolean
 }
 
 export interface RecoveryDocument {
@@ -24,7 +37,7 @@ export interface RecoveryDocument {
 }
 
 export interface RecoveryDraft {
-  format: typeof recoveryFormat
+  format: typeof recoveryFormat | 'mantra.template-preview-recovery/2'
   savedAt: string
   workspaceId: string
   caseId: string
@@ -133,12 +146,17 @@ function styleOperation(value: unknown): value is StyleClassOperation {
 
 function pending(value: unknown): value is RecoveryPending {
   if (
-    !fields(value, ['layoutSettings', 'styleClass']) ||
+    !(
+      fields(value, ['layoutSettings', 'styleClass']) ||
+      fields(value, ['layoutSettings', 'styleClass', 'schemaProperty'])
+    ) ||
     !Array.isArray(value.layoutSettings) ||
     value.layoutSettings.length > 14 ||
     !value.layoutSettings.every(layoutOperation) ||
     new Set(value.layoutSettings.map((entry) => entry.property)).size !== value.layoutSettings.length
   )
+    return false
+  if (value.schemaProperty !== undefined && value.schemaProperty !== null && !schemaPropertyDraft(value.schemaProperty))
     return false
   return (
     value.styleClass === null ||
@@ -146,6 +164,24 @@ function pending(value: unknown): value is RecoveryPending {
       styleOperation(value.styleClass.operation) &&
       typeof value.styleClass.creating === 'boolean' &&
       typeof value.styleClass.selection === 'string')
+  )
+}
+
+function schemaPropertyDraft(value: unknown): value is SchemaPropertyDraft {
+  return (
+    fields(value, ['document', 'path', 'form', 'node', 'property', 'declaration', 'text', 'unset']) &&
+    nonblank(value.document) &&
+    nonblank(value.form) &&
+    (value.node === null || nonblank(value.node)) &&
+    Array.isArray(value.path) &&
+    value.path.length > 0 &&
+    value.path.every((index) => Number.isSafeInteger(index) && index >= 0) &&
+    ['label', 'text', 'classes'].includes(value.property as string) &&
+    typeof value.declaration === 'string' &&
+    value.declaration.length <= 65_536 &&
+    typeof value.text === 'string' &&
+    typeof value.unset === 'boolean' &&
+    (!value.unset || value.property === 'classes')
   )
 }
 
@@ -175,7 +211,7 @@ function backup(value: unknown): value is RecoveryDraft {
       'inputs',
       'pending',
     ]) ||
-    value.format !== recoveryFormat ||
+    (value.format !== recoveryFormat && value.format !== 'mantra.template-preview-recovery/2') ||
     !validTime(value.savedAt) ||
     !hash(value.workspaceId) ||
     !nonblank(value.caseId) ||
@@ -196,7 +232,8 @@ function backup(value: unknown): value is RecoveryDraft {
       (entry) => fields(entry, ['node', 'text']) && nonblank(entry.node) && typeof entry.text === 'string',
     ) ||
     new Set(value.inputs.map((entry) => entry.node)).size !== value.inputs.length ||
-    !pending(value.pending)
+    !pending(value.pending) ||
+    (value.format === recoveryFormat && Object.hasOwn(value.pending, 'schemaProperty'))
   )
     return false
   return true
@@ -253,7 +290,7 @@ export function createBackup(
       }
     }
     const value = {
-      format: recoveryFormat,
+      format: state.pending.schemaProperty ? 'mantra.template-preview-recovery/2' : recoveryFormat,
       savedAt,
       workspaceId: snapshot.data.workspaceId,
       caseId: snapshot.data.document,
@@ -270,7 +307,9 @@ export function createBackup(
           text: state.documents[entry.handle],
         })),
       inputs: Object.entries(state.inputs).map(([node, text]) => ({ node, text })),
-      pending: state.pending,
+      pending: state.pending.schemaProperty
+        ? state.pending
+        : { layoutSettings: state.pending.layoutSettings, styleClass: state.pending.styleClass },
     }
     const json = JSON.stringify(value, null, 2)
     const parsed = parseBackup(json)
