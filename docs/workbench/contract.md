@@ -800,6 +800,7 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
 | POST | `/cases/{case}/template-layout-settings` | 根版式属性目录与内存源码补丁，不写文件（§7.1） |
 | POST | `/cases/{case}/template-style-classes` | 根版式 class 目录、布局引用与内存源码补丁，不写文件（§7.1） |
+| POST | `/cases/{case}/template-schema-properties` | Schema 展示属性 owner 与内存源码补丁，include 只读，不写文件（§7.1） |
 | GET | `/template-recovery-context` | 可选浏览器恢复身份；需当前会话令牌，旧 v4 端点保持原形（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |

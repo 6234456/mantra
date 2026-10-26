@@ -26,6 +26,12 @@
 > 结构化 address 保留完整成员坐标，v1 schema 与默认 capture 输出保持原形。见 [Paper 合同](template-paper-acceptance-contract.md)、
 > [实施记录](template-paper-acceptance-progress.md) 与 [用户说明](../../site/template-paper-acceptance.md)；
 > 输入和 Run 断言仍限标量，G-A20 仍部分完成。
+> 2026-10-26：新增真实 `template-schema-properties` 源属性接口，G-A1／G-A3／G-A16／G-A18 部分完成。
+> 正式 SchemaReader 模型定位根 schema 的声明标签、note 文本与 classes，并列出只读 include owner；
+> 句柄绑定完整基准和精确草稿，返回顺序／可逆最小补丁，不编译或执行候选公式。修改后仍需真实 Preview。
+> 见 [合同](schema-properties-contract.md)、[实施记录](schema-properties-progress.md) 与
+> [用户说明](../../site/schema-properties.md)。可视化表单／完整 Outline、结构编辑、正式 Save／历史／D-A1／发布
+> 仍待接入或设计；此处不改变录制作者原型及 Claude 的人工签收状态。
 > 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
 > [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
 > 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。

@@ -76,3 +76,6 @@ Apply 之后仍须真实 template-preview；业务值、最终 class 样式及�
 
 本切片不关闭完整 Outline、通用 owner、公式语言服务、结构增删重排、共享编辑、正式 Save／源历史／
 服务端草稿、D-A1、构建和发布。录制作者原型与其模拟 owner 保持独立，UI／UX 仍由 Claude 设计复核。
+
+响应 [JSON Schema](../schema/template-schema-properties.schema.json) 与
+[实施记录](schema-properties-progress.md) 给出最终范围与真实执行证据。

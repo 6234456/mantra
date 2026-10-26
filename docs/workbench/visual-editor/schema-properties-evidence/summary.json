@@ -1,0 +1,576 @@
+{
+  "format": "mantra.schema-properties-http-smoke-evidence/1",
+  "source": "Actual installed CLI HTTP server, isolated copy of docs/examples/schema-properties",
+  "flowCount": 11,
+  "httpRequestCount": 21,
+  "commands": [
+    {
+      "name": "01-sources",
+      "method": "GET",
+      "path": "/api/v1/cases/case.mantra/template-sources",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": null,
+      "responseSha256": "16ee8b214565c754595169a237752e954cab361991865725c171a2f85fa66052",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-sources"
+    },
+    {
+      "name": "02-inspect",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "ef657af6383bf059d0ed0689a536ea77894bb37b45492bbf14f81d7d9b3f45f2",
+      "responseSha256": "af215164969a38533f20e020a8e485889083d0657232ff4d809898211e3fb816",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "03-baseline-preview",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-preview",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "45ec63427890c91027c50a78f70b9625c813b48d04bfae6853d86b3d856635f2",
+      "responseSha256": "423aeb02c552b758e99739ec0d23d9dd14a327b158a3e34d997cfa606987ae06",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-preview"
+    },
+    {
+      "name": "04-edit-label-class-note",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "59d4b848d4e76f83f0ab91f14afe8cb412f82baa6774bc33348d715d6b5bbced",
+      "responseSha256": "b880ce1fa3d2476a024ac61aaa82f5190037a91f89d776418bc63140ab46a406",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "05-edited-preview",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-preview",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "a70335a3cbb8c8f35821a33d9c1a0dd485539f6718dc02bf8dcfbc96936f1f73",
+      "responseSha256": "b1aba7378dd35d402bd167c7fa755d7d1dfc092415a8316a705c24c2a671def2",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-preview"
+    },
+    {
+      "name": "06-no-op",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "2d173e072f08774f891b406fc2df53789049895641c71367dd4557549783f00b",
+      "responseSha256": "a78d027adc2ae083ea42cb1c35713736c64986dcd980fdc8dbeb8bc73bddc9c7",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "07-explicit-empty-classes",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "afd4afe3d8f4c077cbde928323493ab44f2ccd8194cb362a68a8bba1fd8b3664",
+      "responseSha256": "452b52e65b84661261e2cd56d7b3262c9c0abbee2174cfd5ff52dcfe1788c0d8",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "08-unset-classes",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "9b93e33a3f3d8d782e4ee3ad37fe5b8163c06225b7fd20328ca371dd94a367f9",
+      "responseSha256": "45722ed1d7c4f26f3f8183c5babbc6ce83730db86a3a325b43595eeb05ad80f1",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "09-binding-invalid-inspect",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 200,
+      "expectedStatus": 200,
+      "requestSha256": "e35140aee9a09dd6ae9eb5ab67ac56e8197be340cf4d20cfde695b4772dac0b7",
+      "responseSha256": "fbd8006bcc5e07e693e5a411f26fdfff2e990ceed95d586587d8ab87ace77562",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "validatedSchema": "template-schema-properties"
+    },
+    {
+      "name": "10-binding-invalid-preview",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-preview",
+      "status": 422,
+      "expectedStatus": 422,
+      "requestSha256": "acbba7b15bca37b17ec70ddad14f12d448ecabe30796a6764a36acc52b1a0005",
+      "responseSha256": "332f9d84101ac06a35049de818cb7a1a4ae55af59b725b98865605dc9b053317",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-DOCUMENT"
+    },
+    {
+      "name": "11-expired-owner",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "4a81015539173a03333c28bcc338fc1b22758a040cc248f2fe8034fb9af3db16",
+      "responseSha256": "f3a226618780b92097dae8c24690130019c88a3e332cc4c1d9cabd9771fffb66",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "12-wrong-owner-type",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "70d3d91dc5929066d5b62f46ce0dbc936f150ca9352119603e9f929549c3155b",
+      "responseSha256": "6e44fb0bf9663392420712e5ffa042bd4bb457376908b3b4e1d5ad6102a34763",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "13-read-only-include",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "d6b1bc412604991c32d52d061eb51ed9ca21ac487e8c0584204e622341be2c05",
+      "responseSha256": "0cc987f1b3f6723476e7fd757e0dfb9f20135552433c74028b85716879988343",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "14-duplicate-json-key",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "d8c9a1976e18a5fba6b8a00a9e4c8fdb4a22a87bbe57f9ac29b002a74761a29e",
+      "responseSha256": "34afd3301495bb8f8dc3ece0e5793b44219daff2633a7a2d21eccaac83eb3e2e",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "15-malformed-utf8",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "7815a97ed15d2304d62b74452395429f32af99f1c177a2567bee1e04f9242471",
+      "responseSha256": "34afd3301495bb8f8dc3ece0e5793b44219daff2633a7a2d21eccaac83eb3e2e",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "16-unpaired-source",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 422,
+      "expectedStatus": 422,
+      "requestSha256": "2e6578926368d5e96c68e43b136ba23b6a6f1f36c0eadbf65bf4802da09ed61a",
+      "responseSha256": "9413ff6202c60650199749a4bfdac711111525aa4f19684fe42585ea795dd3f8",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-DOCUMENT"
+    },
+    {
+      "name": "17-unpaired-label",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 422,
+      "expectedStatus": 422,
+      "requestSha256": "1862df8bcac9d5d71afc631b5a6695e3e7394a787c0343b0c90f8a048827a068",
+      "responseSha256": "5cdaca0ba77cbddc3d65650e4dd5db64177fd76af16c1e3d9d7ef1ea63800028",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-DOCUMENT"
+    },
+    {
+      "name": "18-missing-session",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 403,
+      "expectedStatus": 403,
+      "requestSha256": "9ea2afee8e77faebce6e186e5c94ad3969c95c92cfe23f733ac6897f34ee6323",
+      "responseSha256": "fb6785465d3f367a666505133dea5f9f61e78b618887538545ee9dfa64d51f24",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-TOKEN"
+    },
+    {
+      "name": "19-wrong-method",
+      "method": "GET",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 405,
+      "expectedStatus": 405,
+      "requestSha256": null,
+      "responseSha256": "f7d952850883500a1751644ddee5f422b126d4021d79b62c1ad13d101c2f00c7",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "20-unexpected-query",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties?unexpected=1",
+      "status": 400,
+      "expectedStatus": 400,
+      "requestSha256": "0a835b9f3754d2d01a141aa73a96c0dab271e59358567996a5be68af6fa6044d",
+      "responseSha256": "eaf90aa16bfb8077b5a75aead0f16fd1780d7e55b3b0e5b5be0d0804c4ae56d9",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-REQUEST"
+    },
+    {
+      "name": "21-external-include-conflict",
+      "method": "POST",
+      "path": "/api/v1/cases/case.mantra/template-schema-properties",
+      "status": 409,
+      "expectedStatus": 409,
+      "requestSha256": "589398f8239a34e34d29e7db7bfd4322ea7ffed9ad8502615261848e7a3d7b7b",
+      "responseSha256": "456538d077c01f1ad870ec1811d350e659b3dc4147298b5ddb8c95587166e3e1",
+      "sourceHashesBefore": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "0e7a36d6277919891645d4fe4d84a0f0b50b389fb232daa714466aa901feee9d"
+      },
+      "sourceHashesAfter": {
+        "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+        "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+        "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+        "shared.mantra": "0e7a36d6277919891645d4fe4d84a0f0b50b389fb232daa714466aa901feee9d"
+      },
+      "workspaceFileBytesUnchanged": true,
+      "errorCode": "MANTRA-WORKBENCH-CONFLICT"
+    }
+  ],
+  "engine": {
+    "mantra": "1.0.0-rc.1",
+    "normein": "0.3.0"
+  },
+  "baseRevision": "c026bd4e2f7a8ef1c9367bfe4931a21f69ff4c084880574fdc7229d9834b18d9",
+  "baseRevisions": {
+    "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+    "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+    "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+    "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+  },
+  "originalFixtureHashes": {
+    "case.mantra": "35066b2d7ba8d1a8fb355863d33ead4e4792e091abd090a17dede487f92feb91",
+    "layout.mantra": "c565a57dc39b9020a4145bb40c4c7e34e56b734ac70a0b2de38d0805782d4a10",
+    "schema.mantra": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+    "shared.mantra": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+  },
+  "oldSourceDataFields": [
+    "baseRevisions",
+    "document",
+    "documents"
+  ],
+  "catalog": {
+    "ownerCount": 14,
+    "readOnlyOwnerCount": 4,
+    "zeroAndInactiveDefinitionsLocated": true
+  },
+  "batch": {
+    "patchCount": 3,
+    "utf16ForwardAndInverseVerified": true,
+    "allOwnerHandlesChanged": true,
+    "schemaSourceSha256Before": "e6c1b14d967d6ace1f654f436c272dbc7c5e5164fe8345d9a40eed7002f239d6",
+    "schemaSourceSha256After": "6c574cedbc5d5b201ecdc6ecb1371cfbbb6e723c61fd80b74b26b1416ff81ae8",
+    "formulaAndCommentUnchanged": true
+  },
+  "actualCandidate": {
+    "proposedRevision": "41c572eb75caa55fd63aedfd51f4e285870df5e07f6bb5a96f344f7f01ccd1e3",
+    "answerValue": {
+      "n": "20"
+    },
+    "answerText": "20,00",
+    "answerLabel": "\u8ba1\u7b97\u7ed3\u679c\ud83d\ude00\uff08\u5df2\u590d\u6838\uff09",
+    "answerStyle": {
+      "weight": "bold",
+      "tone": "accent",
+      "fill": "subtle"
+    },
+    "noteText": "\u5907\u6ce8\ud83d\ude00\uff1a\u4fdd\u6301\u516c\u5f0f\u4e0d\u53d8",
+    "runValuesEqualBaseline": true,
+    "differenceChanges": []
+  },
+  "noOpPreservesTextOwnersAndNoPatches": true,
+  "absentEmptyUnsetRemainDistinct": true,
+  "publicScript": {
+    "exitCode": 0,
+    "exactBlockOnlyBaseChanged": true,
+    "sourceSha256": "819bf53b6e6a34c65c1ce895ee057be385d82e260dc9f61d79466677bf89a091",
+    "stdoutSha256": "5a7071e4f881a14206218b652ce7837971ef5bd0a35208cfc70ceac1a05e7e80",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "workspaceFileBytesUnchanged": true
+  },
+  "externalMutations": [
+    {
+      "file": "shared.mantra",
+      "action": "append-comment",
+      "beforeSha256": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357",
+      "afterSha256": "0e7a36d6277919891645d4fe4d84a0f0b50b389fb232daa714466aa901feee9d"
+    },
+    {
+      "file": "shared.mantra",
+      "action": "restore-original",
+      "beforeSha256": "0e7a36d6277919891645d4fe4d84a0f0b50b389fb232daa714466aa901feee9d",
+      "afterSha256": "bd717d986de066328f890d2d18ff6df8b95d88cbff12f42c9384686409017357"
+    }
+  ],
+  "schemaValidationCounts": {
+    "template-sources": 1,
+    "template-schema-properties": 6,
+    "template-preview": 2
+  },
+  "workspaceFilesInitiallyAndFinallyEqual": true,
+  "originalFixtureUnchanged": true,
+  "sessionTokensHeadersAndIndexHtmlArchived": false,
+  "serverProcessGroupStopped": true,
+  "temporaryDirectoryRemoved": true
+}

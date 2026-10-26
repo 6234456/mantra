@@ -31,6 +31,8 @@ Use [draft recovery and JSON backup](site:template-recovery.html) to preserve so
 Run [multi-case template acceptance](site:template-acceptance.html) to verify a candidate against
 independent expectations and complete source revisions from the command line.
 Its [Paper checks](site:template-paper-acceptance.html) also cover rendered formatting and final styles.
+The [schema property API](site:schema-properties.html) supplies source-bound label, note and class
+editing for authoring clients.
 These workbench pages require the running JVM service; this documentation
 site contains their instructions.
 

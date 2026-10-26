@@ -73,6 +73,19 @@ row/address 同时提供则取交集，父 table/column 缺失或重复、多匹
 但作废通过状态。输入／Run 值断言仍限标量，没有多案例 UI、服务端验收记录、正式 Save 或发布。
 G-A20 仍部分完成；工程门禁与实际运行证据以最新记录为准，不作为 Claude 人工签收或输出目标兼容认证。
 
+2026-10-26 增加 [schema 展示属性 owner／源操作](schema-properties-contract.md)，实施边界见
+[schema-properties-progress.md](schema-properties-progress.md)，操作见 [用户说明](../../site/schema-properties.md)。
+复查正式 SchemaReader 模型及精确范围是否是 owner 权威来源，presentation-items 根 schema 可编辑、
+捕获 include 只读；隐藏／零值／不活跃声明不能因为 Paper 不呈现而丢失。标签是原始声明文本，section 的
+:title 或 sign-labels 可能影响最终展示；目录不提供实际计算值或最终样式。
+所有批操作绑定精确初始草稿 owner，再按稳定声明路径逐步定位；同批 label／classes 改动、长短文本与
+metadata 插入后不能继续使用旧偏移。检查 UTF-16 顺序补丁、removedText／逆序读回、CRLF／注释／公式保留，
+过期 owner／只读 include／错误操作拒绝，以及 classes 未声明、显式 [] 与 unset 的区别。
+公式绑定错误可以保留展示属性编辑，但实际 Preview 仍应失败；不能把 inspect／Apply 成功当作候选已验证。
+G-A1／G-A3／G-A16／G-A18 仅部分完成：没有完整 Outline／Paper owner 投影、结构增删重排、新属性的
+可视化表单／Undo／恢复协调、正式文件 Save、服务端源历史／草稿、D-A1 或发布。录制原型仍使用模拟 owner。
+这一 API／客户端协议切片不等于 Claude 已批准 UI／UX；复核仍以当前已推送 HEAD 与实施记录为准。
+
 ---
 
 继续 Mantra 可视化 DSL 编辑器与 Template Engine 并行使用任务。按约定，你负责设计文档与复核，

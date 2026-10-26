@@ -1,0 +1,3 @@
+(fragment
+  (section shared "Shared definition" {:panel true}
+    (info shared-value "Shared value" 7)))

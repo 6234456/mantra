@@ -1,0 +1,9 @@
+(schema example/schema-properties {:version "1" :mainline [main]}
+  (include "shared.mantra")
+  (input base-amount :decimal)
+  (section main "Summary" {:panel true}
+    ; Presentation edits must preserve this comment and the exact formula.
+    (info answer "Answer" (* base-amount 2) {:class :custom})
+    (info zero-row "Zero" 0)
+    (info inactive-row "Inactive" 9 {:when false})
+    (note "Original note")))
