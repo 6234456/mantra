@@ -378,6 +378,10 @@ it('downloads the complete current source directly even when browser storage can
   if (parsed.status === 'ready')
     expect(parsed.draft.documents.find((entry) => entry.handle === source.handle)?.text).toBe(exact)
   expect(JSON.parse(raw)).not.toHaveProperty('paper')
+  // The download revokes its blob URL on the next task. Finish that lifecycle before
+  // afterEach restores URL; otherwise the callback can escape into a later test.
+  await waitFor(() => expect(DownloadURL.revokeObjectURL).toHaveBeenCalledWith('blob:recovery-download'))
+  expect(DownloadURL.revokeObjectURL).toHaveBeenCalledOnce()
 })
 
 it('backs up an oversized invalid paste without imposing the preview source limit or truncating it', async () => {
