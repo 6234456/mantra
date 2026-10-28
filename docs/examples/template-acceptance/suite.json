@@ -1,0 +1,163 @@
+{
+  "format": "mantra.template-acceptance/1",
+  "documents": [
+    {
+      "document": "layout.mantra",
+      "role": "layout",
+      "sha256": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+      "text": "(layout example/template-acceptance-paper {:locale \"de-DE\" :precision 2})\n"
+    },
+    {
+      "document": "schema.mantra",
+      "role": "schema",
+      "sha256": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6",
+      "text": "; Generic arithmetic example. Acceptance expectations are calculated independently as base-amount * 3.\n(schema example/template-acceptance {:version \"1\" :mainline [main]}\n  (input base-amount :decimal)\n  (section main \"Summary\" {:panel true}\n    (info answer \"Answer\" (* base-amount 3))\n    (check nonnegative \"Nonnegative\" (>= base-amount 0))))\n"
+    }
+  ],
+  "cases": [
+    {
+      "id": "positive-saved",
+      "case": "positive.mantra",
+      "baseRevision": "dcef98bf4be0f0fdad72d56a9bb239a5c27492dc04c3f3f659ce698ba542af99",
+      "baseRevisions": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6"
+      },
+      "inputs": [],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "30"
+            },
+            "active": true,
+            "validationPassed": null,
+            "display": "30,00"
+          },
+          {
+            "node": "nonnegative",
+            "present": true,
+            "value": true,
+            "validationPassed": true
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "negative-finding",
+      "case": "negative.mantra",
+      "baseRevision": "955d4b3064cd1c974abe3517864f9f0c942b420fe3dcff4308bc3a579ef6c1f6",
+      "baseRevisions": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "negative.mantra": "8552823b0a27ba0d84dc0dfb0f00a3b43c1ee5da38b2138b850f8391490f3b0d",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6"
+      },
+      "inputs": [],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": false,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "-6"
+            },
+            "active": true,
+            "validationPassed": null,
+            "display": "-6,00"
+          },
+          {
+            "node": "nonnegative",
+            "present": true,
+            "value": false,
+            "validationPassed": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "german-raw-input",
+      "case": "positive.mantra",
+      "baseRevision": "dcef98bf4be0f0fdad72d56a9bb239a5c27492dc04c3f3f659ce698ba542af99",
+      "baseRevisions": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6"
+      },
+      "inputs": [
+        {
+          "node": "base-amount",
+          "text": "1,25"
+        }
+      ],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "3.75"
+            },
+            "active": true,
+            "validationPassed": null,
+            "display": "3,75"
+          },
+          {
+            "node": "nonnegative",
+            "present": true,
+            "value": true,
+            "validationPassed": true
+          }
+        ],
+        "diagnostics": []
+      }
+    },
+    {
+      "id": "large-exact-decimal",
+      "case": "positive.mantra",
+      "baseRevision": "dcef98bf4be0f0fdad72d56a9bb239a5c27492dc04c3f3f659ce698ba542af99",
+      "baseRevisions": {
+        "layout.mantra": "d966e5f4f90eb363abd40d1ee949cf99d3bd8cfdef8b3573e5d3b67af60f9d46",
+        "positive.mantra": "8b024823be72cfc192110aea87b0f368fe29846a84f31000a6388d81d2af6d13",
+        "schema.mantra": "c7edf532fe7f4cc6e43762dfc5eb7f33410b2df9a40e84b9f154b2cd41f189a6"
+      },
+      "inputs": [
+        {
+          "node": "base-amount",
+          "text": "9007199254740993,0000000001"
+        }
+      ],
+      "expect": {
+        "succeeded": true,
+        "validationPassed": true,
+        "values": [
+          {
+            "node": "answer",
+            "present": true,
+            "value": {
+              "n": "27021597764222979.0000000003"
+            },
+            "active": true,
+            "validationPassed": null
+          },
+          {
+            "node": "nonnegative",
+            "present": true,
+            "value": true,
+            "validationPassed": true
+          }
+        ],
+        "diagnostics": []
+      }
+    }
+  ]
+}

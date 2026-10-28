@@ -1,0 +1,824 @@
+{
+  "format": "mantra.excel-template-audit-provenance/1",
+  "schema": {
+    "id": "pattern/actuals-vs-baseline",
+    "version": "1.0.0"
+  },
+  "case": "pattern/actuals-demo",
+  "succeeded": true,
+  "validationPassed": true,
+  "sourceDocuments": {
+    "docs/patterns/actuals-vs-baseline/schema.mantra": {
+      "sha256": "352f28bde7a8d22de8598234f1d657243f60a3403bb7c309588fe7582e5a3948",
+      "text": "; Fictional quantities, prices and allowances. No classification of a variance as good or bad.\n(schema pattern/actuals-vs-baseline\n  {:title \"Actuals, baseline and remaining allowance\" :version \"1.0.0\"\n   :preset :ifrs-schedule :mainline [comparison] :headline remaining}\n  (include \"../common/formulas.mantra\")\n  (input entries :table\n    {:columns {:id :keyword :title :text :quantity :decimal :actual-price :decimal\n               :baseline-price :decimal :allowance :decimal} :min-rows 1})\n  (input amount-scale :integer {:default 2 :label \"Explicit amount rounding scale\"})\n  (dimension member {:from entries :key :id :title :title :total-label \"All members\"})\n  (section comparison \"Named comparison measures\" {:per member :op :info :panel true}\n    (info supplied-quantity \"Supplied quantity\" member.quantity {:class :source :format :number})\n    (info actual-price \"Supplied actual price\" member.actual-price {:class :source :aggregate false})\n    (info baseline-price \"Supplied baseline price\" member.baseline-price {:class :assumption :aggregate false})\n    (info actual \"Actual amount\"\n      (pattern-rounded-product supplied-quantity actual-price amount-scale) {:class :detail})\n    (info baseline \"Baseline amount\"\n      (pattern-rounded-product supplied-quantity baseline-price amount-scale) {:class :detail})\n    (info variance \"Actual less baseline\" (- actual baseline) {:class :variance})\n    (info allowance \"Supplied allowance\" member.allowance {:class :assumption})\n    (info remaining \"Allowance less actual\" (- allowance actual) {:class [:result :key-result]})\n    (check allowance-fits \"Actual amount is within supplied allowance\" (>= remaining 0) {:class :control})\n    (note \"A signed difference has no implicit favourable or unfavourable interpretation.\" {:class :note})))\n"
+    },
+    "docs/patterns/common/formulas.mantra": {
+      "sha256": "8f8024b05467d7027465bcdb8781822b2b8f184c7ab41770697f547c75468d98",
+      "text": "; Pure helpers shared by the pattern workspace. Explicit scale; standard half-up operations.\n; Callers choose applicability, zero-denominator handling and whether a ratio is additive.\n(fragment\n  (defn pattern-rounded-product [^Decimal amount ^Decimal multiplier ^Integer scale]\n    (decimal/round (* amount multiplier) scale))\n  (defn pattern-rounded-ratio [^Decimal numerator ^Decimal denominator ^Integer scale]\n    (decimal/divide numerator denominator scale)))\n"
+    },
+    "docs/patterns/actuals-vs-baseline/case-demo.mantra": {
+      "sha256": "0984f446e3560accf0128defb1ad86571da0e0ee677c8e9b57982599b5f84062",
+      "text": "(case pattern/actuals-demo\n  {:schema \"pattern/actuals-vs-baseline\" :schema-version \"1.0.0\"\n   :layout \"pattern/actuals-paper\" :title \"Fictional comparison inputs\"}\n  (inputs {:entries (rows [:id :title :quantity :actual-price :baseline-price :allowance]\n                      [:A \"Member A\" 10 12 10 150]\n                      [:B \"Member B\" 8 10 11.25 100])}))\n"
+    },
+    "docs/patterns/actuals-vs-baseline/layout.mantra": {
+      "sha256": "6d01b416b98e7764c103d5228bd1a160dfae9c87a3029e300b3cfa4d4cd59ab8",
+      "text": "(layout pattern/actuals-paper\n  {:schema \"pattern/actuals-vs-baseline\" :schema-version \"1.0.0\"\n   :preset :ifrs-schedule :style-preset [:utilities :working-paper]\n   :title \"Comparison measures\" :precision 2 :hide-zero false}\n  (style-class :key-result {:weight :bold :tone :accent :fill :subtle})\n  (style {:class :result :column :cross-total} {:use [:strong :accent] :fill :subtle})\n  (table comparison {:style :matrix} :label (members member) :cross-total :status))\n"
+    }
+  },
+  "xlsxSHA256": "3cede5c91c6c5af298c33e327d668999e4dcfffc4d101008cb41056d6b529555",
+  "mappings": [
+    {
+      "kind": "node",
+      "node": "supplied-quantity",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$5",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 12,
+        "column": 5,
+        "startOffset": 756,
+        "endOffset": 849
+      }
+    },
+    {
+      "kind": "node",
+      "node": "supplied-quantity",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$5",
+      "value": {
+        "type": "decimal",
+        "text": "8"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 12,
+        "column": 5,
+        "startOffset": 756,
+        "endOffset": 849
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "supplied-quantity",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$5",
+      "value": {
+        "type": "decimal",
+        "text": "18"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 12,
+        "column": 5,
+        "startOffset": 756,
+        "endOffset": 849
+      }
+    },
+    {
+      "kind": "node",
+      "node": "actual-price",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$6",
+      "value": {
+        "type": "decimal",
+        "text": "12"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 13,
+        "column": 5,
+        "startOffset": 854,
+        "endOffset": 951
+      }
+    },
+    {
+      "kind": "node",
+      "node": "actual-price",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$6",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 13,
+        "column": 5,
+        "startOffset": 854,
+        "endOffset": 951
+      }
+    },
+    {
+      "kind": "node",
+      "node": "baseline-price",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$7",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 14,
+        "column": 5,
+        "startOffset": 956,
+        "endOffset": 1063
+      }
+    },
+    {
+      "kind": "node",
+      "node": "baseline-price",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$7",
+      "value": {
+        "type": "decimal",
+        "text": "11.25"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 14,
+        "column": 5,
+        "startOffset": 956,
+        "endOffset": 1063
+      }
+    },
+    {
+      "kind": "node",
+      "node": "actual",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$8",
+      "value": {
+        "type": "decimal",
+        "text": "120.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 15,
+        "column": 5,
+        "startOffset": 1068,
+        "endOffset": 1190
+      }
+    },
+    {
+      "kind": "node",
+      "node": "actual",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$8",
+      "value": {
+        "type": "decimal",
+        "text": "80.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 15,
+        "column": 5,
+        "startOffset": 1068,
+        "endOffset": 1190
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "actual",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$8",
+      "value": {
+        "type": "decimal",
+        "text": "200.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 15,
+        "column": 5,
+        "startOffset": 1068,
+        "endOffset": 1190
+      }
+    },
+    {
+      "kind": "node",
+      "node": "baseline",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$9",
+      "value": {
+        "type": "decimal",
+        "text": "100.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 17,
+        "column": 5,
+        "startOffset": 1195,
+        "endOffset": 1323
+      }
+    },
+    {
+      "kind": "node",
+      "node": "baseline",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$9",
+      "value": {
+        "type": "decimal",
+        "text": "90.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 17,
+        "column": 5,
+        "startOffset": 1195,
+        "endOffset": 1323
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "baseline",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$9",
+      "value": {
+        "type": "decimal",
+        "text": "190.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 17,
+        "column": 5,
+        "startOffset": 1195,
+        "endOffset": 1323
+      }
+    },
+    {
+      "kind": "node",
+      "node": "variance",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$10",
+      "value": {
+        "type": "decimal",
+        "text": "20.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 19,
+        "column": 5,
+        "startOffset": 1328,
+        "endOffset": 1405
+      }
+    },
+    {
+      "kind": "node",
+      "node": "variance",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$10",
+      "value": {
+        "type": "decimal",
+        "text": "-10.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 19,
+        "column": 5,
+        "startOffset": 1328,
+        "endOffset": 1405
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "variance",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$10",
+      "value": {
+        "type": "decimal",
+        "text": "10.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 19,
+        "column": 5,
+        "startOffset": 1328,
+        "endOffset": 1405
+      }
+    },
+    {
+      "kind": "node",
+      "node": "allowance",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$11",
+      "value": {
+        "type": "decimal",
+        "text": "150"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 20,
+        "column": 5,
+        "startOffset": 1410,
+        "endOffset": 1485
+      }
+    },
+    {
+      "kind": "node",
+      "node": "allowance",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$11",
+      "value": {
+        "type": "decimal",
+        "text": "100"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 20,
+        "column": 5,
+        "startOffset": 1410,
+        "endOffset": 1485
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "allowance",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$11",
+      "value": {
+        "type": "decimal",
+        "text": "250"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 20,
+        "column": 5,
+        "startOffset": 1410,
+        "endOffset": 1485
+      }
+    },
+    {
+      "kind": "node",
+      "node": "remaining",
+      "coord": [
+        "A"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$12",
+      "value": {
+        "type": "decimal",
+        "text": "30.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 21,
+        "column": 5,
+        "startOffset": 1490,
+        "endOffset": 1582
+      }
+    },
+    {
+      "kind": "node",
+      "node": "remaining",
+      "coord": [
+        "B"
+      ],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$12",
+      "value": {
+        "type": "decimal",
+        "text": "20.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 21,
+        "column": 5,
+        "startOffset": 1490,
+        "endOffset": 1582
+      }
+    },
+    {
+      "kind": "aggregate",
+      "node": "remaining",
+      "coord": [],
+      "type": "decimal",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$D$12",
+      "value": {
+        "type": "decimal",
+        "text": "50.00"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 21,
+        "column": 5,
+        "startOffset": 1490,
+        "endOffset": 1582
+      }
+    },
+    {
+      "kind": "node",
+      "node": "allowance-fits",
+      "coord": [
+        "A"
+      ],
+      "type": "boolean",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$B$13",
+      "value": {
+        "type": "boolean",
+        "value": true
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 22,
+        "column": 5,
+        "startOffset": 1587,
+        "endOffset": 1689
+      }
+    },
+    {
+      "kind": "node",
+      "node": "allowance-fits",
+      "coord": [
+        "B"
+      ],
+      "type": "boolean",
+      "editableInput": false,
+      "address": "'1 Named comparison measures'!$C$13",
+      "value": {
+        "type": "boolean",
+        "value": true
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 22,
+        "column": 5,
+        "startOffset": 1587,
+        "endOffset": 1689
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "id",
+      "type": "keyword",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$B$6",
+      "value": {
+        "type": "keyword",
+        "text": "A"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "title",
+      "type": "text",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$C$6",
+      "value": {
+        "type": "text",
+        "text": "Member A"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "quantity",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$D$6",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "actual-price",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$E$6",
+      "value": {
+        "type": "decimal",
+        "text": "12"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "baseline-price",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$F$6",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 0,
+      "column": "allowance",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$G$6",
+      "value": {
+        "type": "decimal",
+        "text": "150"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "id",
+      "type": "keyword",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$B$7",
+      "value": {
+        "type": "keyword",
+        "text": "B"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "title",
+      "type": "text",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$C$7",
+      "value": {
+        "type": "text",
+        "text": "Member B"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "quantity",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$D$7",
+      "value": {
+        "type": "decimal",
+        "text": "8"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "actual-price",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$E$7",
+      "value": {
+        "type": "decimal",
+        "text": "10"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "baseline-price",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$F$7",
+      "value": {
+        "type": "decimal",
+        "text": "11.25"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "tableInput",
+      "node": "entries",
+      "coord": [],
+      "rowIndex": 1,
+      "column": "allowance",
+      "type": "decimal",
+      "optional": false,
+      "editableInput": true,
+      "address": "'Inputs'!$G$7",
+      "value": {
+        "type": "decimal",
+        "text": "100"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 6,
+        "column": 3,
+        "startOffset": 314,
+        "endOffset": 493
+      }
+    },
+    {
+      "kind": "node",
+      "node": "amount-scale",
+      "coord": [],
+      "type": "integer",
+      "editableInput": true,
+      "address": "'Inputs'!$C$11",
+      "value": {
+        "type": "decimal",
+        "text": "2"
+      },
+      "source": {
+        "document": "schema.mantra",
+        "line": 9,
+        "column": 3,
+        "startOffset": 496,
+        "endOffset": 578
+      }
+    }
+  ],
+  "diagnostics": [],
+  "exportReport": {
+    "sheets": [
+      "Overview",
+      "1 Named comparison measures",
+      "Inputs",
+      "Parameters",
+      "Helper calculations",
+      "Checks",
+      "Audit snapshot"
+    ],
+    "formulaCells": 44,
+    "inputCells": 13,
+    "names": 41,
+    "fallbacks": [],
+    "evaluationErrors": []
+  },
+  "sourceIdentitySHA256": "b725f9f2a6352aa1a8ba3f4fddd081fe69caa1bf68848f2606a3a95d6a77ff61"
+}

@@ -1,0 +1,732 @@
+{
+  "baseCommit": "e7390fc0bf3581b0b21075c381da8273189002f8",
+  "format": "mantra.template-preview-browser/1",
+  "status": "VERIFIED",
+  "scenarios": [
+    "fresh live UI renders a real saved-template Paper with unchanged files",
+    "real declaration outline finds zero rows with parent context and locates exact source without calculation or history",
+    "real schema owner label Apply, exact source Undo/Redo, browser backup and unchanged engine values",
+    "real root-layout inspection exposes fourteen typed settings and the engine preset defaults",
+    "unapplied settings and synthetic IME stay buffered while Cancel preserves source and native confirmation",
+    "structured zero false and empty overrides update only the draft while exact Run and saved baseline stay independent",
+    "Reset removes the source override and restores the engine preset instead of writing an explicit default",
+    "unsupported manual declarations remain read-only and visible until an explicit inherited reset",
+    "a real delayed settings inspection cannot restore stale properties over manually edited source",
+    "a real delayed source patch cannot overwrite newer manual source and retains its unapplied field buffer",
+    "a settings source conflict keeps the draft and blocks calculation until an explicit baseline recapture",
+    "real style catalog distinguishes preset contribution from the local override and actual Paper style",
+    "unapplied class fields and synthetic IME stay buffered while Cancel preserves the source",
+    "creating a local class changes real Paper styling without changing values and protects hard use references",
+    "omitting a class property stays distinct from explicit normal default and none declarations",
+    "removing unused local definitions preserves comments and removing a preset override restores its contribution",
+    "a late class patch cannot overwrite manual source or clear its retained field buffer",
+    "root settings and class edits keep independent unapplied buffers and coordinate through the same source",
+    "manual schema layout settings and class edits share exact Undo Redo while inputs and saved baseline stay independent",
+    "both unapplied property panels disable source history with a linked Apply or Cancel reason",
+    "source Undo cancels an actual delayed engine response and keeps the earlier candidate explicitly previous",
+    "a new source edit after Undo replaces the old redo branch instead of restoring the discarded class edit",
+    "explicit saved-source recapture clears local source history and input overrides without writing the workspace",
+    "schema formula, candidate locale and raw scalar input produce one real candidate",
+    "comparison renders original sources and saved inputs beside exact engine Difference values",
+    "changing candidate input preserves the independent saved-template preview and marks old differences previous",
+    "selected Paper cell requests Explain from the same candidate revision",
+    "panel selection cancels a real delayed response, clears Explain and renders only the requested panel",
+    "panel and zero-row controls use matching independent real preview contexts without changing numeric values",
+    "runtime failures retain current engine failure text while the saved template remains independent",
+    "an empty candidate Paper does not fall back to the saved template or a previous nonempty result",
+    "HTTP 422 retains invalid source, raw input and the previous real Paper",
+    "HTTP 409 retains both source drafts, raw input and Paper without writing files",
+    "explicit reload discards the in-memory draft and captures the external revision",
+    "a source-only title change reports no value changes while keeping distinct draft and saved titles",
+    "physical reload offers exact source and raw input recovery without restoring engine evidence or trusting a baseline",
+    "recovery retains invalid and oversized drafts while only matching technical engine results clear the unvalidated marker",
+    "fields-only recovery retains incomplete precision and class edits visibly before Inspect and requires explicit Cancel or Apply",
+    "a real JSON download and explicit matching-graph file import preserve exact decimal text across workspace identities",
+    "invalid evidence malformed duplicate-key and oversized JSON imports cannot replace editable or stored drafts",
+    "quota errors and independently changed browser copies preserve current edits and expose honest portable backup fallbacks",
+    "explicit restoration cancels an actual delayed preview and calculates only the newly restored source and raw input",
+    "a changed dependency blocks automatic recovery while preserving old JSON and current edits until explicit discard",
+    "real readonly include navigation preserves exact CRLF Unicode source and stale catalogs disable navigation"
+  ],
+  "sourceByteChecks": 42,
+  "temporaryDirectoryRemoved": true,
+  "taskProcessGroupsStopped": true,
+  "failures": [],
+  "sourceCaptures": [
+    {
+      "status": 200,
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "6aefd77baa58a87b19b7a63d9229a0b487b796a41646f9da160b2c9f140c1b48",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "d2f43bd73e45cac8ddc170906c1a4e15b1532621375afad3124871a966033a4b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "330953a5ba446cd90e2e4ed9cc5c2d38d4f276527a2114903669ba330e4c4a6b",
+          "sha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "textSha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "6aefd77baa58a87b19b7a63d9229a0b487b796a41646f9da160b2c9f140c1b48",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "d2f43bd73e45cac8ddc170906c1a4e15b1532621375afad3124871a966033a4b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "330953a5ba446cd90e2e4ed9cc5c2d38d4f276527a2114903669ba330e4c4a6b",
+          "sha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "textSha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "6aefd77baa58a87b19b7a63d9229a0b487b796a41646f9da160b2c9f140c1b48",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "d2f43bd73e45cac8ddc170906c1a4e15b1532621375afad3124871a966033a4b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "330953a5ba446cd90e2e4ed9cc5c2d38d4f276527a2114903669ba330e4c4a6b",
+          "sha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "textSha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "6aefd77baa58a87b19b7a63d9229a0b487b796a41646f9da160b2c9f140c1b48",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "d2f43bd73e45cac8ddc170906c1a4e15b1532621375afad3124871a966033a4b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "330953a5ba446cd90e2e4ed9cc5c2d38d4f276527a2114903669ba330e4c4a6b",
+          "sha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+          "textSha256": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "6344119fc154ab83cb412711c996609e590b04097993a2e4155b59d0a95e3550",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "390a1cc4e1a5114bb90ff5aa4b10145e9b99bdca513ee8091bdde154a0ab8f15",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "dcde0d05835679eafff958327c5b47a805bb52c6d58b77b671b0365ee43d7179",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "88173d0af049195e5116b83a14a565a44d036e4603c4547dc974569f91d8574b",
+          "sha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+          "textSha256": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "d75235d74777e85c8f45267fa0aae27b021401ed3620f93a4cec618578ef0e3e",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "42d5ca10526372addcebb0c2fc785c696bedcbfcce74d651c73802324d4fb9a5",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "833ae165192a36e9f91d0994c7b6373ea7d6a1950443b4323b1630583664ee31",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "4535be8271320644d99e2781d5a997bf98d565190be4fce31cc7cd99bb8e38c1",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "83f32cbe4879e35b0812b479d461bbacc3d7c2e7355bb4cc491d2b4452c432fd",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "914c8f320ce5a216dab7582138f85192cae01b0b868ad3225d498ff27b33329e",
+          "sha256": "4535be8271320644d99e2781d5a997bf98d565190be4fce31cc7cd99bb8e38c1",
+          "textSha256": "4535be8271320644d99e2781d5a997bf98d565190be4fce31cc7cd99bb8e38c1"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "cc1d98dcc872d2c53e8fafd268996bcfaac671313b911873a5142a4f8b42eb4d",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "c24a1047788f28a712ab99817b54afab7a8de2aaed688e7a1643c77cf5657b54",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    },
+    {
+      "status": 200,
+      "revision": "1cb108b1ff219b1ecb7dcb7870516cbec85738ee2bc85f1fe8d336b6f533d755",
+      "caseId": "case.mantra",
+      "baseRevisions": {
+        "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+        "helpers.mantra": "789b416169e65fb06ec1d059a116381746a8c66a9167ff5866b357377c717601",
+        "layout.mantra": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+        "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+      },
+      "documents": [
+        {
+          "document": "case.mantra",
+          "role": "case",
+          "handle": "ef326157267285eeb7243c656663844dc36d4a6bf3e5d1ccf04dff6b52cff932",
+          "sha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e",
+          "textSha256": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+        },
+        {
+          "document": "helpers.mantra",
+          "role": "included",
+          "handle": "bf63c946742442919beef8933548dff72f65ea4e315cf7adad2ba0ffef36a2c9",
+          "sha256": "789b416169e65fb06ec1d059a116381746a8c66a9167ff5866b357377c717601",
+          "textSha256": "789b416169e65fb06ec1d059a116381746a8c66a9167ff5866b357377c717601"
+        },
+        {
+          "document": "layout.mantra",
+          "role": "layout",
+          "handle": "f117e053e1d624f955cb25b46073cd13eb2cd0987f3f64c71bc095aa2d01dbf3",
+          "sha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62",
+          "textSha256": "78e6d44c73510160d4105c9e4f44b67afb3cf996987084108b07bbc2e7566f62"
+        },
+        {
+          "document": "schema.mantra",
+          "role": "schema",
+          "handle": "ba5cade2c994aca2259b74e0e1711074083caa0fa917b51b70313124c11cd4da",
+          "sha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+          "textSha256": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f"
+        }
+      ]
+    }
+  ],
+  "schemaPropertyResponseStatuses": [
+    200,
+    200,
+    200
+  ],
+  "reportSha256": "208dcb46b2093b1315c19828ee6983e28743724918eca362b4a21424a1e227e5",
+  "artifacts": {
+    "schema-outline-narrow.png": "7cdc006c91641df4158fac27cfd00efd52fa12ba9a1107524e71af81300801cb",
+    "schema-presentation-outline.png": "3c6806e988279e18225116a27d81683ec1d47bcf8a0958fa2f1e5ac9f9cf7105",
+    "schema-properties-responses.json": "3565cb0a794eedcdd8bd9c39fb235d837105616e8ed7caae433c0265ab9488a1"
+  },
+  "previousCI": {
+    "commit": "e7390fc0bf3581b0b21075c381da8273189002f8",
+    "runId": 40297604768,
+    "jobId": 121487368439,
+    "failedStep": "Real template draft preview using the installed CLI and Chrome",
+    "error": "Timed out waiting for selected source schema.mantra",
+    "url": "https://github.com/6234456/mantra/actions/runs/40297604768"
+  }
+}

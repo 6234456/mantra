@@ -1,0 +1,3 @@
+(case audit/simple-edited
+  {:schema "audit/simple" :schema-version "1.0.0" :title "Changed fictional quantity"}
+  (inputs {:quantity 13}))

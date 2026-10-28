@@ -1,0 +1,2 @@
+(case example {:schema "example/template-paper-acceptance" :layout "example/template-paper-acceptance-layout"}
+  (inputs {:base-amount 10}))

@@ -129,6 +129,13 @@ class Site:
             self.root / "docs/diagnostics.md": "reference/diagnostics.html",
             self.root / "docs/language-specification-v1.md": "reference/specification.html",
             self.root / "docs/compatibility.md": "reference/compatibility.html",
+            self.source / "template-draft-preview.md": "template-draft-preview.html",
+            self.source / "layout-settings.md": "layout-settings.html",
+            self.source / "style-classes.md": "style-classes.html",
+            self.source / "template-recovery.md": "template-recovery.html",
+            self.source / "template-acceptance.md": "template-acceptance.html",
+            self.source / "template-paper-acceptance.md": "template-paper-acceptance.html",
+            self.source / "schema-properties.md": "schema-properties.html",
         }
 
     def read(self, path):
@@ -457,7 +464,14 @@ def generate_content(root, output, require_artifacts=False, catalog=None):
     site.read(site.source / "site.css")
     for name, title in (("index", "Overview"), ("tutorial", "Your first schema"), ("embedding", "Embed in Kotlin"),
                         ("packages", "Package boundaries"), ("independent-sources", "Independent sources"),
-                        ("neutral-domains", "Two neutral domains")):
+                        ("neutral-domains", "Two neutral domains"),
+                        ("template-draft-preview", "Template draft preview"),
+                        ("layout-settings", "Advanced layout settings"),
+                        ("style-classes", "Reusable style classes"),
+                        ("template-recovery", "Template draft recovery"),
+                        ("template-acceptance", "Multi-case template acceptance"),
+                        ("template-paper-acceptance", "Paper presentation acceptance"),
+                        ("schema-properties", "Schema presentation properties")):
         origin = site.source / (name + ".md")
         site.page(name + ".html", title, site.read(origin), origin)
     for name, title, source in (("dsl", "DSL reference", "dsl-reference.md"),

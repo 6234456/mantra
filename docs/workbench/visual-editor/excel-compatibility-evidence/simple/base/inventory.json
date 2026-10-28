@@ -1,0 +1,2651 @@
+{
+  "format": "mantra.excel-template-artifact-inventory/1",
+  "xlsxSHA256": "5d1090d9b652cd693460a43cd765f3ccd5499a4509fd02348b6d5a248f23e251",
+  "bytes": 8812,
+  "parts": [
+    {
+      "path": "[Content_Types].xml",
+      "bytes": 1858,
+      "sha256": "e2819b9066cff2cc26fd6ee57fd06fae6a71f68965c4da0da3f1390e5b5c48fa"
+    },
+    {
+      "path": "_rels/.rels",
+      "bytes": 733,
+      "sha256": "f0f5361a85ec64c35d01b8c7dc1b1858c59debab39ebc8890dd61a6e277c8897"
+    },
+    {
+      "path": "docProps/app.xml",
+      "bytes": 183,
+      "sha256": "1a275cdfaf02b0fc41605591e189662b55442b628d6331d1424e09d2c6159d3b"
+    },
+    {
+      "path": "docProps/core.xml",
+      "bytes": 433,
+      "sha256": "7aae7805adb207bc8cf68ceb88f81a2b48ee556bcc4bac57e27e16e9ffe666f4"
+    },
+    {
+      "path": "docProps/custom.xml",
+      "bytes": 379,
+      "sha256": "d4623544bebe169e76f268232e971389e6476d65a46a6417e35e510d87a164c6"
+    },
+    {
+      "path": "xl/sharedStrings.xml",
+      "bytes": 2154,
+      "sha256": "547783d1fafb12c31a47f79349cb0f50e38021fe11802a116eb69d40e8e8e080"
+    },
+    {
+      "path": "xl/styles.xml",
+      "bytes": 6312,
+      "sha256": "99f6dae68216ca0bd783f97427fef3642ff4824f094d4053ed39f7cd2eec0ade"
+    },
+    {
+      "path": "xl/workbook.xml",
+      "bytes": 1007,
+      "sha256": "3f5cda118037cb7bd22967f7f426f649d453730e0ffb4d8ea0bd49ea65ef10b5"
+    },
+    {
+      "path": "xl/_rels/workbook.xml.rels",
+      "bytes": 1269,
+      "sha256": "b1615220e3028e91944cb2028f11483d5efa2a7087185f2b9550128885911923"
+    },
+    {
+      "path": "xl/worksheets/sheet1.xml",
+      "bytes": 1982,
+      "sha256": "a5bb2666399adb821509f46151090dd887bed38e302e681ec188839cede87489"
+    },
+    {
+      "path": "xl/worksheets/sheet2.xml",
+      "bytes": 1669,
+      "sha256": "79e6600002ff0aaefaded2d5f80e01a6d6fd2e9e4c49f090d31e6f09c9075978"
+    },
+    {
+      "path": "xl/worksheets/sheet3.xml",
+      "bytes": 1422,
+      "sha256": "192951bba4987400d4ed9b3c95e4977132b42d91cbfa67211e4c3e843b2200bc"
+    },
+    {
+      "path": "xl/worksheets/sheet4.xml",
+      "bytes": 800,
+      "sha256": "27c2543b700c59c706f64de9962af9aee45c713f09159be6690266130b2af13c"
+    },
+    {
+      "path": "xl/worksheets/sheet5.xml",
+      "bytes": 1299,
+      "sha256": "e8322f69c490b954cd68279922d6d0623edbbb98823965e540abb11d9796e67d"
+    },
+    {
+      "path": "xl/worksheets/sheet6.xml",
+      "bytes": 2829,
+      "sha256": "632b4c3286dafc3b1e785f980a9de4217688f2530debb5d4b382fc87f15a865c"
+    }
+  ],
+  "sheetCount": 6,
+  "cellCount": 89,
+  "formulaCount": 5,
+  "definedNameCount": 4,
+  "functionCalls": {
+    "IF": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "B3"
+      },
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "SUM": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "B3"
+      }
+    ],
+    "AND": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "EXACT": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "IFERROR": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "ISBLANK": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "ISLOGICAL": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "ISNUMBER": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "ISTEXT": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ],
+    "NOT": [
+      {
+        "sheet": "Audit-Snapshot",
+        "cell": "F14"
+      }
+    ]
+  },
+  "calcProperties": {
+    "fullCalcOnLoad": "true"
+  },
+  "workbookRelationships": [
+    {
+      "Id": "rId1",
+      "Target": "sharedStrings.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"
+    },
+    {
+      "Id": "rId2",
+      "Target": "styles.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
+    },
+    {
+      "Id": "rId3",
+      "Target": "worksheets/sheet1.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    },
+    {
+      "Id": "rId4",
+      "Target": "worksheets/sheet2.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    },
+    {
+      "Id": "rId5",
+      "Target": "worksheets/sheet3.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    },
+    {
+      "Id": "rId6",
+      "Target": "worksheets/sheet4.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    },
+    {
+      "Id": "rId7",
+      "Target": "worksheets/sheet5.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    },
+    {
+      "Id": "rId8",
+      "Target": "worksheets/sheet6.xml",
+      "Type": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+    }
+  ],
+  "definedNames": [
+    {
+      "attributes": {
+        "name": "_xlnm.Print_Titles",
+        "localSheetId": "1"
+      },
+      "formula": "'1 Scalar compatibility proof'!$4:$4",
+      "functionCalls": []
+    },
+    {
+      "attributes": {
+        "name": "doubled"
+      },
+      "formula": "'1 Scalar compatibility proof'!$C$6",
+      "functionCalls": []
+    },
+    {
+      "attributes": {
+        "name": "increased"
+      },
+      "formula": "'1 Scalar compatibility proof'!$C$7",
+      "functionCalls": []
+    },
+    {
+      "attributes": {
+        "name": "quantity"
+      },
+      "formula": "'Eingaben'!$C$4",
+      "functionCalls": []
+    }
+  ],
+  "sheets": [
+    {
+      "name": "Übersicht",
+      "state": "visible",
+      "part": "xl/worksheets/sheet1.xml",
+      "dimension": {
+        "ref": "A1:E18"
+      },
+      "protection": null,
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "0",
+          "value": "Scalar compatibility proof",
+          "styleIndex": 13,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E2",
+          "ooxmlType": "s",
+          "rawCachedValue": "61",
+          "value": "Audit-Snapshot (bei Erstellung)",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E3",
+          "ooxmlType": "str",
+          "rawCachedValue": "current",
+          "value": "current",
+          "styleIndex": 0,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [],
+          "formula": {
+            "text": "'Audit-Snapshot'!$B$3",
+            "attributes": {},
+            "functionCalls": []
+          }
+        },
+        {
+          "address": "A4",
+          "ooxmlType": "s",
+          "rawCachedValue": "20",
+          "value": "Mandant",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B4",
+          "ooxmlType": "s",
+          "rawCachedValue": "21",
+          "value": "Initial fictional quantity",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A5",
+          "ooxmlType": "s",
+          "rawCachedValue": "22",
+          "value": "Berechnungsschema",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B5",
+          "ooxmlType": "s",
+          "rawCachedValue": "23",
+          "value": "Scalar compatibility proof v1.0.0 [audit/simple]",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A7",
+          "ooxmlType": "s",
+          "rawCachedValue": "24",
+          "value": "Aufbau der Berechnung",
+          "styleIndex": 14,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A8",
+          "ooxmlType": "s",
+          "rawCachedValue": "25",
+          "value": "Schritt",
+          "styleIndex": 15,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B8",
+          "ooxmlType": "s",
+          "rawCachedValue": "26",
+          "value": "Bereich",
+          "styleIndex": 15,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C8",
+          "ooxmlType": "s",
+          "rawCachedValue": "27",
+          "value": "Rolle",
+          "styleIndex": 15,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D8",
+          "ooxmlType": "s",
+          "rawCachedValue": "28",
+          "value": "Ergebnis",
+          "styleIndex": 16,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E8",
+          "ooxmlType": "s",
+          "rawCachedValue": "29",
+          "value": "fließt ein in",
+          "styleIndex": 15,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A9",
+          "ooxmlType": "s",
+          "rawCachedValue": "7",
+          "value": "1",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B9",
+          "ooxmlType": "s",
+          "rawCachedValue": "6",
+          "value": "Calculation",
+          "styleIndex": 17,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C9",
+          "ooxmlType": "s",
+          "rawCachedValue": "30",
+          "value": "Hauptlinie",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A11",
+          "ooxmlType": "s",
+          "rawCachedValue": "31",
+          "value": "Prüfzeichen",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A12",
+          "ooxmlType": "n",
+          "rawCachedValue": null,
+          "value": null,
+          "styleIndex": 18,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B12",
+          "ooxmlType": "s",
+          "rawCachedValue": "32",
+          "value": "Eingabe – änderbar, alle Formeln rechnen neu",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A13",
+          "ooxmlType": "n",
+          "rawCachedValue": null,
+          "value": null,
+          "styleIndex": 19,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B13",
+          "ooxmlType": "s",
+          "rawCachedValue": "33",
+          "value": "Parameter des Berechnungsschemas – änderbar",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A14",
+          "ooxmlType": "n",
+          "rawCachedValue": null,
+          "value": null,
+          "styleIndex": 20,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B14",
+          "ooxmlType": "s",
+          "rawCachedValue": "34",
+          "value": "Wert ohne Formel (siehe unten)",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A16",
+          "ooxmlType": "s",
+          "rawCachedValue": "35",
+          "value": "Formelabdeckung",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B17",
+          "ooxmlType": "s",
+          "rawCachedValue": "36",
+          "value": "Formelzellen",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C17",
+          "ooxmlType": "s",
+          "rawCachedValue": "10",
+          "value": "2",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B18",
+          "ooxmlType": "s",
+          "rawCachedValue": "37",
+          "value": "Werte ohne Formel",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C18",
+          "ooxmlType": "s",
+          "rawCachedValue": "38",
+          "value": "0",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    },
+    {
+      "name": "1 Scalar compatibility proof",
+      "state": "visible",
+      "part": "xl/worksheets/sheet2.xml",
+      "dimension": {
+        "ref": "A1:D7"
+      },
+      "protection": null,
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "0",
+          "value": "Scalar compatibility proof",
+          "styleIndex": 1,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A4",
+          "ooxmlType": "s",
+          "rawCachedValue": "1",
+          "value": "Zeile",
+          "styleIndex": 2,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B4",
+          "ooxmlType": "s",
+          "rawCachedValue": "2",
+          "value": "Bezeichnung",
+          "styleIndex": 2,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C4",
+          "ooxmlType": "s",
+          "rawCachedValue": "3",
+          "value": "EUR",
+          "styleIndex": 3,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D4",
+          "ooxmlType": "s",
+          "rawCachedValue": "4",
+          "value": "Formel (Mantra-DSL)",
+          "styleIndex": 2,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A5",
+          "ooxmlType": "s",
+          "rawCachedValue": "5",
+          "value": "",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B5",
+          "ooxmlType": "s",
+          "rawCachedValue": "6",
+          "value": "Calculation",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A6",
+          "ooxmlType": "s",
+          "rawCachedValue": "7",
+          "value": "1",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B6",
+          "ooxmlType": "s",
+          "rawCachedValue": "8",
+          "value": "Quantity times two",
+          "styleIndex": 6,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C6",
+          "ooxmlType": "n",
+          "rawCachedValue": "20.0",
+          "value": "20.0",
+          "styleIndex": 11,
+          "numberFormatId": "164",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [
+            {
+              "kind": "node",
+              "node": "doubled",
+              "coord": [],
+              "type": "decimal",
+              "editableInput": false,
+              "address": "'1 Scalar compatibility proof'!$C$6",
+              "value": {
+                "type": "decimal",
+                "text": "20"
+              },
+              "source": {
+                "document": "schema.mantra",
+                "line": 6,
+                "column": 5,
+                "startOffset": 255,
+                "endOffset": 305
+              }
+            }
+          ],
+          "formula": {
+            "text": "quantity*2",
+            "attributes": {},
+            "functionCalls": []
+          }
+        },
+        {
+          "address": "D6",
+          "ooxmlType": "s",
+          "rawCachedValue": "9",
+          "value": "(* quantity 2)",
+          "styleIndex": 7,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A7",
+          "ooxmlType": "s",
+          "rawCachedValue": "10",
+          "value": "2",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B7",
+          "ooxmlType": "s",
+          "rawCachedValue": "11",
+          "value": "Quantity plus five",
+          "styleIndex": 6,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C7",
+          "ooxmlType": "n",
+          "rawCachedValue": "15.0",
+          "value": "15.0",
+          "styleIndex": 11,
+          "numberFormatId": "164",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [
+            {
+              "kind": "node",
+              "node": "increased",
+              "coord": [],
+              "type": "decimal",
+              "editableInput": false,
+              "address": "'1 Scalar compatibility proof'!$C$7",
+              "value": {
+                "type": "decimal",
+                "text": "15"
+              },
+              "source": {
+                "document": "schema.mantra",
+                "line": 7,
+                "column": 5,
+                "startOffset": 310,
+                "endOffset": 362
+              }
+            }
+          ],
+          "formula": {
+            "text": "quantity+5",
+            "attributes": {},
+            "functionCalls": []
+          }
+        },
+        {
+          "address": "D7",
+          "ooxmlType": "s",
+          "rawCachedValue": "12",
+          "value": "(+ quantity 5)",
+          "styleIndex": 7,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    },
+    {
+      "name": "Eingaben",
+      "state": "visible",
+      "part": "xl/worksheets/sheet3.xml",
+      "dimension": {
+        "ref": "A1:C4"
+      },
+      "protection": null,
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "13",
+          "value": "Eingaben (gelb: änderbar)",
+          "styleIndex": 1,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A3",
+          "ooxmlType": "s",
+          "rawCachedValue": "6",
+          "value": "Calculation",
+          "styleIndex": 8,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A4",
+          "ooxmlType": "s",
+          "rawCachedValue": "14",
+          "value": "quantity",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B4",
+          "ooxmlType": "s",
+          "rawCachedValue": "14",
+          "value": "quantity",
+          "styleIndex": 4,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C4",
+          "ooxmlType": "n",
+          "rawCachedValue": "10.0",
+          "value": "10.0",
+          "styleIndex": 12,
+          "numberFormatId": "164",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [
+            {
+              "kind": "node",
+              "node": "quantity",
+              "coord": [],
+              "type": "decimal",
+              "editableInput": true,
+              "address": "'Eingaben'!$C$4",
+              "value": {
+                "type": "decimal",
+                "text": "10"
+              },
+              "source": {
+                "document": "schema.mantra",
+                "line": 4,
+                "column": 3,
+                "startOffset": 164,
+                "endOffset": 189
+              }
+            }
+          ]
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    },
+    {
+      "name": "Parameter",
+      "state": "visible",
+      "part": "xl/worksheets/sheet4.xml",
+      "dimension": {
+        "ref": "A1:D3"
+      },
+      "protection": null,
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "15",
+          "value": "Parameter (blau: änderbar)",
+          "styleIndex": 1,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A3",
+          "ooxmlType": "s",
+          "rawCachedValue": "2",
+          "value": "Bezeichnung",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B3",
+          "ooxmlType": "s",
+          "rawCachedValue": "16",
+          "value": "Name",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C3",
+          "ooxmlType": "s",
+          "rawCachedValue": "17",
+          "value": "Wert",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D3",
+          "ooxmlType": "s",
+          "rawCachedValue": "18",
+          "value": "Rechtsgrundlage",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    },
+    {
+      "name": "Hilfsrechnungen",
+      "state": "visible",
+      "part": "xl/worksheets/sheet5.xml",
+      "dimension": {
+        "ref": "A1"
+      },
+      "protection": null,
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "19",
+          "value": "Hilfsrechnungen (Bedingungen und nicht dargestellte Zeilen)",
+          "styleIndex": 1,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    },
+    {
+      "name": "Audit-Snapshot",
+      "state": "visible",
+      "part": "xl/worksheets/sheet6.xml",
+      "dimension": {
+        "ref": "A1:F14"
+      },
+      "protection": {
+        "password": "AC1C",
+        "sheet": "true",
+        "scenarios": "true",
+        "objects": "true"
+      },
+      "cells": [
+        {
+          "address": "A1",
+          "ooxmlType": "s",
+          "rawCachedValue": "39",
+          "value": "Berechnungsnachweis",
+          "styleIndex": 1,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A2",
+          "ooxmlType": "s",
+          "rawCachedValue": "40",
+          "value": "Trace und Originalwerte sind ein Snapshot bei Erstellung. Änderungen rechnen Formeln neu, nicht den Trace.",
+          "styleIndex": 21,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A3",
+          "ooxmlType": "s",
+          "rawCachedValue": "41",
+          "value": "Snapshot-Status",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B3",
+          "ooxmlType": "str",
+          "rawCachedValue": "current",
+          "value": "current",
+          "styleIndex": 0,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [],
+          "formula": {
+            "text": "IF(SUM(SUM('Audit-Snapshot'!$F$14:$F$14))>0,\"outdated\",\"current\")",
+            "attributes": {},
+            "functionCalls": [
+              "IF",
+              "SUM"
+            ]
+          }
+        },
+        {
+          "address": "A4",
+          "ooxmlType": "s",
+          "rawCachedValue": "22",
+          "value": "Berechnungsschema",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B4",
+          "ooxmlType": "s",
+          "rawCachedValue": "42",
+          "value": "audit/simple",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A5",
+          "ooxmlType": "s",
+          "rawCachedValue": "43",
+          "value": "Case",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B5",
+          "ooxmlType": "s",
+          "rawCachedValue": "44",
+          "value": "audit/simple-base",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A7",
+          "ooxmlType": "s",
+          "rawCachedValue": "1",
+          "value": "Zeile",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B7",
+          "ooxmlType": "s",
+          "rawCachedValue": "2",
+          "value": "Bezeichnung",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C7",
+          "ooxmlType": "s",
+          "rawCachedValue": "45",
+          "value": "Formel",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D7",
+          "ooxmlType": "s",
+          "rawCachedValue": "46",
+          "value": "Rechenweg",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E7",
+          "ooxmlType": "s",
+          "rawCachedValue": "28",
+          "value": "Ergebnis",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A8",
+          "ooxmlType": "s",
+          "rawCachedValue": "47",
+          "value": "1/1",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B8",
+          "ooxmlType": "s",
+          "rawCachedValue": "8",
+          "value": "Quantity times two",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C8",
+          "ooxmlType": "s",
+          "rawCachedValue": "9",
+          "value": "(* quantity 2)",
+          "styleIndex": 21,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D8",
+          "ooxmlType": "s",
+          "rawCachedValue": "49",
+          "value": "[Audit-Trace nicht angefordert]",
+          "styleIndex": 22,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E8",
+          "ooxmlType": "s",
+          "rawCachedValue": "48",
+          "value": "20,00",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A9",
+          "ooxmlType": "s",
+          "rawCachedValue": "50",
+          "value": "1/2",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B9",
+          "ooxmlType": "s",
+          "rawCachedValue": "11",
+          "value": "Quantity plus five",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C9",
+          "ooxmlType": "s",
+          "rawCachedValue": "12",
+          "value": "(+ quantity 5)",
+          "styleIndex": 21,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D9",
+          "ooxmlType": "s",
+          "rawCachedValue": "49",
+          "value": "[Audit-Trace nicht angefordert]",
+          "styleIndex": 22,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E9",
+          "ooxmlType": "s",
+          "rawCachedValue": "51",
+          "value": "15,00",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A12",
+          "ooxmlType": "s",
+          "rawCachedValue": "52",
+          "value": "Originale Eingaben und wirksame Parameter",
+          "styleIndex": 5,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A13",
+          "ooxmlType": "s",
+          "rawCachedValue": "53",
+          "value": "Node",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "B13",
+          "ooxmlType": "s",
+          "rawCachedValue": "54",
+          "value": "Coordinate / field",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C13",
+          "ooxmlType": "s",
+          "rawCachedValue": "55",
+          "value": "Original Excel value",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D13",
+          "ooxmlType": "s",
+          "rawCachedValue": "56",
+          "value": "Exact engine value",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E13",
+          "ooxmlType": "s",
+          "rawCachedValue": "57",
+          "value": "Origin",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "F13",
+          "ooxmlType": "s",
+          "rawCachedValue": "58",
+          "value": "Changed",
+          "styleIndex": 10,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "A14",
+          "ooxmlType": "s",
+          "rawCachedValue": "14",
+          "value": "quantity",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "C14",
+          "ooxmlType": "n",
+          "rawCachedValue": "10.0",
+          "value": "10.0",
+          "styleIndex": 0,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "D14",
+          "ooxmlType": "s",
+          "rawCachedValue": "60",
+          "value": "10",
+          "styleIndex": 22,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "E14",
+          "ooxmlType": "s",
+          "rawCachedValue": "59",
+          "value": "case",
+          "styleIndex": 9,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": []
+        },
+        {
+          "address": "F14",
+          "ooxmlType": "n",
+          "rawCachedValue": "0.0",
+          "value": "0.0",
+          "styleIndex": 0,
+          "numberFormatId": "0",
+          "protection": {
+            "locked": true,
+            "hidden": false
+          },
+          "sourceMappings": [],
+          "formula": {
+            "text": "IF(IFERROR(IF(ISBLANK('Audit-Snapshot'!$C$14),ISBLANK('Eingaben'!$C$4),AND(NOT(ISBLANK('Eingaben'!$C$4)),ISNUMBER('Eingaben'!$C$4)=ISNUMBER('Audit-Snapshot'!$C$14),ISTEXT('Eingaben'!$C$4)=ISTEXT('Audit-Snapshot'!$C$14),ISLOGICAL('Eingaben'!$C$4)=ISLOGICAL('Audit-Snapshot'!$C$14),IF(ISTEXT('Audit-Snapshot'!$C$14),EXACT('Eingaben'!$C$4,'Audit-Snapshot'!$C$14),'Eingaben'!$C$4='Audit-Snapshot'!$C$14))),FALSE),0,1)",
+            "attributes": {},
+            "functionCalls": [
+              "AND",
+              "EXACT",
+              "IF",
+              "IFERROR",
+              "ISBLANK",
+              "ISLOGICAL",
+              "ISNUMBER",
+              "ISTEXT",
+              "NOT"
+            ]
+          }
+        }
+      ],
+      "relationships": [],
+      "mergeRanges": [],
+      "dataValidations": [],
+      "conditionalFormatting": []
+    }
+  ],
+  "styles": {
+    "tag": "styleSheet",
+    "attributes": {},
+    "children": [
+      {
+        "tag": "numFmts",
+        "attributes": {
+          "count": "1"
+        },
+        "children": [
+          {
+            "tag": "numFmt",
+            "attributes": {
+              "numFmtId": "164",
+              "formatCode": "#,##0.00;-#,##0.00;#,##0.00"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "fonts",
+        "attributes": {
+          "count": "9"
+        },
+        "children": [
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "11.0"
+                }
+              },
+              {
+                "tag": "color",
+                "attributes": {
+                  "indexed": "8"
+                }
+              },
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "family",
+                "attributes": {
+                  "val": "2"
+                }
+              },
+              {
+                "tag": "scheme",
+                "attributes": {
+                  "val": "minor"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "13.0"
+                }
+              },
+              {
+                "tag": "b",
+                "attributes": {
+                  "val": "true"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "10.0"
+                }
+              },
+              {
+                "tag": "b",
+                "attributes": {
+                  "val": "true"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "10.0"
+                }
+              },
+              {
+                "tag": "color",
+                "attributes": {
+                  "rgb": "FF6B7280"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "10.0"
+                }
+              },
+              {
+                "tag": "i",
+                "attributes": {
+                  "val": "true"
+                }
+              },
+              {
+                "tag": "color",
+                "attributes": {
+                  "rgb": "FF6B7280"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "10.0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "15.0"
+                }
+              },
+              {
+                "tag": "b",
+                "attributes": {
+                  "val": "true"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "12.0"
+                }
+              },
+              {
+                "tag": "b",
+                "attributes": {
+                  "val": "true"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "font",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "name",
+                "attributes": {
+                  "val": "Calibri"
+                }
+              },
+              {
+                "tag": "sz",
+                "attributes": {
+                  "val": "10.0"
+                }
+              },
+              {
+                "tag": "b",
+                "attributes": {
+                  "val": "true"
+                }
+              },
+              {
+                "tag": "color",
+                "attributes": {
+                  "rgb": "FF1F5FBF"
+                }
+              },
+              {
+                "tag": "u",
+                "attributes": {
+                  "val": "single"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "fills",
+        "attributes": {
+          "count": "10"
+        },
+        "children": [
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "none"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "darkGray"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "none"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "E7EAEE"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "solid"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "E7EAEE"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "none"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "FFF2CC"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "solid"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "FFF2CC"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "none"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "DDEBF7"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "solid"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "DDEBF7"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "none"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "FCE4D6"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "fill",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "patternFill",
+                "attributes": {
+                  "patternType": "solid"
+                },
+                "children": [
+                  {
+                    "tag": "fgColor",
+                    "attributes": {
+                      "rgb": "FCE4D6"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "borders",
+        "attributes": {
+          "count": "2"
+        },
+        "children": [
+          {
+            "tag": "border",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "left",
+                "attributes": {}
+              },
+              {
+                "tag": "right",
+                "attributes": {}
+              },
+              {
+                "tag": "top",
+                "attributes": {}
+              },
+              {
+                "tag": "bottom",
+                "attributes": {}
+              },
+              {
+                "tag": "diagonal",
+                "attributes": {}
+              }
+            ]
+          },
+          {
+            "tag": "border",
+            "attributes": {},
+            "children": [
+              {
+                "tag": "bottom",
+                "attributes": {
+                  "style": "thin"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "cellStyleXfs",
+        "attributes": {
+          "count": "1"
+        },
+        "children": [
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "0",
+              "fillId": "0",
+              "borderId": "0"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "cellXfs",
+        "attributes": {
+          "count": "23"
+        },
+        "children": [
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "0",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0"
+            }
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "1",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "1",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyBorder": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "left",
+                  "vertical": "top",
+                  "wrapText": "true",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "1",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyBorder": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "right",
+                  "vertical": "top",
+                  "wrapText": "true",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "3",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "3",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "1"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "4",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "5",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "1",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyBorder": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "164",
+              "fontId": "3",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyNumberFormat": "true",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "164",
+              "fontId": "5",
+              "fillId": "5",
+              "borderId": "0",
+              "xfId": "0",
+              "applyNumberFormat": "true",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "6",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "7",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "1",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyBorder": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "left",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "2",
+              "fillId": "3",
+              "borderId": "1",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyBorder": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "right",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "8",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "5",
+              "fillId": "5",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "5",
+              "fillId": "7",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "5",
+              "fillId": "9",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyFill": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "false",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "3",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "true",
+                  "indent": "0"
+                }
+              }
+            ]
+          },
+          {
+            "tag": "xf",
+            "attributes": {
+              "numFmtId": "0",
+              "fontId": "5",
+              "fillId": "0",
+              "borderId": "0",
+              "xfId": "0",
+              "applyFont": "true",
+              "applyAlignment": "true"
+            },
+            "children": [
+              {
+                "tag": "alignment",
+                "attributes": {
+                  "horizontal": "general",
+                  "vertical": "top",
+                  "wrapText": "true",
+                  "indent": "0"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "customNumberFormats": {
+    "164": "#,##0.00;-#,##0.00;#,##0.00"
+  },
+  "tables": [],
+  "mappingCount": 3,
+  "unmappedSources": []
+}

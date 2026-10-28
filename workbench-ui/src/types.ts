@@ -257,6 +257,13 @@ export interface ImportInspection {
   decimal?: string
   grouping?: string
   numericAmbiguous?: boolean
+  xlsxSheets?: Array<{
+    name: string
+    rows: number
+    columns: number
+    headers: Array<{ column: number; title: string }>
+    suggestedRange?: string
+  }>
 }
 export interface ImportTemplate {
   name: string
@@ -337,6 +344,7 @@ export interface Diagnostics {
 }
 export type SourceContext = WireSourceContext['data']
 export interface Workspace {
+  workspaceId?: string
   cases: CaseSummary[]
   parameters?: Array<{ id: string; path: string }>
   layouts?: Array<{ id: string; path: string }>

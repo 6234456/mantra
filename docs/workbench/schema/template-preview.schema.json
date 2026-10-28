@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-preview.schema.json",
+  "title": "Isolated template and example-input candidate",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["document", "preview", "draftSequence", "baseRevisions", "proposedRevision", "succeeded", "validationPassed", "diagnostics", "structure", "run", "difference", "paper", "explain"],
+      "properties": {
+        "document": { "type": "string", "minLength": 1 },
+        "preview": { "const": true },
+        "draftSequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "baseRevisions": { "$ref": "template-sources.schema.json#/$defs/sourceRevisions" },
+        "proposedRevision": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "succeeded": { "type": "boolean" },
+        "validationPassed": { "type": "boolean" },
+        "diagnostics": { "type": "array", "items": { "$ref": "envelope.schema.json#/$defs/diagnostic" } },
+        "structure": { "$ref": "structure.schema.json#/properties/data" },
+        "run": { "$ref": "run.schema.json#/properties/data" },
+        "difference": { "$ref": "compare.schema.json#/properties/data" },
+        "paper": { "$ref": "paper.schema.json#/properties/data" },
+        "explain": { "anyOf": [{ "$ref": "explain.schema.json#/properties/data" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    }
+  }
+}

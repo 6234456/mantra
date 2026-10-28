@@ -61,6 +61,25 @@ a genuine breaking-change counterexample, source and already-compiled consumer c
 normal complete CI gates. Changes to numerical semantics additionally update the normative clause
 and independently authored expected values; regenerating expectations from the engine is prohibited.
 
+Browser recovery uses the optional authenticated `/api/v1/template-recovery-context` endpoint.
+Existing v4 workspace and template-source response fields and schemas remain unchanged; the client
+combines recovery identity with its source snapshot only in memory. A server without this capability
+still supports ordinary draft preview, while recovery and backup remain unavailable. The portable
+`mantra.template-preview-recovery/1` format is versioned separately and carries no trusted results.
+
+The additive `template-capture` and `template-verify` CLI commands use standalone
+`mantra.template-acceptance/1` suites and `mantra.template-acceptance-report/1` reports. They reuse
+the existing public template-preview service; HTTP v4 schemas, DSL semantics and public JVM
+descriptors remain unchanged. Captures contain no generated expected results.
+The opt-in `/2` suite adds Paper presentation assertions and the `/2` report carries the candidate
+Paper. Existing `/1` schemas and default capture output remain unchanged. Select version 2 with
+`template-capture --format 2`; verify follows the explicit suite version without an override.
+
+The additive `template-schema-properties` endpoint has its own response schema under workbench/4.
+It adds source-bound presentation owner/edit DTOs and one catalog method; existing JVM descriptors
+and HTTP endpoint schemas remain unchanged. Inspecting or editing presentation tokens does not
+validate a draft calculation. Only the root schema is editable; captured include owners are read-only.
+
 Wire consumers reject unsupported major versions before editing. Adding an optional field is not
 inherently compatible with an older strict JSON schema: supported clients and schema revisions must
 accept the change, or the incompatibility must be versioned. Do not call a required client upgrade

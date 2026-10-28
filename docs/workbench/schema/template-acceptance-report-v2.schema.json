@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-acceptance-report-v2.schema.json",
+  "title": "Read-only multi-case template and Paper acceptance report v2",
+  "description": "Standalone v2 report. Each case additionally records the actual complete Paper from its candidate preview, or null when no candidate was calculated. Conflict statuses may retain earlier evidence; the Paper never changes the independently authored expected assertions.",
+  "type": "object",
+  "required": [
+    "format",
+    "engine",
+    "suiteSha256",
+    "passed",
+    "cases"
+  ],
+  "properties": {
+    "format": {
+      "const": "mantra.template-acceptance-report/2"
+    },
+    "engine": {
+      "$ref": "template-acceptance-report.schema.json#/properties/engine"
+    },
+    "suiteSha256": {
+      "$ref": "template-acceptance-report.schema.json#/properties/suiteSha256"
+    },
+    "passed": {
+      "$ref": "template-acceptance-report.schema.json#/properties/passed"
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/caseResult"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "caseResult": {
+      "type": "object",
+      "required": [
+        "id",
+        "case",
+        "status",
+        "baseRevision",
+        "baseRevisions",
+        "proposedRevision",
+        "succeeded",
+        "validationPassed",
+        "diagnostics",
+        "difference",
+        "assertions",
+        "error",
+        "paper"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/id"
+        },
+        "case": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/case"
+        },
+        "status": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/status"
+        },
+        "baseRevision": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/baseRevision"
+        },
+        "baseRevisions": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/baseRevisions"
+        },
+        "proposedRevision": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/proposedRevision"
+        },
+        "succeeded": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/succeeded"
+        },
+        "validationPassed": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/validationPassed"
+        },
+        "diagnostics": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/diagnostics"
+        },
+        "difference": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/difference"
+        },
+        "assertions": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/assertions"
+        },
+        "error": {
+          "$ref": "template-acceptance-report.schema.json#/$defs/caseResult/properties/error"
+        },
+        "paper": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "paper.schema.json#/properties/data"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

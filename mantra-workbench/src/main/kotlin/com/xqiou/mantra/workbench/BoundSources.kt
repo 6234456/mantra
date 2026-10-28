@@ -11,6 +11,7 @@ import com.xqiou.mantra.core.model.CaseData
 import com.xqiou.mantra.core.model.Schema
 import com.xqiou.mantra.core.model.SourceBinding
 import com.xqiou.mantra.core.model.Value
+import com.xqiou.mantra.excel.XlsxRegionSource
 import com.xqiou.mantra.excel.XlsxSource
 import com.xqiou.mantra.packages.CapturedPackageData
 import java.nio.file.Files
@@ -220,7 +221,20 @@ object BoundSources {
                 onRow = onRow,
                 checkpoint = checkpoint,
             )
-            "xlsx" -> XlsxSource(file, capturedBytes, onRow, checkpoint)
+            "xlsx" -> if (setOf("input", "sheet", "range", "columns").any { it in binding.options }) {
+                XlsxRegionSource(
+                    file,
+                    input = string("input") ?: invalid(binding, "XLSX region :input is required"),
+                    sheet = string("sheet") ?: invalid(binding, "XLSX region :sheet is required"),
+                    range = string("range") ?: invalid(binding, "XLSX region :range is required"),
+                    columns = mapping("columns"),
+                    capturedBytes = capturedBytes,
+                    onRow = onRow,
+                    checkpoint = checkpoint,
+                )
+            } else {
+                XlsxSource(file, capturedBytes, onRow, checkpoint)
+            }
             else -> invalid(binding, "Unsupported source ${binding.kind}")
         }
     }

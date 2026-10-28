@@ -1,0 +1,6 @@
+(layout example/schema-properties-paper
+  {:title "Schema properties" :locale "de-DE" :precision 2 :hide-zero true}
+  (style-class :highlighted {:weight :bold :tone :accent :fill :subtle})
+  (style {:class :highlighted} {:use [:highlighted]})
+  (table main :label :value)
+  (table shared :label :value))

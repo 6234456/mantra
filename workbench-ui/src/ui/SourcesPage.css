@@ -75,6 +75,7 @@
 }
 .sources-file-row select,
 .sources-mode select,
+.sources-mode input,
 .sources-table-wrap select {
   border: 1px solid var(--line);
   border-radius: 5px;

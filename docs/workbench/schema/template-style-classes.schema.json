@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mantra.local/workbench/schema/template-style-classes.schema.json",
+  "title": "Root layout style classes and sequential source patches",
+  "allOf": [{ "$ref": "envelope.schema.json" }],
+  "$defs": {
+    "styleSpec": {
+      "type": "object",
+      "required": ["weight", "tone", "fill"],
+      "properties": {
+        "weight": { "enum": ["normal", "bold", null] },
+        "tone": { "enum": ["default", "muted", "accent", null] },
+        "fill": { "enum": ["none", "subtle", "accent", null] }
+      },
+      "additionalProperties": false
+    },
+    "reference": {
+      "type": "object",
+      "required": ["kind", "startOffset", "endOffset"],
+      "properties": {
+        "kind": { "enum": ["use", "selector"] },
+        "startOffset": { "type": "integer", "minimum": 0, "maximum": 65536 },
+        "endOffset": { "type": "integer", "minimum": 0, "maximum": 65536 }
+      },
+      "additionalProperties": false
+    },
+    "styleClass": {
+      "type": "object",
+      "required": ["name", "editable", "reason", "presets", "local", "inherited", "effective", "references", "canRemove", "removeReason"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "editable": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "presets": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["utilities", "working-paper"] }
+        },
+        "local": { "anyOf": [{ "$ref": "#/$defs/styleSpec" }, { "type": "null" }] },
+        "inherited": { "$ref": "#/$defs/styleSpec" },
+        "effective": { "$ref": "#/$defs/styleSpec" },
+        "references": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "canRemove": { "type": "boolean" },
+        "removeReason": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "data": {
+      "type": "object",
+      "required": ["document", "draftSequence", "baseRevisions", "scope", "layoutId", "stylePresets", "usageScope", "source", "classes", "patches"],
+      "properties": {
+        "document": { "type": "string", "minLength": 1 },
+        "draftSequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "baseRevisions": { "$ref": "template-sources.schema.json#/$defs/sourceRevisions" },
+        "scope": { "const": "layout-style-classes" },
+        "layoutId": { "type": "string", "minLength": 1 },
+        "stylePresets": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["utilities", "working-paper"] }
+        },
+        "usageScope": { "const": "submitted-layout" },
+        "source": {
+          "type": "object",
+          "required": ["handle", "document", "text"],
+          "properties": {
+            "handle": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "document": { "type": "string", "minLength": 1 },
+            "text": { "type": "string", "maxLength": 65536 }
+          },
+          "additionalProperties": false
+        },
+        "classes": { "type": "array", "items": { "$ref": "#/$defs/styleClass" } },
+        "patches": { "type": "array", "items": { "$ref": "template-layout-settings.schema.json#/$defs/sourcePatch" } }
+      },
+      "additionalProperties": false
+    }
+  }
+}

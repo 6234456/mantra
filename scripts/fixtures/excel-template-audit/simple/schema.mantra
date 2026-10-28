@@ -1,0 +1,7 @@
+; Fictional scalar arithmetic for downstream import and recalculation verification.
+(schema audit/simple
+  {:title "Scalar compatibility proof" :version "1.0.0"}
+  (input quantity :decimal)
+  (section calculation "Calculation" {:panel true :op :info}
+    (info doubled "Quantity times two" (* quantity 2))
+    (info increased "Quantity plus five" (+ quantity 5))))

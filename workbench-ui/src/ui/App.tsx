@@ -515,6 +515,12 @@ function AppBar({
       <span className="bar-result">
         {paper?.headline?.value ?? (run && structure ? panelValue(run, headlineNode(structure)) : '')}
       </span>
+      {import.meta.env.VITE_WORKBENCH_MODE === 'live' &&
+        !document.querySelector('meta[name="mantra-package-workspace"][content="on"]') && (
+          <a href={`/template-preview?case=${encodeURIComponent(caseId)}`} className="text-link">
+            {lang === 'de' ? 'Vorlagenentwurf' : 'Template draft'}
+          </a>
+        )}
       <Link href={`${casePath(caseId)}/export`} navigate={navigate} className="primary-button">
         {t('export', lang)}
       </Link>

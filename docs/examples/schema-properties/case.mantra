@@ -1,0 +1,2 @@
+(case example {:schema "example/schema-properties" :layout "example/schema-properties-paper"}
+  (inputs {:base-amount 10}))

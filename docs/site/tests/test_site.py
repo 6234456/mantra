@@ -168,8 +168,16 @@ class RepositoryTest(unittest.TestCase):
     def test_indexes_come_from_real_sources_without_internal_helpers(self):
         catalog = self.metadata["calculation_catalog"]
         self.assertEqual(catalog["semantics"], "2")
-        self.assertIn("calc/converge", catalog["functions"])
-        self.assertEqual(len(catalog["functions"]), 13)
+        self.assertEqual(set(catalog["functions"]), {
+            "alloc/capped", "alloc/pro-rata", "alloc/waterfall",
+            "calc/converge", "calc/stepwise",
+            "dim/max", "dim/min", "dim/rollup", "dim/sum",
+            "fin/df", "fin/npv", "fin/pmt",
+            "table/band", "table/count-where", "table/sum-where",
+        })
+        functions_page = (self.output / "reference/functions.html").read_text()
+        for name in ("table/count-where", "table/sum-where"):
+            self.assertIn(f"<code>{name}</code>", functions_page)
         self.assertTrue(all(not name.startswith("mantra-internal/") for name in catalog["functions"]))
         self.assertFalse(catalog["runtime_catalog_checked"])
         self.assertGreater(self.metadata["public_declarations"], 50)

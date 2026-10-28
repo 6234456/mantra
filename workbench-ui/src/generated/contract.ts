@@ -379,6 +379,288 @@ export type PreviewPaper = Omit<Envelope, 'data'> & {
   }
 }
 
+export type TemplateSources = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    baseRevisions: TemplateSourcesSourceRevisions
+    documents: Array<{
+      handle: string
+      document: string
+      role: 'schema' | 'layout' | 'case' | 'included' | 'parameters'
+      text: string
+      sha256: string
+      editable: boolean
+      reason: string | null
+    }>
+  }
+}
+export type TemplateSourcesSourceRevisions = Record<string, string>
+
+export type TemplateRecoveryContext = Omit<Envelope, 'data'> & { data: { workspaceId: string } }
+
+export type TemplatePreview = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    preview: true
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    proposedRevision: string
+    succeeded: boolean
+    validationPassed: boolean
+    diagnostics: Array<EnvelopeDiagnostic>
+    structure: {
+      schema: string
+      schemaVersion: string | null
+      title: string
+      headline: string | null
+      groupTitles: Record<string, string>
+      mainline: Array<{ step: number; panel: string; title: string; result: string | null }>
+      panels: Array<{
+        id: string
+        title: string
+        role: 'mainline' | 'branch' | 'auxiliary'
+        step: number | null
+        parent: string | null
+        dims: Array<string>
+        result: string | null
+        breadcrumb: Array<Record<string, unknown>>
+        entries: Array<Record<string, unknown>>
+        fields: Array<Record<string, unknown>>
+        nodes: Array<string>
+        imports: Array<Record<string, unknown>>
+        exports: Array<Record<string, unknown>>
+      }>
+      generalInputs: Array<Record<string, unknown>>
+      params: Array<Record<string, unknown>>
+      nodes: Record<string, Record<string, unknown>>
+      slots: Array<Record<string, unknown>>
+      formulaSlots: Array<Record<string, unknown>>
+    }
+    run: {
+      succeeded: boolean
+      members: Record<string, Array<{ key: string; label: string }>>
+      values: Record<
+        string,
+        Record<
+          string,
+          {
+            value: Value
+            display: string
+            active: boolean
+            origin?: string
+            source?: string
+            validation?: EnvelopeValidation | null
+            link: EnvelopeLink | null
+          }
+        >
+      >
+      diagnostics: Array<EnvelopeDiagnostic>
+      validationPassed: boolean
+      aggregates?: Record<string, EnvelopeAggregate>
+      caseGraph: EnvelopeCaseGraph | null
+      usage: EnvelopeUsage | null
+      failure: EnvelopeFailure | null
+    }
+    difference: {
+      variant: { parameters: Array<string>; case?: string }
+      mainline: Array<CompareChange & { step: number; panel: string }>
+      changes: Array<{ step: number | null; panel: string | null; items: Array<CompareChange> }>
+      parameterChanges: Array<CompareChange & { baseSource: string; variantSource: string }>
+    }
+    paper: {
+      browsing?: { includeZero: boolean; hideZero: boolean }
+      title: string
+      subtitle: string | null
+      headline: null | { node: string; label: string; value: string }
+      inputGroups: Array<{ key: string; title: string; inputs: Array<string> }>
+      header: Array<PaperTextPair>
+      overview: Array<Record<string, unknown>>
+      auxiliary: Array<Record<string, unknown>>
+      tables: Array<{
+        id: string
+        ref: string
+        title: string
+        breadcrumb: string | null
+        style: 'tiered' | 'matrix' | 'transpose'
+        columns: Array<Record<string, unknown>>
+        rows: Array<{
+          kind: string
+          depth: number
+          node: string | null
+          flags: Array<string>
+          anchor: string | null
+          lead: boolean
+          optionKey: string | null
+          section: string | null
+          classes: Array<string>
+          cells: Array<{
+            text: string
+            address: EnvelopeAddress | null
+            editable: boolean
+            style: EnvelopeStyle
+            styleOverrides?: EnvelopeStyleOverrides
+          }>
+        }>
+      }>
+      audit: Array<{
+        anchor: string
+        citation: string
+        label: string
+        member: string | null
+        formula: string
+        working: string
+        result: string
+        reference: string | null
+        address: EnvelopeAddress | null
+        explanation: {
+          steps: Array<{ text: string; value: Value; rendered: string | null; location: EnvelopeLocation }>
+          branches: Array<{ text: string; selected: boolean; location: EnvelopeLocation }>
+          truncated: boolean
+        } | null
+        aggregate: EnvelopeAggregate | null
+      }>
+      legend: Array<PaperTextPair>
+      diagnostics: Array<EnvelopeDiagnostic>
+      theme: string
+    }
+    explain: ExplainExplanation | null
+  }
+}
+
+export type TemplateLayoutSettings = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'layout'
+    layoutId: string
+    preset: string
+    source: { handle: string; document: string; text: string }
+    properties: Array<TemplateLayoutSettingsProperty>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateLayoutSettingsPropertyId =
+  | 'title'
+  | 'subtitle'
+  | 'locale'
+  | 'language'
+  | 'precision'
+  | 'percent-precision'
+  | 'negative'
+  | 'zero'
+  | 'grouping'
+  | 'hide-zero'
+  | 'show-inactive'
+  | 'expand-members'
+  | 'signed'
+  | 'row-numbers'
+export type TemplateLayoutSettingsProperty = {
+  id: TemplateLayoutSettingsPropertyId
+  label: string
+  group: 'report' | 'numbers' | 'visibility'
+  type: 'text' | 'enum' | 'integer' | 'boolean'
+  options: Array<string>
+  minimum: number | null
+  maximum: number | null
+  declared: boolean
+  explicitValue: Value
+  inheritedValue: Value
+  effectiveValue: Value
+  editable: boolean
+  reason: string | null
+  canUnset: boolean
+}
+export type TemplateLayoutSettingsSourcePatch = {
+  startOffset: number
+  endOffset: number
+  text: string
+  removedText: string
+}
+
+export type TemplateStyleClasses = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'layout-style-classes'
+    layoutId: string
+    stylePresets: Array<'utilities' | 'working-paper'>
+    usageScope: 'submitted-layout'
+    source: { handle: string; document: string; text: string }
+    classes: Array<TemplateStyleClassesStyleClass>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateStyleClassesStyleSpec = {
+  weight: 'normal' | 'bold' | null
+  tone: 'default' | 'muted' | 'accent' | null
+  fill: 'none' | 'subtle' | 'accent' | null
+}
+export type TemplateStyleClassesReference = { kind: 'use' | 'selector'; startOffset: number; endOffset: number }
+export type TemplateStyleClassesStyleClass = {
+  name: string
+  editable: boolean
+  reason: string | null
+  presets: Array<'utilities' | 'working-paper'>
+  local: TemplateStyleClassesStyleSpec | null
+  inherited: TemplateStyleClassesStyleSpec
+  effective: TemplateStyleClassesStyleSpec
+  references: Array<TemplateStyleClassesReference>
+  canRemove: boolean
+  removeReason: string | null
+}
+
+export type TemplateSchemaProperties = Omit<Envelope, 'data'> & {
+  data: {
+    document: string
+    draftSequence: number
+    baseRevisions: TemplateSourcesSourceRevisions
+    scope: 'schema-properties'
+    coverage: 'presentation-items'
+    schemaId: string
+    source: { handle: string; document: string; text: string }
+    owners: Array<TemplateSchemaPropertiesOwner>
+    patches: Array<TemplateLayoutSettingsSourcePatch>
+  }
+}
+export type TemplateSchemaPropertiesSourceRange = {
+  line: number
+  column: number
+  startOffset: number
+  endOffset: number
+}
+export type TemplateSchemaPropertiesOwner = {
+  handle: string
+  document: string
+  node: string | null
+  form:
+    | 'section'
+    | 'slot'
+    | 'line'
+    | 'subtract'
+    | 'info'
+    | 'formula-slot'
+    | 'field'
+    | 'total'
+    | 'choice'
+    | 'choose-min'
+    | 'choose-max'
+    | 'check'
+    | 'reconcile'
+    | 'note'
+  path: Array<number>
+  property: 'label' | 'text' | 'classes'
+  type: 'text' | 'classes'
+  declared: boolean
+  value: Value
+  editable: boolean
+  reason: string | null
+  canUnset: boolean
+  range: TemplateSchemaPropertiesSourceRange | null
+  declarationRange: TemplateSchemaPropertiesSourceRange
+}
+
 export type Workspace = Omit<Envelope, 'data'> & {
   data: {
     cases: Array<{

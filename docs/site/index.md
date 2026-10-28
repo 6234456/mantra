@@ -23,6 +23,19 @@ The [two neutral-domain walkthroughs](site:neutral-domains.html) show monthly en
 
 ## Current delivery boundary
 
+Run [template draft preview](site:template-draft-preview.html) to edit a schema/layout draft,
+compare it with the saved template and inspect the real engine result. Its
+[advanced layout settings](site:layout-settings.html) provide typed root-layout overrides and
+reset to inheritance; [style classes](site:style-classes.html) edit reusable finite local styles.
+Use [draft recovery and JSON backup](site:template-recovery.html) to preserve source and raw fields.
+Run [multi-case template acceptance](site:template-acceptance.html) to verify a candidate against
+independent expectations and complete source revisions from the command line.
+Its [Paper checks](site:template-paper-acceptance.html) also cover rendered formatting and final styles.
+The [schema property API](site:schema-properties.html) supplies source-bound label, note and class
+editing for authoring clients.
+These workbench pages require the running JVM service; this documentation
+site contains their instructions.
+
 This static documentation and application gallery is published to [GitHub Pages](https://6234456.github.io/mantra/) after the complete `main` CI checks pass. HTML papers and downloadable Text/XLSX files are calculated snapshots from that build. To change inputs and calculate new results, run the local JVM reference workbench described in the [repository README](repo:README.md#reference-workbench). Downloaded XLSX formulas recalculate in Excel; their engine audit snapshot shows `outdated` when its original inputs change, until those inputs are restored or the workbook is re-exported.
 
 The current implementation is the `1.0.0-rc.1` source candidate. M4/M5 implementation and functional acceptance have passed, together with the M6 conformance, application, performance and scoped internal security checks. The [roadmap](repo:docs/roadmap.md) and [release candidate evidence](repo:docs/release-candidate.md) distinguish that engineering acceptance from the coordinated stable Maven release. Mantra remains pre-stable. Default builds resolve `com.xqiou:normein-dsl:0.3.0` from Maven Central; an authorized source checkout is needed only for explicitly selected kernel development.

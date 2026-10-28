@@ -1,9 +1,46 @@
 # 可视化 DSL 编辑器设计交付：进度与恢复记录
 
-> 状态：**进行中（阶段 0 完成）**。本文只记录可复现基线、已确认的设计决定和未完成项，
-> 不声明可视化模板编辑器、owner 句柄、模板源 draft Paper 或发布能力已经实现。已有案例操作的
-> 候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。任务来源见
-> [Claude Code 设计交接](../claude-code-design-prompt.md)。
+> 状态：**设计交付完成；原型经两轮复核，F1–F17 与 S1 通过、F18 部分达成（2026-10-10）**。
+> 第二轮结论、低优先级观察与本轮未复核的新提交见 [复核记录 §7](prototype-review.md#7-第二轮复核)。
+> 原型入口为 fixture 模式的 `/authoring`；保存、fork、owner 与源修订冲突均为模拟，未写入模板文件。
+> 当前实现、启动步骤与证据见 [实施记录](implementation-progress.md)，复核任务见
+> [继续提示词](resume-prompt.md)。首轮结论见 [复核记录](prototype-review.md)，修正对应见
+> [prototype-fixes.md](prototype-fixes.md)。真实模板草稿预览与其余工程扩展见
+> [extension-progress.md](extension-progress.md)；录制原型尚未切换到真实模板 API，保存与发布仍有接口缺口。
+> 第二轮残留 R2-1–R2-3 的实现、浏览器证据与 CI 文档失败修复见 [prototype-r2-fixes.md](prototype-r2-fixes.md)。
+> 2026-10-24：[Invoice Template Builder 对照](invoice-builder-gaps.md) 新增 G-A16–G-A21 与高级设置规划，
+> 同步设计规范、状态矩阵与实施次序；该次规划未实现高级设置表单或修改引擎。
+> 2026-10-25：根 layout 的 14 项高级设置已在独立真实预览页实现，G-A16／G-A18 部分完成；
+> inspect／set／unset、源补丁与预览衔接见 [实施记录](layout-settings-progress.md)，正式 Save／历史／发布仍未实现。
+> 同日继续实现根 layout 的本地 style-class 目录、有限定义编辑及布局内引用保护，G-A17 也推进为部分完成；
+> 真实服务、预览和验证范围见 [样式定义实施记录](style-classes-progress.md)，操作见 [用户说明](../../site/style-classes.md)。
+> 真实预览页随后加入统一的客户端内存源历史，手写 schema／layout 与两类属性 Apply 均可 Undo／Redo；
+> 最多 50 条、精确原文守卫及清空边界见 [源历史记录](source-history-progress.md)，不代表服务端历史或持久化恢复。
+> 随后真实页加入 G-A12 的客户端自动副本、JSON 备份和字段恢复，见 [草稿保护记录](template-recovery-progress.md)
+> 与 [用户说明](../../site/template-recovery.md)；按工作区隔离，不恢复可信结果或 Undo／Redo，正式 Save／服务端草稿仍未实现。
+> `e0d2148` 继续交付 G-A20 的只读多案例 CLI 切片：同一候选根模板、完整源图锁定、标量原始输入与独立
+> 精确预期，执行后重查全部基准。capture 保留 `expect: null`，不会从当前结果生成通过基准；见
+> [验收合同](template-acceptance-contract.md)、[实施记录](template-acceptance-progress.md) 和
+> [用户说明](../../site/template-acceptance.md)。多案例界面、表／维度输入、正式保存与发布仍未实现。
+> 随后显式 v2 套件加入同次候选 Paper 的标题、表列顺序、单元格文本／editable／最终样式及零值可见性验收；
+> 结构化 address 保留完整成员坐标，v1 schema 与默认 capture 输出保持原形。见 [Paper 合同](template-paper-acceptance-contract.md)、
+> [实施记录](template-paper-acceptance-progress.md) 与 [用户说明](../../site/template-paper-acceptance.md)；
+> 输入和 Run 断言仍限标量，G-A20 仍部分完成。
+> 2026-10-26：新增真实 `template-schema-properties` 源属性接口，G-A1／G-A3／G-A16／G-A18 部分完成。
+> 正式 SchemaReader 模型定位根 schema 的声明标签、note 文本与 classes，并列出只读 include owner；
+> 句柄绑定完整基准和精确草稿，返回顺序／可逆最小补丁，不编译或执行候选公式。修改后仍需真实 Preview。
+> 见 [合同](schema-properties-contract.md)、[实施记录](schema-properties-progress.md) 与
+> [用户说明](../../site/schema-properties.md)。可视化表单／完整 Outline、结构编辑、正式 Save／历史／D-A1／发布
+> 仍待接入或设计；此处不改变录制作者原型及 Claude 的人工签收状态。
+> 同日继续接入真实页的 schema 展示属性表单、统一源 Undo／Redo 与未 Apply 字段恢复，见
+> [UI 实施记录](schema-properties-ui-progress.md)。完整 Outline／Paper owner、结构编辑、正式 Save、
+> 服务端历史／草稿与发布仍待完成；恢复 v2 与旧 v1 兼容边界见该记录。工程检查不代替人工设计签收。
+> 真实页随后加入 [展示声明目录与源码定位](schema-navigation-progress.md)：按捕获文档／声明 path
+> 分组、搜索并选中精确源码 token，含只读 include 与 CRLF／emoji 偏移保护；不推断可见原因或 Paper 投影。
+> 真实 `/template-preview` 的面板、保存基准、差异与空结果增强已另外实现，见
+> [预览增强记录](template-preview-enhancements.md) 和 [用户说明](../../site/template-draft-preview.md)。
+> 已有案例操作的候选 Paper 与公式编辑交互补充见 [逻辑实施记录](interaction-progress.md)。
+> 任务来源见 [Claude Code 设计交接](../claude-code-design-prompt.md)。
 
 ## 1. 可复现基线（2026-10-10）
 
@@ -11,6 +48,28 @@
 | --- | --- |
 | Mantra `6234456/mantra` | 本地 `main` = `origin/main` = `6cfe83c`，工作区干净。任务分支 `codex/mantra-design-handoff-20261010` 自 `be0ca66` 起（比 `main` 多 `fd05711`、`be0ca66` 两个提交），已在主检出中跟踪远端。开始时没有相关 PR（仅 dependabot #1–#14）。`~/.codex/worktrees` 下其他分支未触碰。 |
 | Template Engine `6234456/paramita-v2` | 本地 `main` = `origin/main` = `6443c688`。主检出有其他会话的未提交改动（`.agentdocs/index.md`、`workflow/261010-markdown-editor-support.md` 修改，`frontend/markdown-editor-design-spec.md` 与 `workflow/evidence/261010-markdown-editor-design/` 未跟踪），保持原样。仓库没有 PR。其 `.agentdocs/index.md` 规定不创建或切换 worktree，因此计划用 plumbing 提交（临时 index + `commit-tree`）建立任务分支，不改动主检出。 |
+
+**恢复时状态（2026-10-10）**：任务分支按 fast-forward 同步到 `682bd2c`，`origin/main` 也已指向
+`682bd2c`，即 `main` 已包含此前全部任务提交；后续 Draft PR 只含恢复后的新提交。远端新增的
+`preview-paper` 能力与公式草稿修复见 [逻辑实施记录](interaction-progress.md)。Template Engine 仍为
+`main` = `origin/main` = `6443c688`，主检出另一会话的未提交改动已扩大到应用与包源码，继续保持原样，
+真实 index 无暂存内容。
+
+**Codex 编码恢复（2026-10-10）**：在云端独立检出
+`/workspace/.cloud-setup/mantra-checkpoint-repo` 中，将任务分支正常 fast-forward 到 Claude 文档提交
+`b27e2f5`，保留旧 `/workspace/mantra` 的检出与未提交文件。原型第一段检查点 `9155663`
+已提交并推送到同一任务分支，包含真实录制器、录制响应、模拟源服务、状态模型与恢复逻辑。
+界面、组件测试与 11 张截图已保存于 `aa5e14a`；本记录沿用
+[Mantra Draft PR #15](https://github.com/6234456/mantra/pull/15)，
+当前集成检查结果见 [实施记录的验证部分](implementation-progress.md#validation)。
+本次未修改 Template Engine 源码或其另一会话工作区。
+
+**首轮复核后修正（2026-10-10）**：Claude 在 `92664ae` 记录对 `69ab8ff` 的复核；门禁、32 状态
+独立重录真实性与状态逻辑通过。Codex 随后完成 F1–F18 和 S1 修正，重点包括固定公式栏、独立 Split
+滚动与 owner 高亮、layout 派生 class 词汇与芯片、真实分离差异、窄屏覆盖层，以及恢复运行时失败草稿。
+代码检查点 `dc01609` 已正常推送；347 项测试、28 个浏览器流程、fixture／live 构建、边界与 32 状态漂移检查通过。
+检查与 13 张更新截图见 [修正记录](prototype-fixes.md)。复查仍以随后文档提交在内的 PR 最新 HEAD 为准，
+本记录不代替 Claude 再次复查或真实拼音输入法验证。
 
 本机工具链：Zulu JDK 21.0.12、Node 25.2.1、npm 11.6.2。
 `./gradlew --no-daemon --offline :mantra-cli:installDist` 在任务分支上构建成功。
@@ -28,25 +87,56 @@
   `mantra serve`，录制真实 `structure`／`run`／`paper`／`diagnostics`／`explain` 响应。
   已验证：无效草稿时 live 接口返回 422 和带 `startOffset`／`endOffset` 的结构化诊断。
   前端模拟服务按文档集摘要查找录制结果；未录制的草稿显示“无引擎预览（接口缺口）”，不伪造 Paper。
-- **键位**：编辑网格采用 Template Engine `resolveSheetKeyboardShortcut` 的 Excel 语义
-  （Enter 下移、F2 或直接输入开始编辑、IME 组合期间不触发快捷键）。与工作台 ui-spec §6
-  “Enter 编辑”的差异需要在设计稿中记录并请维护者确认。
+- **键位（维护者 2026-10-10 更正）**：以 Mantra [ui-spec §6](../ui-spec.md) 为默认：浏览态 Enter
+  或 F2 进入编辑；单行编辑态 Enter 提交，成功后下移，失败保留草稿与焦点；Shift+Enter 成功后上移；
+  多行公式／文本 Enter 换行、Ctrl/Cmd+Enter 提交；补全菜单先消费 Enter；IME 组合期间不提交、不导航；
+  浏览态 Tab 离开表格。Template Engine 的 Excel 导航只作为后续可选方案记录，不改变现有工作台。
 - **复用依赖闭包**（以 `6443c688` 源码核对）：`sheet-keyboard-shortcut.ts`、
   `keyboard-input-session.ts`、`focus-boundary.ts` 和 `theme-tokens` 没有依赖；
   `ApplicationStatusPill`／`OfficeSidePaneShell` 经 `OfficeActionIcons` 依赖 `@fluentui/react-icons`
   与 `--te-*` 主题变量；剪贴板 transport 依赖 `formula-engine` 和 `office-model-v2`；
-  `CellEditorOverlay` 内置 Excel 补全，宿主补全不能替代它；所有包都声明 React 18 peer、
-  `workspace:*` 依赖且入口为 TS 源码。首版建议使用 Mantra 自己的 DOM `PaperTable`，不引入 Canvas。
+  `CellEditorOverlay` 内置 Excel 补全，宿主补全不能替代它；两个 UI 包声明 React 18 peer；
+  各包入口都是 TS 源码，多数依赖 `workspace:*`，均未发布到 registry。首版建议使用 Mantra 自己的 DOM `PaperTable`，不引入 Canvas。
 
-## 3. 未完成项
+## 3. 交付进度
 
-1. `design-spec.md`：模板入口、双视图、属性与公式面板、输入／Explain、源差异、保存与构建反馈、
-   首次使用、键盘／IME／剪贴板／撤销／焦点返回／窄屏，以及与 Template Engine 并行使用的约定。
-2. `state-matrix.md`：生命周期状态、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
-3. `implementation-plan.md`：组件复用清单、设计 token、接口缺口（owner 句柄、源补丁、draft Paper、
-   样式来源、构建记录、发布）和分步实施计划。
-4. 原型：`workbench-ui/src/authoring/`、生成脚本、测试、启动步骤、操作脚本和截图；
-   导出／发布按钮不得假成功。
-5. Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 及索引条目
-   （用 plumbing 提交，不触碰他人未提交的改动）。
-6. 两个仓库各自的 draft PR（尚未创建）。
+- [x] [design-spec.md](design-spec.md)：页面流程、双视图、属性／公式／样式面板、Explain 与示例输入、源差异、
+  保存与构建反馈、首次使用、窄屏、键盘／IME／剪贴板／撤销／焦点返回、可访问性，以及与 Template Engine
+  并行使用的约定。
+- [x] [state-matrix.md](state-matrix.md)：状态维度、生命周期与转换、七类通用状态 × 区域、权限矩阵，以及诊断／finding／人工核准的区分。
+- [x] [implementation-plan.md](implementation-plan.md)：能力现状、组件复用清单与前置条件、设计 token、接口缺口
+  G-A1–G-A15、分步实施与待决策项。
+- [x] [prototype.md](prototype.md)：录制数据原型的实施说明（录制脚本、模拟服务、状态模型、键盘、测试）、
+  操作脚本、截图清单与复核清单。维护者 2026-10-10 决定由 Codex 编码、Claude 复核。
+- [x] 原型代码：`workbench-ui/src/authoring/`、32 状态录制脚本、状态／服务／恢复／组件测试、Chrome CDP
+  操作脚本及 13 张更新截图。入口、能力边界与实际结果见 [implementation-progress.md](implementation-progress.md)。
+- [x] Claude 复核 `69ab8ff`：[prototype-review.md](prototype-review.md)。门禁与录制真实性通过；交互布局与样式面板的
+  F1–F18 与 S1 已由 Codex 修正，见 [prototype-fixes.md](prototype-fixes.md)。
+- [x] Claude 第二轮复核：[prototype-review.md §7](prototype-review.md#7-第二轮复核)。
+- [x] R2-1–R2-3 编码修正与合成事件／浏览器回归，见 [第二轮残留修正](prototype-r2-fixes.md)。
+- [ ] 第二轮残留的 Claude 复查、真实中文拼音输入法人工验证、`da8138d` 之后新功能提交的单独设计评审。
+- [x] Template Engine 侧文档 `.agentdocs/frontend/mantra-derived-template-parallel-use.md` 与索引条目：
+  任务分支 `codex/mantra-parallel-use-20261010` 的 `97ba1cc5` 与更正包事实的 `16f49196`，均以临时 index 与
+  `commit-tree` 从基线 `6443c688` 的树生成，相对基线只含这两个文件；操作前后主检出的 HEAD、真实 index、工作区状态、其他分支与 stash 不变。
+  Draft PR：[6234456/paramita-v2#1](https://github.com/6234456/paramita-v2/pull/1)。
+- [x] Mantra Draft PR：[6234456/mantra#15](https://github.com/6234456/mantra/pull/15)。
+- [x] [六项工程扩展与边界](extension-progress.md)：草稿备份与 CI、真实模板草稿预览、完整 Excel
+  清单、Template Engine 实际执行证明、普通 XLSX 区域导入、SQLite 可重放快照。
+- [x] [Invoice Builder 功能对照与高级设置规格](invoice-builder-gaps.md)：参考提交、已实现能力／作者入口缺口、
+  G-A16–G-A21、设置来源与继承、草稿／版本区别、分阶段验收；这是规划交付，不是实现或人工验收。
+- [x] [根版式 14 项设置](layout-settings-progress.md)：G-A16／G-A18 的类型目录、显式／继承／根有效值、
+  inspect／set／unset、完整修订／原文绑定与冲突保护；Apply 后仍需真实预览。
+- [x] [本地样式 class 定义](style-classes-progress.md)：选中引擎 preset 与本地目录、有限 weight／tone／fill
+  upsert／remove、布局内引用与 preset 回退保护；与高级设置共用当前 DSL、待应用字段与过期响应守卫。
+- [x] [统一内存源历史](source-history-progress.md)：手写根 schema／layout、设置与 class Apply 共用最多 50 条
+  精确文本事务；显式 Undo／Redo、待应用字段与冲突守卫，源预览标旧，保存基准及示例输入保持独立。
+- [x] [真实草稿自动副本与 JSON 备份](template-recovery-progress.md)：根源、原始示例覆盖和未 Apply 字段；
+  工作区／完整基准隔离，显式 Restore／Discard 与跨工作区导入，不恢复结果、旧权限、有效状态或内存历史。
+- [x] [多案例模板 CLI 验收](template-acceptance-progress.md)：`e0d2148` 实现 G-A20 的只读切片；capture
+  不生成预期，verify 复用真实候选、核对精确值／display／业务判定／完整诊断多重集，并在末尾重查全部源图。
+- [x] [Paper 展示验收 v2](template-paper-acceptance-progress.md)：显式 --format 2，读取同次真实候选的标题、列、
+  单元格最终文本／样式与精确地址；缺失父表／列或多匹配报错，零值可见性可核对。v1 保持原形。
+- [ ] G-A16–G-A18 的剩余通用属性／声明／操作、G-A19、G-A20 的界面／表与维度输入／Run 坐标支持、G-A21 及正式
+  Save／源历史／发布；不得因此启用原型交付按钮。
+- [x] [真实模板预览增强](template-preview-enhancements.md)：面板／零值上下文、独立保存基准、精确差异、
+  空候选与过期／冲突证据，真实 CLI／Chrome 验证；当时尚无多案例验收，后续 CLI 切片见上项，完整高级属性编辑仍待实现。

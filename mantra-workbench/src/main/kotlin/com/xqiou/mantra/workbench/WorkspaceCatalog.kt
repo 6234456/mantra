@@ -351,6 +351,29 @@ class WorkspaceCatalog(
         includeZero: Boolean = false,
     ): DocumentResult = previewCaseEdits(caseId, baseRevision, operations, draftSequence, panel, includeZero)
 
+    fun templateSources(caseId: String): DocumentResult = readTemplateSources(caseId)
+
+    /** Stable recovery namespace, exposed independently from established workspace/source response shapes. */
+    fun templateRecoveryContext(): DocumentResult {
+        val identity = workspaceIdentity()
+        return DocumentResult(identity, linkedMapOf("workspaceId" to identity))
+    }
+
+    fun templatePreview(caseId: String, request: TemplatePreviewRequest): DocumentResult =
+        previewTemplate(caseId, request)
+
+    /** Inspects or edits only the submitted root layout; no workspace file or history is changed. */
+    fun templateLayoutSettings(caseId: String, request: TemplateLayoutSettingsRequest): DocumentResult =
+        layoutSettings(caseId, request)
+
+    /** Inspects or edits root-local style class definitions without saving files or history. */
+    fun templateStyleClasses(caseId: String, request: TemplateStyleClassesRequest): DocumentResult =
+        styleClasses(caseId, request)
+
+    /** Source-bound schema presentation owners and minimal edits, without saving files or history. */
+    fun templateSchemaProperties(caseId: String, request: TemplateSchemaPropertiesRequest): DocumentResult =
+        schemaProperties(caseId, request)
+
     /** Editor assistance uses the planner's typed scope and the edit preview's semantic checks. */
     fun authoring(
         caseId: String,

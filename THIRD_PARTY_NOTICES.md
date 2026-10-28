@@ -63,6 +63,23 @@ shipping a frontend or CLI distribution, inventory the actual bundled dependenci
 complete license and copyright notices, including transitive dependencies. Update this file when
 declared dependencies or resolved runtime versions change.
 
+### Optional Excel compatibility audit tooling
+
+The isolated lockfile in `scripts/excel-template-audit-dependencies` was checked on 2026-10-10.
+These packages support the optional audit command and are not added to the workbench runtime:
+
+| Component | Pinned version | License | Use |
+| --- | --- | --- | --- |
+| [ExcelJS](https://github.com/exceljs/exceljs) | 4.4.0 | MIT | Actual Template Engine XLSX import path |
+| [JSZip](https://github.com/Stuk/jszip) | 3.10.1 | MIT OR GPL-3.0-or-later | XLSX ZIP import dependency; use under MIT |
+| [Saxes](https://github.com/lddubeau/saxes) | 6.0.0 | ISC | Actual import XML parser |
+| [esbuild](https://github.com/evanw/esbuild) | 0.25.12 | MIT | Bundle the pinned external runtime in a temporary directory |
+
+The audit reads the user's Template Engine repository at the commit recorded in
+[its evidence](docs/workbench/visual-editor/excel-compatibility.md), then removes its temporary
+source and runtime bundle. Template Engine source is not vendored or relicensed by Mantra.
+The isolated lock records transitive tooling dependencies; their upstream licenses remain applicable.
+
 ## Domain source material and trademarks
 
 ### IAS 36 impairment demonstration

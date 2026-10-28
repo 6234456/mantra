@@ -159,6 +159,17 @@ class WorkbenchServer(
     }
 
     private fun api(exchange: HttpExchange, rawPath: String, method: String, body: ByteArray) {
+        if (rawPath == "/api/v1/template-recovery-context") {
+            if (method != "GET") return error(exchange, 405, "MANTRA-WORKBENCH-REQUEST", "Method is not allowed")
+            if (exchange.requestURI.rawQuery != null) {
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            }
+            if (exchange.requestHeaders.getFirst("X-Mantra-Token") != token) {
+                return error(exchange, 403, "MANTRA-WORKBENCH-TOKEN", "Session token is required")
+            }
+            if (packageRoutes != null) return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
+            return json(exchange, 200, catalog.envelope(catalog.templateRecoveryContext()))
+        }
         if (packageRoutes?.handle(exchange, rawPath, method, body) == true) return
         if (rawPath == "/api/v1/workspace" &&
             method == "GET"
@@ -189,6 +200,32 @@ class WorkbenchServer(
             ?: return error(exchange, 404, "MANTRA-WORKBENCH-NOT-FOUND", "Route was not found")
         val caseId = decode(match.groupValues[1])
         val document = match.groupValues[2]
+        if (document in
+            setOf(
+                "template-sources",
+                "template-preview",
+                "template-layout-settings",
+                "template-style-classes",
+                "template-schema-properties",
+            )
+        ) {
+            if (exchange.requestURI.rawQuery != null) {
+                return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")
+            }
+            val result = when {
+                document == "template-sources" && method == "GET" -> catalog.templateSources(caseId)
+                document == "template-preview" && method == "POST" ->
+                    catalog.templatePreview(caseId, requests.parseTemplatePreview(body))
+                document == "template-layout-settings" && method == "POST" ->
+                    catalog.templateLayoutSettings(caseId, requests.parseTemplateLayoutSettings(body))
+                document == "template-style-classes" && method == "POST" ->
+                    catalog.templateStyleClasses(caseId, requests.parseTemplateStyleClasses(body))
+                document == "template-schema-properties" && method == "POST" ->
+                    catalog.templateSchemaProperties(caseId, requests.parseTemplateSchemaProperties(body))
+                else -> return error(exchange, 405, "MANTRA-WORKBENCH-REQUEST", "Method is not allowed")
+            }
+            return json(exchange, 200, catalog.envelope(result))
+        }
         if (method == "POST" && document == "sources/remove") {
             if (exchange.requestURI.rawQuery != null) {
                 return error(exchange, 400, "MANTRA-WORKBENCH-REQUEST", "Unexpected query parameter")

@@ -9,6 +9,8 @@ dependencies {
     implementation(project(":mantra-workbench"))
     implementation(project(":mantra-server"))
     implementation(project(":mantra-lsp"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    testImplementation("com.networknt:json-schema-validator:2.0.1")
 }
 
 application {

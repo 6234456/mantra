@@ -1,0 +1,106 @@
+{
+  "format": "mantra.template-recovery-verification/1",
+  "sourceCheckpoint": "3bd9f27",
+  "run": 1,
+  "status": "VERIFIED",
+  "reportSha256": "cf5f878e0b3c2f8ca4e5da0a7859edae4fc9e4c561529be36ea6c234bb35272c",
+  "workspaceId": "32bce07d3b436e1c58718572e7080b1144955c6b63ed11292facae04dd2a1308",
+  "initialSourceRevision": "19a98e8a1eaba946c6a6e35907d8f2f917ed0712f42aa5de58d8164ed2c7a2dc",
+  "scenarios": [
+    "fresh live UI renders a real saved-template Paper with unchanged files",
+    "real root-layout inspection exposes fourteen typed settings and the engine preset defaults",
+    "unapplied settings and synthetic IME stay buffered while Cancel preserves source and native confirmation",
+    "structured zero false and empty overrides update only the draft while exact Run and saved baseline stay independent",
+    "Reset removes the source override and restores the engine preset instead of writing an explicit default",
+    "unsupported manual declarations remain read-only and visible until an explicit inherited reset",
+    "a real delayed settings inspection cannot restore stale properties over manually edited source",
+    "a real delayed source patch cannot overwrite newer manual source and retains its unapplied field buffer",
+    "a settings source conflict keeps the draft and blocks calculation until an explicit baseline recapture",
+    "real style catalog distinguishes preset contribution from the local override and actual Paper style",
+    "unapplied class fields and synthetic IME stay buffered while Cancel preserves the source",
+    "creating a local class changes real Paper styling without changing values and protects hard use references",
+    "omitting a class property stays distinct from explicit normal default and none declarations",
+    "removing unused local definitions preserves comments and removing a preset override restores its contribution",
+    "a late class patch cannot overwrite manual source or clear its retained field buffer",
+    "root settings and class edits keep independent unapplied buffers and coordinate through the same source",
+    "manual schema layout settings and class edits share exact Undo Redo while inputs and saved baseline stay independent",
+    "both unapplied property panels disable source history with a linked Apply or Cancel reason",
+    "source Undo cancels an actual delayed engine response and keeps the earlier candidate explicitly previous",
+    "a new source edit after Undo replaces the old redo branch instead of restoring the discarded class edit",
+    "explicit saved-source recapture clears local source history and input overrides without writing the workspace",
+    "schema formula, candidate locale and raw scalar input produce one real candidate",
+    "comparison renders original sources and saved inputs beside exact engine Difference values",
+    "changing candidate input preserves the independent saved-template preview and marks old differences previous",
+    "selected Paper cell requests Explain from the same candidate revision",
+    "panel selection cancels a real delayed response, clears Explain and renders only the requested panel",
+    "panel and zero-row controls use matching independent real preview contexts without changing numeric values",
+    "runtime failures retain current engine failure text while the saved template remains independent",
+    "an empty candidate Paper does not fall back to the saved template or a previous nonempty result",
+    "HTTP 422 retains invalid source, raw input and the previous real Paper",
+    "HTTP 409 retains both source drafts, raw input and Paper without writing files",
+    "explicit reload discards the in-memory draft and captures the external revision",
+    "a source-only title change reports no value changes while keeping distinct draft and saved titles",
+    "physical reload offers exact source and raw input recovery without restoring engine evidence or trusting a baseline",
+    "recovery retains invalid and oversized drafts while only matching technical engine results clear the unvalidated marker",
+    "fields-only recovery retains incomplete precision and class edits visibly before Inspect and requires explicit Cancel or Apply",
+    "a real JSON download and explicit matching-graph file import preserve exact decimal text across workspace identities",
+    "invalid evidence malformed duplicate-key and oversized JSON imports cannot replace editable or stored drafts",
+    "quota errors and independently changed browser copies preserve current edits and expose honest portable backup fallbacks",
+    "explicit restoration cancels an actual delayed preview and calculates only the newly restored source and raw input",
+    "a changed dependency blocks automatic recovery while preserving old JSON and current edits until explicit discard"
+  ],
+  "counts": {
+    "sourceCaptures": 15,
+    "recoveryContextCaptures": 21,
+    "responses": 50,
+    "settingsResponses": 15,
+    "styleResponses": 15,
+    "recoveryEvidence": 7,
+    "cancelledPreviewRequests": 4,
+    "cancelledSourceRequests": 0,
+    "cancelledRecoveryContextRequests": 0,
+    "cancelledSettingsRequests": 2,
+    "cancelledStyleRequests": 1,
+    "failures": 0
+  },
+  "sourceByteChecks": 40,
+  "originalSources": {
+    "schema.mantra": "823a75389dc58d85b1983ad4e720deb6a0f680b1f4123f21a3607c2283b99d9f",
+    "layout.mantra": "37c2c3bcf60db6e89e91cfa6af496c905a4c452ed623363f65ff7725101640c5",
+    "helpers.mantra": "532ad2ad748fbb391420c792b4e3462cf876396eddc32e0797bba96888865504",
+    "case.mantra": "cb97346af3e6285e7b869b2bf4afacc59cf1f0baa8b66db7019cddd62fa09f4e"
+  },
+  "authorizedExternalChanges": [
+    "layout.mantra",
+    "layout.mantra",
+    "helpers.mantra"
+  ],
+  "temporaryDirectoryRemoved": true,
+  "taskProcessGroupsStopped": true,
+  "recoveryScreenshots": [
+    {
+      "file": "recovery-unvalidated.png",
+      "width": 1425,
+      "height": 1944,
+      "completePage": true
+    },
+    {
+      "file": "recovery-unapplied-fields.png",
+      "width": 1425,
+      "height": 1999,
+      "completePage": true
+    },
+    {
+      "file": "recovery-portable-import.png",
+      "width": 1425,
+      "height": 1415,
+      "completePage": true
+    },
+    {
+      "file": "recovery-baseline-mismatch.png",
+      "width": 1425,
+      "height": 1339,
+      "completePage": true
+    }
+  ]
+}

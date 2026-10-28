@@ -7,7 +7,7 @@ import './PaperTable.css'
 
 const lang = language()
 
-function cellAppearance(cell: Cell): CSSProperties {
+export function cellAppearance(cell: Cell): CSSProperties {
   const overrides = cell.styleOverrides
   if (!overrides) return { fontWeight: cell.style?.weight === 'bold' ? 600 : undefined }
   const tones = { default: 'var(--ink)', muted: 'var(--ink-3)', accent: 'var(--blue-strong)' }

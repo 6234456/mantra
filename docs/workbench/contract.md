@@ -115,6 +115,21 @@ URL 中使用字符串形式 `节点[@成员/成员…][#行.列]`，例如 `bru
 - `(sources …)` 按声明顺序应用；后面的来源覆盖前面的来源，案例的 `(inputs …)` 最后覆盖来源值，与现有 `DataSources.apply` 一致。省略表示没有数据来源。`csv`、`json`、`xlsx` 的选项对齐现有 `DataSource` 构造参数；`csv :mode :wide` 和 `:member-column` 是 WP11 新增能力（G7）。JSON `:mapping` 的键是目标输入 id、值是源文件内路径；CSV `:columns` 的键是源列名、值是目标输入或表格列 id，具体取决于模式。
 - `:path` 相对于案例文件所在目录解析，规范化后必须留在工作区内；不存在、重复或无法解析的 id 与路径给出带位置的诊断。导入模板可供复用；应用模板时把完整来源声明写入案例，避免结果依赖模板的后续修改。
 
+XLSX 同时支持原有命名单元格模式和一个工作表矩形导入表格输入的区域模式：
+
+```clojure
+(xlsx {:path "facts.xlsx" :input "facts" :sheet "Facts" :range "A1:E20"
+       :columns {"Item" "id" "Amount" "amount"}})
+```
+
+出现 `:input`、`:sheet`、`:range`、`:columns` 任一选项即选择区域模式，前三项必须同时提供。
+`range` 只能是同一工作表上的一个本地 A1 矩形，最多 50,000 个单元格；首行是字面量、唯一且
+非空的列标题，后续行按物理行序导入一个已声明的 TABLE 输入。`columns` 从原始列标题映射到
+表格列 id；省略时使用归一化标题匹配列 id。空的已映射单元格省略，所有已映射列都空的行跳过，
+零和 false 保留。读取公式只消费 XLSX 已存储的缓存值，不执行公式；缓存缺失或 Excel 错误值是
+技术诊断。原有命名单元格模式保持原合同，区域模式沿用 XLSX 包预检、行预算与取消检查。
+细节及示例见 [XLSX 区域合同](visual-editor/xlsx-region-contract.md)。
+
 ## 5. 只读结果视图（mantra-core）
 
 对应[边界文档](../engine-application-boundary.md)第 5 项。M0 收口后，`core.api.CalculationResult`
@@ -447,6 +462,96 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 操作新引入的依赖按首次读取捕获并计入候选修订；预演不锁定这些依赖。后续提交重新解析
 操作和当前依赖，不接受候选修订前置条件，不能保证新增依赖变化后仍等于此前预演结果。
 
+**模板源快照与隔离草稿预览（文件工作区）**：独立接口补充 G-A4／G-A14，不改变已有
+`preview-paper` 操作合同，也不提供文件保存或多文档事务。
+
+- `GET …/template-sources` 不接受查询参数，返回 v4 envelope，外层 `revision` 为完整基准案例图修订。
+  `data` 为 `{document, baseRevisions, documents}`。`baseRevisions` 是全部参与源的逻辑 identity 到
+  64 位 SHA-256 的映射，包含片段、参数、数据与关联案例；`documents` 仅列根案例捕获的 DSL 文档，
+  每项为 `{handle, document, role, text, sha256, editable, reason}`。`handle` 为绑定精确基准图和文档的
+  不透明句柄，不能当作文件路径；角色为 `schema`／`layout`／`case`／`included`／`parameters`。
+  首版只有根案例绑定的 schema 与 layout 可覆写，其余文档只读，`reason` 为原因或 null。
+  快照最多 128 份文档、合计 1 MiB UTF-8 原文。首版要求已保存的基准图技术上可计算；无效基准
+  返回 422，而不是可编辑快照。运行时部分失败和业务 finding 不阻止取得技术有效的快照。
+- `POST …/template-preview` 不接受查询参数，使用现有会话令牌、1 MiB 请求预算与图计算预算。
+  请求仅允许必填 `{baseRevision, baseRevisions, draftSequence, documents, inputs}` 与可选
+  `panel`、`includeZero`、`explain`。`baseRevision` 必须是快照的完整基准图修订；`baseRevisions`
+  必须完整匹配全部参与源，不能缺项或多项。`draftSequence` 为 0–9007199254740991 的整数。
+  `documents` 为最多 32 项 `{handle, text}`，不接受路径或源偏移；每份源最多 65536 字符。
+  `inputs` 为最多 100 项 `{node, text}`，只支持根案例的标量输入，不允许重复节点。
+  两数组可为空，但合计至少一项。`panel` 非空；`includeZero` 默认为 false。
+  `explain` 为 `{node, coord?}`，coord 为最多 8 个字符串，只请求一个根案例地址。
+- 文本覆盖应用于根绑定的已捕获 schema／layout；schema 的 id／version、layout 的 id、include 路径与
+  已捕获依赖闭包必须保持不变。关联案例继续读取其原捕获绑定，不继承根覆盖；新增依赖、身份或绑定
+  变更返回 422。未声明句柄或只读文档返回 400。候选 source 由正式 reader 解析，数值由原引擎计算。
+  示例输入原文在**候选模板与候选版式 locale**中解析后只叠加到候选根案例，不能按已保存模板提前解析。
+- 同一隔离候选生成 `structure`、`run`、`difference`、`paper`、`diagnostics` 与可选 `explain`；
+  响应外层修订仍为基准，data 为 `{document, preview:true, draftSequence, baseRevisions,
+  proposedRevision, succeeded, validationPassed, diagnostics, structure, run, difference, paper, explain}`。
+  `explain` 未请求时为 null，请求时形状与 Explain data 相同，证据属于本候选；不存在的面板／地址返回 404。
+  技术错误返回 422；业务 finding 返回 200 和值；运行时失败返回 200、`succeeded:false` 与部分结果。
+  返回前重验完整基准图；任一参与源变化返回 409。候选不写文件、不推进 undo/redo、不进入正式缓存。
+  外部修改使基准无法再解析时，已捕获源摘要变化仍返回 409，此时当前图修订可能无法提供。
+  调用方同时匹配全部基准修订、草稿序号和编辑上下文，才能将结果视为当前。
+  响应形状见 [template-sources.schema.json](schema/template-sources.schema.json) 与
+  [template-preview.schema.json](schema/template-preview.schema.json)。
+
+本接口完成只读候选计算切片；owner／语义补丁、文件提交、D-A1、构建记录和发布仍需各自合同。
+
+**根版式高级设置（文件工作区，2026-10-25）**：G-A16／G-A18 的首个有界切片。
+`POST …/template-layout-settings` 读取或修改客户端提交的根 layout 原文，返回属性目录与源补丁；
+不写文件、不计算草稿候选、不推进历史，不代表草稿已通过计算、正式保存或发布。
+取得设置与前后校验修订时仍会解析、求值已保存的基准案例图，不把这些结果当作当前未提交草稿的结果。
+它使用现有会话令牌、1 MiB 请求预算和 v4 envelope，不接受查询参数，其他方法返回 405；包宿主不提供该端点。
+
+- 请求必须且仅包含 `{baseRevision, baseRevisions, draftSequence, handle, text, operations}`。
+  修订、完整参与源映射、序号和 document handle 与 `template-sources` 相同；`handle` 必须对应
+  根案例可编辑的 layout，不能是 schema／case／include，也不接受路径或客户端源偏移。
+  `text` 是当前根 layout 的完整原文，最多 65536 个 UTF-16 code units；身份、根形式与 include 路径保持不变。
+  已保存基准仍须技术有效；运行时失败或业务 finding 不阻止获取设置。当前未提交的 schema 文本不在该请求中，
+  因此成功的设置响应不证明 schema 草稿有效。返回前重验完整基准图，任何参与源变化返回 409；
+  基准已损坏／删除且已捕获摘要变化时仍返回 409，而不是覆盖为 422／404。
+- `operations` 是至多 16 项操作，可为空。空数组只检查当前文本并返回目录；同一属性不可重复。
+  set 项必须且仅含 `{op:"set", property, text}`，text 为用户原始文本；unset 项必须且仅含
+  `{op:"unset", property}`。未知属性、错误操作、重复项、额外字段、重复 JSON 键、非法序号或句柄返回 400。
+  值不合法、布局语法／身份错误、根 metadata 重复键或不能唯一定位的属性返回带诊断的 422。
+- 首批仅开放根 layout metadata 的 14 个属性：`title`、`subtitle`、`locale`、`language`、`precision`、
+  `percent-precision`、`negative`、`zero`、`grouping`、`hide-zero`、`show-inactive`、`expand-members`、
+  `signed`、`row-numbers`。不修改 preset、表级覆盖、列、样式定义或计算舍入；不将全局有效值当作各单元格最终格式。
+  title／subtitle／zero 为原始文本（包括合法空字符串）；布尔文本仅 `true`／`false`；enum 省略冒号，
+  language 仅 de／en，negative 为 minus／parentheses，row-numbers 为 global／table。
+  locale 必须是非空、可解析且含语言的 BCP 47 标签，不静默回退。precision／percent-precision 必须为
+  0–18 的十进制整数原文；这是本编辑入口的上限，不改变 DSL reader 对既有原文的语义。
+  文本经正式 literal 编码后写入；不能注入表达式或将显示精度变成计算 round。
+  新编码文本必须能由当前公开 reader 无损读回；无法准确表示的控制字符返回 422，不静默变成转义拼写。
+  每一步编辑结果也必须保持在 65536 个 UTF-16 code units 内，超出返回 413。
+- 当前源中合法但超出编辑范围的数值、nil 或非字面量属性保持原样；目录标为只读并给出原因，允许显式 unset
+  恢复继承时以 canUnset 表达。表单不得自行归一化这些值。未知选项和注释、换行、其他声明保持原字节；
+  unset 只移除该属性键值，set 只替换值或插入缺失的 metadata／键值。无变化时补丁为空。
+- 响应 `data` 为 `{document, draftSequence, baseRevisions, scope:"layout", layoutId, preset,
+  source:{handle, document, text}, properties, patches}`，外层 revision 仍为捕获基准图修订。
+  properties 每项为 `{id,label,group,type,options,minimum,maximum,declared,explicitValue,
+  inheritedValue,effectiveValue,editable,reason,canUnset}`；group 为 report／numbers／visibility，
+  type 为 text／enum／integer／boolean，options 为合法 enum 文本数组，minimum／maximum 为有限结构整数或 null。
+  三个 value 使用 §6.1 精确编码：Decimal 为 `{n:"…"}`，keyword 为 `{kw:"…"}`，文本、布尔和 nil 保持其类型。
+  declared=false 与显式 null／false／0／空字符串分别保留。inheritedValue 来自当前 preset／相应引擎默认，
+  effectiveValue 来自正式 LayoutReader 的根版式配置；不推断 schema／表级呈现提示覆盖后的最终单元格值。
+  title／subtitle 继承值为 null 时，最终 Paper 可另按 schema 标题回退，该值不在本属性目录中冒充已解析结果。
+- 每个 patch 为 `{startOffset,endOffset,text,removedText}`，偏移是 UTF-16，按数组顺序作用于前一步文本。
+  removedText 必须与对应范围完全相等；逆序以 removedText 替换插入的 text 可还原精确输入原文。
+  应用全部补丁必须恰等于 source.text。客户端还须核对 case、完整基准映射、序号、句柄及仍然相同的请求文本；
+  手工源码或设置缓冲已更新时，旧响应不能覆盖它们。成功接纳源补丁后原候选预览标为 Previous；
+  仍需 `template-preview` 重新计算，保存基准预览不因内存草稿改变而被污染。
+
+字段 Reset 表示 unset／恢复继承；Cancel 只取消尚未应用的本地缓冲。当前切片没有模板文件 Save，
+不选择 D-A1，也不关闭完整 G-A1–G-A3、G-A16–G-A18 的后续属性／声明编辑缺口。
+响应形状见 [template-layout-settings.schema.json](schema/template-layout-settings.schema.json)。
+
+**Schema 展示属性（2026-10-26）**：新增 `template-schema-properties`，从正式 SchemaReader 模型及公开 AST
+获取 root schema／只读 include 的 label、note text 与 classes owner，按初始精确草稿生成最小源补丁。
+完整版本、范围和错误见 [展示属性合同](visual-editor/schema-properties-contract.md)；成功仍需真实预览，
+不构成正式保存或完整可视化作者服务。
+
 操作字段如下，额外字段和重复 JSON 键均拒绝；`value` 用 §6.1 的精确数值编码（如 `{"n":"1234.56"}`、`{"kw":"A"}`、`{"map":[…]}`），`text` 与 `value` 二选一。`text` 根据方案声明的类型在服务端解析，德语数字支持 `1.234,56`，整数保留整数校验。
 
 | `op` | JSON 字段 |
@@ -489,11 +594,139 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **撤销与重做**：服务为每个案例在内存中保存最近 50 个文档版本。撤销是一次普通写入，同样检查修订。持久的历史交给版本控制（D4）。
 - **写入成功的响应**：新修订、改动的文档路径、诊断，以及前后两次计算的差异（格式同 §6.7）。
 
+**根版式样式 class（文件工作区，2026-10-25）**：G-A16／G-A17／G-A18 的有限定义编辑切片。
+`POST …/template-style-classes` 检查或修改当前根 layout 中的 `(style-class :name {...})` 定义。
+这是源级操作；保存基准解析、会话令牌、无查询参数／其他方法 405、包宿主 404、完整 revision map、
+根 layout handle、源身份／include 闭包保持、请求前后修订检查及 409 语义与上述根设置接口相同。
+它不写文件、不计算未提交草稿、不推进源历史，不把 class 目录当作最终单元格样式。
+
+- 请求必须且仅含 `{baseRevision,baseRevisions,draftSequence,handle,text,operations}`，同样最多 65536 个
+  UTF-16 code units 的根 layout 原文及 1 MiB 请求预算。`operations` 至多 16 项，类名不能重复；
+  空数组只检查当前源，返回不变的 text 与空 patches。
+  upsert 项必须且仅含 `{op:"upsert",name,style:{weight,tone,fill}}`；三个 style 键都必须存在，
+  null 表示从本地定义移除该属性，其他值为省略冒号的有限关键字：weight normal／bold、
+  tone default／muted／accent、fill none／subtle／accent。显式 normal／default／none 与 null 不同。
+  全 null 生成或保留合法的空定义 `{}`。remove 项仅含 `{op:"remove",name}`。
+  name 不带冒号，遵循现有 `[a-z][a-z0-9-]*`；不支持重命名、引用重写、修改预设或任意 CSS。
+- 未知字段／操作、重复 JSON 键／类名、非法类型／枚举或修订句柄返回 400；语法、重复定义、歧义
+  metadata、布局 reader 错误或不可删除的定义返回带诊断的 422；请求或任一步编辑结果超预算返回 413。
+  upsert 创建或改写一个本地定义；其余本地定义、样式规则、未知的根选项、注释及行结束符保持不变。
+  属性值只替换其 token，省略属性只移除其键值 token；remove 删除定义的语法 token，保留其间注释和空白。
+  名称已在选中的 preset 中存在时，upsert 创建本地覆盖；remove 仅移除本地定义，恢复 preset 的同名贡献。
+- 响应 `data` 为 `{document,draftSequence,baseRevisions,scope:"layout-style-classes",layoutId,
+  stylePresets,usageScope:"submitted-layout",source:{handle,document,text},classes,patches}`。
+  stylePresets 为当前布局选中的样式 preset，顺序与源一致；目录内容从当前引擎公开 LayoutReader 的
+  规则取得，不能复制前端静态表冒充引擎目录。每个类名一项，classes 为选中 preset、本地声明及当前
+  布局字面量 selector 引用的并集，按 preset 顺序、局部声明顺序、剩余引用首次出现顺序排列。
+  每项 `{name,presets,local,inherited,effective,references,editable,reason,canRemove,removeReason}`：
+  presets 为提供此类的已选 preset 名称；local 为本地三个声明或 null，inherited 为选中 preset
+  依序合并的声明，effective 为 inherited 再合并 local。三种声明均为 `{weight,tone,fill}`，
+  各属性取上述关键字或 null。这仅是具名 class 的合并贡献；规则位置、选择器、表级规则和后续覆盖仍
+  可影响最终单元格，实际样式必须读取匹配候选的 Paper，浏览器不得以这些字段重建最终样式。
+  selector 允许的名称比 style-class 定义更广；其非简单类名仍列入目录并保留引用，但 editable false
+  且 reason 说明不可创建本地定义，不能因此拒绝检查本来有效的布局。可编辑项 editable true、reason null。
+- references 只报告**返回的当前根 layout 原文**中的字面量引用，形状为
+  `{kind:"use"|"selector",startOffset,endOffset}`，偏移为对应类名 token 的 UTF-16 半开范围。
+  use 来自 style 声明的 `:use`，selector 来自 style selector 的 `:class`；重复出现分别记录。
+  不扫描或声称涵盖 schema／include／其他模板，更不代表未提交 schema 的影响分析。
+  UI 必须标注该范围，并提示完整候选影响需 Preview。
+  只有本地定义可 remove；若当前布局仍以 `:use` 引用它、且没有同名已选 preset 回退，
+  canRemove 为 false 且 remove 返回 422。selector 引用及普通 schema tag 本身允许无规则，
+  不能误当作这种硬依赖。无本地定义时 canRemove false；所有禁止删除情况均有 removeReason。
+- patches 与根设置接口相同：顺序 UTF-16 补丁、精确 removedText、逆序可还原输入，原文无变化则为空。
+  前端严格匹配 case、完整修订、handle、序号及提交原文，并验证补丁产生返回 text。
+  未 Apply 的 class 字段与根设置缓冲共同阻止 Preview；Apply 只接纳源补丁，再明确预览真实候选。
+  另一编辑入口改变源后，旧目录标过期，保留字段缓冲，Refresh 后须再次明确 Apply；迟到响应不得覆盖
+  新源或清除请求发出后又修改的字段。业务 finding 和运行时失败不因新增表单被误判为技术拒绝。
+
+响应 schema 见 [template-style-classes.schema.json](schema/template-style-classes.schema.json)。
+本切片不实现通用 owner 句柄、schema class 分配、完整引用影响、撤销历史、正式文件保存或发布。
+
+**真实预览页的内存源历史（2026-10-25）**：客户端将手动根 schema／layout 文本编辑、根设置 Apply
+和样式 class Apply 接入同一条有界历史。Undo source／Redo source 恢复确切源文本，不发送文件写入
+请求，不调用案例 undo／redo，也不代表服务端源历史、正式保存或恢复草稿合同已经实现。
+最多保留 50 个 `{handle,before,after,label}` 文本事务；无变化、未接纳或迟到响应不入历史，
+撤销后新编辑清空 redo。接纳源文本与推进本地历史须原子进行，仍核对 case、快照、句柄和原文；
+撤销要求当前文本匹配该事务 after，重做要求匹配 before，不可将历史覆盖到不匹配的新源。
+每次撤销／重做均使候选预览过期、取消旧请求并推进客户端草稿序号，保留当前示例输入和独立保存基准。
+两个属性面板随文本变化标目录过期。任一未 Apply 的设置／class 字段、加载中或源修订冲突时禁用历史
+操作并关联原因；取得新案例／源快照时清空。采用显式按钮，不拦截原生输入框、textarea 或系统 IME
+的撤销与组合键。历史仅存在当前页面内存，刷新不会自动保存或恢复它。
+
+**真实预览页的浏览器恢复与 JSON 备份（2026-10-25）**：G-A12 的客户端切片，覆盖已接受的根
+schema／layout 源、原始示例输入及各属性面板尚未 Apply 的字段。恢复副本不是模板文件保存、
+服务端草稿、源历史或可信校验结果；不关闭 G-A7、服务端 G-A12 或 D-A1。
+
+- 身份由独立、可选的 `GET /api/v1/template-recovery-context` 提供；原 `workspace` 和
+  `template-sources` 的 v4 wire 字段保持原形，不给旧的严格 schema 增加字段。
+  新端点使用 v4 envelope，data 必须且仅含 `{workspaceId}`；外层 revision 等于该身份，只标识恢复上下文，
+  不能作为案例／源图 baseRevision。workspaceId 为 64 位小写十六进制，值为
+  SHA-256(UTF-8(`"mantra.workspace/1" + NUL + canonicalRootPath`))。同一规范根路径跨服务重启稳定，
+  不同目录即使源图完全相同也不同；不返回路径、不复用会话令牌，不将该摘要当作文件权限。
+  GET 必须携带当前 `X-Mantra-Token`，以绑定当前页面所在服务实例；无查询参数，其他方法 405，包宿主 404。
+  前端在取得普通源快照后读取此身份，只有合法响应才补入其客户端恢复上下文，不伪装为旧源响应字段。
+  旧服务器不提供该端点，或身份不可用时，基础预览继续可用，仅自动恢复／备份能力禁用；不能用 origin、
+  路径猜测或会话令牌代替身份。旧的源快照和 workspace schema 不需要为基础预览升级。
+- 备份是独立的 `mantra.template-preview-recovery/1` JSON，必须且仅含
+  `{format,savedAt,workspaceId,caseId,baseRevision,baseRevisions,documents,inputs,pending}`。
+  savedAt 为规范 ISO UTC 时间，仅供显示；修订和身份是 64 位摘要，baseRevisions 是完整非空参与源映射。
+  documents 只包含全部可编辑根文档（一份 schema 和零或一份 layout），每项必须且仅含
+  `{handle,document,role,sha256,baseText,text}`：前五项和 baseText 记录捕获基准，text 是当前原文。
+  inputs 为至多 100 个唯一 node 的 `{node,text}` 数组，仅存启用的原始覆盖；空字符串、0、超出 binary64
+  的十进制文本、未被当前 schema 接受的文本均原样保留，不在浏览器转换或检查业务合法性。
+- pending 必须且仅含 `{layoutSettings,styleClass}`。layoutSettings 是至多 14 个不同属性的
+  set／unset 原始操作，形状与根设置请求相同，但 set.text 可以是不完整或无效的原始文本；
+  styleClass 为 null 或 `{operation,creating,selection}`，operation 是 class upsert／remove，
+  upsert 三个 style 字段仍为有限值或 null，但待输入的 name／selection 可为空或不完整。
+  不保存目录、权限、检查状态、版本计数或请求。恢复后重新产生本地版本，必须重新 Inspect 并明确 Apply。
+  原始操作和 Cancel 在没有目录、布局无效或服务离线时仍可见，不能让隐藏缓冲永久阻止预览。
+- 整份 JSON 最多 2 MiB UTF-8，嵌套深度最多 16；拒绝重复 JSON 键（包括转义后同名键）、未知字段、
+  错误形状／枚举、重复文档／输入／属性。当前 draft 的原文和输入只受总备份预算约束，不套用预览的
+  65536 字符源预算；例如 70k 的无效粘贴可备份，恢复后预览仍如实返回 413。超预算不截断、不改写，
+  当前编辑继续保留并显示备份失败。基准文档仍须符合已捕获快照的字段与预算。
+  备份不得携带 Paper／Run／Explain／Difference、诊断、有效状态、旧权限、undo／redo 或会话令牌。
+- 浏览器自动副本按 origin、workspaceId、caseId 分槽，namespace 为
+  `mantra.template-preview.recovery.v1.`，工作区摘要和 encodeURIComponent(caseId) 构成键。
+  不把基准 revision 放入键，以便新源图下仍能发现旧副本。干净初始化只读取，不覆盖或删除已发现、
+  尚未 Restore／Discard 的副本；不兼容副本保留供下载。用户有新编辑且旧副本待决时明确暂停替换。
+  编辑后短延迟保存，pagehide／beforeunload 尝试同步刷新最后已提交的 React 状态；保存成功须回读核对。
+  丢弃、案例切换和恢复会取消旧代次的延迟写入。比较期望原文，发现其他页面更改时暂停并给出原因；
+  localStorage 不提供事务原子性，本切片不承诺多标签并行编辑同步或自动合并。
+- 自动恢复副本要求同 workspaceId、caseId、完整基准 revision／映射，以及全部根 descriptor／baseText
+  与新取得的服务快照逐项相同。内容失配、缺失或额外根文档不能恢复；保留 JSON 供下载／手动取回。
+  显式导入可来自另一 workspaceId，但必须显示跨工作区说明，经用户明确 Restore，且上述 case、完整图、
+  descriptor 和 baseText 仍完全相同；不改写 handle、源路径或基准，不做自动 rebase。
+  JSON 检查／导入本身不修改当前草稿。恢复覆盖已有编辑时要求明确确认，保留原内容直到接纳完成。
+- 接纳恢复时原子替换客户端文档／输入／缓冲、取消旧候选和独立基准请求、清除 Paper／Explain／诊断和
+  内存历史，递增恢复 epoch 并重新挂载属性检查，标记 `Restored · not validated`。
+  即使没有 Structure，也按恢复的 node ID 显示可编辑、可移除的未校验原始覆盖，不能藏起 `nine` 等无效输入。
+  未 Apply 字段继续阻止 Preview／历史；匹配当前草稿、无未应用字段的真实候选 200（包括业务 finding
+  或运行时失败）才清除恢复未校验标记，422／413、基准预览、迟到响应均不清除。
+  失效存储、损坏副本或配额失败不能显示为已保护；当前草稿仍可编辑，合法且未超预算的 JSON 可直接下载。
+- 物理页面刷新发现副本后提供 Restore／Discard，不自动套用。显式 Reload saved source 是主动放弃当前
+  草稿：确认后丢弃本页对应的恢复副本并取消旧写入，再捕获新源。源文件、正式历史和发布状态始终不变。
+
+没有 schema 展示属性未应用字段时，继续导出原 v1 格式。含此字段时使用独立
+`mantra.template-preview-recovery/2`，见 [v2 schema](schema/template-recovery-v2.schema.json)。
+v2 的 pending 可增加 schemaProperty：document、path、form、node、property、精确 declaration 原文、
+未提交 text 与 unset；不包含 owner handle 或权限。恢复后须重新 inspect；完整逻辑身份与 declaration
+原文都一致才可显式 Apply。旧 v1 读取与导出结构保持不变，旧客户端拒绝 v2，不可静默丢字段。
+
+格式定义见 [template-recovery.schema.json](schema/template-recovery.schema.json)。它与录制作者原型的
+`mantra.authoring-recovery/1` 分离，真实 live 页面不运行时导入 `src/authoring`。
+身份响应见 [template-recovery-context.schema.json](schema/template-recovery-context.schema.json)。
+
+**多案例模板验收 CLI（2026-10-25）**：独立版本的源修订锁定套件与报告复用本节真实候选计算，
+不改变 HTTP v4。详见 [CLI 验收合同](visual-editor/template-acceptance-contract.md)；capture 不生成预期，
+verify 对同一候选根模板的多个案例及原始标量输入进行只读验收，末尾再次核对完整源图。
+独立 v2 套件增加真实 Paper 标题／列序／显示／最终样式验收；v1 默认输出与 schema 保持原形，
+详见 [Paper 展示验收合同](visual-editor/template-paper-acceptance-contract.md)。
+
 ## 8. 数据接入与公式编辑
 
 ### 8.1 导入
 
-- **格式**：CSV 和 JSON（mantra-core 的 `CsvSource`、`JsonSource`），以及按命名单元格回读的 XLSX（mantra-excel 的 `XlsxSource`）。类型转换和校验都留在引擎，所以各通道行为一致。
+- **格式**：CSV 和 JSON（mantra-core 的 `CsvSource`、`JsonSource`），以及命名单元格或矩形区域回读的 XLSX（mantra-excel）。区域合同见 §4.4。类型转换和校验都留在引擎，所以各通道行为一致。
 - **流程**（设计稿 “Datenquellen”）：
   1. 选择文件；
   2. 检测列、样本行、分隔符和小数点；
@@ -505,6 +738,13 @@ CLI 的 `revision` 对参与文件按逻辑角色标记并哈希内容：方案�
 - **映射模板**（“Zuordnung als Vorlage speichern”）就是一份可复用的来源声明，由领域应用随方案提供，或由用户保存在工作区。它不是界面配置。
 - **工作区模板接口**：`GET /api/v1/import-templates` 返回 `{templates:[{name,format,options}]}`；`POST /api/v1/import-templates` 接收 `{name,format,options}`，在工作区 `import-templates/<name>.json` 创建普通来源选项模板（不含 `path`）。名称限 1–80 个 ASCII 字母、数字、`_`、`-`，已有名称返回 409；文件上限 64 KiB。模板文件进入工作区修订与 SSE 扫描。应用模板时前端仍须选择实际文件，路径由导入接口分配。
 - **浏览器导入请求**：`POST …/imports/inspect` 接收 `{name, format, contentBase64}`，仅返回 `{name, format, columns:[{name, sample:[]}], rowCount, delimiter?, decimal?, grouping?, numericAmbiguous?}`，不写文件；CSV 数字分隔符是样本推断，用户可在应用前修改。仅有 `1.234` 一类无法区分小数和千位的样本时返回 `numericAmbiguous: true`，界面要求用户明确选择小数分隔符。`POST …/imports/apply` 再接收同一文件、完整计算的 `baseRevision` 与 `options`（来源声明的普通 JSON 选项对象）；服务端将文件保存到案例目录下的 `imports/`，以内容摘要命名，然后追加 `(sources …)` 声明，响应格式同 §7.1。文件写入成功但案例提交失败时清理本次新建文件。
+- **XLSX 区域检查元数据**：XLSX 检查响应允许可选 `xlsxSheets:[{name,rows,columns,headers:[{column,title}],suggestedRange?}]`。
+  至多 16 张工作表、每张至多 64 个标题、标题至多 256 字符；`headers.column` 是零起始的物理列位置，
+  `title` 是首个物理行的字面量标题去除首尾空格后的文本。`rows` 是最后已存储行位置加一，`columns`
+  是标题行最后已存储单元格位置加一，二者表示范围而非导入记录数，不扫描整个工作表的数据。
+  仅在标题边界可用且不超过 50,000 个单元格时提供从首个物理行、标题跨度到最后存储行的本地 A1
+  `suggestedRange`；这是有界候选元数据，用户仍需确认工作表、区域及映射。原有 `columns` 字段仍表示
+  命名单元格输入，不改含义；检查不写文件，应用使用 §4.4 的同一来源选项。
 - **失效来源修复**：`GET …/sources` 只解析案例文本并列出绑定，不要求来源可计算；其 envelope 修订只覆盖案例和仍存在的绑定文件。`POST …/sources/remove` 接收 `{baseRevision,index}`，按该修订原子移除零起始的来源声明，返回更新后的来源 envelope。即使某个来源文件丢失或格式不合法，也能继续移除其绑定。其他编辑和导入仍使用完整计算修订。
 - **宽表模式（G7）**：工资单 CSV 可用 `:mode :wide` 和 `:member-column` 将每行映射到一个成员、每列映射到不同输入；原有表格行与 `input;value` / `input;member;value` 成对格式仍可用。
 
@@ -562,6 +802,12 @@ CodeMirror 注入的运行时样式使用服务为 HTML 响应生成的 CSP nonc
 | POST | `/cases/{case}/compare` | Compare（§6.7） |
 | POST | `/cases/{case}/preview` | 预演编辑，不写入（§7.1） |
 | POST | `/cases/{case}/preview-paper` | 预演案例操作并返回同一候选的工作表（§7.1） |
+| GET | `/cases/{case}/template-sources` | 完整基准源修订与根 DSL 快照（§7.1） |
+| POST | `/cases/{case}/template-preview` | 隔离模板草稿与示例输入，同一候选 Run／Paper／Explain（§7.1） |
+| POST | `/cases/{case}/template-layout-settings` | 根版式属性目录与内存源码补丁，不写文件（§7.1） |
+| POST | `/cases/{case}/template-style-classes` | 根版式 class 目录、布局引用与内存源码补丁，不写文件（§7.1） |
+| POST | `/cases/{case}/template-schema-properties` | Schema 展示属性 owner 与内存源码补丁，include 只读，不写文件（§7.1） |
+| GET | `/template-recovery-context` | 可选浏览器恢复身份；需当前会话令牌，旧 v4 端点保持原形（§7.1） |
 | POST | `/cases/{case}/edits` | 编辑并写入（§7） |
 | POST | `/cases/{case}/undo`、`/cases/{case}/redo` | 撤销、重做 |
 | POST | `/cases/{case}/authoring/complete`、`/hover`、`/check` | 公式编辑（§8.2） |

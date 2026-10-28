@@ -1,0 +1,289 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { LiveTemplatePreviewClient, TemplatePreviewError } from './client'
+import {
+  diagnosticSource,
+  firstCase,
+  formulaDiagnostic,
+  templatePreview,
+  templateRequest,
+  templateSources,
+} from './fixtures.test.helpers'
+
+beforeEach(() => {
+  const token = document.createElement('meta')
+  token.name = 'mantra-session-token'
+  token.content = 'test-preview-session'
+  document.head.append(token)
+})
+
+afterEach(() => {
+  document.querySelector('meta[name="mantra-session-token"]')?.remove()
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+
+function reply(value: unknown, status = 200) {
+  return new Response(JSON.stringify(value), { status, headers: { 'Content-Type': 'application/json' } })
+}
+
+function recoveryContext(identity = 'e'.repeat(64)) {
+  return {
+    contract: 'mantra.workbench/4',
+    revision: identity,
+    engine: templateSources().engine,
+    data: { workspaceId: identity },
+  }
+}
+
+function wireSources() {
+  const source = templateSources()
+  delete source.data.workspaceId
+  return source
+}
+
+it('captures opaque source handles and the full revision map, including dependencies not represented by editable DSL', async () => {
+  const source = templateSources()
+  const fetch = vi.fn().mockResolvedValueOnce(reply(wireSources())).mockResolvedValueOnce(reply(recoveryContext()))
+  vi.stubGlobal('fetch', fetch)
+  expect(await new LiveTemplatePreviewClient().sources(firstCase)).toEqual(source)
+  expect(fetch.mock.calls[0][0]).toBe('/api/v1/cases/' + encodeURIComponent(firstCase) + '/template-sources')
+  expect(source.data.baseRevisions['data/example.csv']).toBe('a'.repeat(64))
+  expect(source.data.documents.some((document) => !document.editable)).toBe(true)
+  expect(source.data.workspaceId).toMatch(/^[a-f0-9]{64}$/)
+  expect(fetch.mock.calls[1][0]).toBe('/api/v1/template-recovery-context')
+  expect(fetch.mock.calls[1][1].headers['X-Mantra-Token']).toBe('test-preview-session')
+})
+
+it('keeps capture and real preview transport usable when an older server lacks recovery context', async () => {
+  const source = wireSources()
+  const request = templateRequest()
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(reply(source))
+    .mockResolvedValueOnce(reply({ error: { message: 'Not found' } }, 404))
+    .mockResolvedValueOnce(reply(templatePreview(firstCase, request)))
+  vi.stubGlobal('fetch', fetch)
+  const client = new LiveTemplatePreviewClient()
+  expect(await client.sources(firstCase)).toEqual(source)
+  expect((await client.preview(firstCase, request)).data.draftSequence).toBe(request.draftSequence)
+  expect(fetch.mock.calls[2][0]).toContain('/template-preview')
+})
+
+it('disables recovery for malformed optional context without trusting a workspace field on the old wire', async () => {
+  const valid = recoveryContext()
+  const malformed = [
+    { ...valid, contract: 'unknown/1' },
+    { ...valid, revision: 'f'.repeat(64) },
+    { ...valid, data: {} },
+    { ...valid, data: { workspaceId: ['e'.repeat(64)] } },
+    { ...valid, data: { workspaceId: 'E'.repeat(64) } },
+    { ...valid, data: { ...valid.data, path: '/private/workspace' } },
+    { ...valid, engine: {} },
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const context of malformed) {
+    fetch.mockResolvedValueOnce(reply(templateSources())).mockResolvedValueOnce(reply(context))
+    const captured = await new LiveTemplatePreviewClient().sources(firstCase)
+    expect(captured.data.workspaceId).toBeUndefined()
+    expect(captured.data.documents).toEqual(templateSources().data.documents)
+  }
+})
+
+it('normalizes optional recovery identity for workspace discovery without altering its established wire data', async () => {
+  const workspace = { cases: [{ id: firstCase, title: 'Example' }] }
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(reply({ contract: 'mantra.workbench/4', revision: 'a'.repeat(64), data: workspace }))
+    .mockResolvedValueOnce(reply(recoveryContext()))
+  vi.stubGlobal('fetch', fetch)
+  expect(await new LiveTemplatePreviewClient().workspace()).toEqual({ ...workspace, workspaceId: 'e'.repeat(64) })
+  expect(fetch.mock.calls[0][0]).toBe('/api/v1/workspace')
+})
+
+it('refuses to submit a draft without a live session token', async () => {
+  document.querySelector('meta[name="mantra-session-token"]')?.remove()
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  await expect(new LiveTemplatePreviewClient().preview(firstCase, templateRequest())).rejects.toThrow(
+    'Start the live Mantra workbench',
+  )
+  expect(fetch).not.toHaveBeenCalled()
+})
+
+it('sends exact source and input text with the session token and complete captured revisions', async () => {
+  const request = templateRequest()
+  const fetch = vi.fn().mockResolvedValue(reply(templatePreview(firstCase, request)))
+  vi.stubGlobal('fetch', fetch)
+  expect((await new LiveTemplatePreviewClient().preview(firstCase, request)).data.draftSequence).toBe(3)
+  const options = fetch.mock.calls[0][1]
+  expect(options.method).toBe('POST')
+  expect(options.headers['X-Mantra-Token']).toBe('test-preview-session')
+  expect(JSON.parse(options.body)).toEqual(request)
+  expect(JSON.parse(options.body).inputs[0].text).toBe(' 1.234,56 ')
+})
+
+it('rejects replies for another case, draft sequence, graph revision or incomplete and extra source revisions', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const missing = { ...request.baseRevisions }
+  delete missing['data/example.csv']
+  const mismatches = [
+    { ...valid, revision: 'b'.repeat(64) },
+    { ...valid, data: { ...valid.data, document: 'another.mantra' } },
+    { ...valid, data: { ...valid.data, draftSequence: request.draftSequence + 1 } },
+    { ...valid, data: { ...valid.data, baseRevisions: missing } },
+    { ...valid, data: { ...valid.data, baseRevisions: { ...request.baseRevisions, unexpected: 'c'.repeat(64) } } },
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const mismatch of mismatches) {
+    fetch.mockResolvedValueOnce(reply(mismatch))
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow(
+      'does not match this draft',
+    )
+  }
+})
+
+it('preserves real 422 diagnostic ranges and 409 current revisions without replacing them with guessed locations', async () => {
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(reply({ error: { message: 'Invalid draft', diagnostics: [formulaDiagnostic] } }, 422))
+    .mockResolvedValueOnce(reply({ error: { message: 'Changed sources', currentRevision: 'd'.repeat(64) } }, 409))
+  vi.stubGlobal('fetch', fetch)
+  const client = new LiveTemplatePreviewClient()
+  const rejected = await client.preview(firstCase, templateRequest()).catch((failure: unknown) => failure)
+  expect(rejected).toBeInstanceOf(TemplatePreviewError)
+  expect(rejected).toMatchObject({
+    status: 422,
+    diagnostics: [formulaDiagnostic],
+  })
+  expect(diagnosticSource.slice(formulaDiagnostic.location!.startOffset!, formulaDiagnostic.location!.endOffset!)).toBe(
+    'allocated-totl',
+  )
+  await expect(client.preview(firstCase, templateRequest())).rejects.toMatchObject({
+    status: 409,
+    currentRevision: 'd'.repeat(64),
+  })
+})
+
+it('rejects unsupported envelopes and source snapshots with missing identities or corrupt revision hashes', async () => {
+  const source = templateSources()
+  const malformed = [
+    { ...source, contract: 'unrecognized/1' },
+    {
+      ...source,
+      data: { ...source.data, documents: [{ handle: 'opaque', text: '(source)' }] },
+    },
+    {
+      ...source,
+      data: { ...source.data, baseRevisions: { ...source.data.baseRevisions, 'data/example.csv': 'not-a-hash' } },
+    },
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const value of malformed) {
+    fetch.mockResolvedValueOnce(reply(value))
+    await expect(new LiveTemplatePreviewClient().sources(firstCase)).rejects.toThrow()
+  }
+})
+
+it('rejects successful preview bodies that would fail when rendering columns, row kinds or row flags', async () => {
+  const request = templateRequest()
+  const malformed = [
+    { columns: [null] },
+    { rows: [{ ...templatePreview(firstCase, request).data.paper.tables[0].rows[0], kind: null }] },
+    { rows: [{ ...templatePreview(firstCase, request).data.paper.tables[0].rows[0], flags: 'not-an-array' }] },
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const tableFields of malformed) {
+    const valid = templatePreview(firstCase, request)
+    fetch.mockResolvedValueOnce(
+      reply({
+        ...valid,
+        data: {
+          ...valid.data,
+          paper: { ...valid.data.paper, tables: [{ ...valid.data.paper.tables[0], ...tableFields }] },
+        },
+      }),
+    )
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow()
+  }
+})
+
+it('rejects malformed engine comparisons before exposing them to the preview renderer', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const original = [
+    ...valid.data.difference.mainline,
+    ...valid.data.difference.changes.flatMap((group) => group.items),
+  ][0]
+  expect(original).toBeDefined()
+  const malformed = [
+    { ...valid.data.difference, mainline: null },
+    { ...valid.data.difference, changes: [{ panel: null, items: [null] }] },
+    { ...valid.data.difference, parameterChanges: [null] },
+    ...[
+      { coord: null },
+      { display: null },
+      { display: { ...original.display, base: {} } },
+      { basePresent: null },
+      { base: 0 },
+      { variant: { map: [[null]] } },
+      { delta: { n: 1 } },
+      { baseSource: {} },
+    ].map((fields) => ({ ...valid.data.difference, mainline: [{ ...original, ...fields }] })),
+  ]
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const difference of malformed) {
+    fetch.mockResolvedValueOnce(reply({ ...valid, data: { ...valid.data, difference } }))
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow(
+      'does not match this draft',
+    )
+  }
+})
+
+it('rejects malformed panel and source-node metadata used by preview navigation', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const fetch = vi.fn()
+  vi.stubGlobal('fetch', fetch)
+  for (const fields of [
+    { panels: [null] },
+    { panels: [{ id: 'panel', title: {} }] },
+    { nodes: { broken: null } },
+    { nodes: { broken: { label: {}, dims: [] } } },
+  ]) {
+    fetch.mockResolvedValueOnce(
+      reply({ ...valid, data: { ...valid.data, structure: { ...valid.data.structure, ...fields } } }),
+    )
+    await expect(new LiveTemplatePreviewClient().preview(firstCase, request)).rejects.toThrow()
+  }
+})
+
+it('preserves exact comparison values, empty display text, zero and false with explicit presence flags', async () => {
+  const request = templateRequest()
+  const valid = templatePreview(firstCase, request)
+  const original = [
+    ...valid.data.difference.mainline,
+    ...valid.data.difference.changes.flatMap((group) => group.items),
+  ][0]
+  const changes = [
+    {
+      ...original,
+      base: { n: '0.000' },
+      variant: false,
+      display: { base: '', variant: null, delta: null },
+      delta: null,
+    },
+    { ...original, base: null, variant: { map: [[{ kw: 'member' }, { n: '9007199254740993.0001' }]] }, delta: null },
+  ]
+  const expected = { ...valid, data: { ...valid.data, difference: { ...valid.data.difference, mainline: changes } } }
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reply(expected)))
+  expect((await new LiveTemplatePreviewClient().preview(firstCase, request)).data.difference).toEqual(
+    expected.data.difference,
+  )
+})
