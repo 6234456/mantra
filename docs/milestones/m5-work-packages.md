@@ -56,7 +56,7 @@ BUSINESS ERROR 仍允许合法输入保存；技术失败不能以旧成功底�
 
 ```sh
 ./gradlew --no-daemon :mantra-cli:installDist :mantra-lsp:installDist :mantra-cli:verifyDocumentationExamples
-./gradlew --no-daemon :mantra-core:dokkaHtml :mantra-render:dokkaHtml :mantra-excel:dokkaHtml :mantra-workbench:dokkaHtml :mantra-server:dokkaHtml :mantra-packages:dokkaHtml
+./gradlew --no-daemon :mantra-core:dokkaGenerateHtml :mantra-render:dokkaGenerateHtml :mantra-excel:dokkaGenerateHtml :mantra-workbench:dokkaGenerateHtml :mantra-server:dokkaGenerateHtml :mantra-packages:dokkaGenerateHtml
 mantra-cli/build/install/mantra/bin/mantra catalog > build/mantra-catalog.txt
 python3 -m unittest discover -s docs/site/tests -p 'test_*.py'
 python3 scripts/generate-docs-site.py --require-artifacts --catalog build/mantra-catalog.txt

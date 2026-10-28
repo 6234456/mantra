@@ -49,7 +49,7 @@ class PreparationBoundaryTest(unittest.TestCase):
 
     def installed_gradle(self, temporary):
         home = Path(temporary) / "existing-gradle-cache"
-        executable = home / "wrapper/dists/gradle-9.4.0-bin/installed/gradle-9.4.0/bin/gradle"
+        executable = home / "wrapper/dists/gradle-9.8.1-bin/installed/gradle-9.8.1/bin/gradle"
         executable.parent.mkdir(parents=True)
         executable.touch()
         return home, executable

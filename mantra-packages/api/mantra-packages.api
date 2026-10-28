@@ -512,7 +512,6 @@ public final class com/xqiou/mantra/packages/SchemaVersionMode : java/lang/Enum 
 
 public final class com/xqiou/mantra/packages/SemanticVersion : java/lang/Comparable {
 	public static final field Companion Lcom/xqiou/mantra/packages/SemanticVersion$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/math/BigInteger;Ljava/math/BigInteger;Ljava/math/BigInteger;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun compareTo (Lcom/xqiou/mantra/packages/SemanticVersion;)I
 	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public fun equals (Ljava/lang/Object;)Z
@@ -527,7 +526,6 @@ public final class com/xqiou/mantra/packages/SemanticVersion$Companion {
 
 public final class com/xqiou/mantra/packages/VersionRange {
 	public static final field Companion Lcom/xqiou/mantra/packages/VersionRange$Companion;
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun contains (Lcom/xqiou/mantra/packages/SemanticVersion;)Z
 	public final fun getText ()Ljava/lang/String;
 }

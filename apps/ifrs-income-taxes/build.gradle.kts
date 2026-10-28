@@ -18,7 +18,7 @@ tasks.named<Test>("test") {
     outputs.dir(layout.buildDirectory.dir("out")).withPropertyName("renderedPapers")
 }
 
-val checkDeferredTaxReference by tasks.registering(Exec::class) {
+val checkDeferredTaxReference = tasks.register<Exec>("checkDeferredTaxReference") {
     group = "verification"
     description = "Verifies locked independent deferred-tax Decimal sources and expected values."
     workingDir(projectDir)

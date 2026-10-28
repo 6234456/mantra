@@ -260,7 +260,6 @@ public final class com/xqiou/mantra/core/api/CalculationOptions {
 
 public final class com/xqiou/mantra/core/api/CalculationReader : java/lang/AutoCloseable {
 	public static final field Companion Lcom/xqiou/mantra/core/api/CalculationReader$Companion;
-	public synthetic fun <init> (Lcom/xqiou/mantra/core/view/CalculationView;Lcom/xqiou/mantra/core/engine/RunContext;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun alignGuards (Lcom/xqiou/mantra/core/view/ViewNode;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lcom/xqiou/mantra/core/view/GuardAlignment;
 	public final fun chargeCoordinateVisits (J)V
 	public static synthetic fun chargeCoordinateVisits$default (Lcom/xqiou/mantra/core/api/CalculationReader;JILjava/lang/Object;)V
@@ -615,7 +614,6 @@ public final class com/xqiou/mantra/core/api/CompiledKernelIdentity {
 
 public final class com/xqiou/mantra/core/api/FormulaAuthoring {
 	public static final field Companion Lcom/xqiou/mantra/core/api/FormulaAuthoring$Companion;
-	public synthetic fun <init> (Lcom/xqiou/normein/dsl/authoring/DslAuthoringService;Lcom/xqiou/normein/dsl/authoring/DslAuthoringService;Lkotlin/jvm/functions/Function1;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun check (Ljava/lang/String;)Ljava/util/List;
 	public final fun complete (Ljava/lang/String;I)Lcom/xqiou/normein/dsl/authoring/DslCompletionResult;
 	public final fun hover (Ljava/lang/String;I)Lcom/xqiou/normein/dsl/authoring/DslHover;
@@ -2419,7 +2417,6 @@ public final class com/xqiou/mantra/core/view/CalculationComparison {
 
 public final class com/xqiou/mantra/core/view/CalculationView {
 	public static final field Companion Lcom/xqiou/mantra/core/view/CalculationView$Companion;
-	public synthetic fun <init> (Lcom/xqiou/mantra/core/model/SchemaMeta;Lcom/xqiou/mantra/core/model/CaseData;Lcom/xqiou/mantra/core/structure/SchemaMap;Lcom/xqiou/mantra/core/view/ViewSection;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/Map;Ljava/util/List;Ljava/util/Map;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun alignGuards (Lcom/xqiou/mantra/core/view/ViewNode;Ljava/util/List;Lkotlin/jvm/functions/Function1;)Lcom/xqiou/mantra/core/view/GuardAlignment;
 	public final fun coordinate (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public final fun coordinates (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
