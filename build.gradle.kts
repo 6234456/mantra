@@ -61,6 +61,9 @@ val normeinVersion: String = java.util.Properties().apply {
     file("normein-build.lock").inputStream().use { load(it) }
 }.getProperty("normeinVersion") ?: error("normein-build.lock must declare normeinVersion")
 
+// Published libraries remain consumable by the supported Kotlin 2.2 clients.
+val publishedKotlinStdlibVersion = "2.2.20"
+
 configure(subprojects.filter { it.path != ":apps" }) {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
@@ -224,7 +227,7 @@ configure(subprojects.filter { it.path in abiLibraryPaths }) {
             dependsOn("dokkaGenerateHtml")
             from(libraryProject.layout.buildDirectory.dir("dokka/html"))
         }
-        dependencies { "api"(kotlin("stdlib")) }
+        dependencies { "api"(kotlin("stdlib", publishedKotlinStdlibVersion)) }
         extensions.configure<PublishingExtension> {
             publications.register<MavenPublication>("mavenJava") {
                 from(components["java"])

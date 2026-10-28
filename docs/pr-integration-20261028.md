@@ -20,7 +20,9 @@ function-page assertions and the PR's additional catalog mismatch/internal-helpe
   preparation helper resolves the matching installed 9.8.1 distribution; its regression fixture follows it.
 - Kotlin 2.4.20 enables ABI validation through its current extension and task providers. Module names are
   pinned to their previous values, and language/API metadata remains 2.2 for existing Kotlin consumer
-  compatibility. This does not disable any ABI or binary consumer check.
+  compatibility. Published library POMs also retain stdlib 2.2.20: stdlib 2.4 metadata cannot be read by
+  those clients. The actual build compiler remains 2.4.20; the old consumer fixtures are not upgraded or
+  skipped. This does not disable any ABI or binary consumer check.
 - Dokka 2.2.0 uses `dokkaGenerateHtml`, with the existing `build/dokka/html` publication path pinned for
   docs and Javadoc jars. Source generation still precedes documentation; active instructions are updated.
 - The new ABI dumper omits five synthetic private-constructor bridges that are present in both old and
