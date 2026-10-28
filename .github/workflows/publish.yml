@@ -159,7 +159,7 @@ jobs:
             --output-dir "$RELEASE_OUTPUT_DIR"
       - name: Retain public review evidence
         if: always() && steps.source.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mantra-central-preparation
           path: |
