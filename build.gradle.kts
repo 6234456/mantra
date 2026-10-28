@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension
 
 plugins {
-    kotlin("jvm") version "2.2.20" apply false
+    kotlin("jvm") version "2.4.20" apply false
     id("com.diffplug.spotless") version "8.10.3"
     id("org.jetbrains.dokka") version "2.0.0" apply false
 }
