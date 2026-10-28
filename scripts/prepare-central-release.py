@@ -134,9 +134,9 @@ def prepare(root: Path, version: str, commit: str, fingerprint: str, output: Pat
     # Resolve an already installed distribution before allocating a task home.
     # The signing build must not register a secret-bearing daemon in ~/.gradle.
     gradle_home = Path(clean_environment.get("GRADLE_USER_HOME", str(Path.home() / ".gradle")))
-    candidates = list(gradle_home.glob("wrapper/dists/gradle-9.4.0-bin/*/gradle-9.4.0/bin/gradle"))
+    candidates = list(gradle_home.glob("wrapper/dists/gradle-9.8.1-bin/*/gradle-9.8.1/bin/gradle"))
     if len(candidates) != 1 or not candidates[0].is_file():
-        raise ValueError("One already installed Gradle 9.4.0 executable is required")
+        raise ValueError("One already installed Gradle 9.8.1 executable is required")
     gradle = candidates[0].resolve()
     output.mkdir(parents=True, exist_ok=False)
     log = output / "preparation.log"

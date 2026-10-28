@@ -119,11 +119,11 @@ jobs:
                   output.write("RELEASE_CI_RECEIPT=" + str(location) + "\n")
           PY
           python3 "$RUNNER_TEMP/mantra-central-source-gate.py"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.sourceCommit }}
           persist-credentials: false
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -159,7 +159,7 @@ jobs:
             --output-dir "$RELEASE_OUTPUT_DIR"
       - name: Retain public review evidence
         if: always() && steps.source.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mantra-central-preparation
           path: |

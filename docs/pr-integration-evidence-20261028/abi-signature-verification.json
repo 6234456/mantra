@@ -1,0 +1,50 @@
+[
+  {
+    "module": "mantra-core",
+    "publicClasses": 213,
+    "signatureRecords": 5241,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "e5520abacafbe1041fb9ad868290e999177dff04538328a22123897b78bf9259",
+    "rawJavapOnlyOrderChanged": false
+  },
+  {
+    "module": "mantra-render",
+    "publicClasses": 65,
+    "signatureRecords": 1437,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "983928704f5b4b08f0d6477f63b71e31d461bb1bbb17dec5bb49c2bfb815a68a",
+    "rawJavapOnlyOrderChanged": true
+  },
+  {
+    "module": "mantra-excel",
+    "publicClasses": 39,
+    "signatureRecords": 847,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "93fb14d7db450a93305669ee3a4f7831b229c5f8f67011a789e9716b7a00a6c7",
+    "rawJavapOnlyOrderChanged": false
+  },
+  {
+    "module": "mantra-workbench",
+    "publicClasses": 61,
+    "signatureRecords": 1477,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "2802c5168bd9749bdadb1319c14427f00d4baca17be5ed70643dbf75a6f2994e",
+    "rawJavapOnlyOrderChanged": true
+  },
+  {
+    "module": "mantra-server",
+    "publicClasses": 2,
+    "signatureRecords": 20,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "95760ce45bc41469c1a2e011323ca5e214517e8bf061186a7403764a393ea565",
+    "rawJavapOnlyOrderChanged": false
+  },
+  {
+    "module": "mantra-packages",
+    "publicClasses": 51,
+    "signatureRecords": 845,
+    "beforeAfterSignaturesEqual": true,
+    "normalizedSignaturesSha256": "bd6f230efa149b9fc0328078cf5a3b15b7fcabd6b32d7c64bbb04ac7d8597182",
+    "rawJavapOnlyOrderChanged": false
+  }
+]

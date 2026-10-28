@@ -50,6 +50,12 @@ nonblank-line file limit and 120-column code limit (long string and template lit
 Parameters and variables intentionally unused by fixture adapters use an underscore prefix.
 The root `./gradlew check` also runs these frontend checks, so install `npm ci` before invoking it.
 
+The compiler is TypeScript **7.0.2**, installed as the pinned `typescript-compiler` npm alias.
+The build and typecheck scripts invoke its explicit entry point, so npm executable-link order cannot
+select the wrong compiler. ESLint currently supports TypeScript below 6.1; its parser keeps the separate
+`typescript` 5.9.3 dependency. This is an ordinary peer-compatible install, without `--force` or
+`--legacy-peer-deps`. Run `node node_modules/typescript-compiler/bin/tsc --version` to inspect the compiler.
+
 `npm test` exercises the React fixture adapter in jsdom, including business findings, input-cell navigation, package capabilities and weighted-ratio provenance. `npm run test:e2e` starts Vite and the already-installed system Chrome with a separate task-specific temporary profile, then runs 13 flows across all ten applications, checking overview → panel → addressed Paper cell → export → worksheet. It stops both processes and removes the profile on success or failure. Set `MANTRA_TEST_CHROME` to another installed Chrome-compatible executable if needed; the script never downloads a browser.
 
 For the server, use `VITE_WORKBENCH_MODE=live npm run dev`. Vite proxies `/api` to `http://127.0.0.1:8080`; set the server to that port or adjust the proxy. A production build for server hosting must also set `VITE_WORKBENCH_MODE=live`. Live mode removes generated fixtures before starting or building, so they are not served with the live UI.

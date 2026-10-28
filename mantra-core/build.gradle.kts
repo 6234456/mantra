@@ -14,7 +14,7 @@ tasks.named<Test>("test") {
 }
 
 val generatedVersionSource = layout.buildDirectory.dir("generated/sources/runtime-version")
-val generateRuntimeVersion by tasks.registering {
+val generateRuntimeVersion = tasks.register("generateRuntimeVersion") {
     val engineVersion = project.version.toString()
     val kernelVersion = project.extra["normeinVersion"].toString()
     inputs.property("mantraVersion", engineVersion)
@@ -37,6 +37,6 @@ val generateRuntimeVersion by tasks.registering {
 kotlin.sourceSets.named("main") { kotlin.srcDir(generatedVersionSource) }
 tasks.named("compileKotlin") { dependsOn(generateRuntimeVersion) }
 // Publication and API documentation read the same generated source as compilation.
-tasks.matching { it.name == "sourcesJar" || it.name == "dokkaHtml" }.configureEach {
+tasks.matching { it.name == "sourcesJar" || it.name.startsWith("dokkaGenerate") }.configureEach {
     dependsOn(generateRuntimeVersion)
 }

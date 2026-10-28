@@ -168,6 +168,7 @@ class RepositoryTest(unittest.TestCase):
     def test_indexes_come_from_real_sources_without_internal_helpers(self):
         catalog = self.metadata["calculation_catalog"]
         self.assertEqual(catalog["semantics"], "2")
+        # Pin every public name while retaining the rendered table-function checks.
         self.assertEqual(set(catalog["functions"]), {
             "alloc/capped", "alloc/pro-rata", "alloc/waterfall",
             "calc/converge", "calc/stepwise",
@@ -190,6 +191,35 @@ class RepositoryTest(unittest.TestCase):
             self.assertEqual(sitegen.digest(ROOT / name), expected)
         self.assertTrue(all(".deps" not in name for name in self.metadata["source_files"]))
 
+    def test_internal_registration_is_excluded_from_function_metadata_and_page(self):
+        site = sitegen.Site(ROOT, self.output)
+        read = site.read
+
+        def with_helper(path):
+            source = read(path)
+            if path.name == "MantraLibrary.kt":
+                source += '\nfunction("mantra-internal/site-test-helper", "Internal helper", signature())\n'
+            return source
+
+        with patch.object(site, "read", side_effect=with_helper):
+            content, catalog = sitegen.functions(site)
+        self.assertEqual(catalog["functions"], self.metadata["calculation_catalog"]["functions"])
+        self.assertNotIn("mantra-internal/site-test-helper", content)
+
+    def test_table_function_reference_mismatches_are_rejected(self):
+        for name in ("table/sum-where", "table/count-where"):
+            with self.subTest(name=name):
+                site = sitegen.Site(ROOT, self.output)
+                read = site.read
+
+                def stale_reference(path):
+                    source = read(path)
+                    return source.replace(name, "table/stale-function") if path.name == "dsl-reference.md" else source
+
+                with patch.object(site, "read", side_effect=stale_reference):
+                    with self.assertRaisesRegex(ValueError, "registrations and DSL function reference disagree"):
+                        sitegen.functions(site)
+
     def test_site_is_offline_and_delivered_api_is_explicit(self):
         for path in self.output.glob("**/*.html"):
             if "downloads" in path.parts or "api" in path.relative_to(self.output).parts:
@@ -205,12 +235,26 @@ class RepositoryTest(unittest.TestCase):
     def test_executable_catalog_comparison_rejects_mismatches(self):
         site = sitegen.Site(ROOT, self.output)
         catalog = Path(self.temporary.name) / "catalog.txt"
-        catalog.write_text("Functions\n" + "\n".join(
-            f"  {name:16} {summary}" for name, summary in self.metadata["calculation_catalog"]["functions"].items()))
+        entries = self.metadata["calculation_catalog"]["functions"]
+
+        def write_catalog(functions):
+            catalog.write_text("Functions\n" + "\n".join(
+                f"  {name:16} {summary}" for name, summary in functions.items()))
+
+        write_catalog(entries)
         self.assertTrue(sitegen.functions(site, catalog)[1]["runtime_catalog_checked"])
-        catalog.write_text("  calc/converge Incorrect summary\n")
-        with self.assertRaisesRegex(ValueError, "catalog differs"):
-            sitegen.functions(site, catalog)
+        mismatches = {
+            "incomplete": {"calc/converge": "Incorrect summary"},
+            "missing sum-where": {name: summary for name, summary in entries.items() if name != "table/sum-where"},
+            "missing count-where": {name: summary for name, summary in entries.items() if name != "table/count-where"},
+            "extra": {**entries, "table/unknown": "Unexpected public function"},
+            "stale summary": {**entries, "table/sum-where": "Incorrect summary"},
+        }
+        for label, functions in mismatches.items():
+            with self.subTest(label=label):
+                write_catalog(functions)
+                with self.assertRaisesRegex(ValueError, "catalog differs"):
+                    sitegen.functions(site, catalog)
 
     def test_stale_diagnostic_directory_cannot_be_generated(self):
         with tempfile.TemporaryDirectory() as temporary:

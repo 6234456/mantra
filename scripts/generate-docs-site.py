@@ -446,7 +446,7 @@ def publish_dokka(site, required):
         if not (source / "index.html").is_file():
             if required:
                 raise ValueError(f"Required compiled KDoc is missing: {source}")
-            content += f"- {module}: generate with `./gradlew :{module}:dokkaHtml`.\n"
+            content += f"- {module}: generate with `./gradlew :{module}:dokkaGenerateHtml`.\n"
             continue
         target = site.output / "api" / module
         shutil.copytree(source, target)

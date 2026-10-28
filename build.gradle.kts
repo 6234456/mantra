@@ -3,13 +3,13 @@
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.plugins.signing.SigningExtension
+import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension
 
 plugins {
-    kotlin("jvm") version "2.2.20" apply false
+    kotlin("jvm") version "2.4.20" apply false
     id("com.diffplug.spotless") version "8.10.3"
-    id("org.jetbrains.dokka") version "2.0.0" apply false
+    id("org.jetbrains.dokka") version "2.2.0" apply false
 }
 
 // Pin formatters so local and CI output stays identical. Normein and build outputs are excluded.
@@ -61,6 +61,9 @@ val normeinVersion: String = java.util.Properties().apply {
     file("normein-build.lock").inputStream().use { load(it) }
 }.getProperty("normeinVersion") ?: error("normein-build.lock must declare normeinVersion")
 
+// Published libraries remain consumable by the supported Kotlin 2.2 clients.
+val publishedKotlinStdlibVersion = "2.2.20"
+
 configure(subprojects.filter { it.path != ":apps" }) {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
@@ -73,6 +76,11 @@ configure(subprojects.filter { it.path != ":apps" }) {
 
     extensions.configure<KotlinJvmProjectExtension> {
         jvmToolchain(21)
+        // Kotlin 2.4 changed its default module name; preserve existing JVM internal names.
+        compilerOptions.moduleName.set(project.name)
+        // Keep published metadata readable by the existing Kotlin 2.2 consumer fixtures.
+        compilerOptions.languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        compilerOptions.apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
         if (project.path.startsWith(":apps:")) {
             sourceSets.named("test") {
                 kotlin.srcDir(rootProject.file("build-support/app-acceptance"))
@@ -84,7 +92,7 @@ configure(subprojects.filter { it.path != ":apps" }) {
 
     dependencies {
         "testImplementation"(kotlin("test"))
-        "testImplementation"("org.junit.jupiter:junit-jupiter:5.10.0")
+        "testImplementation"("org.junit.jupiter:junit-jupiter:6.1.3")
         "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
     }
 
@@ -114,7 +122,7 @@ configure(subprojects.filter { it.path != ":apps" }) {
     }
 }
 
-val checkBoundaries by tasks.registering(Exec::class) {
+val checkBoundaries = tasks.register<Exec>("checkBoundaries") {
     group = "verification"
     description = "Checks public API imports, domain identifiers and one-way application dependencies."
     commandLine("python3", "scripts/check-boundaries.py")
@@ -139,32 +147,32 @@ val checkBoundaries by tasks.registering(Exec::class) {
     }
 }
 
-val checkFrontend by tasks.registering(Exec::class) {
+val checkFrontend = tasks.register<Exec>("checkFrontend") {
     group = "verification"
     description = "Checks frontend formatting, ESLint rules and generated TypeScript contracts (run npm ci first)."
     workingDir = file("workbench-ui")
     commandLine("npm", "run", "check")
 }
 
-val checkSourceSize by tasks.registering(Exec::class) {
+val checkSourceSize = tasks.register<Exec>("checkSourceSize") {
     group = "verification"
     description = "Checks that handwritten Kotlin files stay within 1200 nonblank lines."
     commandLine("python3", "scripts/check-source-size.py")
 }
 
-val checkDiagnostics by tasks.registering(Exec::class) {
+val checkDiagnostics = tasks.register<Exec>("checkDiagnostics") {
     group = "verification"
     description = "Checks that diagnostic codes and their documented categories stay synchronized."
     commandLine("python3", "scripts/check-diagnostics.py")
 }
 
-val checkBuildGates by tasks.registering(Exec::class) {
+val checkBuildGates = tasks.register<Exec>("checkBuildGates") {
     group = "verification"
     description = "Runs regression tests for the architecture and quality gates."
     commandLine("python3", "-m", "unittest", "discover", "-s", "scripts/tests")
 }
 
-val checkTestCounts by tasks.registering(Exec::class) {
+val checkTestCounts = tasks.register<Exec>("checkTestCounts") {
     group = "verification"
     description = "Checks executed-test floors and failures in every module's JUnit reports."
     dependsOn(subprojects.filter { it.path != ":apps" }.map { it.tasks.named("test") })
@@ -195,15 +203,20 @@ val abiLibraryPaths =
     setOf(":mantra-core", ":mantra-render", ":mantra-excel", ":mantra-workbench", ":mantra-server", ":mantra-packages")
 configure(subprojects.filter { it.path in abiLibraryPaths }) {
     val libraryProject = this
-    extensions.getByType<KotlinJvmProjectExtension>().extensions.configure<AbiValidationExtension> {
-        enabled.set(true)
-        legacyDump.referenceDumpDir.set(libraryProject.layout.projectDirectory.dir("api"))
+    val kotlinExtension = extensions.getByType<KotlinJvmProjectExtension>()
+    kotlinExtension.abiValidation {
+        referenceDumpDir.set(libraryProject.layout.projectDirectory.dir("api"))
     }
-    // Explicit for Kotlin 2.2: merely enabling validation does not make check protect the ABI.
-    tasks.named("check") { dependsOn("checkLegacyAbi") }
+    // Keep the ABI task an explicit quality gate across Kotlin plugin versions.
+    tasks.named("check") { dependsOn(kotlinExtension.abiValidation.checkTaskProvider) }
 
     apply(plugin = "maven-publish")
     apply(plugin = "org.jetbrains.dokka")
+    extensions.configure<DokkaExtension> {
+        dokkaPublications.named("html") {
+            outputDirectory.set(libraryProject.layout.buildDirectory.dir("dokka/html"))
+        }
+    }
     plugins.withId("java-library") {
         extensions.configure<JavaPluginExtension> {
             withSourcesJar()
@@ -211,10 +224,10 @@ configure(subprojects.filter { it.path in abiLibraryPaths }) {
         }
         // Kotlin KDoc HTML, not an empty Java-only Javadoc archive.
         tasks.named<Jar>("javadocJar") {
-            dependsOn("dokkaHtml")
-            from(tasks.named("dokkaHtml").map { it.outputs.files })
+            dependsOn("dokkaGenerateHtml")
+            from(libraryProject.layout.buildDirectory.dir("dokka/html"))
         }
-        dependencies { "api"(kotlin("stdlib")) }
+        dependencies { "api"(kotlin("stdlib", publishedKotlinStdlibVersion)) }
         extensions.configure<PublishingExtension> {
             publications.register<MavenPublication>("mavenJava") {
                 from(components["java"])
@@ -272,14 +285,18 @@ configure(subprojects.filter { it.path in abiLibraryPaths }) {
     }
 }
 
-val checkAbiCoverage by tasks.registering(Exec::class) {
+val checkAbiCoverage = tasks.register<Exec>("checkAbiCoverage") {
     group = "verification"
     description = "Checks reviewed full-surface library ABI baselines, including public external types."
-    dependsOn(abiLibraryPaths.map { "$it:checkLegacyAbi" })
+    dependsOn(
+        abiLibraryPaths.map {
+            project(it).extensions.getByType<KotlinJvmProjectExtension>().abiValidation.checkTaskProvider
+        },
+    )
     commandLine("python3", "scripts/check-abi-coverage.py")
 }
 
-val checkAbiCounterexample by tasks.registering(Exec::class) {
+val checkAbiCounterexample = tasks.register<Exec>("checkAbiCounterexample") {
     group = "verification"
     description = "Proves that ABI checks reject a real binary break in unchanged Java/Kotlin consumers."
     commandLine("python3", "scripts/check-abi-counterexample.py", "--gradle", rootProject.file("gradlew").absolutePath)
@@ -294,7 +311,7 @@ tasks.register("stageLibraries") {
     dependsOn(abiLibraryPaths.map { "$it:publishAllPublicationsToLocalStagingRepository" })
 }
 
-val verifyLocalStaging by tasks.registering(Exec::class) {
+val verifyLocalStaging = tasks.register<Exec>("verifyLocalStaging") {
     group = "verification"
     description = "Inspects local Maven binary, sources, API HTML, compile scopes and library-only publication."
     dependsOn("stageLibraries")
@@ -306,7 +323,7 @@ val verifyLocalStaging by tasks.registering(Exec::class) {
     )
 }
 
-val checkCleanConsumer by tasks.registering(Exec::class) {
+val checkCleanConsumer = tasks.register<Exec>("checkCleanConsumer") {
     group = "verification"
     description = "Executes staged Java/Kotlin POM consumers with a fresh Maven Central kernel dependency."
     dependsOn(verifyLocalStaging)
@@ -325,7 +342,7 @@ val checkCleanConsumer by tasks.registering(Exec::class) {
     )
 }
 
-val checkConformance by tasks.registering(Exec::class) {
+val checkConformance = tasks.register<Exec>("checkConformance") {
     group = "verification"
     description = "Executes the independent frozen DSL 1 corpus through a separate process adapter."
     dependsOn(":conformance-adapter:installDist")

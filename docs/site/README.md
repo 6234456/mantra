@@ -30,7 +30,7 @@ The generator reads the current English DSL and diagnostic documentation. The di
 must pass the real repository code-to-directory rule in `scripts/check-diagnostics.py`. Its calculation-function
 directory is extracted from the actual public Mantra registrations, excludes lowering helpers, and
 must match the existing DSL function table. The declaration index identifies actual public Kotlin declarations and links their defining source.
-A separate KDoc page copies real `dokkaHtml` output for all six libraries, including model/read,
+A separate KDoc page copies real `dokkaGenerateHtml` output for all six libraries, including model/read,
 layout and package APIs. The declaration index is not a replacement for KDoc or the full ABI gate.
 `build-manifest.json` records source and copied artifact SHA-256 hashes, extraction metadata and link
 validation counts. Neither timestamps nor invented calculation values enter the output.
@@ -47,7 +47,7 @@ checks, which generate their working papers and workbooks. Generate the actual s
 after the coordinated build, then require all configured showcase HTML/Text/XLSX and KDoc files:
 
 ```sh
-./gradlew --no-daemon :mantra-core:dokkaHtml :mantra-render:dokkaHtml :mantra-excel:dokkaHtml :mantra-workbench:dokkaHtml :mantra-server:dokkaHtml :mantra-packages:dokkaHtml
+./gradlew --no-daemon :mantra-core:dokkaGenerateHtml :mantra-render:dokkaGenerateHtml :mantra-excel:dokkaGenerateHtml :mantra-workbench:dokkaGenerateHtml :mantra-server:dokkaGenerateHtml :mantra-packages:dokkaGenerateHtml
 python3 scripts/generate-docs-site.py --require-artifacts --catalog build/mantra-catalog.txt
 ```
 
