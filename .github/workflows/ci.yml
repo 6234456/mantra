@@ -228,4 +228,4 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Publish verified documentation and examples
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
