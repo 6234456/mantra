@@ -8,6 +8,6 @@ dependencies {
     api(project(":mantra-packages"))
     implementation(project(":mantra-excel"))
     implementation("org.apache.poi:poi-ooxml:5.5.1")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     testImplementation("com.networknt:json-schema-validator:3.0.8")
 }
