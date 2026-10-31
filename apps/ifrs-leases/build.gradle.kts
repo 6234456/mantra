@@ -4,7 +4,7 @@ dependencies {
     testImplementation(project(":mantra-render"))
     testImplementation(project(":mantra-excel"))
     testImplementation(project(":mantra-workbench"))
-    testImplementation("org.apache.poi:poi-ooxml:5.5.1")
+    testImplementation("org.apache.poi:poi-ooxml:6.0.0")
 }
 
 tasks.named<Test>("test") {
