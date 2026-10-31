@@ -4,5 +4,5 @@ plugins {
 
 dependencies {
     api(project(":mantra-core"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
 }
